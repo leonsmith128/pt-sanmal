@@ -168,12 +168,17 @@ class AdminLeaveRequestController extends Controller
         $month = $request->query('month', now()->format('Y-m'));
         validator(['month' => $month], ['month' => ['required', 'date_format:Y-m']])->validate();
 
-        $start = Carbon::createFromFormat('Y-m', $month)->startOfMonth();
+        $start = Carbon::parse($month.'-01')->startOfMonth();
         $end = $start->copy()->endOfMonth();
         $employees = Employee::query()->with('user')->orderBy('id')->get();
 
         return response()->streamDownload(function () use ($employees, $start, $end, $statusService): void {
             $out = fopen('php://output', 'w');
+
+            if ($out === false) {
+                return;
+            }
+
             // BOM agar teks UTF-8 terbaca baik di Excel.
             fwrite($out, "\xEF\xBB\xBF");
             fputcsv($out, ['ID Pegawai', 'Nama', 'Tanggal', 'Status', 'Catatan']);
