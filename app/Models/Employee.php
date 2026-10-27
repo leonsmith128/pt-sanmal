@@ -25,9 +25,7 @@ class Employee extends Model
 {
     protected function casts(): array
     {
-        return [
-            'joined_at' => 'date',
-        ];
+        return ['joined_at' => 'date'];
     }
 
     public function user(): BelongsTo
@@ -50,5 +48,20 @@ class Employee extends Model
     public function attendanceRecords(): HasMany
     {
         return $this->hasMany(AttendanceRecord::class);
+    }
+
+    public function leaveRequests(): HasMany
+    {
+        return $this->hasMany(LeaveRequest::class);
+    }
+
+    public function attendanceCorrections(): HasMany
+    {
+        return $this->hasMany(AttendanceCorrection::class);
+    }
+
+    public function dailyStatusCorrections(): HasMany
+    {
+        return $this->hasMany(DailyStatusCorrection::class);
     }
 }
