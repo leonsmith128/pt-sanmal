@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AuditLog;
 use App\Models\LeaveRequest;
 use App\Models\LeaveType;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class LeaveRequestController extends Controller
@@ -78,7 +80,27 @@ class LeaveRequestController extends Controller
         abort_unless($employee && $leaveRequest->employee_id === $employee->id, 404);
         abort_unless($leaveRequest->status === LeaveRequest::STATUS_PENDING, 422, 'Hanya permohonan yang masih menunggu yang dapat dibatalkan.');
 
-        $leaveRequest->update(['status' => LeaveRequest::STATUS_CANCELLED]);
+        DB::transaction(function () use ($request, $leaveRequest): void {
+            $locked = LeaveRequest::query()->whereKey($leaveRequest->id)->lockForUpdate()->firstOrFail();
+
+            if (! $locked->isPending()) {
+                abort(422, 'Hanya permohonan yang masih menunggu yang dapat dibatalkan.');
+            }
+
+            $old = ['status' => $locked->status];
+            $locked->update(['status' => LeaveRequest::STATUS_CANCELLED]);
+
+            AuditLog::create([
+                'user_id' => $request->user()->id,
+                'action' => 'leave.cancelled',
+                'auditable_type' => LeaveRequest::class,
+                'auditable_id' => $locked->id,
+                'old_values' => $old,
+                'new_values' => ['status' => $locked->status],
+                'ip_address' => $request->ip(),
+                'user_agent' => substr((string) $request->userAgent(), 0, 255),
+            ]);
+        });
 
         return redirect()->route('leave-requests.index')
             ->with('status', 'Permohonan berhasil dibatalkan.');
