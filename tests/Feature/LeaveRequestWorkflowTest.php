@@ -1,7 +1,6 @@
 <?php
 
 use App\Enums\UserRole;
-use App\Models\AuditLog;
 use App\Models\DailyStatusCorrection;
 use App\Models\Employee;
 use App\Models\LeaveRequest;
@@ -121,4 +120,27 @@ it('rejects a second decision for a request that is no longer pending', function
     $this->actingAs($admin)->post(route('admin.leave-requests.decide', $leaveRequest), [
         'decision' => 'rejected',
     ])->assertStatus(422);
+});
+
+it('flags different approved leave types that overlap on the same day', function () {
+    $employeeUser = createUserWithRole(UserRole::Employee);
+    $employee = createEmployeeFor($employeeUser);
+    $permission = LeaveType::create(['code' => 'izin', 'name' => 'Izin', 'is_active' => true]);
+    $sick = LeaveType::create(['code' => 'sakit', 'name' => 'Sakit', 'is_active' => true]);
+
+    foreach ([$permission, $sick] as $type) {
+        $employee->leaveRequests()->create([
+            'leave_type_id' => $type->id,
+            'start_date' => '2026-11-10',
+            'end_date' => '2026-11-10',
+            'reason' => 'Permohonan yang disetujui.',
+            'status' => LeaveRequest::STATUS_APPROVED,
+        ]);
+    }
+
+    $daily = app(DailyAttendanceStatusService::class)->forEmployeeDate($employee, '2026-11-10');
+
+    expect($daily['status'])->toBe('needs_review')
+        ->and($daily['needs_review'])->toBeTrue()
+        ->and($daily['reason'])->toContain('jenis status berbeda');
 });
