@@ -1,9 +1,9 @@
 <?php
 
-use App\\Enums\\UserRole;
-use App\\Http\\Controllers\\AttendanceSelfieController;
-use App\\Http\\Middleware\\EnsureUserHasRole;
-use Illuminate\\Support\\Facades\\Route;
+use App\Enums\UserRole;
+use App\Http\Controllers\AttendanceSelfieController;
+use App\Http\Middleware\EnsureUserHasRole;
+use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome')->name('home');
 
