@@ -31,7 +31,7 @@
                         <flux:sidebar.item icon="clipboard-document-list" :href="route('admin.kehadiran')" :current="request()->routeIs('admin.kehadiran')" wire:navigate>
                             {{ __('Kehadiran') }}
                         </flux:sidebar.item>
-                        <flux:sidebar.item icon="calendar-check" :href="route('admin.leave-requests.index')" :current="request()->routeIs('admin.leave-requests.*')" wire:navigate>
+                        <flux:sidebar.item icon="calendar" :href="route('admin.leave-requests.index')" :current="request()->routeIs('admin.leave-requests.*')" wire:navigate>
                             {{ __('Persetujuan Permohonan') }}
                         </flux:sidebar.item>
                         <flux:sidebar.item icon="calendar-days" :href="route('admin.daily-attendance')" :current="request()->routeIs('admin.daily-attendance*')" wire:navigate>
