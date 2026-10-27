@@ -37,6 +37,14 @@ class AdminLeaveRequestController extends Controller
         return view('admin.leave-requests.show', compact('leaveRequest'));
     }
 
+    public function downloadAttachment(LeaveRequest $leaveRequest): StreamedResponse
+    {
+        abort_unless($leaveRequest->attachment_path, 404);
+        abort_unless(Storage::disk('local')->exists($leaveRequest->attachment_path), 404);
+
+        return Storage::disk('local')->download($leaveRequest->attachment_path);
+    }
+
     public function decide(Request $request, LeaveRequest $leaveRequest): RedirectResponse
     {
         $validated = $request->validate([
