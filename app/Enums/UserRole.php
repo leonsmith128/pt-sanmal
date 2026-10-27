@@ -16,10 +16,4 @@ enum UserRole: string
             self::Employee => 'Pegawai',
         };
     }
-
-    /** Hanya admin dan employee yang wajib punya profil pegawai. */
-    public function requiresEmployeeProfile(): bool
-    {
-        return $this !== self::Superadmin;
-    }
 }

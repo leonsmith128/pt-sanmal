@@ -76,6 +76,12 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->role === UserRole::Employee;
     }
 
+    /** Admin atau superadmin: boleh membuka halaman pengelolaan. */
+    public function isManager(): bool
+    {
+        return $this->isAdmin() || $this->isSuperadmin();
+    }
+
     /**
      * Get the user's initials
      */

@@ -15,7 +15,21 @@
                     <flux:sidebar.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
                         {{ __('Dashboard') }}
                     </flux:sidebar.item>
+                    
+                @if (auth()->user()->employee)
+                    <flux:sidebar.item icon="clock" :href="route('attendance')" :current="request()->routeIs('attendance')" wire:navigate>
+                        {{ __('Absensi') }}
+                    </flux:sidebar.item>
+                @endif
                 </flux:sidebar.group>
+
+                @if (auth()->user()->isManager())
+                    <flux:sidebar.group :heading="__('Administrasi')" class="grid">
+                        <flux:sidebar.item icon="clipboard-document-list" :href="route('admin.kehadiran')" :current="request()->routeIs('admin.kehadiran')" wire:navigate>
+                            {{ __('Kehadiran') }}
+                        </flux:sidebar.item>
+                    </flux:sidebar.group>
+                @endif                
             </flux:sidebar.nav>
 
             <flux:spacer />

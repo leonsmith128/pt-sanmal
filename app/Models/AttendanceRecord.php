@@ -3,7 +3,9 @@
 namespace App\Models;
 
 use App\Enums\AttendanceType;
+use App\Enums\SelfieSource;
 use App\Enums\WorkType;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -16,20 +18,20 @@ use Illuminate\Support\Carbon;
  * @property WorkType $work_type
  * @property int|null $location_id
  * @property int|null $project_id
- * @property Carbon $recorded_at  Disimpan UTC
+ * @property Carbon $recorded_at Disimpan UTC
  * @property string $timezone
- * @property Carbon $attendance_date  Tanggal lokal sesuai zona waktu lokasi
+ * @property Carbon $attendance_date Tanggal lokal sesuai zona waktu lokasi
  * @property string|null $latitude
  * @property string|null $longitude
  * @property string|null $accuracy_m
  * @property string|null $selfie_path
+ * @property SelfieSource|null $selfie_source null = data lama
  * @property string|null $notes
  */
-
 #[Fillable([
     'employee_id', 'type', 'work_type', 'location_id', 'project_id',
     'recorded_at', 'timezone', 'attendance_date',
-    'latitude', 'longitude', 'accuracy_m', 'selfie_path', 'notes',
+    'latitude', 'longitude', 'accuracy_m', 'selfie_path', 'selfie_source', 'notes',
 ])]
 class AttendanceRecord extends Model
 {
@@ -43,6 +45,7 @@ class AttendanceRecord extends Model
             'latitude' => 'decimal:7',
             'longitude' => 'decimal:7',
             'accuracy_m' => 'decimal:2',
+            'selfie_source' => SelfieSource::class,
         ];
     }
 
@@ -62,7 +65,7 @@ class AttendanceRecord extends Model
     }
 
     /** Waktu absen dalam zona waktu saat absen dilakukan, untuk tampilan. */
-    public function recordedAtLocal(): Carbon
+    public function recordedAtLocal(): CarbonInterface
     {
         return $this->recorded_at->copy()->setTimezone($this->timezone);
     }
