@@ -53,8 +53,12 @@ class DailyAttendanceStatusService
             ];
         }
 
-        if ($leaveRequests->count() > 1) {
-            return $this->reviewResult($events, $leaveRequests, null, 'Terdapat lebih dari satu permohonan yang disetujui pada tanggal ini.');
+        $leaveStatuses = $leaveRequests->map(
+            fn (LeaveRequest $request) => $this->statusFromLeaveType($request->leaveType?->code, $request->leaveType?->name),
+        )->unique();
+
+        if ($leaveStatuses->count() > 1) {
+            return $this->reviewResult($events, $leaveRequests, null, 'Terdapat permohonan dengan jenis status berbeda yang disetujui pada tanggal ini.');
         }
 
         if ($leaveRequests->isNotEmpty() && $events->isNotEmpty()) {
