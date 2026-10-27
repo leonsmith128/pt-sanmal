@@ -67,7 +67,7 @@ it('turns an approved request into a daily status without creating clock events'
         ->and($daily['needs_review'])->toBeFalse()
         ->and($daily['events'])->toBeEmpty();
 
-    $this->assertDatabaseHas('attendance_records', ['employee_id' => $employee->id] + ['id' => -1]);
+    $this->assertDatabaseMissing('attendance_records', ['employee_id' => $employee->id]);
     $this->assertDatabaseHas('audit_logs', [
         'action' => 'leave.approved',
         'auditable_type' => LeaveRequest::class,
