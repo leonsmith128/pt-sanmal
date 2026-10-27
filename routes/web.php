@@ -1,9 +1,9 @@
 <?php
 
-use App\Enums\UserRole;
-use App\Http\Controllers\AttendanceSelfieController;
-use App\Http\Middleware\EnsureUserHasRole;
-use Illuminate\Support\Facades\Route;
+use App\\Enums\\UserRole;
+use App\\Http\\Controllers\\AttendanceSelfieController;
+use App\\Http\\Middleware\\EnsureUserHasRole;
+use Illuminate\\Support\\Facades\\Route;
 
 Route::view('/', 'welcome')->name('home');
 
@@ -17,6 +17,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
+        Route::livewire('dashboard', 'pages::admin.dashboard')->name('dashboard');
         Route::livewire('kehadiran', 'pages::admin.kehadiran')->name('kehadiran');
         Route::get('kehadiran/{record}/selfie', [AttendanceSelfieController::class, 'show'])->name('attendance.selfie');
     });
