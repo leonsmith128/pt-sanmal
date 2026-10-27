@@ -20,6 +20,9 @@
                     <flux:sidebar.item icon="clock" :href="route('attendance')" :current="request()->routeIs('attendance')" wire:navigate>
                         {{ __('Absensi') }}
                     </flux:sidebar.item>
+                    <flux:sidebar.item icon="calendar" :href="route('leave-requests.index')" :current="request()->routeIs('leave-requests.*')" wire:navigate>
+                        {{ __('Permohonan Izin/Sakit/Cuti') }}
+                    </flux:sidebar.item>
                 @endif
                 </flux:sidebar.group>
 
@@ -27,6 +30,12 @@
                     <flux:sidebar.group :heading="__('Administrasi')" class="grid">
                         <flux:sidebar.item icon="clipboard-document-list" :href="route('admin.kehadiran')" :current="request()->routeIs('admin.kehadiran')" wire:navigate>
                             {{ __('Kehadiran') }}
+                        </flux:sidebar.item>
+                        <flux:sidebar.item icon="calendar-check" :href="route('admin.leave-requests.index')" :current="request()->routeIs('admin.leave-requests.*')" wire:navigate>
+                            {{ __('Persetujuan Permohonan') }}
+                        </flux:sidebar.item>
+                        <flux:sidebar.item icon="calendar-days" :href="route('admin.daily-attendance')" :current="request()->routeIs('admin.daily-attendance*')" wire:navigate>
+                            {{ __('Rekap Absensi Harian') }}
                         </flux:sidebar.item>
                     </flux:sidebar.group>
                 @endif                
