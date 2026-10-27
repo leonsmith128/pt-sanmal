@@ -28,6 +28,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
             Route::get('permohonan', [AdminLeaveRequestController::class, 'index'])->name('leave-requests.index');
             Route::get('permohonan/{leaveRequest}', [AdminLeaveRequestController::class, 'show'])->name('leave-requests.show');
+            Route::get('permohonan/{leaveRequest}/lampiran', [AdminLeaveRequestController::class, 'downloadAttachment'])->name('leave-requests.attachment');
             Route::post('permohonan/{leaveRequest}/keputusan', [AdminLeaveRequestController::class, 'decide'])->name('leave-requests.decide');
 
             Route::get('rekap-harian', [AdminLeaveRequestController::class, 'daily'])->name('daily-attendance');
