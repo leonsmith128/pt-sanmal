@@ -131,7 +131,6 @@ class AdminLeaveRequestController extends Controller
                 $correction->update([
                     'status' => $validated['status'],
                     'reason' => $validated['reason'],
-                    'created_by' => $request->user()->id,
                 ]);
             } else {
                 $correction = DailyStatusCorrection::create([
