@@ -18,7 +18,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     ->name('admin.')
     ->group(function () {
         Route::livewire('kehadiran', 'pages::admin.kehadiran')->name('kehadiran');
-        Route::get('attendance/{record}/selfie', [AttendanceSelfieController::class, 'show'])->name('attendance.selfie');
+        Route::get('kehadiran/{record}/selfie', [AttendanceSelfieController::class, 'show'])->name('attendance.selfie');
     });
 });
 
