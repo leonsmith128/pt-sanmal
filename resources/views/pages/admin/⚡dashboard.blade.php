@@ -94,6 +94,7 @@ new #[Title('Dashboard Admin')] class extends Component {
     {
         $employees = $this->activeEmployees;
         $records = AttendanceRecord::query()
+            ->whereIn('employee_id', $employees->pluck('id'))
             ->whereDate('attendance_date', $this->today())
             ->get(['employee_id', 'type'])
             ->groupBy('employee_id');
@@ -210,11 +211,11 @@ new #[Title('Dashboard Admin')] class extends Component {
                 <span class="mt-2 block text-3xl font-semibold text-sky-950 dark:text-sky-100">{{ $summary['employees'] }}</span>
                 <span class="mt-1 block text-xs text-sky-800/80 dark:text-sky-300/80">Dengan profil pegawai aktif</span>
             </div>
-            <a href="{{ route('admin.kehadiran') }}" class="rounded-2xl border border-violet-200 bg-violet-50 p-4 transition hover:border-violet-400 dark:border-violet-900 dark:bg-violet-950/30">
+            <div class="rounded-2xl border border-violet-200 bg-violet-50 p-4 dark:border-violet-900 dark:bg-violet-950/30">
                 <span class="text-sm font-medium text-violet-800 dark:text-violet-300">Pengajuan menunggu</span>
                 <span class="mt-2 block text-3xl font-semibold text-violet-950 dark:text-violet-100">{{ $summary['pending_leaves'] }}</span>
                 <span class="mt-1 block text-xs text-violet-800/80 dark:text-violet-300/80">Pengajuan izin/sakit/cuti</span>
-            </a>
+            </div>
         </section>
 
         <section class="grid min-w-0 gap-6 xl:grid-cols-[minmax(0,1.5fr)_minmax(18rem,1fr)]">
@@ -293,9 +294,10 @@ new #[Title('Dashboard Admin')] class extends Component {
                 <flux:text class="mt-1 text-sm">Pintasan untuk pekerjaan administrasi.</flux:text>
                 <div class="mt-4 space-y-3">
                     @if ($summary['pending_leaves'] > 0)
-                        <a href="{{ route('admin.kehadiran') }}" class="flex items-center justify-between gap-3 rounded-xl bg-amber-50 p-3 text-sm dark:bg-amber-950/30">
+                        <div class="flex items-center justify-between gap-3 rounded-xl bg-amber-50 p-3 text-sm dark:bg-amber-950/30">
                             <span>Pengajuan izin/sakit/cuti menunggu</span><flux:badge color="amber">{{ $summary['pending_leaves'] }}</flux:badge>
-                        </a>
+                        </div>
+                        <flux:text class="text-xs text-zinc-500">Alur persetujuan akan ditautkan setelah modul pengajuan terintegrasi.</flux:text>
                     @endif
                     <a href="{{ route('admin.kehadiran') }}" class="flex items-center justify-between gap-3 rounded-xl bg-zinc-50 p-3 text-sm hover:bg-zinc-100 dark:bg-zinc-900 dark:hover:bg-zinc-800">
                         <span>Lihat semua catatan absensi</span><flux:icon name="arrow-up-right" variant="micro" />
