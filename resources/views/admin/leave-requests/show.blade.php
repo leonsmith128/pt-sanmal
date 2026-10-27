@@ -13,7 +13,7 @@
             <div><dt class="text-sm text-neutral-500">Periode</dt><dd>{{ $leaveRequest->start_date->format('d/m/Y') }} – {{ $leaveRequest->end_date->format('d/m/Y') }}</dd></div>
             <div><dt class="text-sm text-neutral-500">Dikirim</dt><dd>{{ $leaveRequest->created_at->format('d/m/Y H:i') }}</dd></div>
             <div class="sm:col-span-2"><dt class="text-sm text-neutral-500">Alasan</dt><dd class="whitespace-pre-line">{{ $leaveRequest->reason }}</dd></div>
-            @if ($leaveRequest->attachment_path)<div class="sm:col-span-2"><dt class="text-sm text-neutral-500">Lampiran</dt><dd>File lampiran tersimpan secara privat: {{ basename($leaveRequest->attachment_path) }}</dd></div>@endif
+            @if ($leaveRequest->attachment_path)<div class="sm:col-span-2"><dt class="text-sm text-neutral-500">Lampiran</dt><dd><a class="underline" href="{{ route('admin.leave-requests.attachment', $leaveRequest) }}">Unduh lampiran {{ basename($leaveRequest->attachment_path) }}</a></dd></div>@endif
             @if ($leaveRequest->decision_note)<div class="sm:col-span-2"><dt class="text-sm text-neutral-500">Catatan keputusan</dt><dd>{{ $leaveRequest->decision_note }}</dd></div>@endif
         </dl>
 
