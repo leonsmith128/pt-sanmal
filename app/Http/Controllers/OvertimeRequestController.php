@@ -62,6 +62,10 @@ class OvertimeRequestController extends Controller
                 abort(422, 'Lembur yang sudah dikonfirmasi atau selesai tidak dapat dibatalkan dari halaman pegawai.');
             }
 
+            if ($locked->scheduled_start_at->lte(now())) {
+                abort(422, 'Jadwal lembur sudah tiba. Hubungi admin jika lembur batal atau foto konfirmasi terlupa.');
+            }
+
             $old = ['state' => $locked->state->value];
             $locked->update([
                 'state' => OvertimeState::Cancelled,
