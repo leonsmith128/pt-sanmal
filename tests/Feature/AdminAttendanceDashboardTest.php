@@ -1,8 +1,8 @@
 <?php
 
-use App\\Enums\\UserRole;
-use App\\Models\\Employee;
-use App\\Models\\User;
+use App\Enums\UserRole;
+use App\Models\Employee;
+use App\Models\User;
 
 function dashboardUserWithRole(UserRole $role, bool $withEmployee = false): User
 {

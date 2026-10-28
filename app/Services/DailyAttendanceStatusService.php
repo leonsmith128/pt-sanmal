@@ -7,6 +7,7 @@ use App\Models\DailyStatusCorrection;
 use App\Models\Employee;
 use App\Models\LeaveRequest;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 
 class DailyAttendanceStatusService
 {
@@ -14,7 +15,7 @@ class DailyAttendanceStatusService
      * Rekap harian menggabungkan bukti absensi aktual, permohonan yang disetujui,
      * dan koreksi administratif. Service ini tidak membuat event clock-in/out.
      *
-     * @return array{status:string,label:string,events:\Illuminate\Support\Collection,leaveRequests:\Illuminate\Support\Collection,correction:?DailyStatusCorrection,needs_review:bool,reason:?string}
+     * @return array{status:string,label:string,events:Collection,leaveRequests:Collection,correction:?DailyStatusCorrection,needs_review:bool,reason:?string}
      */
     public function forEmployeeDate(Employee $employee, Carbon|string $date): array
     {
@@ -123,6 +124,7 @@ class DailyAttendanceStatusService
     private function statusFromLeaveType(?string $code, ?string $name): string
     {
         $value = mb_strtolower($code ?: $name ?: '');
+
         return match (true) {
             str_contains($value, 'sakit'), str_contains($value, 'sick') => 'sick',
             str_contains($value, 'cuti'), str_contains($value, 'leave') => 'leave',
