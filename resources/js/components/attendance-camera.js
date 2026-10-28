@@ -323,6 +323,34 @@ export default function attendanceCamera() {
                     canvas.height
                 );
 
+                // Watermark digambar sekali pada hasil capture, bukan setiap frame preview.
+                const padding = Math.max(12, Math.round(canvas.width * 0.025));
+                const lineHeight = Math.max(16, Math.round(canvas.width * 0.035));
+                const name = document.querySelector('[data-attendance-watermark-name]')?.textContent?.trim() || 'Absensi SanMal';
+                const eventLabel = document.querySelector('[data-attendance-watermark-event]')?.textContent?.trim() || 'Foto absensi';
+                const locationText = this.best
+                    ? this.best.latitude.toFixed(5) + ', ' + this.best.longitude.toFixed(5)
+                    : 'Lokasi tidak tersedia';
+                const accuracyText = this.best
+                    ? 'Akurasi ±' + Math.round(this.best.accuracy) + ' m'
+                    : 'Akurasi tidak tersedia';
+                const timestamp = new Intl.DateTimeFormat('id-ID', {
+                    dateStyle: 'medium',
+                    timeStyle: 'short',
+                }).format(new Date());
+                const watermarkHeight = padding * 2 + lineHeight * 4;
+
+                context.fillStyle = 'rgba(0, 0, 0, 0.64)';
+                context.fillRect(0, canvas.height - watermarkHeight, canvas.width, watermarkHeight);
+                context.fillStyle = '#ffffff';
+                context.textBaseline = 'top';
+                context.font = '600 ' + Math.max(14, Math.round(canvas.width * 0.034)) + 'px system-ui, sans-serif';
+                context.fillText(name.slice(0, 64), padding, canvas.height - watermarkHeight + padding);
+                context.font = Math.max(12, Math.round(canvas.width * 0.027)) + 'px system-ui, sans-serif';
+                context.fillText(eventLabel.slice(0, 64) + ' · ' + timestamp, padding, canvas.height - watermarkHeight + padding + lineHeight);
+                context.fillText(locationText, padding, canvas.height - watermarkHeight + padding + lineHeight * 2);
+                context.fillText(accuracyText, padding, canvas.height - watermarkHeight + padding + lineHeight * 3);
+
                 for (const quality of [0.8, 0.7, 0.6, 0.5, 0.4]) {
                     blob = await new Promise((resolve) => {
                         canvas.toBlob(resolve, 'image/jpeg', quality);
