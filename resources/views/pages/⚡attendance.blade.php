@@ -251,7 +251,7 @@ new #[Title('Absensi')] class extends Component {
     }
 }; ?>
 
-<section class="w-full">
+<section class="w-full" wire:poll.30s>
     <div class="mx-auto flex w-full max-w-xl flex-col gap-6">
         <div>
             <flux:heading size="xl" level="1">{{ __('Absensi') }}</flux:heading>
