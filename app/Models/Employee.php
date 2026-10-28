@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
@@ -15,7 +16,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string|null $employee_number
  * @property string|null $phone
  * @property string|null $employment_status
- * @property \Illuminate\Support\Carbon|null $joined_at
+ * @property Carbon|null $joined_at
  * @property-read User $user
  * @property-read Title|null $title
  */
