@@ -299,7 +299,7 @@ new #[Title('Absensi')] class extends Component {
         <div class="grid grid-cols-3 gap-2">
             <div class="rounded-xl border border-neutral-200 p-3 dark:border-neutral-700"><flux:text class="text-xs">{{ __('Masuk') }}</flux:text><flux:heading size="lg">{{ $this->history->firstWhere('type', \\App\\Enums\\AttendanceType::ClockIn)?->recordedAtLocal()->format('H:i') ?? '—' }}</flux:heading></div>
             <div class="rounded-xl border border-neutral-200 p-3 dark:border-neutral-700"><flux:text class="text-xs">{{ __('Pulang') }}</flux:text><flux:heading size="lg">{{ $this->history->lastWhere('type', \\App\\Enums\\AttendanceType::ClockOut)?->recordedAtLocal()->format('H:i') ?? '—' }}</flux:heading></div>
-            <div class="rounded-xl border border-neutral-200 p-3 dark:border-neutral-700"><flux:text class="text-xs">{{ __('Total kerja') }}</flux:text><flux:heading size="sm">—</flux:heading></div>
+            <div class="rounded-xl border border-neutral-200 p-3 dark:border-neutral-700"><flux:text class="text-xs">{{ __('Total kerja') }}</flux:text><flux:heading size="sm">@php $ci = $this->history->first(fn ($r) => $r->type === \\App\\Enums\\AttendanceType::ClockIn); $co = $this->history->last(fn ($r) => $r->type === \\App\\Enums\\AttendanceType::ClockOut); $mins = ($ci && $co) ? max(0, (int) $ci->recorded_at->diffInMinutes($co->recorded_at)) : (($selectedDate === now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString() && $session) ? max(0, (int) $session->recorded_at->diffInMinutes(now())) : null); @endphp @if ($mins !== null) {{ intdiv($mins, 60) }}j {{ $mins % 60 }}m @else — @endif</flux:heading></div>
         </div>
         <div class="grid grid-cols-2 gap-2">
             <div class="rounded-xl border border-neutral-200 p-3 dark:border-neutral-700"><flux:text class="text-xs">{{ __('Status harian') }}</flux:text><div class="mt-2"><flux:badge color="{{ $this->history->contains(fn ($record) => $record->type === \\App\\Enums\\AttendanceType::ClockIn) ? 'green' : 'zinc' }}">{{ $this->history->contains(fn ($record) => $record->type === \\App\\Enums\\AttendanceType::ClockIn) ? __('Hadir') : __('Belum tercatat') }}</flux:badge></div></div>
@@ -307,7 +307,7 @@ new #[Title('Absensi')] class extends Component {
         </div>
 
         {{-- Form absensi --}}
-        <form wire:submit="confirm('{{ $mode }}')" class="flex flex-col gap-5 rounded-xl border border-neutral-200 p-5 dark:border-neutral-700">
+        <form wire:submit="confirm('{{ $mode }}')" class="flex flex-col gap-5 rounded-xl border border-neutral-200 p-5 dark:border-neutral-700 {{ $selectedDate !== now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString() ? 'hidden' : '' }}">
             @if ($mode === 'clock_in')
                 <flux:select wire:model.live="workType" :label="__('Jenis lokasi kerja')">
                     <flux:select.option value="office">{{ __('Kantor') }}</flux:select.option>
