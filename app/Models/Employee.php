@@ -50,6 +50,11 @@ class Employee extends Model
         return $this->hasMany(AttendanceRecord::class);
     }
 
+    public function overtimeRequests(): HasMany
+    {
+        return $this->hasMany(OvertimeRequest::class);
+    }
+
     public function leaveRequests(): HasMany
     {
         return $this->hasMany(LeaveRequest::class);

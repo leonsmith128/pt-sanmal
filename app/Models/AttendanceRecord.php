@@ -9,7 +9,7 @@ use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Carbon;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
  * @property int $id
@@ -18,20 +18,25 @@ use Illuminate\Support\Carbon;
  * @property WorkType $work_type
  * @property int|null $location_id
  * @property int|null $project_id
- * @property Carbon $recorded_at Disimpan UTC
+ * @property \Carbon\Carbon $recorded_at Stored in UTC.
  * @property string $timezone
- * @property Carbon $attendance_date Tanggal lokal sesuai zona waktu lokasi
+ * @property \Carbon\Carbon $attendance_date Local attendance date.
  * @property string|null $latitude
  * @property string|null $longitude
  * @property string|null $accuracy_m
+ * @property string|null $address_snapshot
  * @property string|null $selfie_path
- * @property SelfieSource|null $selfie_source null = data lama
+ * @property SelfieSource|null $selfie_source
  * @property string|null $notes
+ * @property-read Employee $employee
+ * @property-read Location|null $location
+ * @property-read Project|null $project
  */
 #[Fillable([
     'employee_id', 'type', 'work_type', 'location_id', 'project_id',
     'recorded_at', 'timezone', 'attendance_date',
-    'latitude', 'longitude', 'accuracy_m', 'selfie_path', 'selfie_source', 'notes',
+    'latitude', 'longitude', 'accuracy_m', 'address_snapshot',
+    'selfie_path', 'selfie_source', 'notes',
 ])]
 class AttendanceRecord extends Model
 {
@@ -62,6 +67,12 @@ class AttendanceRecord extends Model
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);
+    }
+
+    /** Lembur yang dimulai oleh event ini, jika ada. */
+    public function overtimeStarted(): HasOne
+    {
+        return $this->hasOne(OvertimeRequest::class, 'start_record_id');
     }
 
     /** Waktu absen dalam zona waktu saat absen dilakukan, untuk tampilan. */
