@@ -129,12 +129,12 @@ document.addEventListener('alpine:init', () => {
                         try {
                             const [pos, blob] = await Promise.all([this.getPosition(), this.compress(source, w, h)]);
                             if (! blob) { throw new Error('no-photo'); }
-                            $wire.latitude = pos.coords.latitude;
-                            $wire.longitude = pos.coords.longitude;
-                            $wire.accuracy = pos.coords.accuracy;
-                            $wire.selfieSource = kind;
+                            this.$wire.latitude = pos.coords.latitude;
+                            this.$wire.longitude = pos.coords.longitude;
+                            this.$wire.accuracy = pos.coords.accuracy;
+                            this.$wire.selfieSource = kind;
                             const file = new File([blob], 'selfie.jpg', { type: 'image/jpeg' });
-                            await new Promise((resolve, reject) => $wire.upload('selfie', file, resolve, reject));
+                            await new Promise((resolve, reject) => this.$wire.upload('selfie', file, resolve, reject));
                             this.stop();
                         } catch (e) {
                             if (typeof GeolocationPositionError !== 'undefined' && e instanceof GeolocationPositionError) {
