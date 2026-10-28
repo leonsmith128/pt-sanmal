@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\LeaveRequestStatus;
 use App\Models\AuditLog;
 use App\Models\LeaveRequest;
 use App\Models\LeaveType;
@@ -67,7 +68,7 @@ class LeaveRequestController extends Controller
             'end_date' => $validated['end_date'],
             'reason' => $validated['reason'],
             'attachment_path' => $attachmentPath,
-            'status' => LeaveRequest::STATUS_PENDING,
+            'status' => LeaveRequestStatus::Pending,
         ]);
 
         return redirect()->route('leave-requests.index')
@@ -78,28 +79,24 @@ class LeaveRequestController extends Controller
     {
         $employee = $request->user()->employee;
         abort_unless($employee && $leaveRequest->employee_id === $employee->id, 404);
-        abort_unless($leaveRequest->status === LeaveRequest::STATUS_PENDING, 422, 'Hanya permohonan yang masih menunggu yang dapat dibatalkan.');
+        abort_unless($leaveRequest->isPending(), 422, 'Hanya permohonan yang masih menunggu yang dapat dibatalkan.');
 
-        DB::transaction(function () use ($request, $leaveRequest): void {
+        DB::transaction(function () use ($leaveRequest): void {
             $locked = LeaveRequest::query()->whereKey($leaveRequest->id)->lockForUpdate()->firstOrFail();
 
             if (! $locked->isPending()) {
                 abort(422, 'Hanya permohonan yang masih menunggu yang dapat dibatalkan.');
             }
 
-            $old = ['status' => $locked->status];
-            $locked->update(['status' => LeaveRequest::STATUS_CANCELLED]);
+            $old = ['status' => $locked->status->value];
+            $locked->update(['status' => LeaveRequestStatus::Cancelled]);
 
-            AuditLog::create([
-                'user_id' => $request->user()->id,
-                'action' => 'leave.cancelled',
-                'auditable_type' => LeaveRequest::class,
-                'auditable_id' => $locked->id,
-                'old_values' => $old,
-                'new_values' => ['status' => $locked->status],
-                'ip_address' => $request->ip(),
-                'user_agent' => substr((string) $request->userAgent(), 0, 255),
-            ]);
+            AuditLog::record(
+                auditable: $locked,
+                action: 'leave.cancelled',
+                oldValues: $old,
+                newValues: ['status' => $locked->status->value],
+            );
         });
 
         return redirect()->route('leave-requests.index')

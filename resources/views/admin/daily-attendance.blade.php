@@ -1,52 +1,125 @@
 <x-layouts::app :title="'Rekap Absensi Harian'">
     <div class="mx-auto max-w-7xl space-y-6 p-6">
-        <div class="flex flex-wrap items-start justify-between gap-3">
-            <div><h1 class="text-2xl font-semibold">Rekap Absensi Harian</h1><p class="mt-1 text-sm text-neutral-600">Status cuti, sakit, dan izin dihitung dari permohonan yang disetujui. Tidak ada event absensi palsu yang dibuat.</p></div>
-            <a href="{{ route('admin.leave-requests.index') }}" class="rounded-lg border px-4 py-2 text-sm">Daftar permohonan</a>
+        <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+                <flux:heading size="xl" level="1">{{ __('Rekap Absensi Harian') }}</flux:heading>
+                <flux:text class="mt-1">{{ __('Status cuti, sakit, dan izin dihitung dari permohonan yang disetujui tanpa membuat event absensi sintetis.') }}</flux:text>
+            </div>
+            <flux:button href="{{ route('admin.leave-requests.index') }}" variant="filled" icon="calendar">
+                {{ __('Daftar permohonan') }}
+            </flux:button>
         </div>
-        @if (session('status'))<div class="rounded-lg border border-green-300 bg-green-50 p-3 text-sm text-green-900">{{ session('status') }}</div>@endif
-        @if ($errors->any())<div class="rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-800">{{ $errors->first() }}</div>@endif
-        <div class="flex flex-wrap items-end gap-3">
-            <form method="GET" action="{{ route('admin.daily-attendance') }}" class="flex items-end gap-2"><div><label for="date" class="mb-1 block text-sm">Tanggal rekap</label><input id="date" name="date" type="date" value="{{ $date }}" required class="rounded-lg border p-2"></div><button class="rounded-lg border px-4 py-2">Lihat</button></form>
-            <form method="GET" action="{{ route('admin.daily-attendance.export') }}" class="flex items-end gap-2"><div><label for="month" class="mb-1 block text-sm">Ekspor bulan</label><input id="month" name="month" type="month" value="{{ \Illuminate\Support\Carbon::parse($date)->format('Y-m') }}" required class="rounded-lg border p-2"></div><button class="rounded-lg bg-black px-4 py-2 text-white">Unduh CSV</button></form>
+
+        @if (session('status'))
+            <div class="rounded-xl border border-green-200 bg-green-50 p-4 text-sm text-green-900 dark:border-green-800/60 dark:bg-green-950/40 dark:text-green-300">
+                {{ session('status') }}
+            </div>
+        @endif
+
+        @if ($errors->any())
+            <div class="rounded-xl border border-red-300 bg-red-50 p-4 text-sm text-red-800 dark:border-red-800 dark:bg-red-950/40 dark:text-red-300">
+                {{ $errors->first() }}
+            </div>
+        @endif
+
+        <div class="flex flex-wrap items-end justify-between gap-4 rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-700 dark:bg-zinc-900">
+            <form method="GET" action="{{ route('admin.daily-attendance') }}" class="flex flex-wrap items-end gap-3">
+                <div>
+                    <flux:input type="date" name="date" :label="__('Tanggal rekap')" value="{{ $date }}" required />
+                </div>
+                <flux:button type="submit" variant="primary">{{ __('Lihat') }}</flux:button>
+            </form>
+
+            <form method="GET" action="{{ route('admin.daily-attendance.export') }}" class="flex flex-wrap items-end gap-3">
+                <div>
+                    <flux:input type="month" name="month" :label="__('Ekspor bulan')" value="{{ \Illuminate\Support\Carbon::parse($date)->format('Y-m') }}" required />
+                </div>
+                <flux:button type="submit" variant="filled" icon="arrow-down-tray">{{ __('Unduh CSV') }}</flux:button>
+            </form>
         </div>
+
         <div class="space-y-4">
             @forelse ($rows as $row)
-                <section class="rounded-xl border p-4">
+                @php
+                    $dailyStatusEnum = \App\Enums\DailyAttendanceStatus::tryFrom($row['daily']['status']);
+                    $badgeColor = $dailyStatusEnum?->badgeColor() ?? 'zinc';
+                @endphp
+                <section class="rounded-xl border border-neutral-200 bg-white p-5 dark:border-neutral-700 dark:bg-zinc-900">
                     <div class="flex flex-wrap items-start justify-between gap-3">
-                        <div><h2 class="font-semibold">{{ $row['employee']->user?->name ?? 'Pegawai #'.$row['employee']->id }}</h2><p class="text-sm text-neutral-500">ID Pegawai: {{ $row['employee']->employee_number ?? $row['employee']->id }}</p></div>
-                        <span class="rounded-full border px-3 py-1 text-sm">{{ $row['daily']['label'] }}</span>
+                        <div>
+                            <flux:heading level="2" size="base">
+                                {{ $row['employee']->user?->name ?? 'Pegawai #'.$row['employee']->id }}
+                            </flux:heading>
+                            <flux:text class="text-xs text-zinc-500">
+                                {{ __('ID Pegawai:') }} {{ $row['employee']->employee_number ?? $row['employee']->id }}
+                            </flux:text>
+                        </div>
+                        <flux:badge :color="$badgeColor">
+                            {{ $row['daily']['label'] }}
+                        </flux:badge>
                     </div>
+
                     @if ($row['daily']['events']->isNotEmpty())
                         <div class="mt-3 flex flex-wrap gap-2 text-sm">
                             @foreach ($row['daily']['events'] as $event)
-                                <span class="rounded bg-neutral-100 px-2 py-1">{{ $event->type->label() }}: {{ $event->recordedAtLocal()->format('H:i') }}</span>
+                                <flux:badge size="sm" :color="$event->type === \App\Enums\AttendanceType::ClockIn ? 'green' : 'blue'">
+                                    {{ $event->type->label() }}: {{ $event->recordedAtLocal()->format('H:i') }}
+                                </flux:badge>
                             @endforeach
                         </div>
                     @endif
+
                     @if ($row['daily']['reason'])
-                        <p class="mt-2 text-sm text-amber-800">{{ $row['daily']['reason'] }}</p>
+                        <p class="mt-2 text-sm text-amber-700 dark:text-amber-400">{{ $row['daily']['reason'] }}</p>
                     @endif
+
                     @if ($row['daily']['needs_review'])
-                        <p class="mt-2 text-sm font-medium text-red-700">Perlu koreksi eksplisit oleh admin untuk menyelesaikan konflik.</p>
+                        <div class="mt-3 rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-800 dark:border-red-800 dark:bg-red-950/40 dark:text-red-300">
+                            {{ __('Perlu koreksi eksplisit oleh admin untuk menyelesaikan konflik.') }}
+                        </div>
                     @endif
-                    <details class="mt-3">
-                        <summary class="cursor-pointer text-sm font-medium underline">Koreksi status harian</summary>
-                        <form method="POST" action="{{ route('admin.daily-attendance.correct') }}" class="mt-3 grid gap-3 sm:grid-cols-2">
+
+                    <details class="mt-4 border-t border-neutral-100 pt-3 dark:border-neutral-800">
+                        <summary class="cursor-pointer text-sm font-medium text-blue-600 hover:underline dark:text-blue-400">
+                            {{ __('Koreksi status harian') }}
+                        </summary>
+
+                        <form method="POST" action="{{ route('admin.daily-attendance.correct') }}" class="mt-4 grid gap-4 rounded-lg bg-zinc-50 p-4 sm:grid-cols-2 dark:bg-zinc-800/40">
                             @csrf
                             <input type="hidden" name="employee_id" value="{{ $row['employee']->id }}">
                             <input type="hidden" name="attendance_date" value="{{ $date }}">
-                            <div><label class="mb-1 block text-sm" for="status-{{ $row['employee']->id }}">Status final</label><select id="status-{{ $row['employee']->id }}" name="status" required class="w-full rounded-lg border p-2"><option value="present" @selected($row['daily']['status'] === 'present')>Hadir</option><option value="permission" @selected($row['daily']['status'] === 'permission')>Izin</option><option value="sick" @selected($row['daily']['status'] === 'sick')>Sakit</option><option value="leave" @selected($row['daily']['status'] === 'leave')>Cuti</option><option value="absent" @selected($row['daily']['status'] === 'absent')>Tidak hadir</option></select></div>
-                            <div><label class="mb-1 block text-sm" for="reason-{{ $row['employee']->id }}">Alasan wajib</label><input id="reason-{{ $row['employee']->id }}" name="reason" required minlength="5" maxlength="2000" value="{{ $row['daily']['correction']?->reason }}" class="w-full rounded-lg border p-2" placeholder="Jelaskan alasan koreksi"></div>
-                            <div class="sm:col-span-2"><button type="submit" class="rounded-lg border px-3 py-2 text-sm" onclick="return confirm('Simpan koreksi status? Koreksi akan tercatat di audit log.')">Simpan koreksi</button></div>
+
+                            <div>
+                                <flux:select name="status" :label="__('Status final')" required>
+                                    @foreach (\App\Enums\DailyAttendanceStatus::correctionOptions() as $option)
+                                        <flux:select.option value="{{ $option->value }}" :selected="$row['daily']['status'] === $option->value">
+                                            {{ $option->label() }}
+                                        </flux:select.option>
+                                    @endforeach
+                                </flux:select>
+                            </div>
+
+                            <div>
+                                <flux:input name="reason" :label="__('Alasan wajib')" required minlength="5" maxlength="2000" value="{{ $row['daily']['correction']?->reason }}" placeholder="{{ __('Jelaskan alasan koreksi...') }}" />
+                            </div>
+
+                            <div class="sm:col-span-2 flex items-center justify-between pt-1">
+                                <flux:button type="submit" size="sm" variant="primary">
+                                    {{ __('Simpan koreksi') }}
+                                </flux:button>
+                                @if ($row['daily']['correction'])
+                                    <span class="text-xs text-zinc-500">
+                                        {{ __('Koreksi terakhir dibuat oleh :name.', ['name' => $row['daily']['correction']->createdBy?->name ?? 'admin']) }}
+                                    </span>
+                                @endif
+                            </div>
                         </form>
-                        @if ($row['daily']['correction'])
-                            <p class="mt-2 text-xs text-neutral-500">Koreksi terakhir dibuat oleh {{ $row['daily']['correction']->createdBy?->name ?? 'admin' }}.</p>
-                        @endif
                     </details>
                 </section>
             @empty
-                <p class="rounded-xl border p-8 text-center text-neutral-500">Belum ada data pegawai.</p>
+                <div class="rounded-xl border border-neutral-200 bg-white p-8 text-center text-zinc-500 dark:border-neutral-700 dark:bg-zinc-900">
+                    {{ __('Belum ada data pegawai.') }}
+                </div>
             @endforelse
         </div>
     </div>

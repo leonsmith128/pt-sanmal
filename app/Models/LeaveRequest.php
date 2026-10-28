@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\LeaveRequestStatus;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,8 +11,11 @@ use Illuminate\Support\Carbon;
 class LeaveRequest extends Model
 {
     public const STATUS_PENDING = 'pending';
+
     public const STATUS_APPROVED = 'approved';
+
     public const STATUS_REJECTED = 'rejected';
+
     public const STATUS_CANCELLED = 'cancelled';
 
     protected $fillable = [
@@ -33,6 +37,7 @@ class LeaveRequest extends Model
             'start_date' => 'date',
             'end_date' => 'date',
             'decided_at' => 'datetime',
+            'status' => LeaveRequestStatus::class,
         ];
     }
 
@@ -53,7 +58,7 @@ class LeaveRequest extends Model
 
     public function scopePending(Builder $query): Builder
     {
-        return $query->where('status', self::STATUS_PENDING);
+        return $query->where('status', LeaveRequestStatus::Pending);
     }
 
     public function overlapsDates(Carbon|string $start, Carbon|string $end): bool
@@ -64,6 +69,6 @@ class LeaveRequest extends Model
 
     public function isPending(): bool
     {
-        return $this->status === self::STATUS_PENDING;
+        return $this->status === LeaveRequestStatus::Pending;
     }
 }

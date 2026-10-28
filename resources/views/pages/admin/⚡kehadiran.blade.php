@@ -1,6 +1,7 @@
 <?php
 
 use App\Actions\RecordAttendance;
+use App\Enums\LeaveRequestStatus;
 use App\Models\AttendanceRecord;
 use App\Models\Employee;
 use Carbon\Carbon;
@@ -72,9 +73,9 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
     }
 
     /**
-     * Pegawai aktif yang belum punya catatan absensi pada tanggal tersebut.
-     * Hanya untuk satu hari dan semua pegawai. Belum memperhitungkan izin/cuti
-     * (fiturnya belum ada), jadi labelnya "belum ada absensi", bukan "tidak hadir".
+     * Pegawai aktif yang belum punya catatan absensi pada tanggal tersebut,
+     * serta tidak memiliki permohonan izin/cuti/sakit yang telah disetujui
+     * maupun koreksi status harian.
      */
     #[Computed]
     public function notYetPresent()
@@ -89,6 +90,12 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
             ->with('user:id,name')
             ->whereHas('user', fn ($query) => $query->where('is_active', true))
             ->whereDoesntHave('attendanceRecords', fn ($query) => $query->where('attendance_date', $from))
+            ->whereDoesntHave('leaveRequests', fn ($query) => $query
+                ->where('status', LeaveRequestStatus::Approved)
+                ->whereDate('start_date', '<=', $from)
+                ->whereDate('end_date', '>=', $from)
+            )
+            ->whereDoesntHave('dailyStatusCorrections', fn ($query) => $query->whereDate('attendance_date', $from))
             ->get()
             ->sortBy(fn ($employee) => $employee->user->name)
             ->values();
@@ -125,7 +132,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                         <flux:badge color="amber">{{ $employee->user->name }}</flux:badge>
                     @endforeach
                 </div>
-                <flux:text class="mt-3 text-sm">{{ __('Belum memperhitungkan izin atau cuti.') }}</flux:text>
+                <flux:text class="mt-3 text-sm">{{ __('Tidak mencakup pegawai yang izin/cutinya telah disetujui.') }}</flux:text>
             </div>
         @endif
 

@@ -2,11 +2,14 @@
 
 namespace App\Services;
 
+use App\Enums\DailyAttendanceStatus;
+use App\Enums\LeaveRequestStatus;
 use App\Models\AttendanceRecord;
 use App\Models\DailyStatusCorrection;
 use App\Models\Employee;
 use App\Models\LeaveRequest;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 
 class DailyAttendanceStatusService
 {
@@ -14,37 +17,105 @@ class DailyAttendanceStatusService
      * Rekap harian menggabungkan bukti absensi aktual, permohonan yang disetujui,
      * dan koreksi administratif. Service ini tidak membuat event clock-in/out.
      *
-     * @return array{status:string,label:string,events:\Illuminate\Support\Collection,leaveRequests:\Illuminate\Support\Collection,correction:?DailyStatusCorrection,needs_review:bool,reason:?string}
+     * @return array{status:string,label:string,events:Collection,leaveRequests:Collection,correction:?DailyStatusCorrection,needs_review:bool,reason:?string}
      */
     public function forEmployeeDate(Employee $employee, Carbon|string $date): array
     {
         $day = Carbon::parse($date)->toDateString();
+        $batch = $this->forEmployeesDateRange(collect([$employee]), $day, $day);
 
-        $events = AttendanceRecord::query()
-            ->where('employee_id', $employee->id)
-            ->whereDate('attendance_date', $day)
+        return $batch[$employee->id][$day];
+    }
+
+    /**
+     * Mengambil status harian untuk banyak pegawai dan rentang tanggal sekaligus dalam 3 query tetap (O(1)),
+     * mencegah masalah performa N+1 query.
+     *
+     * @param  Collection<int, Employee>  $employees
+     * @return array<int, array<string, array{status:string,label:string,events:Collection,leaveRequests:Collection,correction:?DailyStatusCorrection,needs_review:bool,reason:?string}>>
+     */
+    public function forEmployeesDateRange(Collection $employees, Carbon|string $startDate, Carbon|string $endDate): array
+    {
+        $start = Carbon::parse($startDate)->toDateString();
+        $end = Carbon::parse($endDate)->toDateString();
+        $employeeIds = $employees->pluck('id')->filter()->all();
+
+        if (empty($employeeIds)) {
+            return [];
+        }
+
+        // Query 1: Ambil semua absensi aktual
+        $eventsByEmployeeAndDate = AttendanceRecord::query()
+            ->whereIn('employee_id', $employeeIds)
+            ->whereDate('attendance_date', '>=', $start)
+            ->whereDate('attendance_date', '<=', $end)
             ->orderBy('recorded_at')
-            ->get();
+            ->get()
+            ->groupBy(fn (AttendanceRecord $r) => $r->employee_id.'_'.$r->attendance_date->format('Y-m-d'));
 
-        $leaveRequests = LeaveRequest::query()
+        // Query 2: Ambil permohonan izin/cuti/sakit yang sudah disetujui
+        $leaveRequestsByEmployee = LeaveRequest::query()
             ->with('leaveType')
-            ->where('employee_id', $employee->id)
-            ->where('status', LeaveRequest::STATUS_APPROVED)
-            ->whereDate('start_date', '<=', $day)
-            ->whereDate('end_date', '>=', $day)
-            ->get();
+            ->whereIn('employee_id', $employeeIds)
+            ->where('status', LeaveRequestStatus::Approved)
+            ->whereDate('start_date', '<=', $end)
+            ->whereDate('end_date', '>=', $start)
+            ->get()
+            ->groupBy('employee_id');
 
-        $correction = DailyStatusCorrection::query()
-            ->where('employee_id', $employee->id)
-            ->whereDate('attendance_date', $day)
-            ->first();
+        // Query 3: Ambil koreksi administratif
+        $correctionsByEmployeeAndDate = DailyStatusCorrection::query()
+            ->whereIn('employee_id', $employeeIds)
+            ->whereDate('attendance_date', '>=', $start)
+            ->whereDate('attendance_date', '<=', $end)
+            ->get()
+            ->keyBy(fn (DailyStatusCorrection $c) => $c->employee_id.'_'.$c->attendance_date->format('Y-m-d'));
 
+        $result = [];
+        $carbonStart = Carbon::parse($start);
+        $carbonEnd = Carbon::parse($end);
+
+        foreach ($employees as $employee) {
+            $result[$employee->id] = [];
+            $employeeLeaves = $leaveRequestsByEmployee->get($employee->id) ?? collect();
+
+            for ($day = $carbonStart->copy(); $day->lte($carbonEnd); $day->addDay()) {
+                $dayStr = $day->toDateString();
+                $key = $employee->id.'_'.$dayStr;
+
+                $events = $eventsByEmployeeAndDate->get($key) ?? collect();
+                $correction = $correctionsByEmployeeAndDate->get($key);
+
+                $relevantLeaves = $employeeLeaves->filter(
+                    fn (LeaveRequest $l) => $l->start_date->toDateString() <= $dayStr && $l->end_date->toDateString() >= $dayStr
+                )->values();
+
+                $result[$employee->id][$dayStr] = $this->resolveStatus($events, $relevantLeaves, $correction);
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Evaluasi aturan bisnis untuk menentukan status akhir satu hari.
+     *
+     * @param  Collection<int, AttendanceRecord>  $events
+     * @param  Collection<int, LeaveRequest>  $leaveRequests
+     * @return array{status:string,label:string,events:Collection,leaveRequests:Collection,correction:?DailyStatusCorrection,needs_review:bool,reason:?string}
+     */
+    public function resolveStatus(Collection $events, Collection $leaveRequests, ?DailyStatusCorrection $correction): array
+    {
         // Koreksi dibuat secara eksplisit oleh admin dan berisi alasan; ini adalah
         // keputusan final untuk hari tersebut, bukan event absensi buatan.
         if ($correction) {
+            $status = $correction->status instanceof DailyAttendanceStatus
+                ? $correction->status
+                : (DailyAttendanceStatus::tryFrom((string) $correction->status) ?? DailyAttendanceStatus::Present);
+
             return [
-                'status' => $correction->status,
-                'label' => $this->label($correction->status),
+                'status' => $status->value,
+                'label' => $status->label(),
                 'events' => $events,
                 'leaveRequests' => $leaveRequests,
                 'correction' => $correction,
@@ -70,8 +141,8 @@ class DailyAttendanceStatusService
             $status = $this->statusFromLeaveType($request->leaveType?->code, $request->leaveType?->name);
 
             return [
-                'status' => $status,
-                'label' => $this->label($status),
+                'status' => $status->value,
+                'label' => $status->label(),
                 'events' => $events,
                 'leaveRequests' => $leaveRequests,
                 'correction' => null,
@@ -81,9 +152,11 @@ class DailyAttendanceStatusService
         }
 
         if ($events->isEmpty()) {
+            $status = DailyAttendanceStatus::NoRecord;
+
             return [
-                'status' => 'no_record',
-                'label' => 'Belum ada data',
+                'status' => $status->value,
+                'label' => $status->label(),
                 'events' => $events,
                 'leaveRequests' => $leaveRequests,
                 'correction' => null,
@@ -94,11 +167,11 @@ class DailyAttendanceStatusService
 
         $hasIn = $events->contains(fn (AttendanceRecord $event) => $event->type->value === 'clock_in');
         $hasOut = $events->contains(fn (AttendanceRecord $event) => $event->type->value === 'clock_out');
-        $status = $hasIn && $hasOut ? 'present' : 'incomplete';
+        $status = $hasIn && $hasOut ? DailyAttendanceStatus::Present : DailyAttendanceStatus::Incomplete;
 
         return [
-            'status' => $status,
-            'label' => $this->label($status),
+            'status' => $status->value,
+            'label' => $status->label(),
             'events' => $events,
             'leaveRequests' => $leaveRequests,
             'correction' => null,
@@ -107,11 +180,11 @@ class DailyAttendanceStatusService
         ];
     }
 
-    private function reviewResult($events, $leaveRequests, ?DailyStatusCorrection $correction, string $reason): array
+    private function reviewResult(Collection $events, Collection $leaveRequests, ?DailyStatusCorrection $correction, string $reason): array
     {
         return [
-            'status' => 'needs_review',
-            'label' => $this->label('needs_review'),
+            'status' => DailyAttendanceStatus::NeedsReview->value,
+            'label' => DailyAttendanceStatus::NeedsReview->label(),
             'events' => $events,
             'leaveRequests' => $leaveRequests,
             'correction' => $correction,
@@ -120,27 +193,23 @@ class DailyAttendanceStatusService
         ];
     }
 
-    private function statusFromLeaveType(?string $code, ?string $name): string
+    private function statusFromLeaveType(?string $code, ?string $name): DailyAttendanceStatus
     {
         $value = mb_strtolower($code ?: $name ?: '');
+
         return match (true) {
-            str_contains($value, 'sakit'), str_contains($value, 'sick') => 'sick',
-            str_contains($value, 'cuti'), str_contains($value, 'leave') => 'leave',
-            default => 'permission',
+            str_contains($value, 'sakit'), str_contains($value, 'sick') => DailyAttendanceStatus::Sick,
+            str_contains($value, 'cuti'), str_contains($value, 'leave') => DailyAttendanceStatus::Leave,
+            default => DailyAttendanceStatus::Permission,
         };
     }
 
-    public function label(string $status): string
+    public function label(DailyAttendanceStatus|string $status): string
     {
-        return match ($status) {
-            'present' => 'Hadir',
-            'incomplete' => 'Absensi belum lengkap',
-            'permission' => 'Izin',
-            'sick' => 'Sakit',
-            'leave' => 'Cuti',
-            'absent' => 'Tidak hadir',
-            'needs_review' => 'Perlu ditinjau',
-            default => 'Belum ada data',
-        };
+        if ($status instanceof DailyAttendanceStatus) {
+            return $status->label();
+        }
+
+        return DailyAttendanceStatus::tryFrom($status)?->label() ?? 'Belum ada data';
     }
 }
