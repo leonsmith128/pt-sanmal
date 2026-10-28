@@ -11,27 +11,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
-/**
- * @property int $id
- * @property int $employee_id
- * @property AttendanceType $type
- * @property WorkType $work_type
- * @property int|null $location_id
- * @property int|null $project_id
- * @property Carbon $recorded_at Disimpan UTC
- * @property string $timezone
- * @property Carbon $attendance_date Tanggal lokal sesuai zona waktu lokasi
- * @property string|null $latitude
- * @property string|null $longitude
- * @property string|null $accuracy_m
- * @property string|null $selfie_path
- * @property SelfieSource|null $selfie_source null = data lama
- * @property string|null $notes
- */
 #[Fillable([
     'employee_id', 'type', 'work_type', 'location_id', 'project_id',
     'recorded_at', 'timezone', 'attendance_date',
-    'latitude', 'longitude', 'accuracy_m', 'selfie_path', 'selfie_source', 'notes',
+    'latitude', 'longitude', 'accuracy_m', 'address_snapshot',
+    'selfie_path', 'selfie_source', 'notes',
 ])]
 class AttendanceRecord extends Model
 {
@@ -62,6 +46,12 @@ class AttendanceRecord extends Model
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);
+    }
+
+    /** Lembur yang dimulai oleh event ini, jika ada. */
+    public function overtimeStarted(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(OvertimeRequest::class, 'start_record_id');
     }
 
     /** Waktu absen dalam zona waktu saat absen dilakukan, untuk tampilan. */

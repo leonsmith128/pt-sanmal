@@ -7,19 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Carbon;
 
-/**
- * @property int $id
- * @property int $user_id
- * @property int|null $title_id
- * @property string|null $employee_number
- * @property string|null $phone
- * @property string|null $employment_status
- * @property Carbon|null $joined_at
- * @property-read User $user
- * @property-read Title|null $title
- */
 #[Fillable(['user_id', 'title_id', 'employee_number', 'phone', 'employment_status', 'joined_at'])]
 class Employee extends Model
 {
@@ -48,6 +36,11 @@ class Employee extends Model
     public function attendanceRecords(): HasMany
     {
         return $this->hasMany(AttendanceRecord::class);
+    }
+
+    public function overtimeRequests(): HasMany
+    {
+        return $this->hasMany(OvertimeRequest::class);
     }
 
     public function leaveRequests(): HasMany

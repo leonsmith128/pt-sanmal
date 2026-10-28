@@ -3,11 +3,13 @@
 namespace App\Actions;
 
 use App\Enums\AttendanceType;
+use App\Enums\OvertimeState;
 use App\Enums\SelfieSource;
 use App\Enums\WorkType;
 use App\Models\AttendanceRecord;
 use App\Models\Employee;
 use App\Models\Location;
+use App\Models\OvertimeRequest;
 use App\Models\Project;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\UploadedFile;
@@ -16,20 +18,15 @@ use Illuminate\Validation\ValidationException;
 
 class RecordAttendance
 {
-    /**
-     * SEMENTARA (belum ada keputusan bisnis): clock-in dianggap "masih terbuka"
-     * selama usianya kurang dari 24 jam. Lewat dari itu dianggap lupa clock-out,
-     * dan pegawai boleh clock-in lagi. Penanganan lupa clock-out lewat koreksi absensi.
-     */
     public const OPEN_SESSION_HOURS = 24;
 
-    /** Dipakai kalau absensi tidak terkait lokasi bertimezone (mis. proyek tanpa lokasi). */
     public const DEFAULT_TIMEZONE = 'Asia/Makassar';
 
-    /** Clock-in terakhir yang belum ditutup clock-out, atau null. */
+    /** Sesi kerja terakhir yang belum ditutup clock-out. Event mulai lembur tidak menutup sesi. */
     public static function openSession(Employee $employee): ?AttendanceRecord
     {
         $latest = $employee->attendanceRecords()
+            ->whereIn('type', [AttendanceType::ClockIn->value, AttendanceType::ClockOut->value])
             ->with(['location', 'project'])
             ->orderByDesc('recorded_at')
             ->orderByDesc('id')
@@ -44,7 +41,6 @@ class RecordAttendance
         return null;
     }
 
-    /** Proyek aktif yang ditugaskan ke pegawai dan masih dalam rentang penugasan. */
     public static function assignableProjects(Employee $employee): Builder
     {
         $today = now(self::DEFAULT_TIMEZONE)->toDateString();
@@ -61,7 +57,6 @@ class RecordAttendance
             ->orderBy('name');
     }
 
-    /** Lokasi kantor yang aktif. */
     public static function officeLocations(): Builder
     {
         return Location::query()->where('type', 'office')->where('is_active', true)->orderBy('name');
@@ -78,15 +73,16 @@ class RecordAttendance
         ?float $accuracy,
         UploadedFile $selfie,
         SelfieSource $selfieSource,
+        ?string $addressSnapshot = null,
     ): AttendanceRecord {
         return DB::transaction(function () use (
             $employee, $type, $workType, $locationId, $projectId,
-            $latitude, $longitude, $accuracy, $selfie, $selfieSource
+            $latitude, $longitude, $accuracy, $selfie, $selfieSource, $addressSnapshot
         ) {
-            // Kunci baris pegawai supaya dua request bersamaan (double tap) tidak lolos bersamaan.
-            Employee::query()->whereKey($employee->id)->lockForUpdate()->first();
+            Employee::query()->whereKey($employee->id)->lockForUpdate()->firstOrFail();
 
             $open = self::openSession($employee);
+            $overtime = null;
 
             if ($type === AttendanceType::ClockIn) {
                 if ($open) {
@@ -94,24 +90,42 @@ class RecordAttendance
                 }
 
                 [$workType, $location, $project] = $this->resolveTarget($employee, $workType, $locationId, $projectId);
-            } else {
+            } elseif ($type === AttendanceType::ClockOut) {
                 if (! $open) {
                     $this->fail('form', 'Tidak ada clock-in yang perlu ditutup. Lakukan clock-in terlebih dahulu.');
                 }
 
-                // Clock-out memakai jenis kerja, lokasi, dan proyek yang sama dengan clock-in.
                 $workType = $open->work_type;
                 $location = $open->location;
                 $project = $open->project;
+
+                $overtime = OvertimeRequest::query()
+                    ->where('employee_id', $employee->id)
+                    ->where('clock_in_record_id', $open->id)
+                    ->whereNotIn('state', [OvertimeState::Completed->value, OvertimeState::Cancelled->value])
+                    ->orderByDesc('scheduled_start_at')
+                    ->lockForUpdate()
+                    ->first();
+
+                if ($overtime && $overtime->scheduled_start_at->lte(now())) {
+                    if ($overtime->start_record_id === null && $overtime->state !== OvertimeState::NeedsReview) {
+                        $this->fail('form', 'Jadwal lembur sudah tiba. Ambil foto Absen Lembur terlebih dahulu sebelum absen pulang.');
+                    }
+
+                    if ($overtime->start_record_id === null && $overtime->state === OvertimeState::NeedsReview) {
+                        // Pengecualian yang diputuskan admin: sesi boleh ditutup tanpa foto lembur.
+                    }
+                }
+            } else {
+                $this->fail('form', 'Jenis event absensi tidak valid untuk proses ini.');
             }
 
             $timezone = $location?->timezone ?? self::DEFAULT_TIMEZONE;
-            $now = now(); // waktu server, UTC; tidak pernah mengambil waktu dari perangkat pegawai
+            $now = now();
 
-            // Disk 'local' = storage/app/private, tidak bisa diakses langsung lewat URL publik.
             $path = $selfie->store('selfies/'.$employee->id.'/'.$now->format('Y/m'), 'local');
 
-            return AttendanceRecord::create([
+            $record = AttendanceRecord::create([
                 'employee_id' => $employee->id,
                 'type' => $type,
                 'work_type' => $workType,
@@ -123,9 +137,27 @@ class RecordAttendance
                 'latitude' => $latitude,
                 'longitude' => $longitude,
                 'accuracy_m' => $accuracy,
+                'address_snapshot' => $addressSnapshot,
                 'selfie_path' => $path,
                 'selfie_source' => $selfieSource,
             ]);
+
+            if ($type === AttendanceType::ClockOut && $overtime) {
+                if ($overtime->start_record_id !== null || $overtime->state === OvertimeState::NeedsReview) {
+                    $overtime->update([
+                        'state' => OvertimeState::Completed,
+                        'clock_out_record_id' => $record->id,
+                        'completed_at' => $now,
+                    ]);
+                } elseif ($overtime->scheduled_start_at->gt($now)) {
+                    $overtime->update([
+                        'state' => OvertimeState::Cancelled,
+                        'cancelled_at' => $now,
+                    ]);
+                }
+            }
+
+            return $record;
         });
     }
 
