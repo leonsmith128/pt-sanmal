@@ -295,48 +295,112 @@ new #[Title('Absensi')] class extends Component {
             $mode = $session ? (($this->overtimeRequest && $this->overtimeRequest->start_record_id === null && $this->overtimeRequest->scheduled_start_at->lte(now()) && $this->overtimeRequest->state !== OvertimeState::NeedsReview) ? 'overtime_start' : 'clock_out') : 'clock_in';
         @endphp
 
-        {{-- Ringkasan waktu dan status harian --}}
-        <div class="grid grid-cols-3 gap-2">
-            <div class="rounded-xl border border-neutral-200 p-3 dark:border-neutral-700"><flux:text class="text-xs">{{ __('Masuk') }}</flux:text><flux:heading size="lg">{{ $this->history->firstWhere('type', \App\Enums\AttendanceType::ClockIn)?->recordedAtLocal()->format('H:i') ?? '—' }}</flux:heading></div>
-            <div class="rounded-xl border border-neutral-200 p-3 dark:border-neutral-700"><flux:text class="text-xs">{{ __('Pulang') }}</flux:text><flux:heading size="lg">{{ $this->history->where('type', \App\Enums\AttendanceType::ClockOut)->last()?->recordedAtLocal()->format('H:i') ?? '—' }}</flux:heading></div>
-            <div class="rounded-xl border border-neutral-200 p-3 dark:border-neutral-700"><flux:text class="text-xs">{{ __('Total kerja') }}</flux:text><flux:heading size="sm">@php $ci = $this->history->first(fn ($r) => $r->type === \App\Enums\AttendanceType::ClockIn); $co = $this->history->last(fn ($r) => $r->type === \App\Enums\AttendanceType::ClockOut); $mins = ($ci && $co) ? max(0, (int) $ci->recorded_at->diffInMinutes($co->recorded_at)) : (($selectedDate === now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString() && $session) ? max(0, (int) $session->recorded_at->diffInMinutes(now())) : null); @endphp @if ($mins !== null) {{ intdiv($mins, 60) }}j {{ $mins % 60 }}m @else — @endif</flux:heading></div>
-        </div>
-        <div class="grid grid-cols-2 gap-2">
-            <div class="rounded-xl border border-neutral-200 p-3 dark:border-neutral-700"><flux:text class="text-xs">{{ __('Status harian') }}</flux:text><div class="mt-2"><flux:badge color="{{ $this->history->contains(fn ($record) => $record->type === \App\Enums\AttendanceType::ClockIn) ? 'green' : 'zinc' }}">{{ $this->history->contains(fn ($record) => $record->type === \App\Enums\AttendanceType::ClockIn) ? __('Hadir') : __('Belum tercatat') }}</flux:badge></div></div>
-            <div class="rounded-xl border border-neutral-200 p-3 dark:border-neutral-700"><flux:text class="text-xs">{{ __('Lembur') }}</flux:text><flux:text class="mt-1 text-sm">{{ $this->selectedDateOvertimeRequest ? $this->selectedDateOvertimeRequest->approval_status->label() : __('Tidak ada') }}</flux:text></div>
+        {{-- Ringkasan waktu kerja --}}
+        @php
+            $clockInRecord = $this->history->firstWhere('type', AttendanceType::ClockIn);
+            $clockOutRecord = $this->history->where('type', AttendanceType::ClockOut)->last();
+            $workedMinutes = ($clockInRecord && $clockOutRecord)
+                ? max(0, (int) $clockInRecord->recorded_at->diffInMinutes($clockOutRecord->recorded_at))
+                : (($selectedDate === now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString() && $session)
+                    ? max(0, (int) $session->recorded_at->diffInMinutes(now(RecordAttendance::DEFAULT_TIMEZONE)))
+                    : null);
+            $attendanceStatus = $clockInRecord ? __('Hadir') : __('Belum absen');
+            $attendanceStatusColor = $clockInRecord ? 'green' : 'zinc';
+            $attendancePlace = $clockInRecord?->project?->name
+                ?? $clockInRecord?->location?->name
+                ?? $session?->project?->name
+                ?? $session?->location?->name;
+            $overtimeForDate = $this->selectedDateOvertimeRequest;
+            $overtimeStatus = $overtimeForDate
+                ? ($overtimeForDate->state === OvertimeState::InProgress
+                    ? 'Berjalan'
+                    : ($overtimeForDate->state === OvertimeState::Completed
+                        ? 'Selesai'
+                        : $overtimeForDate->approval_status->label()))
+                : __('Belum diajukan');
+            $overtimeStatusColor = match (true) {
+                ! $overtimeForDate => 'zinc',
+                $overtimeForDate->approval_status === \App\Enums\OvertimeApprovalStatus::Rejected => 'red',
+                $overtimeForDate->state === OvertimeState::InProgress => 'green',
+                $overtimeForDate->state === OvertimeState::Completed => 'blue',
+                $overtimeForDate->approval_status === \App\Enums\OvertimeApprovalStatus::Approved => 'green',
+                default => 'amber',
+            };
+        @endphp
+
+        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <x-attendance.info-card
+                :title="__('Status kehadiran')"
+                :status="$attendanceStatus"
+                :status-color="$attendanceStatusColor"
+            >
+                <p>{{ Carbon::parse($selectedDate)->translatedFormat('d M Y') }}</p>
+                @if ($attendancePlace)
+                    <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{{ $attendancePlace }}</p>
+                @else
+                    <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{{ __('Lokasi belum tercatat') }}</p>
+                @endif
+                @if ($this->history->isNotEmpty())
+                    <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                        {{ __('Masuk') }}: {{ $clockInRecord?->recordedAtLocal()->format('H:i') ?? '—' }}
+                        <span aria-hidden="true">·</span>
+                        {{ __('Pulang') }}: {{ $clockOutRecord?->recordedAtLocal()->format('H:i') ?? '—' }}
+                    </p>
+                @endif
+            </x-attendance.info-card>
+
+            <x-attendance.info-card
+                :title="__('Lembur')"
+                :status="$overtimeStatus"
+                :status-color="$overtimeStatusColor"
+            >
+                @if ($overtimeForDate)
+                    <p>{{ __('Jadwal') }}: {{ $overtimeForDate->scheduledStartLocal()->format('d M Y, H:i') }}</p>
+                    <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{{ $overtimeForDate->approval_status->label() }}</p>
+                    @if ($overtimeForDate->isAwaitingPhoto())
+                        <p class="mt-2 text-sm text-amber-700 dark:text-amber-300">{{ __('Waktu lembur telah tiba. Ambil foto mulai lembur sebelum absen pulang.') }}</p>
+                    @elseif ($overtimeForDate->isInProgress())
+                        <p class="mt-2 text-sm text-zinc-500 dark:text-zinc-400">{{ __('Lembur sedang berjalan.') }}</p>
+                    @endif
+                    <a href="{{ route('overtime-requests.index') }}" class="mt-3 inline-flex items-center gap-1 text-sm font-medium text-blue-600 underline underline-offset-4 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
+                        {{ __('Detail lembur') }} <span aria-hidden="true">↗</span>
+                    </a>
+                @else
+                    <p class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('Belum ada pengajuan lembur untuk tanggal ini.') }}</p>
+                    @if ($session && $selectedDate === now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString())
+                        <flux:modal.trigger name="request-overtime">
+                            <button type="button" class="mt-3 inline-flex items-center gap-1 text-sm font-medium text-blue-600 underline underline-offset-4 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
+                                {{ __('Ajukan lembur') }} <span aria-hidden="true">↗</span>
+                            </button>
+                        </flux:modal.trigger>
+                    @elseif ($selectedDate === now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString())
+                        <p class="mt-3 text-sm text-zinc-500 dark:text-zinc-400">{{ __('Absen masuk terlebih dahulu untuk mengajukan lembur.') }}</p>
+                    @endif
+                @endif
+            </x-attendance.info-card>
         </div>
 
-        @if ($session)
-            <section class="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
-                <div class="flex items-start justify-between gap-3">
-                    <div>
-                        <flux:heading size="sm">{{ __('Lembur') }}</flux:heading>
-                        <flux:text class="mt-1 text-sm">{{ $this->overtimeRequest ? $this->overtimeRequest->state->label().' · '.$this->overtimeRequest->approval_status->label() : __('Belum ada pengajuan lembur untuk sesi ini.') }}</flux:text>
-                        @if ($this->overtimeRequest)
-                            <flux:text class="mt-1 text-sm">{{ __('Jadwal') }}: {{ $this->overtimeRequest->scheduledStartLocal()->format('d M, H:i') }}</flux:text>
-                        @endif
-                    </div>
-                    @if (! $this->overtimeRequest)
-                        <flux:modal.trigger name="request-overtime">
-                            <flux:button variant="filled" icon="clock">{{ __('Ajukan lembur') }}</flux:button>
-                        </flux:modal.trigger>
+        {{-- Ringkasan jam --}}
+        <div class="grid grid-cols-3 gap-2">
+            <div class="rounded-xl border border-neutral-200 p-3 dark:border-neutral-700">
+                <flux:text class="text-xs">{{ __('Masuk') }}</flux:text>
+                <flux:heading size="lg">{{ $clockInRecord?->recordedAtLocal()->format('H:i') ?? '—' }}</flux:heading>
+            </div>
+            <div class="rounded-xl border border-neutral-200 p-3 dark:border-neutral-700">
+                <flux:text class="text-xs">{{ __('Pulang') }}</flux:text>
+                <flux:heading size="lg">{{ $clockOutRecord?->recordedAtLocal()->format('H:i') ?? '—' }}</flux:heading>
+            </div>
+            <div class="rounded-xl border border-neutral-200 p-3 dark:border-neutral-700">
+                <flux:text class="text-xs">{{ __('Total kerja') }}</flux:text>
+                <flux:heading size="sm">
+                    @if ($workedMinutes !== null)
+                        {{ intdiv($workedMinutes, 60) }}j {{ $workedMinutes % 60 }}m
                     @else
-                        <flux:button href="{{ route('overtime-requests.index') }}" variant="ghost" size="sm">{{ __('Detail') }}</flux:button>
+                        —
                     @endif
-                </div>
-                @if ($this->overtimeRequest?->isAwaitingPhoto())
-                    <div class="mt-3 rounded-xl border border-amber-300 bg-amber-50 p-3 dark:border-amber-800 dark:bg-amber-950/30">
-                        <flux:text class="font-medium">{{ __('Waktu lembur telah tiba') }}</flux:text>
-                        <flux:text class="mt-1 text-sm">{{ __('Ambil foto Absen Lembur. Tombol Absen Pulang akan tersedia setelah foto dikonfirmasi.') }}</flux:text>
-                    </div>
-                @elseif ($this->overtimeRequest?->isInProgress())
-                    <div class="mt-3 rounded-xl border border-blue-200 bg-blue-50 p-3 dark:border-blue-900 dark:bg-blue-950/30">
-                        <flux:text class="font-medium">{{ __('Lembur sedang berjalan') }}</flux:text>
-                        <flux:text class="mt-1 text-sm">{{ __('Foto konfirmasi tersimpan. Anda dapat melanjutkan pekerjaan dan absen pulang setelah selesai.') }}</flux:text>
-                    </div>
-                @endif
-            </section>
-        @endif
+                </flux:heading>
+            </div>
+        </div>
 
         {{-- Form absensi --}}
         <form wire:submit="confirm('{{ $mode }}')" class="flex flex-col gap-5 rounded-xl border border-neutral-200 p-5 dark:border-neutral-700 {{ $selectedDate !== now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString() ? 'hidden' : '' }}">
@@ -379,11 +443,9 @@ new #[Title('Absensi')] class extends Component {
             <div
                 x-data="attendanceCamera()"
                 x-on:livewire:navigating.window="stop()"
+                x-on:attendance-camera-open.window="start()"
                 class="flex flex-col gap-2"
             >
-                <flux:text class="font-medium">{{ __('Foto selfie') }}</flux:text>
-                <flux:text class="text-sm">{{ __('Lokasi GPS akan ikut terambil otomatis saat foto diambil.') }}</flux:text>
-
                 @if ($selfie && $selfie->isPreviewable())
                     <img src="{{ $selfie->temporaryUrl() }}" alt="Pratinjau selfie" class="w-full max-w-xs rounded-lg object-cover" />
                     <div>
@@ -431,13 +493,6 @@ new #[Title('Absensi')] class extends Component {
                         </div>
                     </div>
 
-                    {{-- x-if: tombol dihapus dari halaman (bukan sekadar disembunyikan) saat kamera aktif --}}
-                    <template x-if="! active">
-                        <div>
-                            <flux:button type="button" icon="camera" x-on:click="start()">{{ __('Buka Kamera') }}</flux:button>
-                        </div>
-                    </template>
-
                     <div x-show="fallback && ! active" x-cloak class="rounded-xl bg-zinc-100 p-3 text-sm text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
                         {{ __('Unggah dari galeri tidak tersedia untuk absensi. Izinkan akses kamera atau gunakan perangkat dengan kamera yang berfungsi.') }}
                     </div>
@@ -460,44 +515,27 @@ new #[Title('Absensi')] class extends Component {
             @error('form') <flux:text class="text-red-500">{{ $message }}</flux:text> @enderror
             @error('workType') <flux:text class="text-red-500">{{ $message }}</flux:text> @enderror
 
-            <flux:button
-                type="submit"
-                variant="primary"
-                class="w-full"
-                wire:loading.attr="disabled"
-                wire:target="confirm,submit,selfie"
-            >
-                {{ match ($mode) { 'clock_in' => __('Absen Masuk'), 'overtime_start' => __('Absen Lembur'), default => __('Absen Pulang') } }}
-            </flux:button>
+            <div class="flex items-center gap-2">
+                <flux:button
+                    type="button"
+                    variant="ghost"
+                    icon="camera"
+                    square
+                    aria-label="{{ __('Buka kamera') }}"
+                    title="{{ __('Buka kamera') }}"
+                    x-on:click="$dispatch('attendance-camera-open')"
+                />
+                <flux:button
+                    type="submit"
+                    variant="primary"
+                    class="min-w-0 flex-1"
+                    wire:loading.attr="disabled"
+                    wire:target="confirm,submit,selfie"
+                >
+                    {{ match ($mode) { 'clock_in' => __('Absen Masuk'), 'overtime_start' => __('Absen Lembur'), default => __('Absen Pulang') } }}
+                </flux:button>
+            </div>
         </form>
-
-        {{-- Riwayat --}}
-        <div class="rounded-xl border border-neutral-200 p-5 dark:border-neutral-700">
-            <flux:heading level="2">{{ __('Riwayat') }} · {{ Carbon::parse($selectedDate)->translatedFormat('d F Y') }}</flux:heading>
-
-            @forelse ($this->history as $record)
-                <div class="flex items-center justify-between gap-3 border-b border-neutral-100 py-3 last:border-0 dark:border-neutral-800">
-                    <div>
-                        <flux:text class="font-medium">{{ $record->recordedAtLocal()->format('d M Y, H:i T') }}</flux:text>
-                        <flux:text class="text-sm">
-                            {{ $record->work_type->label() }}
-                            @if ($record->project) &middot; {{ $record->project->name }}
-                            @elseif ($record->location) &middot; {{ $record->location->name }} @endif
-                        </flux:text>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        @if ($record->selfie_source === \App\Enums\SelfieSource::Upload)
-                            <flux:badge color="amber" size="sm">{{ __('Foto unggahan') }}</flux:badge>
-                        @endif
-                        <flux:badge :color="$record->type === \App\Enums\AttendanceType::ClockIn ? 'green' : 'blue'">
-                            {{ $record->type->label() }}
-                        </flux:badge>
-                    </div>
-                </div>
-            @empty
-                <flux:text class="mt-3">{{ __('Belum ada catatan absensi.') }}</flux:text>
-            @endforelse
-        </div>
 
         {{-- Modal konfirmasi sebelum absensi dikirim --}}
         @php
