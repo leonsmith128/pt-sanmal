@@ -20,7 +20,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Halaman pengelolaan: admin dan superadmin saja.
     Route::middleware(EnsureUserHasRole::using(UserRole::Admin, UserRole::Superadmin))
-<<<<<<< HEAD
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
@@ -28,7 +27,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::livewire('kehadiran', 'pages::admin.kehadiran')->name('kehadiran');
         Route::get('kehadiran/{record}/selfie', [AttendanceSelfieController::class, 'show'])->name('attendance.selfie');
     });
-=======
+    Route::middleware(EnsureUserHasRole::using(UserRole::Admin, UserRole::Superadmin))
         ->prefix('admin')
         ->name('admin.')
         ->group(function () {
@@ -44,7 +43,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::post('rekap-harian/koreksi', [AdminLeaveRequestController::class, 'correctDailyStatus'])->name('daily-attendance.correct');
             Route::get('rekap-harian/export', [AdminLeaveRequestController::class, 'exportMonth'])->name('daily-attendance.export');
         });
->>>>>>> main
+
 });
 
 Route::fallback(function () {
