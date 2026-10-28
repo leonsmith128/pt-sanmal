@@ -10,6 +10,32 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
+/**
+ * @property int $id
+ * @property int $employee_id
+ * @property int $clock_in_record_id
+ * @property int|null $start_record_id
+ * @property int|null $clock_out_record_id
+ * @property string $reason
+ * @property Carbon $scheduled_start_at Stored in UTC.
+ * @property string $timezone
+ * @property OvertimeState $state
+ * @property OvertimeApprovalStatus $approval_status
+ * @property Carbon|null $photo_confirmed_at
+ * @property Carbon|null $reminder_sent_at
+ * @property Carbon|null $start_due_notified_at
+ * @property Carbon|null $completed_at
+ * @property Carbon|null $cancelled_at
+ * @property int|null $decided_by
+ * @property Carbon|null $decided_at
+ * @property string|null $decision_note
+ * @property string|null $photo_exception_reason
+ * @property-read Employee $employee
+ * @property-read AttendanceRecord $clockInRecord
+ * @property-read AttendanceRecord|null $startRecord
+ * @property-read AttendanceRecord|null $clockOutRecord
+ * @property-read User|null $decidedBy
+ */
 #[Fillable([
     'employee_id', 'clock_in_record_id', 'start_record_id', 'clock_out_record_id',
     'reason', 'scheduled_start_at', 'timezone', 'state', 'approval_status',
