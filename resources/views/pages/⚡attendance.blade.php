@@ -103,7 +103,7 @@ new #[Title('Absensi')] class extends Component {
 
     public function selectDate(string $date): void
     {
-        abort_unless(\Illuminate\\Support\\Carbon::hasFormat($date, 'Y-m-d') && (collect($this->weekDays)->contains(fn ($day) => $day['date'] === $date) || $date === now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString()), 422);
+        abort_unless(Carbon::hasFormat($date, 'Y-m-d') && (collect($this->weekDays)->contains(fn ($day) => $day['date'] === $date) || $date === now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString()), 422);
         $this->selectedDate = $date;
         unset($this->history);
     }
