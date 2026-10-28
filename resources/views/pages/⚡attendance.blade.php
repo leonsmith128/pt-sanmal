@@ -255,8 +255,30 @@ new #[Title('Absensi')] class extends Component {
     <div class="mx-auto flex w-full max-w-xl flex-col gap-6">
         <div>
             <flux:heading size="xl" level="1">{{ __('Absensi') }}</flux:heading>
-            <flux:text class="mt-1">{{ __('Catat kehadiran masuk dan pulang Anda.') }}</flux:text>
+            <flux:text class="mt-1">{{ __('Pantau kehadiran dan catat waktu kerja Anda.') }}</flux:text>
         </div>
+
+        <section class="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
+            <div class="mb-3 flex items-center justify-between gap-3">
+                <div>
+                    <flux:heading size="sm">{{ Carbon::parse($selectedDate)->translatedFormat('F Y') }}</flux:heading>
+                    <flux:text class="text-sm">{{ __('Pilih tanggal untuk melihat riwayat.') }}</flux:text>
+                </div>
+                <div class="flex gap-1">
+                    <flux:button size="sm" variant="ghost" icon="chevron-left" wire:click="shiftWeek(-1)" aria-label="{{ __('Minggu sebelumnya') }}" />
+                    <flux:button size="sm" variant="ghost" icon="chevron-right" wire:click="shiftWeek(1)" aria-label="{{ __('Minggu berikutnya') }}" />
+                    <flux:button size="sm" variant="ghost" wire:click="selectDate('{{ now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString() }}')">{{ __('Hari ini') }}</flux:button>
+                </div>
+            </div>
+            <div class="grid grid-cols-7 gap-1.5">
+                @foreach ($this->weekDays as $day)
+                    <button type="button" wire:click="selectDate('{{ $day['date'] }}')" class="flex min-w-0 flex-col items-center gap-1 rounded-xl px-1 py-2.5 text-sm transition {{ $selectedDate === $day['date'] ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900' : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800' }}">
+                        <span class="text-xs {{ $selectedDate === $day['date'] ? 'opacity-80' : 'text-zinc-500' }}">{{ $day['label'] }}</span>
+                        <span class="flex size-8 items-center justify-center rounded-full {{ $day['today'] && $selectedDate !== $day['date'] ? 'ring-1 ring-zinc-400' : '' }} font-semibold">{{ $day['day'] }}</span>
+                    </button>
+                @endforeach
+            </div>
+        </section>
 
         @php
             $session = $this->openSession;
