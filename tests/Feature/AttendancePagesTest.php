@@ -21,7 +21,7 @@ function userWithRole(UserRole $role, bool $withEmployee = true): User
 
 test('guests are redirected from attendance pages to login', function () {
     $this->get(route('attendance'))->assertRedirect(route('login'));
-    $this->get(route('admin.attendance'))->assertRedirect(route('login'));
+    $this->get(route('admin.kehadiran'))->assertRedirect(route('login'));
 });
 
 test('employees can visit the attendance clock page', function () {
@@ -36,13 +36,13 @@ test('employees can visit the attendance clock page', function () {
 test('employees are forbidden from the admin attendance page', function () {
     $this->actingAs(userWithRole(UserRole::Employee));
 
-    $this->get(route('admin.attendance'))->assertForbidden();
+    $this->get(route('admin.kehadiran'))->assertForbidden();
 });
 
 test('admins can visit the admin attendance page', function () {
     $this->actingAs(userWithRole(UserRole::Admin));
 
-    $this->get(route('admin.attendance'))
+    $this->get(route('admin.kehadiran'))
         ->assertOk()
         ->assertSee(__('Kehadiran Pegawai'));
 });

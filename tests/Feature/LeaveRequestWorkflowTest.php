@@ -94,7 +94,7 @@ it('allows an administrator to correct a daily status when no attendance record 
 
     $this->assertDatabaseHas('daily_status_corrections', [
         'employee_id' => $employee->id,
-        'attendance_date' => '2026-11-06',
+        'attendance_date' => '2026-11-06 00:00:00',
         'status' => 'absent',
         'created_by' => $admin->id,
     ]);
