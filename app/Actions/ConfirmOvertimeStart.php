@@ -27,6 +27,10 @@ class ConfirmOvertimeStart
         UploadedFile $selfie,
         SelfieSource $selfieSource = SelfieSource::Camera,
     ): AttendanceRecord {
+        if ($selfieSource !== SelfieSource::Camera) {
+            $this->fail('selfieSource', 'Foto lembur harus diambil langsung dari kamera.');
+        }
+
         Validator::make([
             'latitude' => $latitude,
             'longitude' => $longitude,
