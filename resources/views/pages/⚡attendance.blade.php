@@ -26,6 +26,9 @@ new #[Title('Absensi')] class extends Component {
     public $accuracy = null;
     public $selfie = null;
     public string $selfieSource = 'camera';
+    public string $selectedDate = '';
+    public string $overtimeReason = '';
+    public string $overtimeStartAt = '';
 
     public function mount(): void
     {
@@ -34,6 +37,7 @@ new #[Title('Absensi')] class extends Component {
         // Superadmin (tanpa profil pegawai) dan akun nonaktif tidak boleh absen.
         abort_unless($user->is_active && $user->employee, 403);
 
+        $this->selectedDate = now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString();
         $this->locationId = $this->officeLocations->first()?->id;
         $this->projectId = $this->projects->first()?->id;
     }
@@ -150,13 +154,13 @@ new #[Title('Absensi')] class extends Component {
         }
 
         $this->reset('latitude', 'longitude', 'accuracy', 'selfie', 'selfieSource');
-        unset($this->openSession, $this->history);
+        unset($this->openSession, $this->history, $this->overtimeRequest);
 
         Flux::modal('confirm-attendance')->close();
 
         Flux::toast(
             variant: 'success',
-            text: $attendanceType === AttendanceType::ClockIn ? 'Absensi masuk tercatat.' : 'Absensi pulang tercatat.',
+            text: match ($attendanceType) { AttendanceType::ClockIn => 'Absensi masuk tercatat.', AttendanceType::OvertimeStart => 'Foto mulai lembur berhasil dikonfirmasi.', default => 'Absensi pulang tercatat.' },
         );
     }
 }; ?>
