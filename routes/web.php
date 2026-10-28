@@ -4,8 +4,8 @@ use App\Enums\UserRole;
 use App\Http\Controllers\AdminLeaveRequestController;
 use App\Http\Controllers\AttendanceSelfieController;
 use App\Http\Controllers\LeaveRequestController;
-use App\Livewire\Pages\Attendance;
 use App\Http\Middleware\EnsureUserHasRole;
+use App\Livewire\Pages\Attendance;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome')->name('home');
