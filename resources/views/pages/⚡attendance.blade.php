@@ -105,7 +105,7 @@ new #[Title('Absensi')] class extends Component {
     {
         abort_unless(Carbon::hasFormat($date, 'Y-m-d') && (collect($this->weekDays)->contains(fn ($day) => $day['date'] === $date) || $date === now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString()), 422);
         $this->selectedDate = $date;
-        unset($this->history);
+        unset($this->history, $this->selectedDateOvertimeRequest);
     }
 
     public function shiftWeek(int $direction): void
@@ -113,7 +113,7 @@ new #[Title('Absensi')] class extends Component {
         abort_unless(in_array($direction, [-1, 1], true), 422);
         $current = Carbon::parse($this->selectedDate ?: now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString());
         $this->selectedDate = $current->addWeeks($direction)->startOfWeek(Carbon::MONDAY)->toDateString();
-        unset($this->weekDays, $this->history);
+        unset($this->weekDays, $this->history, $this->selectedDateOvertimeRequest);
     }
 
     public function requestOvertime(): void
@@ -133,6 +133,16 @@ new #[Title('Absensi')] class extends Component {
         unset($this->overtimeRequest);
         Flux::modal('request-overtime')->close();
         Flux::toast(variant: 'success', text: 'Pengajuan lembur berhasil disimpan.');
+    }
+
+    #[Computed]
+    public function selectedDateOvertimeRequest(): ?OvertimeRequest
+    {
+        return $this->employee->overtimeRequests()
+            ->whereDate('scheduled_start_at', $this->selectedDate)
+            ->whereNotIn('state', [OvertimeState::Cancelled, OvertimeState::Completed])
+            ->latest('scheduled_start_at')
+            ->first();
     }
 
     #[Computed]
@@ -293,7 +303,7 @@ new #[Title('Absensi')] class extends Component {
         </div>
         <div class="grid grid-cols-2 gap-2">
             <div class="rounded-xl border border-neutral-200 p-3 dark:border-neutral-700"><flux:text class="text-xs">{{ __('Status harian') }}</flux:text><div class="mt-2"><flux:badge color="{{ $this->history->contains(fn ($record) => $record->type === \\App\\Enums\\AttendanceType::ClockIn) ? 'green' : 'zinc' }}">{{ $this->history->contains(fn ($record) => $record->type === \\App\\Enums\\AttendanceType::ClockIn) ? __('Hadir') : __('Belum tercatat') }}</flux:badge></div></div>
-            <div class="rounded-xl border border-neutral-200 p-3 dark:border-neutral-700"><flux:text class="text-xs">{{ __('Lembur') }}</flux:text><flux:text class="mt-1 text-sm">{{ $this->overtimeRequest ? $this->overtimeRequest->approval_status->label() : __('Tidak ada') }}</flux:text></div>
+            <div class="rounded-xl border border-neutral-200 p-3 dark:border-neutral-700"><flux:text class="text-xs">{{ __('Lembur') }}</flux:text><flux:text class="mt-1 text-sm">{{ $this->selectedDateOvertimeRequest ? $this->selectedDateOvertimeRequest->approval_status->label() : __('Tidak ada') }}</flux:text></div>
         </div>
 
         {{-- Form absensi --}}
