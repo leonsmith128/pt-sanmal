@@ -103,7 +103,7 @@ new #[Title('Absensi')] class extends Component {
 
     public function selectDate(string $date): void
     {
-        abort_unless(collect($this->weekDays)->contains(fn ($day) => $day['date'] === $date), 422);
+        abort_unless(\Illuminate\\Support\\Carbon::hasFormat($date, 'Y-m-d') && (collect($this->weekDays)->contains(fn ($day) => $day['date'] === $date) || $date === now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString()), 422);
         $this->selectedDate = $date;
         unset($this->history);
     }
@@ -282,7 +282,7 @@ new #[Title('Absensi')] class extends Component {
 
         @php
             $session = $this->openSession;
-            $mode = $session ? (($this->overtimeRequest?->isAwaitingPhoto()) ? 'overtime_start' : 'clock_out') : 'clock_in';
+            $mode = $session ? (($this->overtimeRequest && $this->overtimeRequest->start_record_id === null && $this->overtimeRequest->scheduled_start_at->lte(now()) && $this->overtimeRequest->state !== OvertimeState::NeedsReview) ? 'overtime_start' : 'clock_out') : 'clock_in';
         @endphp
 
         {{-- Status saat ini --}}
