@@ -1,3 +1,4 @@
+
 <?php
 
 use App\Enums\UserRole;
@@ -26,13 +27,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::livewire('dashboard', 'pages::admin.dashboard')->name('dashboard');
             Route::livewire('kehadiran', 'pages::admin.kehadiran')->name('kehadiran');
             Route::get('kehadiran/{record}/selfie', [AttendanceSelfieController::class, 'show'])->name('attendance.selfie');
-        });
-    Route::middleware(EnsureUserHasRole::using(UserRole::Admin, UserRole::Superadmin))
-        ->prefix('admin')
-        ->name('admin.')
-        ->group(function () {
-            Route::livewire('kehadiran', 'pages::admin.kehadiran')->name('kehadiran');
-            Route::get('kehadiran/{record}/selfie', [AttendanceSelfieController::class, 'show'])->name('attendance.selfie');
 
             Route::get('permohonan', [AdminLeaveRequestController::class, 'index'])->name('leave-requests.index');
             Route::get('permohonan/{leaveRequest}', [AdminLeaveRequestController::class, 'show'])->name('leave-requests.show');
@@ -43,7 +37,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::post('rekap-harian/koreksi', [AdminLeaveRequestController::class, 'correctDailyStatus'])->name('daily-attendance.correct');
             Route::get('rekap-harian/export', [AdminLeaveRequestController::class, 'exportMonth'])->name('daily-attendance.export');
         });
-
 });
 
 Route::fallback(function () {
