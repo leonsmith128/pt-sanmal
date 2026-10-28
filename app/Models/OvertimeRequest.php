@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Carbon\CarbonInterface;
 use Illuminate\Support\Carbon;
 
 /**
@@ -101,8 +102,10 @@ class OvertimeRequest extends Model
         return $this->state === OvertimeState::InProgress && $this->photo_confirmed_at !== null;
     }
 
-    public function scheduledStartLocal(): Carbon
+    public function scheduledStartLocal(): CarbonInterface
     {
-        return $this->scheduled_start_at->copy()->setTimezone($this->timezone);
+        return $this->scheduled_start_at
+        ->copy()
+        ->setTimezone($this->timezone);
     }
 }

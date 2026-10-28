@@ -58,7 +58,7 @@
                 </article>
             @empty
                 <div class="rounded-2xl border border-dashed border-zinc-300 p-8 text-center dark:border-zinc-700">
-                    <flux:icon name="clock-3" class="mx-auto size-8 text-zinc-400" />
+                    <flux:icon name="clock" class="mx-auto size-8 text-zinc-400" />
                     <flux:heading size="md" class="mt-3">{{ __('Belum ada pengajuan lembur') }}</flux:heading>
                     <flux:text class="mt-1">{{ __('Pengajuan yang Anda buat akan muncul di sini.') }}</flux:text>
                 </div>
