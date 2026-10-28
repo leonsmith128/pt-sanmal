@@ -9,6 +9,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
+            LeaveTypeSeeder::class,
             SuperadminSeeder::class,
             DevDataSeeder::class, // otomatis dilewati selain di environment local
         ]);
