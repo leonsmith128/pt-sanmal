@@ -240,16 +240,26 @@ new #[Title('Absensi')] class extends Component {
                     </div>
                 @else
                     <div x-show="active" x-cloak class="flex flex-col gap-2">
-                        <video x-ref="video" autoplay playsinline muted class="w-full max-w-xs rounded-lg bg-black" style="transform: scaleX(-1)"></video>
-                        <flux:text class="text-sm">
-                            <span x-show="liveAccuracy === null">{{ __('Mengambil lokasi...') }}</span>
-                            <span x-show="liveAccuracy !== null" x-cloak class="text-green-600 dark:text-green-400">
-                                {{ __('Lokasi terbaca') }} &middot; {{ __('akurasi') }} &plusmn;<span x-text="liveAccuracy"></span> m
-                            </span>
-                        </flux:text>
+                        <video x-ref="video" autoplay playsinline muted ...></video>
+                    
                         <div class="flex gap-2">
-                            <flux:button type="button" variant="primary" icon="camera" x-on:click="capture()" x-bind:disabled="busy">{{ __('Ambil Foto') }}</flux:button>
-                            <flux:button type="button" x-on:click="stop()" x-bind:disabled="busy">{{ __('Tutup Kamera') }}</flux:button>
+                            <flux:button
+                                type="button"
+                                variant="primary"
+                                icon="camera"
+                                x-on:click="capture()"
+                                x-bind:disabled="busy"
+                            >
+                                {{ __('Ambil Foto') }}
+                            </flux:button>
+                        
+                            <flux:button
+                                type="button"
+                                x-on:click="stop()"
+                                x-bind:disabled="busy"
+                            >
+                                {{ __('Tutup Kamera') }}
+                            </flux:button>
                         </div>
                     </div>
 
