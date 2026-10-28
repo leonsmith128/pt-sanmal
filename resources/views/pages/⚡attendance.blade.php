@@ -263,6 +263,23 @@ new #[Title('Absensi')] class extends Component {
 
 <section class="w-full" wire:poll.30s>
     <div class="mx-auto flex w-full max-w-xl flex-col gap-6">
+        {{-- Header pegawai: avatar fallback, identitas, dan pintasan notifikasi --}}
+        <header class="flex items-center gap-3">
+            <div class="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-zinc-100 text-sm font-semibold text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200" aria-hidden="true">
+                {{ str($this->employee->user->name)->squish()->explode(' ')->take(2)->map(fn ($part) => str($part)->substr(0, 1)->upper())->implode('') }}
+            </div>
+            <div class="min-w-0 flex-1">
+                <h1 class="truncate text-base font-semibold text-zinc-900 dark:text-zinc-100">{{ $this->employee->user->name }}</h1>
+                <p class="truncate text-sm text-zinc-500 dark:text-zinc-400">
+                    {{ $this->employee->employee_number ?: __('Kode pegawai belum diatur') }}
+                    <span aria-hidden="true">·</span>
+                    {{ $this->employee->title?->name ?? __('Jabatan belum diatur') }}
+                </p>
+            </div>
+            <button type="button" disabled aria-label="{{ __('Notifikasi akan tersedia') }}" title="{{ __('Notifikasi akan tersedia') }}" class="flex size-10 shrink-0 items-center justify-center rounded-full text-zinc-400 disabled:cursor-not-allowed dark:text-zinc-500">
+                <flux:icon name="bell" variant="outline" class="size-5" />
+            </button>
+        </header>
         <div>
             <flux:heading size="xl" level="1">{{ __('Absensi') }}</flux:heading>
             <flux:text class="mt-1">{{ __('Pantau kehadiran dan catat waktu kerja Anda.') }}</flux:text>
@@ -317,7 +334,7 @@ new #[Title('Absensi')] class extends Component {
                     : ($overtimeForDate->state === OvertimeState::Completed
                         ? 'Selesai'
                         : $overtimeForDate->approval_status->label()))
-                : __('Belum diajukan');
+                : __('Tidak mengajukan');
             $overtimeStatusColor = match (true) {
                 ! $overtimeForDate => 'zinc',
                 $overtimeForDate->approval_status === \App\Enums\OvertimeApprovalStatus::Rejected => 'red',
@@ -328,8 +345,30 @@ new #[Title('Absensi')] class extends Component {
             };
         @endphp
 
-        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <x-attendance.info-card
+        {{-- Ringkasan jam --}}
+        <div class="grid grid-cols-3 gap-2">
+            <div class="rounded-xl border border-neutral-200 p-3 dark:border-neutral-700">
+                <flux:text class="text-xs">{{ __('Masuk') }}</flux:text>
+                <flux:heading size="lg">{{ $clockInRecord?->recordedAtLocal()->format('H:i') ?? '—' }}</flux:heading>
+            </div>
+            <div class="rounded-xl border border-neutral-200 p-3 dark:border-neutral-700">
+                <flux:text class="text-xs">{{ __('Pulang') }}</flux:text>
+                <flux:heading size="lg">{{ $clockOutRecord?->recordedAtLocal()->format('H:i') ?? '—' }}</flux:heading>
+            </div>
+            <div class="rounded-xl border border-neutral-200 p-3 dark:border-neutral-700">
+                <flux:text class="text-xs">{{ __('Total kerja') }}</flux:text>
+                <flux:heading size="sm">
+                    @if ($workedMinutes !== null)
+                        {{ intdiv($workedMinutes, 60) }}j {{ $workedMinutes % 60 }}m
+                    @else
+                        —
+                    @endif
+                </flux:heading>
+            </div>
+        </div>
+
+        <div class="flex flex-wrap items-stretch gap-3">
+            <x-attendance.info-card class="min-w-0 flex-1 basis-64"
                 :title="__('Status kehadiran')"
                 :status="$attendanceStatus"
                 :status-color="$attendanceStatusColor"
@@ -349,7 +388,7 @@ new #[Title('Absensi')] class extends Component {
                 @endif
             </x-attendance.info-card>
 
-            <x-attendance.info-card
+            <x-attendance.info-card class="min-w-0 flex-1 basis-64"
                 :title="__('Lembur')"
                 :status="$overtimeStatus"
                 :status-color="$overtimeStatusColor"
@@ -378,28 +417,6 @@ new #[Title('Absensi')] class extends Component {
                     @endif
                 @endif
             </x-attendance.info-card>
-        </div>
-
-        {{-- Ringkasan jam --}}
-        <div class="grid grid-cols-3 gap-2">
-            <div class="rounded-xl border border-neutral-200 p-3 dark:border-neutral-700">
-                <flux:text class="text-xs">{{ __('Masuk') }}</flux:text>
-                <flux:heading size="lg">{{ $clockInRecord?->recordedAtLocal()->format('H:i') ?? '—' }}</flux:heading>
-            </div>
-            <div class="rounded-xl border border-neutral-200 p-3 dark:border-neutral-700">
-                <flux:text class="text-xs">{{ __('Pulang') }}</flux:text>
-                <flux:heading size="lg">{{ $clockOutRecord?->recordedAtLocal()->format('H:i') ?? '—' }}</flux:heading>
-            </div>
-            <div class="rounded-xl border border-neutral-200 p-3 dark:border-neutral-700">
-                <flux:text class="text-xs">{{ __('Total kerja') }}</flux:text>
-                <flux:heading size="sm">
-                    @if ($workedMinutes !== null)
-                        {{ intdiv($workedMinutes, 60) }}j {{ $workedMinutes % 60 }}m
-                    @else
-                        —
-                    @endif
-                </flux:heading>
-            </div>
         </div>
 
         {{-- Form absensi --}}
@@ -435,8 +452,6 @@ new #[Title('Absensi')] class extends Component {
                 @endif
             @elseif ($mode === 'overtime_start')
                 <flux:text>{{ __('Konfirmasi mulai lembur memerlukan foto dan lokasi terbaru. Sesi kerja utama tetap berjalan.') }}</flux:text>
-            @else
-                <flux:text>{{ __('Absen pulang menggunakan lokasi dan proyek dari sesi kerja ini.') }}</flux:text>
             @endif
 
             {{-- Foto selfie + lokasi: keduanya terambil bersamaan saat tombol Ambil Foto ditekan --}}
@@ -517,15 +532,6 @@ new #[Title('Absensi')] class extends Component {
 
             <div class="flex items-center gap-2">
                 <flux:button
-                    type="button"
-                    variant="ghost"
-                    icon="camera"
-                    square
-                    aria-label="{{ __('Buka kamera') }}"
-                    title="{{ __('Buka kamera') }}"
-                    x-on:click="$dispatch('attendance-camera-open')"
-                />
-                <flux:button
                     type="submit"
                     variant="primary"
                     class="min-w-0 flex-1"
@@ -534,6 +540,15 @@ new #[Title('Absensi')] class extends Component {
                 >
                     {{ match ($mode) { 'clock_in' => __('Absen Masuk'), 'overtime_start' => __('Absen Lembur'), default => __('Absen Pulang') } }}
                 </flux:button>
+                <flux:button
+                    type="button"
+                    variant="ghost"
+                    icon="camera"
+                    square
+                    aria-label="{{ __('Buka kamera') }}"
+                    title="{{ __('Buka kamera') }}"
+                    x-on:click="$dispatch('attendance-camera-open')"
+                />
             </div>
         </form>
 
