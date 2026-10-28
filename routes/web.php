@@ -4,6 +4,7 @@ use App\Enums\UserRole;
 use App\Http\Controllers\AdminLeaveRequestController;
 use App\Http\Controllers\AttendanceSelfieController;
 use App\Http\Controllers\LeaveRequestController;
+use App\Livewire\Pages\Attendance;
 use App\Http\Middleware\EnsureUserHasRole;
 use Illuminate\Support\Facades\Route;
 
@@ -11,7 +12,7 @@ Route::view('/', 'welcome')->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::view('dashboard', 'dashboard')->name('dashboard');
-    Route::livewire('absensi', 'pages::attendance')->name('attendance');
+    Route::livewire('absensi', Attendance::class)->name('attendance');
 
     Route::get('permohonan', [LeaveRequestController::class, 'index'])->name('leave-requests.index');
     Route::get('permohonan/buat', [LeaveRequestController::class, 'create'])->name('leave-requests.create');
