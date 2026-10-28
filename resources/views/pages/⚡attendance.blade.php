@@ -34,9 +34,6 @@ new #[Title('Absensi')] class extends Component {
     public string $selectedDate = '';
     public string $overtimeReason = '';
     public string $overtimeStartAt = '';
-    public string $selectedDate = '';
-    public string $overtimeReason = '';
-    public string $overtimeStartAt = '';
 
     public function mount(): void
     {
@@ -45,7 +42,6 @@ new #[Title('Absensi')] class extends Component {
         // Superadmin (tanpa profil pegawai) dan akun nonaktif tidak boleh absen.
         abort_unless($user->is_active && $user->employee, 403);
 
-        $this->selectedDate = now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString();
         $this->selectedDate = now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString();
         $this->locationId = $this->officeLocations->first()?->id;
         $this->projectId = $this->projects->first()?->id;
@@ -208,18 +204,34 @@ new #[Title('Absensi')] class extends Component {
         try {
             $this->validateInput($attendanceType);
 
-            app(RecordAttendance::class)->handle(
-                employee: $this->employee,
-                type: $attendanceType,
-                workType: WorkType::tryFrom($this->workType),
-                locationId: $this->locationId,
-                projectId: $this->projectId,
-                latitude: (float) $this->latitude,
-                longitude: (float) $this->longitude,
-                accuracy: $this->accuracy !== null ? (float) $this->accuracy : null,
-                selfie: $this->selfie,
-                selfieSource: SelfieSource::from($this->selfieSource),
-            );
+            if ($attendanceType === AttendanceType::OvertimeStart) {
+                $overtime = $this->overtimeRequest;
+                abort_unless($overtime, 422, 'Tidak ada pengajuan lembur aktif.');
+
+                app(ConfirmOvertimeStart::class)->handle(
+                    employee: $this->employee,
+                    overtime: $overtime,
+                    latitude: (float) $this->latitude,
+                    longitude: (float) $this->longitude,
+                    accuracy: $this->accuracy !== null ? (float) $this->accuracy : null,
+                    addressSnapshot: null,
+                    selfie: $this->selfie,
+                    selfieSource: SelfieSource::from($this->selfieSource),
+                );
+            } else {
+                app(RecordAttendance::class)->handle(
+                    employee: $this->employee,
+                    type: $attendanceType,
+                    workType: WorkType::tryFrom($this->workType),
+                    locationId: $this->locationId,
+                    projectId: $this->projectId,
+                    latitude: (float) $this->latitude,
+                    longitude: (float) $this->longitude,
+                    accuracy: $this->accuracy !== null ? (float) $this->accuracy : null,
+                    selfie: $this->selfie,
+                    selfieSource: SelfieSource::from($this->selfieSource),
+                );
+            }
         } catch (ValidationException $e) {
             // Tutup modal supaya pesan error terlihat di formulir.
             Flux::modal('confirm-attendance')->close();
