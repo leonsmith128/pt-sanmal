@@ -18,9 +18,9 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @property WorkType $work_type
  * @property int|null $location_id
  * @property int|null $project_id
- * @property \Illuminate\Support\Carbon $recorded_at Stored in UTC.
+ * @property \Carbon\Carbon $recorded_at Stored in UTC.
  * @property string $timezone
- * @property \Illuminate\Support\Carbon $attendance_date Local attendance date.
+ * @property \Carbon\Carbon $attendance_date Local attendance date.
  * @property string|null $latitude
  * @property string|null $longitude
  * @property string|null $accuracy_m
