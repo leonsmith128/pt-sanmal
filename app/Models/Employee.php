@@ -8,6 +8,17 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property int $id
+ * @property int $user_id
+ * @property int|null $title_id
+ * @property string|null $employee_number
+ * @property string|null $phone
+ * @property string|null $employment_status
+ * @property \Illuminate\Support\Carbon|null $joined_at
+ * @property-read User $user
+ * @property-read Title|null $title
+ */
 #[Fillable(['user_id', 'title_id', 'employee_number', 'phone', 'employment_status', 'joined_at'])]
 class Employee extends Model
 {
