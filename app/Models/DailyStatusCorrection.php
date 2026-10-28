@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\DailyAttendanceStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -17,7 +18,10 @@ class DailyStatusCorrection extends Model
 
     protected function casts(): array
     {
-        return ['attendance_date' => 'date'];
+        return [
+            'attendance_date' => 'date',
+            'status' => DailyAttendanceStatus::class,
+        ];
     }
 
     public function employee(): BelongsTo

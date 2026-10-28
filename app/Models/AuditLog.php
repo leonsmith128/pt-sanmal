@@ -49,4 +49,26 @@ class AuditLog extends Model
     {
         return $this->morphTo();
     }
+
+    /**
+     * Catat log audit baru dengan otomatis mengisi user saat ini, IP address, dan User Agent.
+     */
+    public static function record(
+        Model $auditable,
+        string $action,
+        ?array $oldValues = null,
+        ?array $newValues = null,
+        ?int $userId = null,
+    ): self {
+        return static::create([
+            'user_id' => $userId ?? auth()->id(),
+            'action' => $action,
+            'auditable_type' => $auditable->getMorphClass(),
+            'auditable_id' => $auditable->getKey(),
+            'old_values' => $oldValues,
+            'new_values' => $newValues,
+            'ip_address' => request()->ip(),
+            'user_agent' => substr((string) request()->userAgent(), 0, 255),
+        ]);
+    }
 }

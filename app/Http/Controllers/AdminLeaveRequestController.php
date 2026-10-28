@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\DailyAttendanceStatus;
+use App\Enums\LeaveRequestStatus;
 use App\Models\AuditLog;
 use App\Models\DailyStatusCorrection;
 use App\Models\Employee;
@@ -12,6 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -21,7 +24,7 @@ class AdminLeaveRequestController extends Controller
     {
         $query = LeaveRequest::query()->with(['employee.user', 'leaveType', 'decidedBy']);
 
-        if ($request->filled('status') && in_array($request->string('status')->toString(), ['pending', 'approved', 'rejected', 'cancelled'], true)) {
+        if ($request->filled('status') && LeaveRequestStatus::tryFrom($request->string('status')->toString())) {
             $query->where('status', $request->string('status')->toString());
         }
 
@@ -52,37 +55,41 @@ class AdminLeaveRequestController extends Controller
             'decision_note' => ['nullable', 'string', 'max:2000'],
         ]);
 
-        DB::transaction(function () use ($request, $leaveRequest, $validated): void {
+        $decision = LeaveRequestStatus::from($validated['decision']);
+
+        DB::transaction(function () use ($request, $leaveRequest, $decision, $validated): void {
             $locked = LeaveRequest::query()->whereKey($leaveRequest->id)->lockForUpdate()->firstOrFail();
 
             if (! $locked->isPending()) {
                 abort(422, 'Permohonan sudah diproses dan tidak dapat diputuskan kembali.');
             }
 
-            $old = ['status' => $locked->status, 'decided_by' => $locked->decided_by, 'decided_at' => $locked->decided_at?->toISOString(), 'decision_note' => $locked->decision_note];
+            $old = [
+                'status' => $locked->status->value,
+                'decided_by' => $locked->decided_by,
+                'decided_at' => $locked->decided_at?->toISOString(),
+                'decision_note' => $locked->decision_note,
+            ];
 
             $locked->update([
-                'status' => $validated['decision'],
+                'status' => $decision,
                 'decided_by' => $request->user()->id,
                 'decided_at' => now(),
                 'decision_note' => $validated['decision_note'] ?? null,
             ]);
 
-            AuditLog::create([
-                'user_id' => $request->user()->id,
-                'action' => 'leave.'.$validated['decision'],
-                'auditable_type' => LeaveRequest::class,
-                'auditable_id' => $locked->id,
-                'old_values' => $old,
-                'new_values' => [
-                    'status' => $locked->status,
+            AuditLog::record(
+                auditable: $locked,
+                action: 'leave.'.$decision->value,
+                oldValues: $old,
+                newValues: [
+                    'status' => $locked->status->value,
                     'decided_by' => $locked->decided_by,
                     'decided_at' => $locked->decided_at?->toISOString(),
                     'decision_note' => $locked->decision_note,
                 ],
-                'ip_address' => $request->ip(),
-                'user_agent' => substr((string) $request->userAgent(), 0, 255),
-            ]);
+                userId: $request->user()->id,
+            );
         });
 
         return redirect()->route('admin.leave-requests.show', $leaveRequest)
@@ -95,9 +102,11 @@ class AdminLeaveRequestController extends Controller
         validator(['date' => $date], ['date' => ['required', 'date_format:Y-m-d']])->validate();
 
         $employees = Employee::query()->with('user')->orderBy('id')->get();
+        $statuses = $statusService->forEmployeesDateRange($employees, $date, $date);
+
         $rows = $employees->map(fn (Employee $employee) => [
             'employee' => $employee,
-            'daily' => $statusService->forEmployeeDate($employee, $date),
+            'daily' => $statuses[$employee->id][$date] ?? $statusService->forEmployeeDate($employee, $date),
         ]);
 
         return view('admin.daily-attendance', compact('date', 'rows'));
@@ -108,11 +117,13 @@ class AdminLeaveRequestController extends Controller
         $validated = $request->validate([
             'employee_id' => ['required', 'integer', 'exists:employees,id'],
             'attendance_date' => ['required', 'date_format:Y-m-d'],
-            'status' => ['required', 'in:present,permission,sick,leave,absent'],
+            'status' => ['required', Rule::enum(DailyAttendanceStatus::class)->only(DailyAttendanceStatus::correctionOptions())],
             'reason' => ['required', 'string', 'min:5', 'max:2000'],
         ]);
 
-        DB::transaction(function () use ($request, $validated): void {
+        $status = DailyAttendanceStatus::from($validated['status']);
+
+        DB::transaction(function () use ($request, $validated, $status): void {
             $employee = Employee::query()->findOrFail($validated['employee_id']);
             $date = $validated['attendance_date'];
 
@@ -123,40 +134,37 @@ class AdminLeaveRequestController extends Controller
                 ->first();
 
             $old = $correction ? [
-                'status' => $correction->status,
+                'status' => $correction->status->value,
                 'reason' => $correction->reason,
             ] : null;
 
             if ($correction) {
                 $correction->update([
-                    'status' => $validated['status'],
+                    'status' => $status,
                     'reason' => $validated['reason'],
                 ]);
             } else {
                 $correction = DailyStatusCorrection::create([
                     'employee_id' => $employee->id,
                     'attendance_date' => $date,
-                    'status' => $validated['status'],
+                    'status' => $status,
                     'reason' => $validated['reason'],
                     'created_by' => $request->user()->id,
                 ]);
             }
 
-            AuditLog::create([
-                'user_id' => $request->user()->id,
-                'action' => $old ? 'attendance.daily_status_corrected' : 'attendance.daily_status_created',
-                'auditable_type' => DailyStatusCorrection::class,
-                'auditable_id' => $correction->id,
-                'old_values' => $old,
-                'new_values' => [
+            AuditLog::record(
+                auditable: $correction,
+                action: $old ? 'attendance.daily_status_corrected' : 'attendance.daily_status_created',
+                oldValues: $old,
+                newValues: [
                     'employee_id' => $employee->id,
                     'attendance_date' => $date,
-                    'status' => $correction->status,
+                    'status' => $correction->status->value,
                     'reason' => $correction->reason,
                 ],
-                'ip_address' => $request->ip(),
-                'user_agent' => substr((string) $request->userAgent(), 0, 255),
-            ]);
+                userId: $request->user()->id,
+            );
         });
 
         return redirect()->route('admin.daily-attendance', ['date' => $validated['attendance_date']])
@@ -171,8 +179,9 @@ class AdminLeaveRequestController extends Controller
         $start = Carbon::parse($month.'-01')->startOfMonth();
         $end = $start->copy()->endOfMonth();
         $employees = Employee::query()->with('user')->orderBy('id')->get();
+        $statuses = $statusService->forEmployeesDateRange($employees, $start, $end);
 
-        return response()->streamDownload(function () use ($employees, $start, $end, $statusService): void {
+        return response()->streamDownload(function () use ($employees, $start, $end, $statuses): void {
             $out = fopen('php://output', 'w');
 
             if ($out === false) {
@@ -185,12 +194,16 @@ class AdminLeaveRequestController extends Controller
 
             foreach ($employees as $employee) {
                 for ($day = $start->copy(); $day->lte($end); $day->addDay()) {
-                    $daily = $statusService->forEmployeeDate($employee, $day);
+                    $dayStr = $day->toDateString();
+                    $daily = $statuses[$employee->id][$dayStr] ?? [
+                        'label' => 'Belum ada data',
+                        'reason' => '',
+                    ];
                     $notes = $daily['reason'] ?? '';
                     fputcsv($out, [
                         $employee->employee_number ?? $employee->id,
                         $employee->user?->name ?? '(tanpa nama)',
-                        $day->toDateString(),
+                        $dayStr,
                         $daily['label'],
                         $notes,
                     ]);

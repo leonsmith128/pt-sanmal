@@ -1,5 +1,7 @@
 <?php
 
+use App\Actions\RecordAttendance;
+use App\Enums\LeaveRequestStatus;
 use App\Enums\UserRole;
 use App\Models\DailyStatusCorrection;
 use App\Models\Employee;
@@ -7,6 +9,7 @@ use App\Models\LeaveRequest;
 use App\Models\LeaveType;
 use App\Models\User;
 use App\Services\DailyAttendanceStatusService;
+use Livewire\Livewire;
 
 function createUserWithRole(UserRole $role): User
 {
@@ -143,4 +146,48 @@ it('flags different approved leave types that overlap on the same day', function
     expect($daily['status'])->toBe('needs_review')
         ->and($daily['needs_review'])->toBeTrue()
         ->and($daily['reason'])->toContain('jenis status berbeda');
+});
+
+it('batches daily attendance status for multiple employees and date range efficiently', function () {
+    $emp1 = createEmployeeFor(createUserWithRole(UserRole::Employee));
+    $emp2 = createEmployeeFor(createUserWithRole(UserRole::Employee));
+    $type = LeaveType::create(['code' => 'cuti', 'name' => 'Cuti', 'is_active' => true]);
+
+    $emp1->leaveRequests()->create([
+        'leave_type_id' => $type->id,
+        'start_date' => '2026-11-15',
+        'end_date' => '2026-11-16',
+        'reason' => 'Cuti tahunan.',
+        'status' => LeaveRequestStatus::Approved,
+    ]);
+
+    $service = app(DailyAttendanceStatusService::class);
+    $batch = $service->forEmployeesDateRange(collect([$emp1, $emp2]), '2026-11-15', '2026-11-16');
+
+    expect($batch)->toHaveKeys([$emp1->id, $emp2->id])
+        ->and($batch[$emp1->id]['2026-11-15']['status'])->toBe('leave')
+        ->and($batch[$emp1->id]['2026-11-16']['status'])->toBe('leave')
+        ->and($batch[$emp2->id]['2026-11-15']['status'])->toBe('no_record');
+});
+
+it('excludes employees with approved leave requests from notYetPresent on admin kehadiran page', function () {
+    $empUser = createUserWithRole(UserRole::Employee);
+    $emp = createEmployeeFor($empUser);
+    $admin = createUserWithRole(UserRole::Admin);
+    $type = LeaveType::create(['code' => 'izin', 'name' => 'Izin', 'is_active' => true]);
+
+    $today = now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString();
+
+    $emp->leaveRequests()->create([
+        'leave_type_id' => $type->id,
+        'start_date' => $today,
+        'end_date' => $today,
+        'reason' => 'Izin keperluan resmi.',
+        'status' => LeaveRequestStatus::Approved,
+    ]);
+
+    Livewire::actingAs($admin)
+        ->test('pages::admin.kehadiran')
+        ->assertOk()
+        ->assertSet('notYetPresent', fn ($list) => ! $list->contains('id', $emp->id));
 });
