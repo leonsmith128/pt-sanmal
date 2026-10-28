@@ -386,7 +386,15 @@ new #[Title('Absensi')] class extends Component {
                     </div>
                 @else
                     <div x-show="active" x-cloak class="flex flex-col gap-2">
-                        <video x-ref="video" autoplay playsinline muted ...></video>
+                        <div class="relative overflow-hidden rounded-2xl bg-black">
+                            <video x-ref="video" autoplay playsinline muted class="aspect-[3/4] max-h-[65dvh] w-full object-cover [transform:scaleX(-1)]"></video>
+                            <div class="pointer-events-none absolute inset-x-3 bottom-3 rounded-xl bg-black/60 p-3 text-white backdrop-blur-sm">
+                                <p class="text-sm font-semibold">{{ Auth::user()->name }}</p>
+                                <p class="text-xs opacity-90">{{ $mode === 'overtime_start' ? __('Absen mulai lembur') : ($mode === 'clock_in' ? __('Absen masuk') : __('Absen pulang')) }}</p>
+                                <p class="mt-1 text-xs" x-text="liveAccuracy !== null ? 'Akurasi lokasi ±' + liveAccuracy + ' m' : 'Mengambil lokasi…'"></p>
+                                <p class="text-xs" x-text="best ? best.latitude.toFixed(5) + ', ' + best.longitude.toFixed(5) : 'Lokasi belum tersedia'"></p>
+                            </div>
+                        </div>
                     
                         <div class="flex gap-2">
                             <flux:button
@@ -416,15 +424,9 @@ new #[Title('Absensi')] class extends Component {
                         </div>
                     </template>
 
-                    <div x-show="fallback && ! active" x-cloak class="flex flex-col gap-1">
-                        <flux:text class="text-sm">{{ __('Atau unggah foto secara manual:') }}</flux:text>
-                        <input
-                            type="file"
-                            accept="image/*"
-                            capture="user"
-                            x-on:change="onFile($event)"
-                            class="block w-full text-sm text-zinc-600 file:mr-3 file:rounded-lg file:border-0 file:bg-zinc-200 file:px-4 file:py-2 file:text-sm file:font-medium dark:text-zinc-300 dark:file:bg-zinc-700"
-                        />
+                    <div x-show="fallback && ! active" x-cloak class="rounded-xl bg-zinc-100 p-3 text-sm text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
+                        {{ __('Unggah dari galeri tidak tersedia untuk absensi. Izinkan akses kamera atau gunakan perangkat dengan kamera yang berfungsi.') }}
+                    </div>
                     </div>
                 @endif
 
@@ -458,7 +460,7 @@ new #[Title('Absensi')] class extends Component {
 
         {{-- Riwayat --}}
         <div class="rounded-xl border border-neutral-200 p-5 dark:border-neutral-700">
-            <flux:heading level="2">{{ __('Riwayat terakhir') }}</flux:heading>
+            <flux:heading level="2">{{ __('Riwayat') }} · {{ Carbon::parse($selectedDate)->translatedFormat('d F Y') }}</flux:heading>
 
             @forelse ($this->history as $record)
                 <div class="flex items-center justify-between gap-3 border-b border-neutral-100 py-3 last:border-0 dark:border-neutral-800">
@@ -553,6 +555,29 @@ new #[Title('Absensi')] class extends Component {
                     </flux:button>
                 </div>
             </div>
+        </flux:modal>
+        <flux:modal name="request-overtime" class="max-w-lg">
+            <form wire:submit="requestOvertime" class="flex flex-col gap-5">
+                <div>
+                    <flux:heading size="lg">{{ __('Ajukan lembur') }}</flux:heading>
+                    <flux:subheading>{{ __('Tentukan waktu mulai dan alasan. Jika jadwal tiba sebelum admin menyetujui, Anda tetap harus mengambil foto konfirmasi lembur.') }}</flux:subheading>
+                </div>
+                <flux:field>
+                    <flux:label>{{ __('Waktu mulai lembur') }}</flux:label>
+                    <flux:input type="datetime-local" wire:model="overtimeStartAt" required />
+                    <flux:error name="overtimeStartAt" />
+                </flux:field>
+                <flux:field>
+                    <flux:label>{{ __('Alasan lembur') }}</flux:label>
+                    <flux:textarea wire:model="overtimeReason" rows="3" required placeholder="{{ __('Pekerjaan yang perlu diselesaikan...') }}" />
+                    <flux:error name="overtimeReason" />
+                </flux:field>
+                @error('form') <flux:text class="text-sm text-red-600 dark:text-red-400">{{ $message }}</flux:text> @enderror
+                <div class="flex justify-end gap-2">
+                    <flux:modal.close><flux:button variant="ghost">{{ __('Batal') }}</flux:button></flux:modal.close>
+                    <flux:button type="submit" variant="primary" wire:loading.attr="disabled" wire:target="requestOvertime">{{ __('Kirim pengajuan') }}</flux:button>
+                </div>
+            </form>
         </flux:modal>
     </div>
 </section>
