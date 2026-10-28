@@ -385,8 +385,8 @@ new #[Title('Absensi')] class extends Component {
                         <flux:button type="button" size="sm" icon="arrow-path" wire:click="retakeSelfie">{{ __('Foto ulang') }}</flux:button>
                     </div>
                 @else
-                    <div x-show="active" x-cloak class="flex flex-col gap-2">
-                        <div class="relative overflow-hidden rounded-2xl bg-black">
+                    <div x-show="active" x-cloak class="fixed inset-0 z-50 flex flex-col justify-center gap-4 overflow-y-auto bg-black p-4 sm:inset-[10%] sm:rounded-2xl sm:p-6">
+                        <div class="relative mx-auto w-full max-w-3xl overflow-hidden rounded-2xl bg-black">
                             <video x-ref="video" autoplay playsinline muted class="aspect-[3/4] max-h-[65dvh] w-full object-cover [transform:scaleX(-1)]"></video>
                             <div class="pointer-events-none absolute inset-x-3 bottom-3 rounded-xl bg-black/60 p-3 text-white backdrop-blur-sm">
                                 <p data-attendance-watermark-name class="text-sm font-semibold">{{ Auth::user()->name }}</p>
