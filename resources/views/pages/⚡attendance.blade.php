@@ -389,8 +389,8 @@ new #[Title('Absensi')] class extends Component {
                         <div class="relative overflow-hidden rounded-2xl bg-black">
                             <video x-ref="video" autoplay playsinline muted class="aspect-[3/4] max-h-[65dvh] w-full object-cover [transform:scaleX(-1)]"></video>
                             <div class="pointer-events-none absolute inset-x-3 bottom-3 rounded-xl bg-black/60 p-3 text-white backdrop-blur-sm">
-                                <p class="text-sm font-semibold">{{ Auth::user()->name }}</p>
-                                <p class="text-xs opacity-90">{{ $mode === 'overtime_start' ? __('Absen mulai lembur') : ($mode === 'clock_in' ? __('Absen masuk') : __('Absen pulang')) }}</p>
+                                <p data-attendance-watermark-name class="text-sm font-semibold">{{ Auth::user()->name }}</p>
+                                <p data-attendance-watermark-event class="text-xs opacity-90">{{ $mode === 'overtime_start' ? __('Absen mulai lembur') : ($mode === 'clock_in' ? __('Absen masuk') : __('Absen pulang')) }}</p>
                                 <p class="mt-1 text-xs" x-text="liveAccuracy !== null ? 'Akurasi lokasi ±' + liveAccuracy + ' m' : 'Mengambil lokasi…'"></p>
                                 <p class="text-xs" x-text="best ? best.latitude.toFixed(5) + ', ' + best.longitude.toFixed(5) : 'Lokasi belum tersedia'"></p>
                             </div>
@@ -407,6 +407,15 @@ new #[Title('Absensi')] class extends Component {
                                 {{ __('Ambil Foto') }}
                             </flux:button>
                         
+                            <flux:button
+                                type="button"
+                                icon="map-pin"
+                                variant="ghost"
+                                x-on:click="remeasureLocation()"
+                                x-bind:disabled="busy"
+                            >
+                                {{ __('Ukur ulang lokasi') }}
+                            </flux:button>
                             <flux:button
                                 type="button"
                                 x-on:click="stop()"
