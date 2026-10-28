@@ -30,6 +30,11 @@ class Attendance extends Component {
     public $selfie = null;
     public string $selfieSource = 'camera';
 
+    public function render()
+    {
+        return view('pages.attendance');
+    }
+
     public function mount(): void
     {
         $user = Auth::user();
