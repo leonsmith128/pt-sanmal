@@ -26,6 +26,28 @@ export default function attendanceCamera() {
             };
         },
 
+        remeasureLocation() {
+            this.error = null;
+            this.startLocationWatch();
+            if (!navigator.geolocation) {
+                this.error = 'Browser tidak mendukung pengambilan lokasi.';
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    this.best = this.toPlain(pos);
+                    this.liveAccuracy = Math.round(pos.coords.accuracy);
+                },
+                (err) => {
+                    this.error = err.code === 1
+                        ? 'Izin lokasi ditolak. Aktifkan izin lokasi di pengaturan browser.'
+                        : 'Lokasi belum dapat diukur ulang. Coba lagi di area yang lebih terbuka.';
+                },
+                { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
+            );
+        },
+
         startLocationWatch() {
             this.stopLocationWatch();
             this.best = null;
