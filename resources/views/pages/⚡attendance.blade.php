@@ -1,10 +1,15 @@
 <?php
 
+use App\Actions\ConfirmOvertimeStart;
+use App\Actions\CreateOvertimeRequest;
 use App\Actions\RecordAttendance;
 use App\Enums\AttendanceType;
 use App\Enums\SelfieSource;
 use App\Enums\WorkType;
+use App\Enums\OvertimeState;
 use App\Models\AttendanceRecord;
+use App\Models\OvertimeRequest;
+use Illuminate\Support\Carbon;
 use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
@@ -29,6 +34,9 @@ new #[Title('Absensi')] class extends Component {
     public string $selectedDate = '';
     public string $overtimeReason = '';
     public string $overtimeStartAt = '';
+    public string $selectedDate = '';
+    public string $overtimeReason = '';
+    public string $overtimeStartAt = '';
 
     public function mount(): void
     {
@@ -37,6 +45,7 @@ new #[Title('Absensi')] class extends Component {
         // Superadmin (tanpa profil pegawai) dan akun nonaktif tidak boleh absen.
         abort_unless($user->is_active && $user->employee, 403);
 
+        $this->selectedDate = now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString();
         $this->selectedDate = now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString();
         $this->locationId = $this->officeLocations->first()?->id;
         $this->projectId = $this->projects->first()?->id;
@@ -67,13 +76,78 @@ new #[Title('Absensi')] class extends Component {
     }
 
     #[Computed]
+    public function overtimeRequest(): ?OvertimeRequest
+    {
+        $session = $this->openSession;
+
+        if (! $session) {
+            return null;
+        }
+
+        return $this->employee->overtimeRequests()
+            ->where('clock_in_record_id', $session->id)
+            ->whereNotIn('state', [OvertimeState::Completed, OvertimeState::Cancelled])
+            ->latest('scheduled_start_at')
+            ->first();
+    }
+
+    #[Computed]
+    public function weekDays(): array
+    {
+        $today = now(RecordAttendance::DEFAULT_TIMEZONE)->startOfDay();
+        $start = Carbon::parse($this->selectedDate ?: $today->toDateString())->startOfWeek(Carbon::MONDAY);
+
+        return collect(range(0, 6))->map(fn (int $offset) => [
+            'date' => $start->copy()->addDays($offset)->toDateString(),
+            'label' => $start->copy()->addDays($offset)->translatedFormat('D'),
+            'day' => $start->copy()->addDays($offset)->format('j'),
+            'today' => $start->copy()->addDays($offset)->isSameDay($today),
+        ])->all();
+    }
+
+    public function selectDate(string $date): void
+    {
+        abort_unless(collect($this->weekDays)->contains(fn ($day) => $day['date'] === $date), 422);
+        $this->selectedDate = $date;
+        unset($this->history);
+    }
+
+    public function shiftWeek(int $direction): void
+    {
+        abort_unless(in_array($direction, [-1, 1], true), 422);
+        $current = Carbon::parse($this->selectedDate ?: now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString());
+        $this->selectedDate = $current->addWeeks($direction)->startOfWeek(Carbon::MONDAY)->toDateString();
+        unset($this->weekDays, $this->history);
+    }
+
+    public function requestOvertime(): void
+    {
+        $validated = $this->validate([
+            'overtimeReason' => ['required', 'string', 'min:5', 'max:2000'],
+            'overtimeStartAt' => ['required', 'date_format:Y-m-d\\TH:i'],
+        ]);
+
+        app(CreateOvertimeRequest::class)->handle(
+            employee: $this->employee,
+            reason: $validated['overtimeReason'],
+            scheduledStartLocal: $validated['overtimeStartAt'],
+        );
+
+        $this->reset('overtimeReason', 'overtimeStartAt');
+        unset($this->overtimeRequest);
+        Flux::modal('request-overtime')->close();
+        Flux::toast(variant: 'success', text: 'Pengajuan lembur berhasil disimpan.');
+    }
+
+    #[Computed]
     public function history()
     {
         return $this->employee->attendanceRecords()
             ->with(['location', 'project'])
+            ->whereDate('attendance_date', $this->selectedDate)
             ->orderByDesc('recorded_at')
             ->orderByDesc('id')
-            ->limit(10)
+            ->limit(50)
             ->get();
     }
 
@@ -174,7 +248,7 @@ new #[Title('Absensi')] class extends Component {
 
         @php
             $session = $this->openSession;
-            $mode = $session ? 'clock_out' : 'clock_in';
+            $mode = $session ? (($this->overtimeRequest?->isAwaitingPhoto()) ? 'overtime_start' : 'clock_out') : 'clock_in';
         @endphp
 
         {{-- Status saat ini --}}
