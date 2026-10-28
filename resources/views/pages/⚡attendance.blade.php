@@ -436,7 +436,6 @@ new #[Title('Absensi')] class extends Component {
                     <div x-show="fallback && ! active" x-cloak class="rounded-xl bg-zinc-100 p-3 text-sm text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
                         {{ __('Unggah dari galeri tidak tersedia untuk absensi. Izinkan akses kamera atau gunakan perangkat dengan kamera yang berfungsi.') }}
                     </div>
-                    </div>
                 @endif
 
                 <flux:text x-show="busy" x-cloak>{{ __('Memproses foto dan lokasi...') }}</flux:text>
