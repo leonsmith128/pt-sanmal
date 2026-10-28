@@ -9,7 +9,7 @@ use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Carbon;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
  * @property int $id
@@ -18,9 +18,9 @@ use Illuminate\Support\Carbon;
  * @property WorkType $work_type
  * @property int|null $location_id
  * @property int|null $project_id
- * @property Carbon $recorded_at Stored in UTC.
+ * @property \Illuminate\Support\Carbon $recorded_at Stored in UTC.
  * @property string $timezone
- * @property Carbon $attendance_date Local attendance date.
+ * @property \Illuminate\Support\Carbon $attendance_date Local attendance date.
  * @property string|null $latitude
  * @property string|null $longitude
  * @property string|null $accuracy_m
@@ -70,7 +70,7 @@ class AttendanceRecord extends Model
     }
 
     /** Lembur yang dimulai oleh event ini, jika ada. */
-    public function overtimeStarted(): \Illuminate\Database\Eloquent\Relations\HasOne
+    public function overtimeStarted(): HasOne
     {
         return $this->hasOne(OvertimeRequest::class, 'start_record_id');
     }
