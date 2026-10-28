@@ -301,6 +301,38 @@ new #[Title('Absensi')] class extends Component {
             @endif
         </div>
 
+        @if ($session)
+            <section class="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
+                <div class="flex items-start justify-between gap-3">
+                    <div>
+                        <flux:heading size="sm">{{ __('Lembur') }}</flux:heading>
+                        <flux:text class="mt-1 text-sm">{{ $this->overtimeRequest ? $this->overtimeRequest->state->label().' · '.$this->overtimeRequest->approval_status->label() : __('Belum ada pengajuan lembur untuk sesi ini.') }}</flux:text>
+                        @if ($this->overtimeRequest)
+                            <flux:text class="mt-1 text-sm">{{ __('Jadwal') }}: {{ $this->overtimeRequest->scheduledStartLocal()->format('d M, H:i') }}</flux:text>
+                        @endif
+                    </div>
+                    @if (! $this->overtimeRequest)
+                        <flux:modal.trigger name="request-overtime">
+                            <flux:button variant="filled" icon="clock-3">{{ __('Ajukan lembur') }}</flux:button>
+                        </flux:modal.trigger>
+                    @else
+                        <flux:button href="{{ route('overtime-requests.index') }}" variant="ghost" size="sm">{{ __('Detail') }}</flux:button>
+                    @endif
+                </div>
+                @if ($this->overtimeRequest?->isAwaitingPhoto())
+                    <div class="mt-3 rounded-xl border border-amber-300 bg-amber-50 p-3 dark:border-amber-800 dark:bg-amber-950/30">
+                        <flux:text class="font-medium">{{ __('Waktu lembur telah tiba') }}</flux:text>
+                        <flux:text class="mt-1 text-sm">{{ __('Ambil foto Absen Lembur. Tombol Absen Pulang akan tersedia setelah foto dikonfirmasi.') }}</flux:text>
+                    </div>
+                @elseif ($this->overtimeRequest?->isInProgress())
+                    <div class="mt-3 rounded-xl border border-blue-200 bg-blue-50 p-3 dark:border-blue-900 dark:bg-blue-950/30">
+                        <flux:text class="font-medium">{{ __('Lembur sedang berjalan') }}</flux:text>
+                        <flux:text class="mt-1 text-sm">{{ __('Foto konfirmasi tersimpan. Anda dapat melanjutkan pekerjaan dan absen pulang setelah selesai.') }}</flux:text>
+                    </div>
+                @endif
+            </section>
+        @endif
+
         {{-- Form absensi --}}
         <form wire:submit="confirm('{{ $mode }}')" class="flex flex-col gap-5 rounded-xl border border-neutral-200 p-5 dark:border-neutral-700">
             @if ($mode === 'clock_in')
@@ -332,8 +364,10 @@ new #[Title('Absensi')] class extends Component {
                     @endif
                     @error('projectId') <flux:text class="text-red-500">{{ $message }}</flux:text> @enderror
                 @endif
+            @elseif ($mode === 'overtime_start')
+                <flux:text>{{ __('Konfirmasi mulai lembur memerlukan foto dan lokasi terbaru. Sesi kerja utama tetap berjalan.') }}</flux:text>
             @else
-                <flux:text>{{ __('Clock-out memakai lokasi dan proyek yang sama dengan clock-in.') }}</flux:text>
+                <flux:text>{{ __('Absen pulang menggunakan lokasi dan proyek dari sesi kerja ini.') }}</flux:text>
             @endif
 
             {{-- Foto selfie + lokasi: keduanya terambil bersamaan saat tombol Ambil Foto ditekan --}}
@@ -418,7 +452,7 @@ new #[Title('Absensi')] class extends Component {
                 wire:loading.attr="disabled"
                 wire:target="confirm,submit,selfie"
             >
-                {{ $mode === 'clock_in' ? __('Clock In') : __('Clock Out') }}
+                {{ match ($mode) { 'clock_in' => __('Absen Masuk'), 'overtime_start' => __('Absen Lembur'), default => __('Absen Pulang') } }}
             </flux:button>
         </form>
 
@@ -466,7 +500,7 @@ new #[Title('Absensi')] class extends Component {
             <div class="space-y-5">
                 <div>
                     <flux:heading size="lg">
-                        {{ $mode === 'clock_in' ? __('Konfirmasi Clock In') : __('Konfirmasi Clock Out') }}
+                        {{ match ($mode) { 'clock_in' => __('Konfirmasi Absen Masuk'), 'overtime_start' => __('Konfirmasi Absen Lembur'), default => __('Konfirmasi Absen Pulang') } }}
                     </flux:heading>
                     <flux:subheading>{{ __('Periksa data berikut sebelum mengirim absensi.') }}</flux:subheading>
                 </div>
@@ -474,7 +508,7 @@ new #[Title('Absensi')] class extends Component {
                 <dl class="space-y-2 text-sm">
                     <div class="flex justify-between gap-4">
                         <dt class="text-zinc-500">{{ __('Jenis absensi') }}</dt>
-                        <dd class="font-medium">{{ $mode === 'clock_in' ? __('Masuk') : __('Pulang') }}</dd>
+                        <dd class="font-medium">{{ match ($mode) { 'clock_in' => __('Masuk'), 'overtime_start' => __('Mulai lembur'), default => __('Pulang') } }}</dd>
                     </div>
                     <div class="flex justify-between gap-4">
                         <dt class="text-zinc-500">{{ __('Lokasi kerja') }}</dt>
@@ -515,7 +549,7 @@ new #[Title('Absensi')] class extends Component {
                         wire:loading.attr="disabled"
                         wire:target="submit"
                     >
-                        {{ $mode === 'clock_in' ? __('Ya, Clock In') : __('Ya, Clock Out') }}
+                        {{ match ($mode) { 'clock_in' => __('Ya, Absen Masuk'), 'overtime_start' => __('Ya, Absen Lembur'), default => __('Ya, Absen Pulang') } }}
                     </flux:button>
                 </div>
             </div>
