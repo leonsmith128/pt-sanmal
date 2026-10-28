@@ -280,10 +280,7 @@ new #[Title('Absensi')] class extends Component {
                 <flux:icon name="bell" variant="outline" class="size-5" />
             </button>
         </header>
-        <div>
-            <flux:heading size="xl" level="1">{{ __('Absensi') }}</flux:heading>
-            <flux:text class="mt-1">{{ __('Pantau kehadiran dan catat waktu kerja Anda.') }}</flux:text>
-        </div>
+
 
         <section class="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
             <div class="mb-3 flex items-center justify-between gap-3">

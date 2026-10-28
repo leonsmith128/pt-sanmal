@@ -9,22 +9,10 @@ use App\Http\Controllers\OvertimeRequestController;
 use App\Http\Middleware\EnsureUserHasRole;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    if (auth()->check() && auth()->user()->employee) {
-        return redirect()->route('attendance');
-    }
-
-    return view('welcome');
-})->name('home');
+Route::view('/', 'welcome')->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('dashboard', function () {
-        if (auth()->user()->employee) {
-            return redirect()->route('attendance');
-        }
-
-        return view('dashboard');
-    })->name('dashboard');
+    Route::view('dashboard', 'dashboard')->name('dashboard');
     Route::livewire('absensi', 'pages::attendance')->name('attendance');
 
     Route::get('permohonan', [LeaveRequestController::class, 'index'])->name('leave-requests.index');
