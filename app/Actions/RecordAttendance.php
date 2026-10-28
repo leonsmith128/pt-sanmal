@@ -75,6 +75,10 @@ class RecordAttendance
         SelfieSource $selfieSource,
         ?string $addressSnapshot = null,
     ): AttendanceRecord {
+        if ($selfieSource !== SelfieSource::Camera) {
+            $this->fail('selfieSource', 'Foto absensi harus diambil langsung dari kamera.');
+        }
+
         return DB::transaction(function () use (
             $employee, $type, $workType, $locationId, $projectId,
             $latitude, $longitude, $accuracy, $selfie, $selfieSource, $addressSnapshot
