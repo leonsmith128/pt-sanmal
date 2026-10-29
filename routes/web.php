@@ -16,6 +16,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('absensi', 'pages::attendance')->name('attendance');
 
     Route::get('permohonan', [LeaveRequestController::class, 'index'])->name('leave-requests.index');
+    Route::get('permohonan/ekspor', [LeaveRequestController::class, 'export'])->name('leave-requests.export');
     Route::get('permohonan/buat', [LeaveRequestController::class, 'create'])->name('leave-requests.create');
     Route::post('permohonan', [LeaveRequestController::class, 'store'])->name('leave-requests.store');
     Route::patch('permohonan/{leaveRequest}/batalkan', [LeaveRequestController::class, 'cancel'])->name('leave-requests.cancel');
