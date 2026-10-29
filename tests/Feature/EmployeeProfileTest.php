@@ -62,7 +62,7 @@ test('employees can upload and replace their profile photo', function () {
     Storage::disk('public')->assertExists($user->profile_photo_path);
 });
 
-test('profile photo upload rejects non-image files and files over two megabytes', function () {
+test('profile photo upload rejects non-image files', function () {
     Storage::fake('public');
 
     $user = User::factory()->create();
@@ -109,4 +109,16 @@ test('account settings allow email changes but do not expose official name editi
     expect($user->fresh()->email)->toBe('new@example.com')
         ->and($user->fresh()->name)->toBe('Official Name')
         ->and($user->fresh()->email_verified_at)->toBeNull();
+});
+
+test('profile photo upload rejects images over two megabytes', function () {
+    Storage::fake('public');
+
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    Livewire::test('pages::employee-profile')
+        ->set('photo', UploadedFile::fake()->image('large-profile.jpg')->size(3000))
+        ->call('saveProfilePhoto')
+        ->assertHasErrors(['photo']);
 });
