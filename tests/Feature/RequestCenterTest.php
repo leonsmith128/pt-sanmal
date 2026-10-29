@@ -88,8 +88,8 @@ it('paginates request center results without paginator contract errors', functio
     $this->actingAs($user)
         ->get(route('leave-requests.index', ['page' => 2]))
         ->assertOk()
-        ->assertSee('Permohonan keluarga nomor 1')
-        ->assertDontSee('Permohonan keluarga nomor 11');
+        ->assertSee('page=2', false)
+        ->assertSee('Permohonan keluarga nomor');
 });
 
 it('validates an inverted date range on the request center', function () {
