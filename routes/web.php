@@ -16,6 +16,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::view('dashboard', 'dashboard')->name('dashboard');
     Route::livewire('absensi', 'pages::attendance')->name('attendance');
     Route::get('riwayat-absensi', [AttendanceHistoryController::class, 'index'])->name('attendance-history.index');
+    Route::get('riwayat-absensi/{record}/foto', [AttendanceSelfieController::class, 'showForEmployee'])->name('attendance-history.selfie');
 
     Route::get('permohonan', [LeaveRequestController::class, 'index'])->name('leave-requests.index');
     Route::get('permohonan/ekspor', [LeaveRequestController::class, 'export'])->name('leave-requests.export');
