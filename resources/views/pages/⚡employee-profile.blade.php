@@ -128,7 +128,7 @@ new #[Title('Profil Pegawai')] class extends Component {
                 @endif
             </div>
 
-            <flux:progress.indeterminate wire:loading wire:target="photo,saveProfilePhoto" />
+            <flux:text wire:loading wire:target="photo,saveProfilePhoto" class="text-sm text-zinc-500 dark:text-zinc-400">Mengunggah foto...</flux:text>
         </form>
     </div>
 
