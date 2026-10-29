@@ -1,3 +1,4 @@
+import LocationTracker from './location-tracker.js';
 /**
  * Kamera absensi berbasis Alpine.
  *
@@ -24,16 +25,17 @@ export default function attendanceCamera(config = {}) {
         orientationQuery: null,
         orientationHandler: null,
 
-        watchId: null,
+        locationTracker: null,
         best: null,
         liveAccuracy: null,
+        gpsReady: false,
+        gpsStatusText: 'Mencari lokasi GPS presisi…',
         address: '',
         addressLoading: false,
-        lastGeocodedAt: 0,
-        lastGeocodedPosition: null,
 
         capturedBlob: null,
         capturedUrl: null,
+        capturedPosition: null,
         formattedTimestamp: '',
 
         get currentTimestamp() {
@@ -67,154 +69,47 @@ export default function attendanceCamera(config = {}) {
                 this.isLandscape = event.matches;
             };
             this.orientationQuery.addEventListener?.('change', this.orientationHandler);
-        },
 
-        toPlain(position) {
-            return {
-                latitude: position.coords.latitude,
-                longitude: position.coords.longitude,
-                accuracy: position.coords.accuracy,
-                receivedAt: Date.now(),
-            };
-        },
-
-        async resolveAddress(position, force = false) {
-            if (!position) return this.address;
-            // Location watch may emit several readings while the first address is loading.
-            // Let the next GPS reading retry after this request finishes.
-            if (this.addressLoading) return this.address;
-
-            const previous = this.lastGeocodedPosition;
-            const movedFar = !previous || this.distanceMeters(previous, position) > 75;
-            if (!force && this.address && !movedFar && Date.now() - this.lastGeocodedAt < 300000) {
-                return this.address;
-            }
-
-            if (movedFar) this.address = '';
-            this.addressLoading = true;
-            try {
-                const url = new URL('https://nominatim.openstreetmap.org/reverse');
-                url.search = new URLSearchParams({
-                    format: 'jsonv2',
-                    lat: String(position.latitude),
-                    lon: String(position.longitude),
-                    zoom: '18',
-                    addressdetails: '1',
-                }).toString();
-
-                const response = await fetch(url.toString(), {
-                    headers: { Accept: 'application/json' },
-                    signal: AbortSignal.timeout ? AbortSignal.timeout(8000) : undefined,
-                });
-                if (!response.ok) throw new Error('reverse-geocode-failed');
-                const result = await response.json();
-                this.address = typeof result.display_name === 'string'
-                    ? result.display_name.slice(0, 500)
-                    : '';
-                this.lastGeocodedAt = Date.now();
-                this.lastGeocodedPosition = position;
-            } catch (error) {
-                // Jangan menghapus alamat valid akibat gangguan jaringan sementara.
-                // Jika lokasi sudah berubah jauh, address sudah dikosongkan sebelum request.
-                console.warn('Reverse geocoding tidak tersedia:', error);
-            } finally {
-                this.addressLoading = false;
-            }
-
-            return this.address;
-        },
-
-        distanceMeters(a, b) {
-            const radians = (degrees) => degrees * Math.PI / 180;
-            const dLat = radians(b.latitude - a.latitude);
-            const dLon = radians(b.longitude - a.longitude);
-            const lat1 = radians(a.latitude);
-            const lat2 = radians(b.latitude);
-            const value = Math.sin(dLat / 2) ** 2
-                + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
-            return 6371000 * 2 * Math.atan2(Math.sqrt(value), Math.sqrt(1 - value));
-        },
-
-        remeasureLocation() {
-            this.error = null;
-            if (!navigator.geolocation) {
-                this.error = 'Browser tidak mendukung pengambilan lokasi.';
-                return;
-            }
-
-            navigator.geolocation.getCurrentPosition(
-                async (position) => {
-                    this.best = this.toPlain(position);
-                    this.liveAccuracy = Math.round(position.coords.accuracy);
-                    await this.resolveAddress(this.best, true);
+            this.locationTracker = new LocationTracker({
+                onChange: (state) => {
+                    this.best = state.best;
+                    this.liveAccuracy = state.liveAccuracy;
+                    this.address = state.address;
+                    this.addressLoading = state.addressLoading;
+                    this.gpsReady = state.gpsReady;
+                    this.gpsStatusText = state.gpsStatusText;
                 },
-                (error) => {
-                    this.error = error.code === 1
-                        ? 'Izin lokasi ditolak. Aktifkan izin lokasi di pengaturan browser.'
-                        : 'Lokasi belum dapat diukur ulang. Coba lagi di area yang lebih terbuka.';
+                onError: (message) => {
+                    if (message) {
+                        this.error = message;
+                        this.gpsStatusText = message;
+                    }
                 },
-                { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 },
-            );
+            });
         },
 
         startLocationWatch() {
-            this.stopLocationWatch();
-            this.best = null;
-            this.liveAccuracy = null;
-
-            if (!navigator.geolocation) return;
-
-            this.watchId = navigator.geolocation.watchPosition(
-                (position) => {
-                    const reading = this.toPlain(position);
-                    const previous = this.best;
-                    const outdated = !previous || reading.receivedAt - previous.receivedAt > 30000;
-                    const moreAccurate = !previous || reading.accuracy < previous.accuracy * 0.9;
-                    const movedFar = previous && this.distanceMeters(previous, reading) > 75;
-
-                    if (outdated || reading.accuracy <= previous.accuracy) {
-                        this.best = reading;
-                        this.liveAccuracy = Math.round(reading.accuracy);
-
-                        // Resolve an address as soon as the viewport opens, then refresh
-                        // it when GPS gets meaningfully more accurate or the user moves.
-                        if (!this.address || moreAccurate || movedFar) {
-                            this.resolveAddress(reading);
-                        }
-                    }
-                },
-                (error) => {
-                    if (error.code === 1) {
-                        this.error = 'Izin lokasi ditolak. Aktifkan izin lokasi di pengaturan browser, lalu coba lagi.';
-                    }
-                },
-                { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 },
-            );
+            this.locationTracker?.start();
         },
 
         stopLocationWatch() {
-            if (this.watchId !== null && navigator.geolocation) {
-                navigator.geolocation.clearWatch(this.watchId);
+            this.locationTracker?.stop();
+        },
+
+        async remeasureLocation() {
+            this.error = null;
+            try {
+                const position = await this.locationTracker.remeasure();
+                this.best = position;
+                this.liveAccuracy = Math.round(position.accuracy);
+            } catch (error) {
+                // LocationTracker already supplies a user-facing error message.
             }
-            this.watchId = null;
         },
 
         getPosition() {
-            if (this.best && Date.now() - this.best.receivedAt < 60000) {
-                return Promise.resolve(this.best);
-            }
-
-            return new Promise((resolve, reject) => {
-                if (!navigator.geolocation) {
-                    reject(new Error('no-geolocation'));
-                    return;
-                }
-                navigator.geolocation.getCurrentPosition(
-                    (position) => resolve(this.toPlain(position)),
-                    reject,
-                    { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 },
-                );
-            });
+            if (!this.locationTracker) return Promise.reject(new Error('no-geolocation'));
+            return this.locationTracker.getFreshPosition();
         },
 
         getVideoElement() {
@@ -343,6 +238,7 @@ export default function attendanceCamera(config = {}) {
             this.capturedUrl = null;
             this.capturedBlob = null;
             this.formattedTimestamp = '';
+            this.capturedPosition = null;
         },
 
         async makeFinalPhoto(video, position) {
@@ -477,14 +373,25 @@ export default function attendanceCamera(config = {}) {
 
         async capture() {
             const video = this.getVideoElement();
-            if (!video || !video.videoWidth || !video.videoHeight || this.busy || !this.best) return;
+            if (!video || !video.videoWidth || !video.videoHeight || this.busy) return;
 
             this.error = null;
             this.busy = true;
             try {
-                const position = await this.getPosition();
+                let position = await this.getPosition();
                 this.best = position;
-                await this.resolveAddress(position, true);
+                this.liveAccuracy = Math.round(position.accuracy);
+                await this.locationTracker.resolveAddress(position, true);
+
+                // Reverse geocoding bisa memerlukan waktu. Pastikan posisi yang
+                // dipakai saat foto dibuat tetap segar setelah alamat diperoleh.
+                if (Date.now() - position.receivedAt > 15_000) {
+                    position = await this.getPosition();
+                    this.best = position;
+                    this.liveAccuracy = Math.round(position.accuracy);
+                }
+
+                this.capturedPosition = position;
                 const blob = await this.makeFinalPhoto(video, position);
                 this.clearCapturedPhoto();
                 this.capturedBlob = blob;
@@ -493,7 +400,11 @@ export default function attendanceCamera(config = {}) {
                 console.error('Gagal mengambil foto:', error);
                 this.error = error.message === 'canvas-context-unavailable'
                     ? 'Foto tidak dapat diproses oleh browser ini.'
-                    : 'Foto atau lokasi gagal diproses. Periksa izin lokasi dan coba lagi.';
+                    : error.message === 'location-not-accurate'
+                        ? 'Akurasi GPS belum memadai. Tunggu hingga GPS siap atau coba refresh lokasi.'
+                        : error.message === 'location-stopped'
+                            ? 'Pemantauan lokasi berhenti. Buka kamera kembali dan coba lagi.'
+                            : 'Foto atau lokasi gagal diproses. Periksa izin lokasi dan coba lagi.';
             } finally {
                 this.busy = false;
             }
@@ -510,7 +421,8 @@ export default function attendanceCamera(config = {}) {
             this.error = null;
 
             try {
-                const position = this.best || await this.getPosition();
+                const position = this.capturedPosition;
+                if (!position) throw new Error('captured-location-missing');
                 this.$wire.latitude = position.latitude;
                 this.$wire.longitude = position.longitude;
                 this.$wire.accuracy = position.accuracy;

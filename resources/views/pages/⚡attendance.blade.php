@@ -9,6 +9,7 @@ use App\Enums\WorkType;
 use App\Enums\OvertimeState;
 use App\Models\AttendanceRecord;
 use App\Models\OvertimeRequest;
+use App\Support\AttendanceLocation;
 use Illuminate\Support\Carbon;
 use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
@@ -177,7 +178,7 @@ new #[Title('Absensi')] class extends Component {
         $rules = [
             'latitude' => ['required', 'numeric', 'between:-90,90'],
             'longitude' => ['required', 'numeric', 'between:-180,180'],
-            'accuracy' => ['nullable', 'numeric', 'min:0'],
+            'accuracy' => ['required', 'numeric', 'between:0,'.AttendanceLocation::MAX_ACCURACY_METERS],
             'addressSnapshot' => ['nullable', 'string', 'max:500'],
             'selfie' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:200'],
             'selfieSource' => ['required', Rule::enum(SelfieSource::class)],
@@ -190,6 +191,8 @@ new #[Title('Absensi')] class extends Component {
         $this->validate($rules, [
             'latitude.required' => 'Lokasi belum terambil. Ambil ulang foto agar lokasi ikut terambil.',
             'longitude.required' => 'Lokasi belum terambil. Ambil ulang foto agar lokasi ikut terambil.',
+            'accuracy.required' => 'Akurasi GPS belum tersedia. Tunggu hingga GPS siap lalu ambil foto.',
+            'accuracy.between' => 'Akurasi GPS harus ±'.AttendanceLocation::MAX_ACCURACY_METERS.' meter atau lebih baik. Tunggu GPS lebih presisi lalu coba lagi.',
             'selfie.required' => 'Foto selfie wajib diambil.',
             'selfie.image' => 'File harus berupa gambar.',
             'selfie.mimes' => 'Format foto harus jpg, png, atau webp.',
