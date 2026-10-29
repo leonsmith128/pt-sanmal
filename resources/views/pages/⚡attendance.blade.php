@@ -484,7 +484,7 @@ new #[Title('Absensi')] class extends Component {
                     aria-modal="true"
                 >
                     <div
-                        class="relative isolate overflow-hidden rounded-[1.75rem] bg-zinc-900 shadow-2xl ring-1 ring-white/20"
+                        class="relative isolate overflow-hidden rounded-none bg-zinc-900 shadow-2xl ring-1 ring-white/20 sm:rounded-[1.75rem]"
                         :class="isLandscape ? 'attendance-camera-landscape' : 'attendance-camera-portrait'"
                         :style="viewportStyle"
                     >
@@ -507,7 +507,7 @@ new #[Title('Absensi')] class extends Component {
 
                         <div
                             x-show="! capturedUrl"
-                            class="pointer-events-none absolute inset-x-2 bottom-16 max-h-[32%] overflow-hidden rounded-xl border border-white/40 bg-white/75 p-2.5 text-zinc-900 shadow-sm backdrop-blur-md sm:inset-x-3 sm:bottom-20 sm:p-3"
+                            class="pointer-events-none absolute left-1/2 top-[3%] w-4/5 max-h-[30%] -translate-x-1/2 overflow-y-auto rounded-xl border border-white/40 bg-white/75 p-2.5 text-zinc-900 shadow-sm backdrop-blur-md sm:p-3"
                         >
                             <p class="truncate text-xs font-semibold sm:text-sm" x-text="name"></p>
                             <p class="text-[11px] font-medium sm:text-xs" x-text="eventLabel"></p>
@@ -517,7 +517,7 @@ new #[Title('Absensi')] class extends Component {
 
                         <button
                             type="button"
-                            x-show="canSwitchCamera && ! capturedUrl"
+                            x-show="! capturedUrl"
                             x-cloak
                             x-on:click="switchCamera()"
                             x-bind:disabled="busy || starting"
@@ -528,7 +528,7 @@ new #[Title('Absensi')] class extends Component {
                             <flux:icon name="arrow-path" variant="outline" class="size-5" />
                         </button>
 
-                        <div class="absolute inset-x-0 bottom-0 flex items-center justify-center gap-5 px-4 pb-4 pt-2 sm:gap-7 sm:pb-5">
+                        <div class="absolute inset-x-0 bottom-0 flex min-h-[14%] items-center justify-center gap-5 bg-black/90 px-4 pb-4 pt-2 sm:gap-7 sm:pb-5">
                             <button
                                 type="button"
                                 x-show="! capturedUrl"
