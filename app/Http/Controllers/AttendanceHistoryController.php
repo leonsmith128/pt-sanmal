@@ -1,11 +1,11 @@
 <?php
 
-namespace App\\Http\\Controllers;
+namespace App\Http\Controllers;
 
-use Illuminate\\Http\\Request;
-use App\\Models\\Employee;
-use Illuminate\\Http\\StreamedResponse;
-use Illuminate\\View\\View;
+use Illuminate\Http\Request;
+use App\Models\Employee;
+use Illuminate\Http\StreamedResponse;
+use Illuminate\View\View;
 
 class AttendanceHistoryController extends Controller
 {
@@ -103,6 +103,6 @@ class AttendanceHistoryController extends Controller
         $value = (string) ($value ?? '');
 
         // Cegah teks yang tidak tepercaya dieksekusi sebagai formula spreadsheet.
-        return preg_match('/^[\\s\\x00-\\x1F]*[=+\\-@]/u', $value) === 1 ? "'" . $value : $value;
+        return preg_match('/^[\s\x00-\x1F]*[=+\-@]/u', $value) === 1 ? "'" . $value : $value;
     }
 }
