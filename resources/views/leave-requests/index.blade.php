@@ -30,7 +30,7 @@
                 <div class="sm:col-span-2 lg:col-span-2">
                     <flux:field>
                         <flux:label>{{ __('Cari') }}</flux:label>
-                        <flux:input name="q" value="{{ $filters['q'] }}" placeholder="{{ __('Nomor, jenis, atau alasan') }}" clearable />
+                        <flux:input name="q" value="{{ $filters['q'] }}" placeholder="{{ __('Nomor, jenis, atau alasan') }}" icon="magnifying-glass" clearable />
                     </flux:field>
                 </div>
                 <flux:field>
@@ -125,13 +125,22 @@
             <div class="hidden overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900 md:block">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-sm">
-                        <thead class="bg-zinc-50 text-xs uppercase tracking-wide text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+                        <thead class="sticky top-0 z-10 bg-zinc-50 text-xs uppercase tracking-wide text-zinc-500 shadow-sm dark:bg-zinc-800 dark:text-zinc-400">
                             <tr>
-                                <th class="px-4 py-3">{{ __('Nomor / Jenis') }}</th>
-                                <th class="px-4 py-3">{{ __('Periode') }}</th>
+                                <th class="px-4 py-3">
+                                    <flux:button size="sm" variant="ghost" icon-trailing="{{ $filters['sort'] === 'reference' ? ($filters['direction'] === 'asc' ? 'arrow-up' : 'arrow-down') : 'arrows-up-down' }}" href="{{ route('leave-requests.index', array_merge(request()->except('page'), ['sort' => 'reference', 'direction' => $filters['sort'] === 'reference' && $filters['direction'] === 'asc' ? 'desc' : 'asc'])) }}">{{ __('Nomor / Jenis') }}</flux:button>
+                                </th>
+                                <th class="px-4 py-3">
+                                    <flux:button size="sm" variant="ghost" icon-trailing="{{ $filters['sort'] === 'period' ? ($filters['direction'] === 'asc' ? 'arrow-up' : 'arrow-down') : 'arrows-up-down' }}" href="{{ route('leave-requests.index', array_merge(request()->except('page'), ['sort' => 'period', 'direction' => $filters['sort'] === 'period' && $filters['direction'] === 'asc' ? 'desc' : 'asc'])) }}">{{ __('Periode') }}</flux:button>
+                                </th>
                                 <th class="px-4 py-3">{{ __('Ringkasan') }}</th>
-                                <th class="px-4 py-3">{{ __('Status') }}</th>
+                                <th class="px-4 py-3">
+                                    <flux:button size="sm" variant="ghost" icon-trailing="{{ $filters['sort'] === 'status' ? ($filters['direction'] === 'asc' ? 'arrow-up' : 'arrow-down') : 'arrows-up-down' }}" href="{{ route('leave-requests.index', array_merge(request()->except('page'), ['sort' => 'status', 'direction' => $filters['sort'] === 'status' && $filters['direction'] === 'asc' ? 'desc' : 'asc'])) }}">{{ __('Status') }}</flux:button>
+                                </th>
                                 <th class="px-4 py-3">{{ __('Keputusan') }}</th>
+                                <th class="px-4 py-3">
+                                    <flux:button size="sm" variant="ghost" icon-trailing="{{ $filters['sort'] === 'submitted' ? ($filters['direction'] === 'asc' ? 'arrow-up' : 'arrow-down') : 'arrows-up-down' }}" href="{{ route('leave-requests.index', array_merge(request()->except('page'), ['sort' => 'submitted', 'direction' => $filters['sort'] === 'submitted' && $filters['direction'] === 'asc' ? 'desc' : 'asc'])) }}">{{ __('Tanggal pengajuan') }}</flux:button>
+                                </th>
                                 <th class="px-4 py-3 text-right">{{ __('Aksi') }}</th>
                             </tr>
                         </thead>
