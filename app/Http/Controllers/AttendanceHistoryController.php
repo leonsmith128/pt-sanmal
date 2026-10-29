@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Employee;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Http\Request;
 use Illuminate\Http\StreamedResponse;
 use Illuminate\View\View;
 
@@ -73,7 +74,7 @@ class AttendanceHistoryController extends Controller
         ]);
     }
 
-    private function attendanceQuery(Employee $employee, array $filters)
+    private function attendanceQuery(Employee $employee, array $filters): HasMany
     {
         return $employee->attendanceRecords()
             ->with(['location', 'project'])
