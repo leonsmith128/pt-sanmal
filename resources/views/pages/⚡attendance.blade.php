@@ -9,7 +9,7 @@ use App\Enums\WorkType;
 use App\Enums\OvertimeState;
 use App\Models\AttendanceRecord;
 use App\Models\OvertimeRequest;
-use App\Support\AttendanceLocation;
+use App\Support\AttendanceEvidence;
 use Illuminate\Support\Carbon;
 use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
@@ -176,11 +176,10 @@ new #[Title('Absensi')] class extends Component {
     private function validateInput(AttendanceType $type): void
     {
         $rules = [
-            'latitude' => ['required', 'numeric', 'between:-90,90'],
-            'longitude' => ['required', 'numeric', 'between:-180,180'],
-            'accuracy' => ['required', 'numeric', 'between:0,'.AttendanceLocation::MAX_ACCURACY_METERS],
-            'addressSnapshot' => ['nullable', 'string', 'max:500'],
-            'selfie' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:200'],
+            ...AttendanceEvidence::rules([
+                'latitude'=>'latitude','longitude'=>'longitude','accuracy'=>'accuracy',
+                'address'=>'addressSnapshot','selfie'=>'selfie',
+            ]),
             'selfieSource' => ['required', Rule::enum(SelfieSource::class)],
         ];
 
@@ -192,11 +191,7 @@ new #[Title('Absensi')] class extends Component {
             'latitude.required' => 'Lokasi belum terambil. Ambil ulang foto agar lokasi ikut terambil.',
             'longitude.required' => 'Lokasi belum terambil. Ambil ulang foto agar lokasi ikut terambil.',
             'accuracy.required' => 'Akurasi GPS belum tersedia. Tunggu hingga GPS siap lalu ambil foto.',
-            'accuracy.between' => 'Akurasi GPS harus ±'.AttendanceLocation::MAX_ACCURACY_METERS.' meter atau lebih baik. Tunggu GPS lebih presisi lalu coba lagi.',
-            'selfie.required' => 'Foto selfie wajib diambil.',
-            'selfie.image' => 'File harus berupa gambar.',
-            'selfie.mimes' => 'Format foto harus jpg, png, atau webp.',
-            'selfie.max' => 'Ukuran foto maksimal 200 KB. Coba ambil ulang foto.',
+            ...AttendanceEvidence::messages('accuracy', 'selfie'),
         ]);
     }
 

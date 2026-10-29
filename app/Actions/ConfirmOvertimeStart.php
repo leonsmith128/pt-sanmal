@@ -9,11 +9,10 @@ use App\Models\AttendanceRecord;
 use App\Models\AuditLog;
 use App\Models\Employee;
 use App\Models\OvertimeRequest;
-use App\Support\AttendanceLocation;
+use App\Support\AttendanceEvidence;
+use App\Support\AttendanceSelfie;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
 class ConfirmOvertimeStart
@@ -32,22 +31,7 @@ class ConfirmOvertimeStart
             $this->fail('selfieSource', 'Foto lembur harus diambil langsung dari kamera.');
         }
 
-        Validator::make([
-            'latitude' => $latitude,
-            'longitude' => $longitude,
-            'accuracy' => $accuracy,
-            'address_snapshot' => $addressSnapshot,
-            'selfie' => $selfie,
-        ], [
-            'latitude' => ['required', 'numeric', 'between:-90,90'],
-            'longitude' => ['required', 'numeric', 'between:-180,180'],
-            'accuracy' => ['required', 'numeric', 'min:0', 'max:'.AttendanceLocation::MAX_ACCURACY_METERS],
-            'address_snapshot' => ['nullable', 'string', 'max:500'],
-            'selfie' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:200'],
-        ], [
-            'accuracy.required' => 'Lokasi GPS belum memiliki data akurasi. Ambil ulang lokasi.',
-            'accuracy.max' => 'Akurasi GPS harus ±'.AttendanceLocation::MAX_ACCURACY_METERS.' meter atau lebih baik. Tunggu GPS lebih presisi lalu coba lagi.',
-        ])->validate();
+        AttendanceEvidence::validate(['latitude'=>$latitude,'longitude'=>$longitude,'accuracy'=>$accuracy,'address_snapshot'=>$addressSnapshot,'selfie'=>$selfie]);
 
         $storedPath = null;
 
@@ -81,7 +65,7 @@ class ConfirmOvertimeStart
                 }
 
                 $now = now();
-                $storedPath = $selfie->store('selfies/'.$employee->id.'/'.$now->format('Y/m'), 'local');
+                $storedPath = AttendanceSelfie::store($selfie, $employee->id, $now);
 
                 $record = AttendanceRecord::create([
                     'employee_id' => $employee->id,
@@ -126,10 +110,8 @@ class ConfirmOvertimeStart
                 return $record;
             });
         } catch (\Throwable $exception) {
-            if ($storedPath) {
-                Storage::disk('local')->delete($storedPath);
-            }
-
+            try { AttendanceSelfie::delete($storedPath); }
+            catch (\Throwable $cleanupException) { report($cleanupException); }
             throw $exception;
         }
     }
