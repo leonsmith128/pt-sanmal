@@ -57,12 +57,35 @@
                                 {{ $record->type->label() }}
                             </flux:badge>
                         </div>
-                        <div class="space-y-1 text-sm text-zinc-600 dark:text-zinc-300">
-                            <p><span class="font-medium">{{ __('Jenis kerja') }}:</span> {{ $record->work_type->label() }}</p>
-                            <p><span class="font-medium">{{ __('Lokasi') }}:</span> {{ $record->project?->name ?? $record->location?->name ?? '—' }}</p>
-                            @if ($record->address_snapshot)
-                                <p class="break-words">{{ $record->address_snapshot }}</p>
+
+                        <div class="flex items-start gap-3">
+                            @if ($record->selfie_path)
+                                <a href="{{ route('attendance-history.selfie', $record) }}" target="_blank" rel="noopener noreferrer" class="shrink-0" aria-label="{{ __('Buka foto absensi') }}">
+                                    <img src="{{ route('attendance-history.selfie', $record) }}" alt="{{ __('Foto absensi') }}" loading="lazy" class="size-20 rounded-lg border border-zinc-200 object-cover dark:border-zinc-700">
+                                </a>
+                            @else
+                                <div class="flex size-20 shrink-0 items-center justify-center rounded-lg bg-zinc-100 text-zinc-400 dark:bg-zinc-800">
+                                    <flux:icon name="image-off" class="size-6" />
+                                </div>
                             @endif
+
+                            <div class="min-w-0 space-y-1 text-sm text-zinc-600 dark:text-zinc-300">
+                                <p><span class="font-medium">{{ __('Jenis kerja') }}:</span> {{ $record->work_type->label() }}</p>
+                                <p><span class="font-medium">{{ __('Lokasi') }}:</span> {{ $record->project?->name ?? $record->location?->name ?? '—' }}</p>
+                                @if ($record->latitude !== null && $record->longitude !== null)
+                                    <a href="https://www.google.com/maps/search/?api=1&amp;query={{ urlencode($record->latitude . ',' . $record->longitude) }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 font-medium text-blue-600 hover:underline dark:text-blue-400">
+                                        <flux:icon name="map-pin" class="size-4" />
+                                        {{ __('Buka peta') }}
+                                    </a>
+                                @elseif ($record->address_snapshot)
+                                    <a href="https://www.google.com/maps/search/?api=1&amp;query={{ urlencode($record->address_snapshot) }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 font-medium text-blue-600 hover:underline dark:text-blue-400">
+                                        <flux:icon name="map-pin" class="size-4" />
+                                        {{ \Illuminate\Support\Str::limit($record->address_snapshot, 48) }}
+                                    </a>
+                                @else
+                                    <p class="text-zinc-400">—</p>
+                                @endif
+                            </div>
                         </div>
                     </article>
                 @endforeach
@@ -77,7 +100,8 @@
                                 <th scope="col" class="px-4 py-3">{{ __('Aktivitas') }}</th>
                                 <th scope="col" class="px-4 py-3">{{ __('Jenis kerja') }}</th>
                                 <th scope="col" class="px-4 py-3">{{ __('Lokasi / proyek') }}</th>
-                                <th scope="col" class="px-4 py-3">{{ __('Alamat tercatat') }}</th>
+                                <th scope="col" class="px-4 py-3">{{ __('Foto') }}</th>
+                                <th scope="col" class="px-4 py-3">{{ __('Peta') }}</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-zinc-200 dark:divide-zinc-700">
@@ -91,7 +115,30 @@
                                     </td>
                                     <td class="px-4 py-4">{{ $record->work_type->label() }}</td>
                                     <td class="px-4 py-4">{{ $record->project?->name ?? $record->location?->name ?? '—' }}</td>
-                                    <td class="max-w-sm break-words px-4 py-4 text-zinc-600 dark:text-zinc-300">{{ $record->address_snapshot ?: '—' }}</td>
+                                    <td class="px-4 py-4">
+                                        @if ($record->selfie_path)
+                                            <a href="{{ route('attendance-history.selfie', $record) }}" target="_blank" rel="noopener noreferrer" aria-label="{{ __('Buka foto absensi') }}">
+                                                <img src="{{ route('attendance-history.selfie', $record) }}" alt="{{ __('Foto absensi') }}" loading="lazy" class="size-16 rounded-lg border border-zinc-200 object-cover dark:border-zinc-700">
+                                            </a>
+                                        @else
+                                            <span class="text-zinc-400">—</span>
+                                        @endif
+                                    </td>
+                                    <td class="px-4 py-4">
+                                        @if ($record->latitude !== null && $record->longitude !== null)
+                                            <a href="https://www.google.com/maps/search/?api=1&amp;query={{ urlencode($record->latitude . ',' . $record->longitude) }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 font-medium text-blue-600 hover:underline dark:text-blue-400">
+                                                <flux:icon name="map-pin" class="size-4" />
+                                                {{ __('Buka peta') }}
+                                            </a>
+                                        @elseif ($record->address_snapshot)
+                                            <a href="https://www.google.com/maps/search/?api=1&amp;query={{ urlencode($record->address_snapshot) }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 font-medium text-blue-600 hover:underline dark:text-blue-400" title="{{ $record->address_snapshot }}">
+                                                <flux:icon name="map-pin" class="size-4" />
+                                                {{ \Illuminate\Support\Str::limit($record->address_snapshot, 36) }}
+                                            </a>
+                                        @else
+                                            <span class="text-zinc-400">—</span>
+                                        @endif
+                                    </td>
                                 </tr>
                             @endforeach
                         </tbody>
