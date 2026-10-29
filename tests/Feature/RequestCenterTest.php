@@ -70,6 +70,28 @@ it('exports filtered rows as spreadsheet-safe UTF-8 CSV', function () {
         ->and($content)->toContain("'=HYPERLINK");
 });
 
+it('paginates request center results without paginator contract errors', function () {
+    $user = requestCenterUser(UserRole::Employee);
+    $employee = requestCenterEmployee($user);
+    $type = LeaveType::create(['code' => 'izin', 'name' => 'Izin', 'is_active' => true]);
+
+    foreach (range(1, 11) as $number) {
+        $employee->leaveRequests()->create([
+            'leave_type_id' => $type->id,
+            'start_date' => '2026-11-02',
+            'end_date' => '2026-11-03',
+            'reason' => 'Permohonan keluarga nomor '.$number,
+            'status' => 'pending',
+        ]);
+    }
+
+    $this->actingAs($user)
+        ->get(route('leave-requests.index', ['page' => 2]))
+        ->assertOk()
+        ->assertSee('Permohonan keluarga nomor 1')
+        ->assertDontSee('Permohonan keluarga nomor 11');
+});
+
 it('validates an inverted date range on the request center', function () {
     $user = requestCenterUser(UserRole::Employee);
     requestCenterEmployee($user);
