@@ -1,9 +1,13 @@
-
 /**
- * Komponen Alpine untuk absensi: kamera, GPS, kompresi foto, dan unggah ke Livewire.
- * Dipakai di Blade lewat x-data="attendanceCamera()".
+ * Kamera absensi berbasis Alpine.
+ *
+ * Tanggung jawab:
+ * - membuka/menutup kamera dan beralih kamera depan/belakang bila tersedia;
+ * - mengambil GPS dan reverse geocoding alamat;
+ * - memotong gambar sesuai rasio viewport, memberi watermark, lalu menampilkan
+ *   hasil final sebelum file diunggah ke Livewire.
  */
-export default function attendanceCamera() {
+export default function attendanceCamera(config = {}) {
     return {
         stream: null,
         active: false,
@@ -11,40 +15,121 @@ export default function attendanceCamera() {
         busy: false,
         fallback: false,
         error: null,
+        name: config.name || 'Pegawai SanMal',
+        eventLabel: config.eventLabel || 'Absensi',
+        facingMode: 'user',
+        cameraInputs: [],
+        canSwitchCamera: false,
+        isLandscape: window.matchMedia('(orientation: landscape)').matches,
+        orientationQuery: null,
+        orientationHandler: null,
 
-        // ---------- Lokasi ----------
         watchId: null,
         best: null,
         liveAccuracy: null,
+        address: '',
+        addressLoading: false,
+        lastGeocodedAt: 0,
+        lastGeocodedPosition: null,
 
-        toPlain(pos) {
+        capturedBlob: null,
+        capturedUrl: null,
+        formattedTimestamp: '',
+        currentTimestamp: '',
+
+        get viewportStyle() {
+            return this.isLandscape
+                ? 'width:min(80vw, 106.666dvh); max-height:80dvh; aspect-ratio:4 / 3;'
+                : 'width:min(80vw, 60dvh); max-height:80dvh; aspect-ratio:3 / 4;';
+        },
+
+        init() {
+            this.orientationQuery = window.matchMedia('(orientation: landscape)');
+            this.orientationHandler = (event) => {
+                this.isLandscape = event.matches;
+            };
+            this.orientationQuery.addEventListener?.('change', this.orientationHandler);
+        },
+
+        toPlain(position) {
             return {
-                latitude: pos.coords.latitude,
-                longitude: pos.coords.longitude,
-                accuracy: pos.coords.accuracy,
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude,
+                accuracy: position.coords.accuracy,
                 receivedAt: Date.now(),
             };
         },
 
+        async resolveAddress(position, force = false) {
+            if (!position) return this.address;
+            const previous = this.lastGeocodedPosition;
+            const movedFar = !previous || this.distanceMeters(previous, position) > 75;
+            if (!force && this.address && !movedFar && Date.now() - this.lastGeocodedAt < 300000) {
+                return this.address;
+            }
+
+            this.addressLoading = true;
+            try {
+                const url = new URL('https://nominatim.openstreetmap.org/reverse');
+                url.search = new URLSearchParams({
+                    format: 'jsonv2',
+                    lat: String(position.latitude),
+                    lon: String(position.longitude),
+                    zoom: '18',
+                    addressdetails: '1',
+                }).toString();
+
+                const response = await fetch(url.toString(), {
+                    headers: { Accept: 'application/json' },
+                    signal: AbortSignal.timeout ? AbortSignal.timeout(8000) : undefined,
+                });
+                if (!response.ok) throw new Error('reverse-geocode-failed');
+                const result = await response.json();
+                this.address = typeof result.display_name === 'string'
+                    ? result.display_name.slice(0, 500)
+                    : '';
+                this.lastGeocodedAt = Date.now();
+                this.lastGeocodedPosition = position;
+            } catch (error) {
+                console.warn('Reverse geocoding tidak tersedia:', error);
+                this.address = '';
+            } finally {
+                this.addressLoading = false;
+            }
+
+            return this.address;
+        },
+
+        distanceMeters(a, b) {
+            const radians = (degrees) => degrees * Math.PI / 180;
+            const dLat = radians(b.latitude - a.latitude);
+            const dLon = radians(b.longitude - a.longitude);
+            const lat1 = radians(a.latitude);
+            const lat2 = radians(b.latitude);
+            const value = Math.sin(dLat / 2) ** 2
+                + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
+            return 6371000 * 2 * Math.atan2(Math.sqrt(value), Math.sqrt(1 - value));
+        },
+
         remeasureLocation() {
             this.error = null;
-            this.startLocationWatch();
             if (!navigator.geolocation) {
                 this.error = 'Browser tidak mendukung pengambilan lokasi.';
                 return;
             }
 
             navigator.geolocation.getCurrentPosition(
-                (pos) => {
-                    this.best = this.toPlain(pos);
-                    this.liveAccuracy = Math.round(pos.coords.accuracy);
+                async (position) => {
+                    this.best = this.toPlain(position);
+                    this.liveAccuracy = Math.round(position.coords.accuracy);
+                    await this.resolveAddress(this.best, true);
                 },
-                (err) => {
-                    this.error = err.code === 1
+                (error) => {
+                    this.error = error.code === 1
                         ? 'Izin lokasi ditolak. Aktifkan izin lokasi di pengaturan browser.'
                         : 'Lokasi belum dapat diukur ulang. Coba lagi di area yang lebih terbuka.';
                 },
-                { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
+                { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 },
             );
         },
 
@@ -52,35 +137,25 @@ export default function attendanceCamera() {
             this.stopLocationWatch();
             this.best = null;
             this.liveAccuracy = null;
+            this.address = '';
 
-            if (!navigator.geolocation) {
-                return;
-            }
+            if (!navigator.geolocation) return;
 
             this.watchId = navigator.geolocation.watchPosition(
-                (pos) => {
-                    const reading = this.toPlain(pos);
-                    const outdated =
-                        !this.best ||
-                        reading.receivedAt - this.best.receivedAt > 30000;
-
+                (position) => {
+                    const reading = this.toPlain(position);
+                    const outdated = !this.best || reading.receivedAt - this.best.receivedAt > 30000;
                     if (outdated || reading.accuracy <= this.best.accuracy) {
                         this.best = reading;
-                    }
-
-                    this.liveAccuracy = Math.round(this.best.accuracy);
-                },
-                (err) => {
-                    if (err.code === 1) {
-                        this.error =
-                            'Izin lokasi ditolak. Aktifkan izin lokasi di pengaturan browser, lalu coba lagi.';
+                        this.liveAccuracy = Math.round(reading.accuracy);
                     }
                 },
-                {
-                    enableHighAccuracy: true,
-                    timeout: 20000,
-                    maximumAge: 0,
-                }
+                (error) => {
+                    if (error.code === 1) {
+                        this.error = 'Izin lokasi ditolak. Aktifkan izin lokasi di pengaturan browser, lalu coba lagi.';
+                    }
+                },
+                { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 },
             );
         },
 
@@ -88,16 +163,11 @@ export default function attendanceCamera() {
             if (this.watchId !== null && navigator.geolocation) {
                 navigator.geolocation.clearWatch(this.watchId);
             }
-
             this.watchId = null;
         },
 
         getPosition() {
-            // Gunakan pembacaan GPS terbaik yang masih segar (< 60 detik).
-            if (
-                this.best &&
-                Date.now() - this.best.receivedAt < 60000
-            ) {
+            if (this.best && Date.now() - this.best.receivedAt < 60000) {
                 return Promise.resolve(this.best);
             }
 
@@ -106,156 +176,83 @@ export default function attendanceCamera() {
                     reject(new Error('no-geolocation'));
                     return;
                 }
-
                 navigator.geolocation.getCurrentPosition(
-                    (pos) => resolve(this.toPlain(pos)),
+                    (position) => resolve(this.toPlain(position)),
                     reject,
-                    {
-                        enableHighAccuracy: true,
-                        timeout: 15000,
-                        maximumAge: 10000,
-                    }
+                    { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 },
                 );
             });
         },
 
-        // ---------- Kamera ----------
-
-        /**
-         * Cari elemen video melalui $refs terlebih dahulu.
-         * Jika Alpine tidak menyediakan ref, cari langsung di elemen
-         * root komponen ini sebagai fallback.
-         */
         getVideoElement() {
-            const video =
-                this.$refs?.video ??
-                this.$el?.querySelector('video[x-ref="video"]');
-
+            const video = this.$refs?.video ?? this.$el?.querySelector('video[x-ref="video"]');
             return video instanceof HTMLVideoElement ? video : null;
         },
 
         async openCamera() {
-            const attempts = [
-                { video: { facingMode: 'user' }, audio: false },
-                { video: true, audio: false },
-            ];
+            const constraints = {
+                audio: false,
+                video: {
+                    facingMode: { ideal: this.facingMode },
+                },
+            };
+            return navigator.mediaDevices.getUserMedia(constraints);
+        },
 
-            let lastError = null;
-
-            for (const constraints of attempts) {
-                try {
-                    return await navigator.mediaDevices.getUserMedia(
-                        constraints
-                    );
-                } catch (e) {
-                    lastError = e;
-
-                    // Jangan mengulang permintaan jika izin ditolak.
-                    if (
-                        e.name === 'NotAllowedError' ||
-                        e.name === 'SecurityError'
-                    ) {
-                        break;
-                    }
-                }
+        async refreshCameraList() {
+            if (!navigator.mediaDevices?.enumerateDevices) {
+                this.cameraInputs = [];
+                this.canSwitchCamera = false;
+                return;
             }
 
-            throw lastError ?? new Error('camera-open-failed');
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            this.cameraInputs = devices.filter((device) => device.kind === 'videoinput');
+            this.canSwitchCamera = this.cameraInputs.length > 1;
         },
 
         async start() {
-
-            // Cegah permintaan kamera ganda saat izin masih diproses.
-            if (this.starting || this.active) {
-                return;
-            }
+            if (this.starting || this.active) return;
 
             this.error = null;
             this.fallback = false;
             this.starting = true;
-
-            // Pemantauan GPS berjalan paralel dengan pembukaan kamera.
             this.startLocationWatch();
 
             try {
-                if (
-                    !navigator.mediaDevices ||
-                    !navigator.mediaDevices.getUserMedia
-                ) {
+                if (!navigator.mediaDevices?.getUserMedia) {
                     throw new Error('camera-unavailable');
                 }
-                
-                // Log for Camera
-                console.log('Komponen Alpine:', this.$el);
-                console.log('Referensi Alpine:', this.$refs);
-                console.log(
-                    'Video di dalam komponen:',
-                    this.$el?.querySelectorAll('video').length
-                );
-                console.log(
-                    'Video di seluruh halaman:',
-                    document.querySelectorAll('video').length
-                );
 
                 this.stream = await this.openCamera();
-
-
                 this.active = true;
-
-                // Tunggu Alpine memperbarui DOM setelah active menjadi true.
                 await this.$nextTick();
 
-                // Gunakan helper agar tidak bergantung pada $refs saja.
                 const video = this.getVideoElement();
-
-                if (!video) {
-                    throw new Error('video-element-not-found');
-                }
+                if (!video) throw new Error('video-element-not-found');
 
                 video.muted = true;
                 video.playsInline = true;
                 video.srcObject = this.stream;
-
                 await video.play();
-
+                await this.refreshCameraList();
                 this.checkFrames(video);
-            } catch (e) {
-                console.error('Kamera gagal dibuka:', e);
-
+            } catch (error) {
+                console.error('Kamera gagal dibuka:', error);
                 this.stop();
 
-                if (e.message === 'video-element-not-found') {
-                    this.error =
-                        'Elemen video tidak ditemukan. Muat ulang halaman dan coba kembali.';
-                } else if (e.message === 'camera-unavailable') {
-                    this.error =
-                        'Kamera tidak tersedia. Buka lewat HTTPS atau localhost, atau unggah foto manual.';
-                } else if (e.name === 'NotAllowedError') {
-                    this.error =
-                        'Izin kamera ditolak. Aktifkan izin kamera di pengaturan browser.';
-                } else if (e.name === 'NotFoundError') {
-                    this.error =
-                        'Kamera tidak ditemukan di perangkat ini.';
-                } else if (
-                    e.name === 'NotReadableError' ||
-                    e.name === 'AbortError'
-                ) {
-                    this.error =
-                        'Kamera gagal dinyalakan oleh sistem. Tutup aplikasi lain yang memakai kamera, misalnya OBS atau Zoom, lalu coba lagi.';
-                } else if (
-                    e.name === 'NotSupportedError' ||
-                    e.name === 'NotAllowedError'
-                ) {
-                    this.error =
-                        'Video tidak dapat diputar. Periksa izin kamera dan dukungan browser.';
-                } else if (e.name === 'NotSupportedError') {
-                    this.error =
-                        'Browser tidak mendukung pemutaran video kamera.';
+                if (error.message === 'video-element-not-found') {
+                    this.error = 'Elemen video tidak ditemukan. Muat ulang halaman dan coba kembali.';
+                } else if (error.message === 'camera-unavailable' || error.name === 'SecurityError') {
+                    this.error = 'Kamera tidak tersedia. Buka halaman melalui HTTPS atau localhost.';
+                } else if (error.name === 'NotAllowedError') {
+                    this.error = 'Izin kamera ditolak. Aktifkan izin kamera di pengaturan browser.';
+                } else if (error.name === 'NotFoundError') {
+                    this.error = 'Kamera tidak ditemukan di perangkat ini.';
+                } else if (error.name === 'NotReadableError' || error.name === 'AbortError') {
+                    this.error = 'Kamera sedang digunakan aplikasi lain. Tutup aplikasi tersebut lalu coba lagi.';
                 } else {
-                    this.error =
-                        'Kamera tidak dapat dibuka (' +
-                        (e.name || 'error') +
-                        '). Coba muat ulang halaman.';
+                    this.error = 'Kamera tidak dapat dibuka. Periksa izin dan dukungan browser.';
                 }
 
                 this.fallback = true;
@@ -264,220 +261,217 @@ export default function attendanceCamera() {
             }
         },
 
+        async switchCamera() {
+            if (!this.canSwitchCamera || this.busy || this.starting) return;
+            this.facingMode = this.facingMode === 'user' ? 'environment' : 'user';
+            this.starting = true;
+
+            try {
+                this.stream?.getTracks().forEach((track) => track.stop());
+                this.stream = await this.openCamera();
+                const video = this.getVideoElement();
+                if (!video) throw new Error('video-element-not-found');
+                video.srcObject = this.stream;
+                await video.play();
+                await this.refreshCameraList();
+            } catch (error) {
+                this.error = 'Kamera tidak dapat diganti pada perangkat ini.';
+                console.warn('Pergantian kamera gagal:', error);
+            } finally {
+                this.starting = false;
+            }
+        },
+
         stop() {
             const video = this.getVideoElement();
-
             if (video) {
                 video.pause();
                 video.srcObject = null;
             }
-
-            if (this.stream) {
-                this.stream.getTracks().forEach((track) => track.stop());
-            }
-
+            this.stream?.getTracks().forEach((track) => track.stop());
             this.stream = null;
             this.active = false;
+            this.starting = false;
             this.stopLocationWatch();
+            this.clearCapturedPhoto();
         },
 
         checkFrames(video) {
-            setTimeout(() => {
-                if (
-                    this.active &&
-                    this.stream &&
-                    video.isConnected &&
-                    video.videoWidth === 0
-                ) {
-                    this.error =
-                        'Kamera terbuka tetapi tidak mengirim gambar. Pastikan kamera tidak dipakai aplikasi atau tab lain, lalu tutup dan buka kembali.';
+            window.setTimeout(() => {
+                if (this.active && this.stream && video.isConnected && video.videoWidth === 0) {
+                    this.error = 'Kamera terbuka tetapi tidak mengirim gambar. Tutup dan buka kamera kembali.';
                     this.fallback = true;
                 }
             }, 3000);
         },
 
-        // ---------- Foto ----------
-
-        async compress(source, w, h) {
-            const limit = 190 * 1024;
-            let scale = Math.min(1, 800 / Math.max(w, h));
-            let blob = null;
-
-            for (let round = 0; round < 4; round++) {
-                const canvas = document.createElement('canvas');
-
-                canvas.width = Math.max(1, Math.round(w * scale));
-                canvas.height = Math.max(1, Math.round(h * scale));
-
-                const context = canvas.getContext('2d');
-
-                if (!context) {
-                    throw new Error('canvas-context-unavailable');
-                }
-
-                context.drawImage(
-                    source,
-                    0,
-                    0,
-                    canvas.width,
-                    canvas.height
-                );
-
-                // Watermark digambar sekali pada hasil capture, bukan setiap frame preview.
-                const padding = Math.max(12, Math.round(canvas.width * 0.025));
-                const lineHeight = Math.max(16, Math.round(canvas.width * 0.035));
-                const name = document.querySelector('[data-attendance-watermark-name]')?.textContent?.trim() || 'Absensi SanMal';
-                const eventLabel = document.querySelector('[data-attendance-watermark-event]')?.textContent?.trim() || 'Foto absensi';
-                const locationText = this.best
-                    ? this.best.latitude.toFixed(5) + ', ' + this.best.longitude.toFixed(5)
-                    : 'Lokasi tidak tersedia';
-                const accuracyText = this.best
-                    ? 'Akurasi ±' + Math.round(this.best.accuracy) + ' m'
-                    : 'Akurasi tidak tersedia';
-                const timestamp = new Intl.DateTimeFormat('id-ID', {
-                    dateStyle: 'medium',
-                    timeStyle: 'short',
-                }).format(new Date());
-                const watermarkHeight = padding * 2 + lineHeight * 4;
-
-                context.fillStyle = 'rgba(0, 0, 0, 0.64)';
-                context.fillRect(0, canvas.height - watermarkHeight, canvas.width, watermarkHeight);
-                context.fillStyle = '#ffffff';
-                context.textBaseline = 'top';
-                context.font = '600 ' + Math.max(14, Math.round(canvas.width * 0.034)) + 'px system-ui, sans-serif';
-                context.fillText(name.slice(0, 64), padding, canvas.height - watermarkHeight + padding);
-                context.font = Math.max(12, Math.round(canvas.width * 0.027)) + 'px system-ui, sans-serif';
-                context.fillText(eventLabel.slice(0, 64) + ' · ' + timestamp, padding, canvas.height - watermarkHeight + padding + lineHeight);
-                context.fillText(locationText, padding, canvas.height - watermarkHeight + padding + lineHeight * 2);
-                context.fillText(accuracyText, padding, canvas.height - watermarkHeight + padding + lineHeight * 3);
-
-                for (const quality of [0.8, 0.7, 0.6, 0.5, 0.4]) {
-                    blob = await new Promise((resolve) => {
-                        canvas.toBlob(resolve, 'image/jpeg', quality);
-                    });
-
-                    if (blob && blob.size <= limit) {
-                        return blob;
-                    }
-                }
-
-                scale *= 0.8;
-            }
-
-            return blob;
+        clearCapturedPhoto() {
+            if (this.capturedUrl) URL.revokeObjectURL(this.capturedUrl);
+            this.capturedUrl = null;
+            this.capturedBlob = null;
+            this.formattedTimestamp = '';
         },
 
-        async send(source, w, h, kind) {
+        async makeFinalPhoto(video, position) {
+            const viewport = video.getBoundingClientRect();
+            const targetRatio = viewport.width / viewport.height;
+            const sourceRatio = video.videoWidth / video.videoHeight;
+            let sourceWidth = video.videoWidth;
+            let sourceHeight = video.videoHeight;
+
+            if (sourceRatio > targetRatio) {
+                sourceWidth = video.videoHeight * targetRatio;
+            } else {
+                sourceHeight = video.videoWidth / targetRatio;
+            }
+
+            const sourceX = (video.videoWidth - sourceWidth) / 2;
+            const sourceY = (video.videoHeight - sourceHeight) / 2;
+            const maxDimension = 1200;
+            const scale = Math.min(1, maxDimension / Math.max(sourceWidth, sourceHeight));
+            const width = Math.max(1, Math.round(sourceWidth * scale));
+            const height = Math.max(1, Math.round(sourceHeight * scale));
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+
+            const context = canvas.getContext('2d');
+            if (!context) throw new Error('canvas-context-unavailable');
+
+            // Mirror pada canvas agar hasil sesuai dengan preview kamera depan.
+            context.save();
+            context.translate(width, 0);
+            context.scale(-1, 1);
+            context.drawImage(video, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, width, height);
+            context.restore();
+
+            const timestamp = new Intl.DateTimeFormat('id-ID', {
+                dateStyle: 'medium',
+                timeStyle: 'short',
+            }).format(new Date());
+            this.formattedTimestamp = timestamp;
+
+            const padding = Math.max(12, Math.round(width * 0.025));
+            const titleSize = Math.max(14, Math.round(width * 0.035));
+            const bodySize = Math.max(11, Math.round(width * 0.027));
+            const lineHeight = Math.max(15, Math.round(bodySize * 1.35));
+            const textMaxWidth = width - padding * 2;
+            const watermarkLines = [
+                this.name,
+                this.eventLabel + ' · ' + timestamp,
+                this.address || 'Alamat tidak tersedia',
+            ];
+            const wrappedLines = [];
+            context.font = '600 ' + titleSize + 'px system-ui, sans-serif';
+            wrappedLines.push(...this.wrapText(context, watermarkLines[0], textMaxWidth));
+            context.font = bodySize + 'px system-ui, sans-serif';
+            wrappedLines.push(...this.wrapText(context, watermarkLines[1], textMaxWidth));
+            wrappedLines.push(...this.wrapText(context, watermarkLines[2], textMaxWidth));
+
+            const watermarkHeight = padding * 2 + lineHeight * wrappedLines.length;
+            const watermarkTop = Math.max(0, height - watermarkHeight);
+            context.fillStyle = 'rgba(255, 255, 255, 0.78)';
+            context.fillRect(0, watermarkTop, width, height - watermarkTop);
+            context.fillStyle = '#18181b';
+            context.textBaseline = 'top';
+            let y = watermarkTop + padding;
+            wrappedLines.forEach((line, index) => {
+                context.font = (index === 0 ? '600 ' + titleSize : bodySize) + 'px system-ui, sans-serif';
+                context.fillText(line, padding, y, textMaxWidth);
+                y += lineHeight;
+            });
+
+            const maxBytes = 190 * 1024;
+            for (const quality of [0.82, 0.74, 0.66, 0.58, 0.5, 0.42]) {
+                const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', quality));
+                if (blob && blob.size <= maxBytes) return blob;
+            }
+
+            const finalBlob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.38));
+            if (!finalBlob) throw new Error('photo-encode-failed');
+            return finalBlob;
+        },
+
+        wrapText(context, text, maxWidth) {
+            const words = String(text || '').split(/\s+/);
+            const lines = [];
+            let line = '';
+            for (const word of words) {
+                const candidate = line ? line + ' ' + word : word;
+                if (line && context.measureText(candidate).width > maxWidth) {
+                    lines.push(line);
+                    line = word;
+                } else {
+                    line = candidate;
+                }
+            }
+            if (line) lines.push(line);
+            return lines.length ? lines : [''];
+        },
+
+        async capture() {
+            const video = this.getVideoElement();
+            if (!video || !video.videoWidth || !video.videoHeight || this.busy || !this.best) return;
+
             this.error = null;
             this.busy = true;
-
             try {
-                const [pos, blob] = await Promise.all([
-                    this.getPosition(),
-                    this.compress(source, w, h),
-                ]);
-
-                if (!blob) {
-                    throw new Error('no-photo');
-                }
-
-                this.$wire.latitude = pos.latitude;
-                this.$wire.longitude = pos.longitude;
-                this.$wire.accuracy = pos.accuracy;
-                this.$wire.selfieSource = kind;
-
-                const file = new File([blob], 'selfie.jpg', {
-                    type: 'image/jpeg',
-                });
-
-                await new Promise((resolve, reject) => {
-                    this.$wire.upload(
-                        'selfie',
-                        file,
-                        resolve,
-                        reject
-                    );
-                });
-
-                this.stop();
-            } catch (e) {
-                if (
-                    typeof GeolocationPositionError !== 'undefined' &&
-                    e instanceof GeolocationPositionError
-                ) {
-                    this.error =
-                        e.code === 1
-                            ? 'Izin lokasi ditolak. Aktifkan izin lokasi di pengaturan browser, lalu coba lagi.'
-                            : 'Lokasi tidak dapat diambil. Coba lagi di tempat yang lebih terbuka.';
-                } else if (e?.message === 'no-geolocation') {
-                    this.error = 'Browser ini tidak mendukung GPS.';
-                } else if (
-                    e?.message === 'canvas-context-unavailable'
-                ) {
-                    this.error =
-                        'Foto tidak dapat diproses oleh browser ini.';
-                } else {
-                    console.error('Gagal memproses atau mengunggah foto:', e);
-                    this.error =
-                        'Gagal memproses atau mengunggah foto. Coba lagi.';
-                }
+                const position = await this.getPosition();
+                this.best = position;
+                await this.resolveAddress(position, true);
+                const blob = await this.makeFinalPhoto(video, position);
+                this.clearCapturedPhoto();
+                this.capturedBlob = blob;
+                this.capturedUrl = URL.createObjectURL(blob);
+            } catch (error) {
+                console.error('Gagal mengambil foto:', error);
+                this.error = error.message === 'canvas-context-unavailable'
+                    ? 'Foto tidak dapat diproses oleh browser ini.'
+                    : 'Foto atau lokasi gagal diproses. Periksa izin lokasi dan coba lagi.';
             } finally {
                 this.busy = false;
             }
         },
 
-        capture() {
-            const video = this.getVideoElement();
-
-            if (
-                !video ||
-                !video.videoWidth ||
-                !video.videoHeight ||
-                this.busy
-            ) {
-                return;
-            }
-
-            this.send(
-                video,
-                video.videoWidth,
-                video.videoHeight,
-                'camera'
-            );
+        retake() {
+            this.clearCapturedPhoto();
+            this.error = null;
         },
 
-        async onFile(event) {
-            const file = event.target.files?.[0];
-
-            if (!file || this.busy) {
-                return;
-            }
+        async useCapturedPhoto() {
+            if (!this.capturedBlob || this.busy) return;
+            this.busy = true;
+            this.error = null;
 
             try {
-                const bitmap = await createImageBitmap(file, {
-                    imageOrientation: 'from-image',
+                const position = this.best || await this.getPosition();
+                this.$wire.latitude = position.latitude;
+                this.$wire.longitude = position.longitude;
+                this.$wire.accuracy = position.accuracy;
+                this.$wire.addressSnapshot = this.address || '';
+                this.$wire.selfieSource = 'camera';
+
+                const file = new File([this.capturedBlob], 'attendance-selfie.jpg', {
+                    type: 'image/jpeg',
+                    lastModified: Date.now(),
                 });
 
-                try {
-                    await this.send(
-                        bitmap,
-                        bitmap.width,
-                        bitmap.height,
-                        'upload'
-                    );
-                } finally {
-                    bitmap.close?.();
-                }
-            } catch (e) {
-                console.error('Gagal membaca file gambar:', e);
-                this.error = 'File gambar tidak dapat dibaca.';
-            }
+                await new Promise((resolve, reject) => {
+                    this.$wire.upload('selfie', file, resolve, reject);
+                });
 
-            event.target.value = '';
+                this.stop();
+            } catch (error) {
+                console.error('Gagal mengunggah foto:', error);
+                this.error = 'Foto gagal diunggah. Coba gunakan foto ini kembali.';
+            } finally {
+                this.busy = false;
+            }
         },
 
         destroy() {
             this.stop();
+            this.orientationQuery?.removeEventListener?.('change', this.orientationHandler);
         },
     };
 }

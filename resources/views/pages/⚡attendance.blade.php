@@ -29,6 +29,7 @@ new #[Title('Absensi')] class extends Component {
     public $latitude = null;
     public $longitude = null;
     public $accuracy = null;
+    public $addressSnapshot = null;
     public $selfie = null;
     public string $selfieSource = 'camera';
     public string $selectedDate = '';
@@ -159,7 +160,7 @@ new #[Title('Absensi')] class extends Component {
 
     public function retakeSelfie(): void
     {
-        $this->reset('selfie', 'selfieSource', 'latitude', 'longitude', 'accuracy');
+        $this->reset('selfie', 'selfieSource', 'latitude', 'longitude', 'accuracy', 'addressSnapshot');
         $this->resetErrorBag();
     }
 
@@ -177,6 +178,7 @@ new #[Title('Absensi')] class extends Component {
             'latitude' => ['required', 'numeric', 'between:-90,90'],
             'longitude' => ['required', 'numeric', 'between:-180,180'],
             'accuracy' => ['nullable', 'numeric', 'min:0'],
+            'addressSnapshot' => ['nullable', 'string', 'max:500'],
             'selfie' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:200'],
             'selfieSource' => ['required', Rule::enum(SelfieSource::class)],
         ];
@@ -224,7 +226,7 @@ new #[Title('Absensi')] class extends Component {
                     latitude: (float) $this->latitude,
                     longitude: (float) $this->longitude,
                     accuracy: $this->accuracy !== null ? (float) $this->accuracy : null,
-                    addressSnapshot: null,
+                    addressSnapshot: $this->addressSnapshot,
                     selfie: $this->selfie,
                     selfieSource: SelfieSource::from($this->selfieSource),
                 );
@@ -238,6 +240,7 @@ new #[Title('Absensi')] class extends Component {
                     latitude: (float) $this->latitude,
                     longitude: (float) $this->longitude,
                     accuracy: $this->accuracy !== null ? (float) $this->accuracy : null,
+                    addressSnapshot: $this->addressSnapshot,
                     selfie: $this->selfie,
                     selfieSource: SelfieSource::from($this->selfieSource),
                 );
@@ -249,7 +252,7 @@ new #[Title('Absensi')] class extends Component {
             throw $e;
         }
 
-        $this->reset('latitude', 'longitude', 'accuracy', 'selfie', 'selfieSource');
+        $this->reset('latitude', 'longitude', 'accuracy', 'addressSnapshot', 'selfie', 'selfieSource');
         unset($this->openSession, $this->history, $this->overtimeRequest);
 
         Flux::modal('confirm-attendance')->close();
@@ -324,6 +327,8 @@ new #[Title('Absensi')] class extends Component {
                 ?? $clockInRecord?->location?->name
                 ?? $session?->project?->name
                 ?? $session?->location?->name;
+            $attendanceAddress = $clockInRecord?->address_snapshot
+                ?? $session?->address_snapshot;
             $overtimeForDate = $this->selectedDateOvertimeRequest;
             $overtimeStatus = $overtimeForDate
                 ? ($overtimeForDate->state === OvertimeState::InProgress
@@ -375,6 +380,9 @@ new #[Title('Absensi')] class extends Component {
                     <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{{ $attendancePlace }}</p>
                 @else
                     <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{{ __('Lokasi belum tercatat') }}</p>
+                @endif
+                @if ($attendanceAddress)
+                    <p class="mt-1 break-words text-sm text-zinc-500 dark:text-zinc-400">{{ $attendanceAddress }}</p>
                 @endif
                 @if ($this->history->isNotEmpty())
                     <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
@@ -451,80 +459,166 @@ new #[Title('Absensi')] class extends Component {
                 <flux:text>{{ __('Konfirmasi mulai lembur memerlukan foto dan lokasi terbaru. Sesi kerja utama tetap berjalan.') }}</flux:text>
             @endif
 
-            {{-- Foto selfie + lokasi: keduanya terambil bersamaan saat tombol Ambil Foto ditekan --}}
+            {{-- Kamera dibuat sebagai overlay rasio tetap; hasil capture dipreview sebelum diunggah. --}}
             <div
-                x-data="attendanceCamera()"
+                x-data="attendanceCamera({ name: @js(Auth::user()->name), eventLabel: @js($mode === 'overtime_start' ? 'Lembur' : ($mode === 'clock_in' ? 'Clock In' : 'Clock Out')) })"
                 x-on:livewire:navigating.window="stop()"
                 x-on:attendance-camera-open.window="start()"
                 class="flex flex-col gap-2"
             >
                 @if ($selfie && $selfie->isPreviewable())
-                    <img src="{{ $selfie->temporaryUrl() }}" alt="Pratinjau selfie" class="w-full max-w-xs rounded-lg object-cover" />
+                    <img src="{{ $selfie->temporaryUrl() }}" alt="Pratinjau foto absensi" class="w-full max-w-xs rounded-lg object-cover" />
                     <div>
                         <flux:button type="button" size="sm" icon="arrow-path" wire:click="retakeSelfie">{{ __('Foto ulang') }}</flux:button>
                     </div>
-                @else
-                    <div x-show="active" x-cloak class="fixed inset-0 z-50 flex flex-col justify-center gap-4 overflow-y-auto bg-black p-4 sm:inset-[10%] sm:rounded-2xl sm:p-6">
-                        <div class="relative mx-auto w-full max-w-3xl overflow-hidden rounded-2xl bg-black">
-                            <video x-ref="video" autoplay playsinline muted class="aspect-[3/4] max-h-[65dvh] w-full object-cover [transform:scaleX(-1)]"></video>
-                            <div class="pointer-events-none absolute inset-x-3 bottom-3 rounded-xl bg-black/60 p-3 text-white backdrop-blur-sm">
-                                <p data-attendance-watermark-name class="text-sm font-semibold">{{ Auth::user()->name }}</p>
-                                <p data-attendance-watermark-event class="text-xs opacity-90">{{ $mode === 'overtime_start' ? __('Absen mulai lembur') : ($mode === 'clock_in' ? __('Absen masuk') : __('Absen pulang')) }}</p>
-                                <p class="mt-1 text-xs" x-text="liveAccuracy !== null ? 'Akurasi lokasi ±' + liveAccuracy + ' m' : 'Mengambil lokasi…'"></p>
-                                <p class="text-xs" x-text="best ? best.latitude.toFixed(5) + ', ' + best.longitude.toFixed(5) : 'Lokasi belum tersedia'"></p>
-                            </div>
-                        </div>
-                    
-                        <div class="flex gap-2">
-                            <flux:button
-                                type="button"
-                                variant="primary"
-                                icon="camera"
-                                x-on:click="capture()"
-                                x-bind:disabled="busy"
-                            >
-                                {{ __('Ambil Foto') }}
-                            </flux:button>
-                        
-                            <flux:button
-                                type="button"
-                                icon="map-pin"
-                                variant="ghost"
-                                x-on:click="remeasureLocation()"
-                                x-bind:disabled="busy"
-                            >
-                                {{ __('Ukur ulang lokasi') }}
-                            </flux:button>
-                            <flux:button
-                                type="button"
-                                x-on:click="stop()"
-                                x-bind:disabled="busy"
-                            >
-                                {{ __('Tutup Kamera') }}
-                            </flux:button>
-                        </div>
-                    </div>
-
-                    <div x-show="fallback && ! active" x-cloak class="rounded-xl bg-zinc-100 p-3 text-sm text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
-                        {{ __('Unggah dari galeri tidak tersedia untuk absensi. Izinkan akses kamera atau gunakan perangkat dengan kamera yang berfungsi.') }}
-                    </div>
                 @endif
 
-                <flux:text x-show="busy" x-cloak>{{ __('Memproses foto dan lokasi...') }}</flux:text>
-                <div wire:loading wire:target="selfie">
-                    <flux:text>{{ __('Mengunggah foto...') }}</flux:text>
+                <div
+                    x-show="active"
+                    x-cloak
+                    class="fixed inset-0 z-50 flex items-center justify-center overflow-hidden bg-transparent"
+                    aria-label="{{ __('Kamera absensi') }}"
+                    role="dialog"
+                    aria-modal="true"
+                >
+                    <div
+                        class="relative isolate overflow-hidden rounded-[1.75rem] bg-zinc-900 shadow-2xl ring-1 ring-white/20"
+                        :class="isLandscape ? 'attendance-camera-landscape' : 'attendance-camera-portrait'"
+                        :style="viewportStyle"
+                    >
+                        <video
+                            x-ref="video"
+                            x-show="! capturedUrl"
+                            autoplay
+                            playsinline
+                            muted
+                            class="absolute inset-0 h-full w-full object-cover [transform:scaleX(-1)]"
+                        ></video>
+
+                        <img
+                            x-show="capturedUrl"
+                            x-cloak
+                            :src="capturedUrl"
+                            alt="{{ __('Pratinjau akhir foto absensi') }}"
+                            class="absolute inset-0 h-full w-full object-cover"
+                        />
+
+                        <div
+                            x-show="! capturedUrl"
+                            class="pointer-events-none absolute inset-x-2 bottom-16 max-h-[32%] overflow-hidden rounded-xl border border-white/40 bg-white/75 p-2.5 text-zinc-900 shadow-sm backdrop-blur-md sm:inset-x-3 sm:bottom-20 sm:p-3"
+                        >
+                            <p class="truncate text-xs font-semibold sm:text-sm" x-text="name"></p>
+                            <p class="text-[11px] font-medium sm:text-xs" x-text="eventLabel"></p>
+                            <p class="mt-0.5 text-[10px] leading-snug sm:text-xs" x-text="formattedTimestamp || currentTimestamp"></p>
+                            <p class="mt-0.5 line-clamp-2 break-words text-[10px] leading-snug sm:text-xs" x-text="address || (addressLoading ? 'Mencari alamat…' : 'Alamat belum tersedia')"></p>
+                        </div>
+
+                        <button
+                            type="button"
+                            x-show="canSwitchCamera && ! capturedUrl"
+                            x-cloak
+                            x-on:click="switchCamera()"
+                            x-bind:disabled="busy || starting"
+                            class="absolute right-3 top-3 flex size-10 items-center justify-center rounded-full bg-transparent text-white shadow-sm transition hover:bg-black/20 disabled:opacity-50"
+                            aria-label="{{ __('Ganti kamera depan/belakang') }}"
+                            title="{{ __('Ganti kamera') }}"
+                        >
+                            <flux:icon name="switch-camera" variant="outline" class="size-5" />
+                        </button>
+
+                        <div class="absolute inset-x-0 bottom-0 flex items-center justify-center gap-5 px-4 pb-4 pt-2 sm:gap-7 sm:pb-5">
+                            <button
+                                type="button"
+                                x-show="! capturedUrl"
+                                x-on:click="remeasureLocation()"
+                                x-bind:disabled="busy || starting"
+                                class="flex size-10 shrink-0 items-center justify-center rounded-full bg-transparent text-white transition hover:bg-white/15 disabled:opacity-50 sm:size-11"
+                                aria-label="{{ __('Refresh lokasi') }}"
+                                title="{{ __('Refresh lokasi') }}"
+                            >
+                                <flux:icon name="map-pin" variant="outline" class="size-5 sm:size-6" />
+                            </button>
+
+                            <button
+                                type="button"
+                                x-show="! capturedUrl"
+                                x-on:click="capture()"
+                                x-bind:disabled="busy || starting || ! best"
+                                class="flex size-16 shrink-0 items-center justify-center rounded-full border-[3px] border-white bg-white/15 text-white shadow-lg outline outline-2 outline-offset-2 outline-white/40 transition active:scale-95 disabled:opacity-50 sm:size-[4.5rem]"
+                                aria-label="{{ __('Ambil foto') }}"
+                                title="{{ __('Ambil foto') }}"
+                            >
+                                <flux:icon name="camera" variant="outline" class="size-7 sm:size-8" />
+                            </button>
+
+                            <button
+                                type="button"
+                                x-show="! capturedUrl"
+                                x-on:click="stop()"
+                                x-bind:disabled="busy"
+                                class="flex size-10 shrink-0 items-center justify-center rounded-full bg-transparent text-white transition hover:bg-white/15 disabled:opacity-50 sm:size-11"
+                                aria-label="{{ __('Tutup kamera') }}"
+                                title="{{ __('Tutup kamera') }}"
+                            >
+                                <flux:icon name="x" variant="outline" class="size-5 sm:size-6" />
+                            </button>
+
+                            <button
+                                type="button"
+                                x-show="capturedUrl"
+                                x-on:click="retake()"
+                                x-bind:disabled="busy"
+                                class="flex size-11 items-center justify-center rounded-full bg-white/15 text-white transition hover:bg-white/25 disabled:opacity-50"
+                                aria-label="{{ __('Foto ulang') }}"
+                                title="{{ __('Foto ulang') }}"
+                            >
+                                <flux:icon name="arrow-left" variant="outline" class="size-5" />
+                            </button>
+                            <button
+                                type="button"
+                                x-show="capturedUrl"
+                                x-on:click="useCapturedPhoto()"
+                                x-bind:disabled="busy || ! capturedBlob"
+                                class="flex size-16 items-center justify-center rounded-full border-[3px] border-white bg-white/15 text-white shadow-lg outline outline-2 outline-offset-2 outline-white/40 disabled:opacity-50"
+                                aria-label="{{ __('Gunakan foto ini') }}"
+                                title="{{ __('Gunakan foto ini') }}"
+                            >
+                                <flux:icon name="check" variant="outline" class="size-7" />
+                            </button>
+                            <button
+                                type="button"
+                                x-show="capturedUrl"
+                                x-on:click="stop()"
+                                x-bind:disabled="busy"
+                                class="flex size-11 items-center justify-center rounded-full bg-transparent text-white transition hover:bg-white/15 disabled:opacity-50"
+                                aria-label="{{ __('Tutup kamera') }}"
+                                title="{{ __('Tutup kamera') }}"
+                            >
+                                <flux:icon name="x" variant="outline" class="size-5" />
+                            </button>
+                        </div>
+
+                        <div x-show="busy" x-cloak class="absolute inset-0 flex items-center justify-center bg-black/35 text-sm font-medium text-white">
+                            {{ __('Memproses foto…') }}
+                        </div>
+                    </div>
+                </div>
+
+                <div x-show="fallback && ! active" x-cloak class="rounded-xl bg-zinc-100 p-3 text-sm text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
+                    <p>{{ __('Kamera tidak tersedia. Pastikan izin kamera diberikan dan halaman dibuka melalui HTTPS atau localhost.') }}</p>
+                    <p x-show="error" x-text="error" class="mt-1 text-red-600 dark:text-red-400"></p>
                 </div>
 
                 <flux:text x-show="$wire.latitude !== null" x-cloak class="text-sm text-green-600 dark:text-green-400">
                     {{ __('Lokasi terambil') }} &middot; {{ __('akurasi') }} &plusmn;<span x-text="Math.round($wire.accuracy ?? 0)"></span> m
                 </flux:text>
 
-                <flux:text x-show="error" x-cloak x-text="error" class="text-red-500"></flux:text>
+                <flux:text x-show="error && ! active" x-cloak x-text="error" class="text-sm text-red-500"></flux:text>
                 @error('selfie') <flux:text class="text-red-500">{{ $message }}</flux:text> @enderror
                 @error('latitude') <flux:text class="text-red-500">{{ $message }}</flux:text> @enderror
             </div>
 
-            @error('form') <flux:text class="text-red-500">{{ $message }}</flux:text> @enderror
+                        @error('form') <flux:text class="text-red-500">{{ $message }}</flux:text> @enderror
             @error('workType') <flux:text class="text-red-500">{{ $message }}</flux:text> @enderror
 
             <div class="flex items-center gap-2">
