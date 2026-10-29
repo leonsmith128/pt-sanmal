@@ -184,8 +184,8 @@ new #[Title('Profil Pegawai')] class extends Component {
         <flux:subheading class="mt-1">Email dan kata sandi dikelola pada halaman pengaturan akun.</flux:subheading>
 
         <div class="mt-4 flex flex-wrap gap-2">
-            <flux:button :href="route('profile.edit')" wire:navigate icon="mail">Ubah email</flux:button>
-            <flux:button :href="route('security.edit')" wire:navigate icon="key-round">Ubah kata sandi</flux:button>
+            <flux:button :href="route('profile.edit')" wire:navigate icon="envelope">Ubah email</flux:button>
+            <flux:button :href="route('security.edit')" wire:navigate icon="key">Ubah kata sandi</flux:button>
         </div>
     </div>
 </section>

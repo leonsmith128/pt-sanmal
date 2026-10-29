@@ -20,7 +20,7 @@
             </div>
         </div>
         <flux:menu.separator />
-        <flux:menu.item :href="route('employee-profile.edit')" icon="user-round" wire:navigate>
+        <flux:menu.item :href="route('employee-profile.edit')" icon="user-circle" wire:navigate>
             {{ __('Profil Pegawai') }}
         </flux:menu.item>
         <flux:menu.radio.group>
