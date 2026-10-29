@@ -28,6 +28,7 @@ class LeaveRequest extends Model
         'status',
         'decided_by',
         'decided_at',
+        'decision_seen_at',
         'decision_note',
     ];
 
@@ -37,6 +38,7 @@ class LeaveRequest extends Model
             'start_date' => 'date',
             'end_date' => 'date',
             'decided_at' => 'datetime',
+            'decision_seen_at' => 'datetime',
             'status' => LeaveRequestStatus::class,
         ];
     }
