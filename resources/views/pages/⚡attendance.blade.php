@@ -328,7 +328,7 @@ new #[Title('Absensi')] class extends Component {
                 ?? $session?->project?->name
                 ?? $session?->location?->name;
             $attendanceAddress = $clockInRecord?->address_snapshot
-                ?? $session?->address_snapshot;
+                ?? ($selectedDate === now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString() ? $session?->address_snapshot : null);
             $overtimeForDate = $this->selectedDateOvertimeRequest;
             $overtimeStatus = $overtimeForDate
                 ? ($overtimeForDate->state === OvertimeState::InProgress

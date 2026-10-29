@@ -35,7 +35,13 @@ export default function attendanceCamera(config = {}) {
         capturedBlob: null,
         capturedUrl: null,
         formattedTimestamp: '',
-        currentTimestamp: '',
+
+        get currentTimestamp() {
+            return new Intl.DateTimeFormat('id-ID', {
+                dateStyle: 'medium',
+                timeStyle: 'short',
+            }).format(new Date());
+        },
 
         get viewportStyle() {
             return this.isLandscape
@@ -362,6 +368,7 @@ export default function attendanceCamera(config = {}) {
                 this.name,
                 this.eventLabel + ' · ' + timestamp,
                 this.address || 'Alamat tidak tersedia',
+                '© OpenStreetMap contributors',
             ];
             const wrappedLines = [];
             context.font = '600 ' + titleSize + 'px system-ui, sans-serif';
@@ -384,12 +391,27 @@ export default function attendanceCamera(config = {}) {
             });
 
             const maxBytes = 190 * 1024;
-            for (const quality of [0.82, 0.74, 0.66, 0.58, 0.5, 0.42]) {
-                const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', quality));
-                if (blob && blob.size <= maxBytes) return blob;
+            let outputCanvas = canvas;
+
+            // Kompresi bertahap; bila foto tetap besar, kecilkan resolusi tanpa
+            // mengubah komposisi crop maupun watermark yang sudah digambar.
+            for (let resizeRound = 0; resizeRound < 5; resizeRound++) {
+                for (const quality of [0.82, 0.72, 0.62, 0.52, 0.42, 0.34]) {
+                    const blob = await new Promise((resolve) => outputCanvas.toBlob(resolve, 'image/jpeg', quality));
+                    if (blob && blob.size <= maxBytes) return blob;
+                }
+
+                if (outputCanvas.width <= 480 || outputCanvas.height <= 480) break;
+                const smaller = document.createElement('canvas');
+                smaller.width = Math.max(1, Math.round(outputCanvas.width * 0.8));
+                smaller.height = Math.max(1, Math.round(outputCanvas.height * 0.8));
+                const smallerContext = smaller.getContext('2d');
+                if (!smallerContext) throw new Error('canvas-context-unavailable');
+                smallerContext.drawImage(outputCanvas, 0, 0, smaller.width, smaller.height);
+                outputCanvas = smaller;
             }
 
-            const finalBlob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.38));
+            const finalBlob = await new Promise((resolve) => outputCanvas.toBlob(resolve, 'image/jpeg', 0.3));
             if (!finalBlob) throw new Error('photo-encode-failed');
             return finalBlob;
         },
