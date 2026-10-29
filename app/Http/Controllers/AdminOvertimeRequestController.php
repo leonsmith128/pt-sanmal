@@ -61,6 +61,7 @@ class AdminOvertimeRequestController extends Controller
                 'approval_status' => $decision,
                 'decided_by' => $request->user()->id,
                 'decided_at' => now(),
+                'decision_seen_at' => null,
                 'decision_note' => $validated['decision_note'] ?? null,
             ]);
 

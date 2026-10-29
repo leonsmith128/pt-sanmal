@@ -30,8 +30,28 @@ class LeaveRequestController extends Controller
         abort_unless($request->user()->is_active && $employee, 403, 'Akun ini belum terhubung dengan data pegawai aktif.');
 
         $filters = $this->validatedFilters($request);
+        $employee->leaveRequests()->whereIn('status', ['approved', 'rejected'])->whereNull('decision_seen_at')->update(['decision_seen_at' => now()]);
+        $employee->overtimeRequests()->whereIn('approval_status', ['approved', 'rejected'])->whereNull('decision_seen_at')->update(['decision_seen_at' => now()]);
+        $employee->attendanceCorrections()->whereIn('status', ['approved', 'rejected'])->whereNull('decision_seen_at')->update(['decision_seen_at' => now()]);
+
         $rows = $this->filteredRows($employee, $filters);
-        $perPage = 10;
+        $sortColumns = [
+            'reference' => 'reference',
+            'type' => 'type_label',
+            'period' => 'period_start',
+            'status' => 'status_label',
+            'submitted' => 'submitted_at',
+        ];
+        $sortColumn = $sortColumns[$filters['sort']] ?? 'submitted_at';
+        $sortValue = fn (object $row) => $sortColumn === 'submitted_at'
+            ? ($row->submitted_at?->getTimestamp() ?? 0)
+            : (string) (data_get($row, $sortColumn) ?? '');
+
+        $rows = $filters['direction'] === 'asc'
+            ? $rows->sortBy($sortValue, SORT_NATURAL | SORT_FLAG_CASE)
+            : $rows->sortByDesc($sortValue, SORT_NATURAL | SORT_FLAG_CASE);
+        $rows = $rows->values();
+        $perPage = 30;
         $page = max(1, LengthAwarePaginator::resolveCurrentPage());
         $requests = new \Illuminate\Pagination\LengthAwarePaginator(
             $rows->forPage($page, $perPage)->values(),
@@ -302,6 +322,8 @@ class LeaveRequestController extends Controller
             'from' => ['nullable', 'date'],
             'to' => ['nullable', 'date', 'after_or_equal:from'],
             'q' => ['nullable', 'string', 'max:100'],
+            'sort' => ['nullable', 'string', Rule::in(['reference', 'type', 'period', 'status', 'submitted'])],
+            'direction' => ['nullable', 'string', Rule::in(['asc', 'desc'])],
         ], [
             'to.after_or_equal' => 'Tanggal akhir tidak boleh sebelum tanggal awal.',
         ]);
@@ -312,6 +334,8 @@ class LeaveRequestController extends Controller
             'from' => isset($validated['from']) ? date('Y-m-d', strtotime($validated['from'])) : '',
             'to' => isset($validated['to']) ? date('Y-m-d', strtotime($validated['to'])) : '',
             'q' => trim($validated['q'] ?? ''),
+            'sort' => $validated['sort'] ?? 'submitted',
+            'direction' => $validated['direction'] ?? 'desc',
         ];
     }
 

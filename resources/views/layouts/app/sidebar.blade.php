@@ -10,6 +10,15 @@
                 <flux:sidebar.collapse class="lg:hidden" />
             </flux:sidebar.header>
 
+            @php
+                $sidebarEmployee = auth()->user()->employee;
+                $unseenRequestDecisions = $sidebarEmployee
+                    ? $sidebarEmployee->leaveRequests()->whereIn('status', ['approved', 'rejected'])->whereNull('decision_seen_at')->count()
+                        + $sidebarEmployee->overtimeRequests()->whereIn('approval_status', ['approved', 'rejected'])->whereNull('decision_seen_at')->count()
+                        + $sidebarEmployee->attendanceCorrections()->whereIn('status', ['approved', 'rejected'])->whereNull('decision_seen_at')->count()
+                    : 0;
+            @endphp
+
             <flux:sidebar.nav>
                 <flux:sidebar.group :heading="__('Platform')" class="grid">
                     <flux:sidebar.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
@@ -20,7 +29,7 @@
                     <flux:sidebar.item icon="clock" :href="route('attendance')" :current="request()->routeIs('attendance')" wire:navigate>
                         {{ __('Absensi') }}
                     </flux:sidebar.item>
-                    <flux:sidebar.item icon="clipboard-document-list" :href="route('leave-requests.index')" :current="request()->routeIs('leave-requests.*')" wire:navigate>
+                    <flux:sidebar.item icon="clipboard-document-list" :href="route('leave-requests.index')" :current="request()->routeIs('leave-requests.*')" :badge="$unseenRequestDecisions > 0 ? $unseenRequestDecisions : null" wire:navigate>
                         {{ __('Pusat Permohonan') }}
                     </flux:sidebar.item>
                     <flux:sidebar.item icon="clock" :href="route('overtime-requests.index')" :current="request()->routeIs('overtime-requests.*')" wire:navigate>
