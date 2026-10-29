@@ -46,6 +46,7 @@ new #[Title('Keamanan Akun')] class extends Component {
         $user->email = $validated['email'];
         $user->email_verified_at = null;
         $user->save();
+        $user->sendEmailVerificationNotification();
 
         $this->reset('email');
         $this->email = $user->email;
