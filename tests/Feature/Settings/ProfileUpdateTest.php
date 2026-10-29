@@ -47,7 +47,9 @@ test('security page combines email and password controls', function () {
 
     $this->actingAs($user);
 
-    $this->get('/keamanan-akun')->assertOk();
+    $this->withSession(['auth.password_confirmed_at' => time()])
+        ->get('/keamanan-akun')
+        ->assertOk();
 
     Livewire::test('pages::settings.security')
         ->assertSee('Alamat email')
