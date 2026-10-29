@@ -44,9 +44,15 @@ export default function attendanceCamera(config = {}) {
         },
 
         get viewportStyle() {
+            const isSmallScreen = window.matchMedia('(max-width: 640px)').matches;
+            const maxWidth = isSmallScreen ? '100vw' : '80vw';
+            const maxHeight = isSmallScreen ? '100dvh' : '80dvh';
+
+            // Keep the camera frame at 16:9 in landscape and 9:16 in portrait.
+            // The paired width/height limits prevent the frame from exceeding the screen.
             return this.isLandscape
-                ? 'width:min(80vw, 106.666dvh); max-height:80dvh; aspect-ratio:4 / 3;'
-                : 'width:min(80vw, 60dvh); max-height:80dvh; aspect-ratio:3 / 4;';
+                ? `width:min(${maxWidth}, ${isSmallScreen ? '177.777dvh' : '142.222dvh'}); max-width:${maxWidth}; max-height:${maxHeight}; aspect-ratio:16 / 9;`
+                : `width:min(${maxWidth}, ${isSmallScreen ? '56.25dvh' : '45dvh'}); max-width:${maxWidth}; max-height:${maxHeight}; aspect-ratio:9 / 16;`;
         },
 
         init() {
@@ -70,6 +76,10 @@ export default function attendanceCamera(config = {}) {
 
         async resolveAddress(position, force = false) {
             if (!position) return this.address;
+            // Location watch may emit several readings while the first address is loading.
+            // Let the next GPS reading retry after this request finishes.
+            if (this.addressLoading) return this.address;
+
             const previous = this.lastGeocodedPosition;
             const movedFar = !previous || this.distanceMeters(previous, position) > 75;
             if (!force && this.address && !movedFar && Date.now() - this.lastGeocodedAt < 300000) {
@@ -152,10 +162,20 @@ export default function attendanceCamera(config = {}) {
             this.watchId = navigator.geolocation.watchPosition(
                 (position) => {
                     const reading = this.toPlain(position);
-                    const outdated = !this.best || reading.receivedAt - this.best.receivedAt > 30000;
-                    if (outdated || reading.accuracy <= this.best.accuracy) {
+                    const previous = this.best;
+                    const outdated = !previous || reading.receivedAt - previous.receivedAt > 30000;
+                    const moreAccurate = !previous || reading.accuracy < previous.accuracy * 0.9;
+                    const movedFar = previous && this.distanceMeters(previous, reading) > 75;
+
+                    if (outdated || reading.accuracy <= previous.accuracy) {
                         this.best = reading;
                         this.liveAccuracy = Math.round(reading.accuracy);
+
+                        // Resolve an address as soon as the viewport opens, then refresh
+                        // it when GPS gets meaningfully more accurate or the user moves.
+                        if (!this.address || moreAccurate || movedFar) {
+                            this.resolveAddress(reading);
+                        }
                     }
                 },
                 (error) => {
@@ -270,7 +290,7 @@ export default function attendanceCamera(config = {}) {
         },
 
         async switchCamera() {
-            if (!this.canSwitchCamera || this.busy || this.starting) return;
+            if (this.busy || this.starting) return;
             this.facingMode = this.facingMode === 'user' ? 'environment' : 'user';
             this.starting = true;
 
@@ -377,10 +397,13 @@ export default function attendanceCamera(config = {}) {
             wrappedLines.push(...this.wrapText(context, watermarkLines[1], textMaxWidth));
             wrappedLines.push(...this.wrapText(context, watermarkLines[2], textMaxWidth));
 
+            context.font = bodySize + 'px system-ui, sans-serif';
+            wrappedLines.push(...this.wrapText(context, watermarkLines[3], textMaxWidth));
+
             const watermarkHeight = padding * 2 + lineHeight * wrappedLines.length;
-            const watermarkTop = Math.max(0, height - watermarkHeight);
+            const watermarkTop = padding;
             context.fillStyle = 'rgba(255, 255, 255, 0.78)';
-            context.fillRect(0, watermarkTop, width, height - watermarkTop);
+            context.fillRect(0, watermarkTop, width, watermarkHeight);
             context.fillStyle = '#18181b';
             context.textBaseline = 'top';
             let y = watermarkTop + padding;
