@@ -19,6 +19,7 @@ class AttendanceCorrection extends Model
         'status',
         'reviewed_by',
         'reviewed_at',
+        'decision_seen_at',
         'review_note',
     ];
 
@@ -28,6 +29,7 @@ class AttendanceCorrection extends Model
             'requested_recorded_at' => 'datetime',
             'attendance_date' => 'date',
             'reviewed_at' => 'datetime',
+            'decision_seen_at' => 'datetime',
         ];
     }
 
