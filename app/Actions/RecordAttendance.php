@@ -7,6 +7,7 @@ use App\Enums\OvertimeState;
 use App\Enums\SelfieSource;
 use App\Enums\WorkType;
 use App\Models\AttendanceRecord;
+use App\Support\AttendanceLocation;
 use App\Models\Employee;
 use App\Models\Location;
 use App\Models\OvertimeRequest;
@@ -14,6 +15,7 @@ use App\Models\Project;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
 class RecordAttendance
@@ -78,6 +80,25 @@ class RecordAttendance
         if ($selfieSource !== SelfieSource::Camera) {
             $this->fail('selfieSource', 'Foto absensi harus diambil langsung dari kamera.');
         }
+
+        // Validasi ulang di action agar jalur pemanggilan lain tidak dapat
+        // menyimpan koordinat dengan kualitas GPS yang tidak layak.
+        Validator::make([
+            'latitude' => $latitude,
+            'longitude' => $longitude,
+            'accuracy' => $accuracy,
+            'address_snapshot' => $addressSnapshot,
+            'selfie' => $selfie,
+        ], [
+            'latitude' => ['required', 'numeric', 'between:-90,90'],
+            'longitude' => ['required', 'numeric', 'between:-180,180'],
+            'accuracy' => ['required', 'numeric', 'min:0', 'max:'.AttendanceLocation::MAX_ACCURACY_METERS],
+            'address_snapshot' => ['nullable', 'string', 'max:500'],
+            'selfie' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:200'],
+        ], [
+            'accuracy.required' => 'Lokasi GPS belum memiliki data akurasi. Ambil ulang lokasi.',
+            'accuracy.max' => 'Akurasi GPS harus ±'.AttendanceLocation::MAX_ACCURACY_METERS.' meter atau lebih baik. Tunggu GPS lebih presisi lalu coba lagi.',
+        ])->validate();
 
         return DB::transaction(function () use (
             $employee, $type, $workType, $locationId, $projectId,

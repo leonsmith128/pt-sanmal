@@ -60,6 +60,14 @@
                             <p class="mt-0.5 text-[9px] leading-snug sm:text-[10px]">© OpenStreetMap contributors</p>
                         </div>
 
+                        <div
+                            x-show="! capturedUrl"
+                            class="pointer-events-none absolute bottom-[16%] left-1/2 z-10 max-w-[90%] -translate-x-1/2 rounded-full bg-black/55 px-3 py-1.5 text-center text-[11px] text-white shadow-sm backdrop-blur-sm"
+                            role="status"
+                            aria-live="polite"
+                            x-text="gpsStatusText"
+                        ></div>
+
                         <button
                             type="button"
                             x-show="! capturedUrl"
@@ -90,7 +98,7 @@
                                 type="button"
                                 x-show="! capturedUrl"
                                 x-on:click="capture()"
-                                x-bind:disabled="busy || starting || ! best"
+                                x-bind:disabled="busy || starting || ! gpsReady"
                                 class="flex size-16 shrink-0 items-center justify-center rounded-full border-[3px] border-white bg-white/15 text-white shadow-lg outline outline-2 outline-offset-2 outline-white/40 transition active:scale-95 disabled:opacity-50 sm:size-[4.5rem]"
                                 aria-label="{{ __('Ambil foto') }}"
                                 title="{{ __('Ambil foto') }}"
@@ -163,4 +171,6 @@
                 <flux:text x-show="error && ! active" x-cloak x-text="error" class="text-sm text-red-500"></flux:text>
                 @error('selfie') <flux:text class="text-red-500">{{ $message }}</flux:text> @enderror
                 @error('latitude') <flux:text class="text-red-500">{{ $message }}</flux:text> @enderror
+                @error('longitude') <flux:text class="text-red-500">{{ $message }}</flux:text> @enderror
+                @error('accuracy') <flux:text class="text-red-500">{{ $message }}</flux:text> @enderror
             </div>
