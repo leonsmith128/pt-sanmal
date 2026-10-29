@@ -32,8 +32,8 @@
             </form>
         </section>
 
-        <section class="flex flex-col gap-3">
-            <flux:heading size="lg">{{ __('Riwayat pengajuan') }}</flux:heading>
+        <section id="riwayat-lembur" class="scroll-mt-6 flex flex-col gap-3">
+            <flux:heading size="lg">{{ __('Riwayat pengajuan lembur') }}</flux:heading>
             @forelse ($requests as $request)
                 <article class="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
                     <div class="flex flex-wrap items-start justify-between gap-3">
