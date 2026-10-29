@@ -45,14 +45,18 @@ export default function attendanceCamera(config = {}) {
 
         get viewportStyle() {
             const isSmallScreen = window.matchMedia('(max-width: 640px)').matches;
-            const maxWidth = isSmallScreen ? '100vw' : '80vw';
-            const maxHeight = isSmallScreen ? '100dvh' : '80dvh';
 
-            // Keep the camera frame at 16:9 in landscape and 9:16 in portrait.
-            // The paired width/height limits prevent the frame from exceeding the screen.
+            // HP memakai seluruh layar. Laptop memakai maksimal 80% layar.
+            // Rasio viewport menentukan crop yang juga dipakai pada foto final.
+            if (isSmallScreen) {
+                return this.isLandscape
+                    ? 'width:100vw; height:100dvh; max-width:100vw; max-height:100dvh; aspect-ratio:16 / 9;'
+                    : 'width:100vw; height:100dvh; max-width:100vw; max-height:100dvh; aspect-ratio:9 / 16;';
+            }
+
             return this.isLandscape
-                ? `width:min(${maxWidth}, ${isSmallScreen ? '177.777dvh' : '142.222dvh'}); max-width:${maxWidth}; max-height:${maxHeight}; aspect-ratio:16 / 9;`
-                : `width:min(${maxWidth}, ${isSmallScreen ? '56.25dvh' : '45dvh'}); max-width:${maxWidth}; max-height:${maxHeight}; aspect-ratio:9 / 16;`;
+                ? 'width:min(80vw, 142.222dvh); max-width:80vw; max-height:80dvh; aspect-ratio:16 / 9;'
+                : 'width:min(45dvh, 80vw); max-width:80vw; max-height:80dvh; aspect-ratio:9 / 16;';
         },
 
         init() {
@@ -86,6 +90,7 @@ export default function attendanceCamera(config = {}) {
                 return this.address;
             }
 
+            if (movedFar) this.address = '';
             this.addressLoading = true;
             try {
                 const url = new URL('https://nominatim.openstreetmap.org/reverse');
@@ -109,8 +114,9 @@ export default function attendanceCamera(config = {}) {
                 this.lastGeocodedAt = Date.now();
                 this.lastGeocodedPosition = position;
             } catch (error) {
+                // Jangan menghapus alamat valid akibat gangguan jaringan sementara.
+                // Jika lokasi sudah berubah jauh, address sudah dikosongkan sebelum request.
                 console.warn('Reverse geocoding tidak tersedia:', error);
-                this.address = '';
             } finally {
                 this.addressLoading = false;
             }
@@ -155,7 +161,6 @@ export default function attendanceCamera(config = {}) {
             this.stopLocationWatch();
             this.best = null;
             this.liveAccuracy = null;
-            this.address = '';
 
             if (!navigator.geolocation) return;
 
@@ -379,37 +384,50 @@ export default function attendanceCamera(config = {}) {
             }).format(new Date());
             this.formattedTimestamp = timestamp;
 
+            const cardWidth = width * 0.8;
+            const cardX = (width - cardWidth) / 2;
+            const cardTop = height * 0.03;
             const padding = Math.max(12, Math.round(width * 0.025));
-            const titleSize = Math.max(14, Math.round(width * 0.035));
+            const titleSize = Math.max(14, Math.round(width * 0.031));
             const bodySize = Math.max(11, Math.round(width * 0.027));
             const lineHeight = Math.max(15, Math.round(bodySize * 1.35));
-            const textMaxWidth = width - padding * 2;
+            const textMaxWidth = cardWidth - padding * 2;
             const watermarkLines = [
                 this.name,
                 this.eventLabel + ' · ' + timestamp,
-                this.address || 'Alamat tidak tersedia',
+                this.address || (this.addressLoading ? 'Mencari alamat…' : 'Alamat belum tersedia'),
                 '© OpenStreetMap contributors',
             ];
-            const wrappedLines = [];
+
             context.font = '600 ' + titleSize + 'px system-ui, sans-serif';
-            wrappedLines.push(...this.wrapText(context, watermarkLines[0], textMaxWidth));
+            const titleLines = this.wrapText(context, watermarkLines[0], textMaxWidth).slice(0, 1);
             context.font = bodySize + 'px system-ui, sans-serif';
-            wrappedLines.push(...this.wrapText(context, watermarkLines[1], textMaxWidth));
-            wrappedLines.push(...this.wrapText(context, watermarkLines[2], textMaxWidth));
-
-            context.font = bodySize + 'px system-ui, sans-serif';
-            wrappedLines.push(...this.wrapText(context, watermarkLines[3], textMaxWidth));
-
+            const eventLines = this.wrapText(context, watermarkLines[1], textMaxWidth).slice(0, 1);
+            let addressLines = this.wrapText(context, watermarkLines[2], textMaxWidth);
+            if (addressLines.length > 2) {
+                addressLines = addressLines.slice(0, 2);
+                addressLines[1] = addressLines[1].replace(/[.,;:]?$/, '…');
+            }
+            const attributionLines = this.wrapText(context, watermarkLines[3], textMaxWidth).slice(0, 1);
+            const wrappedLines = [...titleLines, ...eventLines, ...addressLines, ...attributionLines];
             const watermarkHeight = padding * 2 + lineHeight * wrappedLines.length;
-            const watermarkTop = padding;
+            const radius = Math.max(10, Math.round(width * 0.025));
+
+            // Rounded translucent card matching the live watermark overlay.
             context.fillStyle = 'rgba(255, 255, 255, 0.78)';
-            context.fillRect(0, watermarkTop, width, watermarkHeight);
+            context.beginPath();
+            context.roundRect(cardX, cardTop, cardWidth, watermarkHeight, radius);
+            context.fill();
+            context.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+            context.lineWidth = Math.max(1, width * 0.0015);
+            context.stroke();
+
             context.fillStyle = '#18181b';
             context.textBaseline = 'top';
-            let y = watermarkTop + padding;
+            let y = cardTop + padding;
             wrappedLines.forEach((line, index) => {
                 context.font = (index === 0 ? '600 ' + titleSize : bodySize) + 'px system-ui, sans-serif';
-                context.fillText(line, padding, y, textMaxWidth);
+                context.fillText(line, cardX + padding, y, textMaxWidth);
                 y += lineHeight;
             });
 

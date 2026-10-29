@@ -479,6 +479,7 @@ new #[Title('Absensi')] class extends Component {
                     x-show="active"
                     x-cloak
                     class="fixed inset-0 z-50 flex items-center justify-center overflow-hidden bg-transparent"
+                    :class="window.matchMedia('(max-width: 640px)').matches ? 'h-[100dvh] w-screen' : ''"
                     aria-label="{{ __('Kamera absensi') }}"
                     role="dialog"
                     aria-modal="true"
@@ -510,9 +511,9 @@ new #[Title('Absensi')] class extends Component {
                             class="pointer-events-none absolute left-1/2 top-[3%] w-4/5 max-h-[30%] -translate-x-1/2 overflow-y-auto rounded-xl border border-white/40 bg-white/75 p-2.5 text-zinc-900 shadow-sm backdrop-blur-md sm:p-3"
                         >
                             <p class="truncate text-xs font-semibold sm:text-sm" x-text="name"></p>
-                            <p class="text-[11px] font-medium sm:text-xs" x-text="eventLabel"></p>
-                            <p class="mt-0.5 text-[10px] leading-snug sm:text-xs" x-text="formattedTimestamp || currentTimestamp"></p>
+                            <p class="text-[11px] leading-snug sm:text-xs" x-text="eventLabel + ' · ' + (formattedTimestamp || currentTimestamp)"></p>
                             <p class="mt-0.5 line-clamp-2 break-words text-[10px] leading-snug sm:text-xs" x-text="address || (addressLoading ? 'Mencari alamat…' : 'Alamat belum tersedia')"></p>
+                            <p class="mt-0.5 text-[9px] leading-snug sm:text-[10px]">© OpenStreetMap contributors</p>
                         </div>
 
                         <button
@@ -528,7 +529,7 @@ new #[Title('Absensi')] class extends Component {
                             <flux:icon name="arrow-path" variant="outline" class="size-5" />
                         </button>
 
-                        <div class="absolute inset-x-0 bottom-0 flex min-h-[14%] items-center justify-center gap-5 bg-black/90 px-4 pb-4 pt-2 sm:gap-7 sm:pb-5">
+                        <div class="absolute inset-x-0 bottom-0 flex min-h-[14%] items-center justify-center gap-5 bg-black/90 px-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-2 sm:gap-7 sm:pb-5">
                             <button
                                 type="button"
                                 x-show="! capturedUrl"
