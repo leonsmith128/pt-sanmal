@@ -9,7 +9,7 @@
                 <div class="flex w-full items-center justify-between gap-2">
                     <x-app-logo :sidebar="true" href="{{ route('dashboard') }}" wire:navigate />
                     <flux:dropdown position="bottom" align="end">
-                        <flux:button variant="ghost" size="sm" icon="sun-moon" aria-label="{{ __('Change appearance') }}" />
+                        <flux:button variant="ghost" size="sm" icon="sun" aria-label="{{ __('Change appearance') }}" />
                         <flux:menu>
                             <flux:menu.radio.group x-data x-model="$flux.appearance">
                                 <flux:menu.radio value="light" icon="sun">{{ __('Light') }}</flux:menu.radio>
