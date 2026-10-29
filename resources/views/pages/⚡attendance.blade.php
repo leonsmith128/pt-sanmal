@@ -562,7 +562,7 @@ new #[Title('Absensi')] class extends Component {
                                 aria-label="{{ __('Tutup kamera') }}"
                                 title="{{ __('Tutup kamera') }}"
                             >
-                                <flux:icon name="x" variant="outline" class="size-5 sm:size-6" />
+                                <flux:icon name="x-mark" variant="outline" class="size-5 sm:size-6" />
                             </button>
 
                             <button
@@ -596,7 +596,7 @@ new #[Title('Absensi')] class extends Component {
                                 aria-label="{{ __('Tutup kamera') }}"
                                 title="{{ __('Tutup kamera') }}"
                             >
-                                <flux:icon name="x" variant="outline" class="size-5" />
+                                <flux:icon name="x-mark" variant="outline" class="size-5" />
                             </button>
                         </div>
 
