@@ -131,6 +131,9 @@
                                     <flux:button size="sm" variant="ghost" icon-trailing="{{ $filters['sort'] === 'reference' ? ($filters['direction'] === 'asc' ? 'arrow-up' : 'arrow-down') : 'arrows-up-down' }}" href="{{ route('leave-requests.index', array_merge(request()->except('page'), ['sort' => 'reference', 'direction' => $filters['sort'] === 'reference' && $filters['direction'] === 'asc' ? 'desc' : 'asc'])) }}">{{ __('Nomor / Jenis') }}</flux:button>
                                 </th>
                                 <th class="px-4 py-3">
+                                    <flux:button size="sm" variant="ghost" icon-trailing="{{ $filters['sort'] === 'submitted' ? ($filters['direction'] === 'asc' ? 'arrow-up' : 'arrow-down') : 'arrows-up-down' }}" href="{{ route('leave-requests.index', array_merge(request()->except('page'), ['sort' => 'submitted', 'direction' => $filters['sort'] === 'submitted' && $filters['direction'] === 'asc' ? 'desc' : 'asc'])) }}">{{ __('Tanggal pengajuan') }}</flux:button>
+                                </th>
+                                <th class="px-4 py-3">
                                     <flux:button size="sm" variant="ghost" icon-trailing="{{ $filters['sort'] === 'period' ? ($filters['direction'] === 'asc' ? 'arrow-up' : 'arrow-down') : 'arrows-up-down' }}" href="{{ route('leave-requests.index', array_merge(request()->except('page'), ['sort' => 'period', 'direction' => $filters['sort'] === 'period' && $filters['direction'] === 'asc' ? 'desc' : 'asc'])) }}">{{ __('Periode') }}</flux:button>
                                 </th>
                                 <th class="px-4 py-3">{{ __('Ringkasan') }}</th>
@@ -138,9 +141,7 @@
                                     <flux:button size="sm" variant="ghost" icon-trailing="{{ $filters['sort'] === 'status' ? ($filters['direction'] === 'asc' ? 'arrow-up' : 'arrow-down') : 'arrows-up-down' }}" href="{{ route('leave-requests.index', array_merge(request()->except('page'), ['sort' => 'status', 'direction' => $filters['sort'] === 'status' && $filters['direction'] === 'asc' ? 'desc' : 'asc'])) }}">{{ __('Status') }}</flux:button>
                                 </th>
                                 <th class="px-4 py-3">{{ __('Keputusan') }}</th>
-                                <th class="px-4 py-3">
-                                    <flux:button size="sm" variant="ghost" icon-trailing="{{ $filters['sort'] === 'submitted' ? ($filters['direction'] === 'asc' ? 'arrow-up' : 'arrow-down') : 'arrows-up-down' }}" href="{{ route('leave-requests.index', array_merge(request()->except('page'), ['sort' => 'submitted', 'direction' => $filters['sort'] === 'submitted' && $filters['direction'] === 'asc' ? 'desc' : 'asc'])) }}">{{ __('Tanggal pengajuan') }}</flux:button>
-                                </th>
+                                <th class="px-4 py-3 text-right">{{ __('Aksi') }}</th>
                                 <th class="px-4 py-3 text-right">{{ __('Aksi') }}</th>
                             </tr>
                         </thead>
@@ -150,8 +151,8 @@
                                     <td class="px-4 py-4">
                                         <p class="text-xs text-zinc-500">{{ $item->reference }}</p>
                                         <p class="mt-1 font-medium">{{ $item->type_label }}</p>
-                                        <p class="mt-1 text-xs text-zinc-500">{{ $item->submitted_at?->format('d/m/Y H:i') }}</p>
                                     </td>
+                                    <td class="whitespace-nowrap px-4 py-4 text-xs text-zinc-500">{{ $item->submitted_at?->format('d/m/Y H:i') ?? '—' }}</td>
                                     <td class="whitespace-nowrap px-4 py-4">
                                         {{ $item->period_start ? \Illuminate\Support\Carbon::parse($item->period_start)->format('d/m/Y') : '—' }}
                                         @if ($item->period_end && $item->period_end !== $item->period_start)
