@@ -44,6 +44,8 @@ export default function attendanceCamera(config = {}) {
         },
 
         init() {
+            this.name = this.$el?.dataset?.attendanceName || this.name;
+            this.eventLabel = this.$el?.dataset?.attendanceEvent || this.eventLabel;
             this.orientationQuery = window.matchMedia('(orientation: landscape)');
             this.orientationHandler = (event) => {
                 this.isLandscape = event.matches;
