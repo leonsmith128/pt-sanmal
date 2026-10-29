@@ -1,12 +1,12 @@
 <?php
 
-namespace App\\Http\\Controllers;
+namespace App\Http\Controllers;
 
-use App\\Models\\AttendanceRecord;
-use App\\Support\\AttendanceSelfie;
-use Illuminate\\Http\\Request;
-use Illuminate\\Support\\Facades\\Storage;
-use Symfony\\Component\\HttpFoundation\\StreamedResponse;
+use App\Models\AttendanceRecord;
+use App\Support\AttendanceSelfie;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AttendanceSelfieController extends Controller
 {
