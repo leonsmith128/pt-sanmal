@@ -64,7 +64,7 @@
                 </flux:field>
                 <div class="flex flex-col gap-2 sm:col-span-2 lg:col-span-6 sm:flex-row sm:justify-end">
                     <flux:button href="{{ route('leave-requests.index') }}" variant="ghost" class="w-full sm:w-auto">{{ __('Reset filter') }}</flux:button>
-                    <flux:button type="submit" variant="primary" icon="filter" class="w-full sm:w-auto">{{ __('Terapkan filter') }}</flux:button>
+                    <flux:button type="submit" variant="primary" icon="funnel" class="w-full sm:w-auto">{{ __('Terapkan filter') }}</flux:button>
                     <flux:button href="{{ route('leave-requests.export', request()->query()) }}" variant="outline" icon="arrow-down-tray" class="w-full sm:w-auto">{{ __('Ekspor CSV') }}</flux:button>
                 </div>
             </form>
