@@ -269,9 +269,15 @@ export default function attendanceCamera(config = {}) {
             const context = canvas.getContext('2d');
             if (!context) throw new Error('canvas-context-unavailable');
 
-            // Preview kamera depan boleh di-mirror oleh CSS, tetapi foto final
-            // mempertahankan orientasi asli agar teks/objek tidak terbalik.
+            // Samakan orientasi foto dengan preview: preview kamera depan di-mirror.
+            // Balik hanya gambar video; watermark digambar setelah transformasi direset
+            // agar teks tetap terbaca normal.
+            if (this.facingMode === 'user') {
+                context.translate(width, 0);
+                context.scale(-1, 1);
+            }
             context.drawImage(video, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, width, height);
+            context.setTransform(1, 0, 0, 1, 0, 0);
 
             const timestamp = new Intl.DateTimeFormat('id-ID', {
                 dateStyle: 'medium',
