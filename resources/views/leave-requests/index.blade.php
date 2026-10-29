@@ -142,7 +142,6 @@
                                 </th>
                                 <th class="px-4 py-3">{{ __('Keputusan') }}</th>
                                 <th class="px-4 py-3 text-right">{{ __('Aksi') }}</th>
-                                <th class="px-4 py-3 text-right">{{ __('Aksi') }}</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-zinc-200 dark:divide-zinc-700">
