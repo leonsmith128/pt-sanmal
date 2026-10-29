@@ -20,14 +20,13 @@
             </div>
         </div>
         <flux:menu.separator />
-        <flux:menu.item :href="route('employee-profile.edit')" icon="user-circle" wire:navigate>
-            {{ __('Profil Pegawai') }}
+        <flux:menu.item :href="route('profile.edit')" icon="user-circle" wire:navigate>
+            {{ __('Profil') }}
         </flux:menu.item>
-        <flux:menu.radio.group>
-            <flux:menu.item :href="route('profile.edit')" icon="cog" wire:navigate>
-                {{ __('Settings') }}
-            </flux:menu.item>
-            <form method="POST" action="{{ route('logout') }}" class="w-full">
+        <flux:menu.item :href="route('security.edit')" icon="shield-check" wire:navigate>
+            {{ __('Keamanan Akun') }}
+        </flux:menu.item>
+        <form method="POST" action="{{ route('logout') }}" class="w-full">
                 @csrf
                 <flux:menu.item
                     as="button"
@@ -38,7 +37,6 @@
                 >
                     {{ __('Log out') }}
                 </flux:menu.item>
-            </form>
-        </flux:menu.radio.group>
+        </form>
     </flux:menu>
 </flux:dropdown>
