@@ -40,7 +40,7 @@ export default class LocationTracker {
     }
 
     updateStatus() {
-        const age = this.best ? Date.now() - this.best.receivedAt : Infinity;
+        const age = this.best ? Date.now() - (this.best.measuredAt ?? this.best.receivedAt) : Infinity;
         const fresh = age >= 0 && age <= MAX_READING_AGE_MS;
         this.gpsReady = Boolean(
             this.best && fresh && Number.isFinite(this.best.accuracy)
@@ -61,6 +61,7 @@ export default class LocationTracker {
             latitude: position.coords.latitude,
             longitude: position.coords.longitude,
             accuracy: position.coords.accuracy,
+            measuredAt: Number.isFinite(position.timestamp) ? position.timestamp : Date.now(),
             receivedAt: Date.now(),
         };
     }
@@ -140,7 +141,17 @@ export default class LocationTracker {
     }
 
     async resolveAddress(position, force = false) {
-        if (!position || this.addressLoading) return this.address;
+        if (!position) return this.address;
+
+        // Jika reverse geocoding sedang berjalan, tunggu agar alamat yang
+        // dipakai watermark tidak kosong hanya karena request sebelumnya belum selesai.
+        if (this.addressLoading) {
+            const deadline = Date.now() + 8_500;
+            while (this.addressLoading && Date.now() < deadline) {
+                await new Promise((resolve) => window.setTimeout(resolve, 100));
+            }
+            if (this.addressLoading) return this.address;
+        }
 
         const previous = this.lastGeocodedPosition;
         const movedFar = !previous || this.distanceMeters(previous, position) > 75;
@@ -191,7 +202,7 @@ export default class LocationTracker {
     getFreshPosition() {
         if (!navigator.geolocation) return Promise.reject(new Error('no-geolocation'));
 
-        const age = this.best ? Date.now() - this.best.receivedAt : Infinity;
+        const age = this.best ? Date.now() - (this.best.measuredAt ?? this.best.receivedAt) : Infinity;
         if (this.best && age >= 0 && age <= MAX_READING_AGE_MS
             && this.best.accuracy <= MAX_ACCEPTABLE_ACCURACY_METERS) {
             return Promise.resolve(this.best);
@@ -216,7 +227,7 @@ export default class LocationTracker {
         this.onError?.(null);
         try {
             const position = await this.getFreshPosition();
-            await this.resolveAddress(position, true);
+            await this.resolveAddress(position);
             return position;
         } catch (error) {
             this.onError?.(

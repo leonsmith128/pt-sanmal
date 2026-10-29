@@ -381,11 +381,11 @@ export default function attendanceCamera(config = {}) {
                 let position = await this.getPosition();
                 this.best = position;
                 this.liveAccuracy = Math.round(position.accuracy);
-                await this.locationTracker.resolveAddress(position, true);
+                await this.locationTracker.resolveAddress(position);
 
                 // Reverse geocoding bisa memerlukan waktu. Pastikan posisi yang
                 // dipakai saat foto dibuat tetap segar setelah alamat diperoleh.
-                if (Date.now() - position.receivedAt > 15_000) {
+                if (Date.now() - (position.measuredAt ?? position.receivedAt) > 15_000) {
                     position = await this.getPosition();
                     this.best = position;
                     this.liveAccuracy = Math.round(position.accuracy);
