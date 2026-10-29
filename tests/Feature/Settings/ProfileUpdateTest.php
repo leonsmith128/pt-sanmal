@@ -3,73 +3,53 @@
 use App\Models\User;
 use Livewire\Livewire;
 
-test('profile page is displayed', function () {
-    $this->actingAs($user = User::factory()->create());
+test('profile page is displayed at the short profile URL', function () {
+    $this->actingAs(User::factory()->create());
 
-    $this->get(route('profile.edit'))->assertOk();
+    $this->get('/profil')->assertOk();
 });
 
-test('profile information can be updated', function () {
-    $user = User::factory()->create();
+test('employees can update login email from account security without changing official name', function () {
+    $user = User::factory()->create([
+        'name' => 'Official Name',
+        'email' => 'old@example.com',
+    ]);
 
     $this->actingAs($user);
 
-    $response = Livewire::test('pages::settings.profile')
-        ->set('name', 'Test User')
-        ->set('email', 'test@example.com')
-        ->call('updateProfileInformation');
+    Livewire::test('pages::settings.security')
+        ->set('email', 'new@example.com')
+        ->call('updateEmail')
+        ->assertHasNoErrors();
 
-    $response->assertHasNoErrors();
-
-    $user->refresh();
-
-    expect($user->name)->toEqual('Test User');
-    expect($user->email)->toEqual('test@example.com');
-    expect($user->email_verified_at)->toBeNull();
+    expect($user->fresh()->email)->toBe('new@example.com')
+        ->and($user->fresh()->name)->toBe('Official Name')
+        ->and($user->fresh()->email_verified_at)->toBeNull();
 });
 
-test('email verification status is unchanged when email address is unchanged', function () {
-    $user = User::factory()->create();
+test('email verification status remains unchanged when email does not change', function () {
+    $user = User::factory()->create([
+        'email_verified_at' => now(),
+    ]);
 
     $this->actingAs($user);
 
-    $response = Livewire::test('pages::settings.profile')
-        ->set('name', 'Test User')
+    Livewire::test('pages::settings.security')
         ->set('email', $user->email)
-        ->call('updateProfileInformation');
+        ->call('updateEmail')
+        ->assertHasNoErrors();
 
-    $response->assertHasNoErrors();
-
-    expect($user->refresh()->email_verified_at)->not->toBeNull();
+    expect($user->fresh()->email_verified_at)->not->toBeNull();
 });
 
-test('user can delete their account', function () {
+test('security page combines email and password controls', function () {
     $user = User::factory()->create();
 
     $this->actingAs($user);
 
-    $response = Livewire::test('pages::settings.delete-user-modal')
-        ->set('password', 'password')
-        ->call('deleteUser');
+    $this->get('/keamanan-akun')->assertOk();
 
-    $response
-        ->assertHasNoErrors()
-        ->assertRedirect('/');
-
-    expect($user->fresh())->toBeNull();
-    expect(auth()->check())->toBeFalse();
-});
-
-test('correct password must be provided to delete account', function () {
-    $user = User::factory()->create();
-
-    $this->actingAs($user);
-
-    $response = Livewire::test('pages::settings.delete-user-modal')
-        ->set('password', 'wrong-password')
-        ->call('deleteUser');
-
-    $response->assertHasErrors(['password']);
-
-    expect($user->fresh())->not->toBeNull();
+    Livewire::test('pages::settings.security')
+        ->assertSee('Alamat email')
+        ->assertSee('Ubah kata sandi');
 });
