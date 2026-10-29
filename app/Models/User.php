@@ -17,7 +17,7 @@ use Illuminate\Support\Str;
 /**
  * @property int $id
  * @property string $name
- * @property string $email
+ * @property string $email\n * @property string|null $profile_photo_path
  * @property UserRole $role
  * @property bool $is_active
  * @property bool $must_change_password
