@@ -12,12 +12,14 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 /**
  * @property int $id
  * @property string $name
- * @property string $email\n * @property string|null $profile_photo_path
+ * @property string $email
+ * @property string|null $profile_photo_path
  * @property UserRole $role
  * @property bool $is_active
  * @property bool $must_change_password
@@ -31,8 +33,8 @@ use Illuminate\Support\Str;
  * @property Carbon|null $updated_at
  * @property-read Employee|null $employee
  */
-// 'role', 'is_active', 'must_change_password' SENGAJA tidak masuk $fillable,
-// supaya tidak bisa diubah lewat mass assignment (mencegah eskalasi hak akses).
+// 'role', 'is_active', 'must_change_password' sengaja tidak masuk fillable
+// untuk mencegah perubahan hak akses melalui mass assignment.
 #[Fillable(['name', 'email', 'password'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable implements MustVerifyEmail
@@ -54,6 +56,14 @@ class User extends Authenticatable implements MustVerifyEmail
             'is_active' => 'boolean',
             'must_change_password' => 'boolean',
         ];
+    }
+
+    /** Return the public URL for the user's profile photo, when available. */
+    public function profilePhotoUrl(): ?string
+    {
+        return $this->profile_photo_path
+            ? Storage::disk('public')->url($this->profile_photo_path)
+            : null;
     }
 
     public function employee(): HasOne
@@ -82,9 +92,7 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->isAdmin() || $this->isSuperadmin();
     }
 
-    /**
-     * Get the user's initials
-     */
+    /** Get the user's initials. */
     public function initials(): string
     {
         $initials = Str::initials($this->name, true);
