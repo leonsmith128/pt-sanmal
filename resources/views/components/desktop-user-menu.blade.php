@@ -2,6 +2,7 @@
     <flux:sidebar.profile
         :name="auth()->user()->name"
         :initials="auth()->user()->initials()"
+        :avatar="auth()->user()->profilePhotoUrl()"
         icon:trailing="chevrons-up-down"
         data-test="sidebar-menu-button"
     />
@@ -11,6 +12,7 @@
             <flux:avatar
                 :name="auth()->user()->name"
                 :initials="auth()->user()->initials()"
+                :src="auth()->user()->profilePhotoUrl()"
             />
             <div class="grid flex-1 text-start text-sm leading-tight">
                 <flux:heading class="truncate">{{ auth()->user()->name }}</flux:heading>
@@ -18,6 +20,9 @@
             </div>
         </div>
         <flux:menu.separator />
+        <flux:menu.item :href="route('employee-profile.edit')" icon="user-round" wire:navigate>
+            {{ __('Profil Pegawai') }}
+        </flux:menu.item>
         <flux:menu.radio.group>
             <flux:menu.item :href="route('profile.edit')" icon="cog" wire:navigate>
                 {{ __('Settings') }}
