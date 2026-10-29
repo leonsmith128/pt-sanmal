@@ -387,10 +387,11 @@ export default function attendanceCamera(config = {}) {
             const cardWidth = width * 0.8;
             const cardX = (width - cardWidth) / 2;
             const cardTop = height * 0.03;
-            const padding = Math.max(12, Math.round(width * 0.025));
-            const titleSize = Math.max(12, Math.round(width * 0.024));
-            const bodySize = Math.max(10, Math.round(width * 0.019));
-            const lineHeight = Math.max(15, Math.round(bodySize * 1.35));
+            // Keep the saved watermark compact so it does not dominate the photo.
+            const padding = Math.max(6, Math.round(width * 0.012));
+            const titleSize = Math.max(10, Math.round(width * 0.016));
+            const bodySize = Math.max(8, Math.round(width * 0.012));
+            const lineHeight = Math.max(10, Math.round(bodySize * 1.3));
             const textMaxWidth = cardWidth - padding * 2;
             const watermarkLines = [
                 this.name,
@@ -411,7 +412,7 @@ export default function attendanceCamera(config = {}) {
             const attributionLines = this.wrapText(context, watermarkLines[3], textMaxWidth).slice(0, 1);
             const wrappedLines = [...titleLines, ...eventLines, ...addressLines, ...attributionLines];
             const watermarkHeight = padding * 2 + lineHeight * wrappedLines.length;
-            const radius = Math.max(10, Math.round(width * 0.025));
+            const radius = Math.max(6, Math.round(width * 0.015));
 
             // Rounded translucent card matching the live watermark overlay.
             context.fillStyle = 'rgba(255, 255, 255, 0.62)';
