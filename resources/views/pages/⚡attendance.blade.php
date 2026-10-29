@@ -461,7 +461,9 @@ new #[Title('Absensi')] class extends Component {
 
             {{-- Kamera dibuat sebagai overlay rasio tetap; hasil capture dipreview sebelum diunggah. --}}
             <div
-                x-data="attendanceCamera({ name: @js(Auth::user()->name), eventLabel: @js($mode === 'overtime_start' ? 'Lembur' : ($mode === 'clock_in' ? 'Clock In' : 'Clock Out')) })"
+                x-data="attendanceCamera()"
+                data-attendance-name="{{ Auth::user()->name }}"
+                data-attendance-event="{{ $mode === 'overtime_start' ? 'Lembur' : ($mode === 'clock_in' ? 'Clock In' : 'Clock Out') }}"
                 x-on:livewire:navigating.window="stop()"
                 x-on:attendance-camera-open.window="start()"
                 class="flex flex-col gap-2"
@@ -523,7 +525,7 @@ new #[Title('Absensi')] class extends Component {
                             aria-label="{{ __('Ganti kamera depan/belakang') }}"
                             title="{{ __('Ganti kamera') }}"
                         >
-                            <flux:icon name="switch-camera" variant="outline" class="size-5" />
+                            <flux:icon name="arrow-path" variant="outline" class="size-5" />
                         </button>
 
                         <div class="absolute inset-x-0 bottom-0 flex items-center justify-center gap-5 px-4 pb-4 pt-2 sm:gap-7 sm:pb-5">
