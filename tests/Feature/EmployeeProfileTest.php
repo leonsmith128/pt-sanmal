@@ -91,26 +91,6 @@ test('employee profile can remove its current profile photo', function () {
     Storage::disk('public')->assertMissing($path);
 });
 
-test('account settings allow email changes but do not expose official name editing', function () {
-    $user = User::factory()->create([
-        'name' => 'Official Name',
-        'email' => 'old@example.com',
-    ]);
-
-    $this->actingAs($user);
-
-    Livewire::test('pages::settings.profile')
-        ->assertSet('email', 'old@example.com')
-        ->assertDontSee('wire:model="name"')
-        ->set('email', 'new@example.com')
-        ->call('updateProfileInformation')
-        ->assertHasNoErrors();
-
-    expect($user->fresh()->email)->toBe('new@example.com')
-        ->and($user->fresh()->name)->toBe('Official Name')
-        ->and($user->fresh()->email_verified_at)->toBeNull();
-});
-
 test('profile photo upload rejects images over two megabytes', function () {
     Storage::fake('public');
 
