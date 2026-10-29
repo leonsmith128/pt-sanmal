@@ -1,5 +1,5 @@
 <flux:dropdown position="bottom" align="start">
-    <flux:sidebar.profile
+    <flux:profile
         :name="auth()->user()->name"
         :initials="auth()->user()->initials()"
         :avatar="auth()->user()->profilePhotoUrl()"
