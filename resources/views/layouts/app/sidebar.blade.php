@@ -29,11 +29,14 @@
                     <flux:sidebar.item icon="clock" :href="route('attendance')" :current="request()->routeIs('attendance')" wire:navigate>
                         {{ __('Absensi') }}
                     </flux:sidebar.item>
+                    <flux:sidebar.item icon="calendar-clock" :href="route('attendance-history.index')" :current="request()->routeIs('attendance-history.*')" wire:navigate>
+                        {{ __('Riwayat Absensi') }}
+                    </flux:sidebar.item>
                     <flux:sidebar.item icon="clipboard-document-list" :href="route('leave-requests.index')" :current="request()->routeIs('leave-requests.*')" :badge="$unseenRequestDecisions > 0 ? $unseenRequestDecisions : null" wire:navigate>
                         {{ __('Pusat Permohonan') }}
                     </flux:sidebar.item>
-                    <flux:sidebar.item icon="clock" :href="route('overtime-requests.index')" :current="request()->routeIs('overtime-requests.*')" wire:navigate>
-                        {{ __('Alur Lembur') }}
+                    <flux:sidebar.item icon="calendar-check" :href="route('overtime-requests.index') . '#riwayat-lembur'" :current="request()->routeIs('overtime-requests.*')" wire:navigate>
+                        {{ __('Riwayat Lembur') }}
                     </flux:sidebar.item>
                 @endif
                 </flux:sidebar.group>
