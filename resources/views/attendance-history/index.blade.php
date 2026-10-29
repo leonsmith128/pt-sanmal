@@ -72,15 +72,10 @@
                             <div class="min-w-0 space-y-1 text-sm text-zinc-600 dark:text-zinc-300">
                                 <p><span class="font-medium">{{ __('Jenis kerja') }}:</span> {{ $record->work_type->label() }}</p>
                                 <p><span class="font-medium">{{ __('Lokasi') }}:</span> {{ $record->project?->name ?? $record->location?->name ?? '—' }}</p>
-                                @if ($record->latitude !== null && $record->longitude !== null)
-                                    <a href="https://www.google.com/maps/search/?api=1&amp;query={{ urlencode($record->latitude . ',' . $record->longitude) }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 font-medium text-blue-600 hover:underline dark:text-blue-400">
+                                @if (($record->latitude !== null && $record->longitude !== null) || $record->address_snapshot)
+                                    <a href="https://www.google.com/maps/search/?api=1&amp;query={{ urlencode($record->latitude !== null && $record->longitude !== null ? $record->latitude . ',' . $record->longitude : $record->address_snapshot) }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 font-medium text-blue-600 hover:underline dark:text-blue-400" title="{{ $record->address_snapshot }}">
                                         <flux:icon name="map-pin" class="size-4" />
-                                        {{ __('Buka peta') }}
-                                    </a>
-                                @elseif ($record->address_snapshot)
-                                    <a href="https://www.google.com/maps/search/?api=1&amp;query={{ urlencode($record->address_snapshot) }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 font-medium text-blue-600 hover:underline dark:text-blue-400">
-                                        <flux:icon name="map-pin" class="size-4" />
-                                        {{ \Illuminate\Support\Str::limit($record->address_snapshot, 48) }}
+                                        {{ $record->address_snapshot ? \Illuminate\Support\Str::limit($record->address_snapshot, 48) : __('Buka peta') }}
                                     </a>
                                 @else
                                     <p class="text-zinc-400">—</p>
@@ -125,15 +120,10 @@
                                         @endif
                                     </td>
                                     <td class="px-4 py-4">
-                                        @if ($record->latitude !== null && $record->longitude !== null)
-                                            <a href="https://www.google.com/maps/search/?api=1&amp;query={{ urlencode($record->latitude . ',' . $record->longitude) }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 font-medium text-blue-600 hover:underline dark:text-blue-400">
+                                        @if (($record->latitude !== null && $record->longitude !== null) || $record->address_snapshot)
+                                            <a href="https://www.google.com/maps/search/?api=1&amp;query={{ urlencode($record->latitude !== null && $record->longitude !== null ? $record->latitude . ',' . $record->longitude : $record->address_snapshot) }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 font-medium text-blue-600 hover:underline dark:text-blue-400" title="{{ $record->address_snapshot }}">
                                                 <flux:icon name="map-pin" class="size-4" />
-                                                {{ __('Buka peta') }}
-                                            </a>
-                                        @elseif ($record->address_snapshot)
-                                            <a href="https://www.google.com/maps/search/?api=1&amp;query={{ urlencode($record->address_snapshot) }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 font-medium text-blue-600 hover:underline dark:text-blue-400" title="{{ $record->address_snapshot }}">
-                                                <flux:icon name="map-pin" class="size-4" />
-                                                {{ \Illuminate\Support\Str::limit($record->address_snapshot, 36) }}
+                                                {{ $record->address_snapshot ? \Illuminate\Support\Str::limit($record->address_snapshot, 36) : __('Buka peta') }}
                                             </a>
                                         @else
                                             <span class="text-zinc-400">—</span>
