@@ -3,6 +3,7 @@
 namespace App\\Http\\Controllers;
 
 use Illuminate\\Http\\Request;
+use App\\Models\\Employee;
 use Illuminate\\Http\\StreamedResponse;
 use Illuminate\\View\\View;
 
@@ -72,7 +73,7 @@ class AttendanceHistoryController extends Controller
         ]);
     }
 
-    private function attendanceQuery($employee, array $filters)
+    private function attendanceQuery(Employee $employee, array $filters)
     {
         return $employee->attendanceRecords()
             ->with(['location', 'project'])
