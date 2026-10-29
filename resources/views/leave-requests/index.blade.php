@@ -12,9 +12,9 @@
         </div>
 
         @if (session('status'))
-            <div role="status" class="rounded-xl border border-green-200 bg-green-50 p-3 text-sm text-green-900 dark:border-green-800/60 dark:bg-green-950/40 dark:text-green-300">
-                {{ session('status') }}
-            </div>
+            <flux:callout variant="success" icon="check-circle">
+                <flux:callout.text>{{ session('status') }}</flux:callout.text>
+            </flux:callout>
         @endif
 
         <section class="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900 sm:p-5">
