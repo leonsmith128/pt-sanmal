@@ -388,8 +388,8 @@ export default function attendanceCamera(config = {}) {
             const cardX = (width - cardWidth) / 2;
             const cardTop = height * 0.03;
             const padding = Math.max(12, Math.round(width * 0.025));
-            const titleSize = Math.max(14, Math.round(width * 0.031));
-            const bodySize = Math.max(11, Math.round(width * 0.027));
+            const titleSize = Math.max(12, Math.round(width * 0.024));
+            const bodySize = Math.max(10, Math.round(width * 0.019));
             const lineHeight = Math.max(15, Math.round(bodySize * 1.35));
             const textMaxWidth = cardWidth - padding * 2;
             const watermarkLines = [
@@ -414,11 +414,11 @@ export default function attendanceCamera(config = {}) {
             const radius = Math.max(10, Math.round(width * 0.025));
 
             // Rounded translucent card matching the live watermark overlay.
-            context.fillStyle = 'rgba(255, 255, 255, 0.78)';
+            context.fillStyle = 'rgba(255, 255, 255, 0.62)';
             context.beginPath();
             context.roundRect(cardX, cardTop, cardWidth, watermarkHeight, radius);
             context.fill();
-            context.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+            context.strokeStyle = 'rgba(255, 255, 255, 0.28)';
             context.lineWidth = Math.max(1, width * 0.0015);
             context.stroke();
 
