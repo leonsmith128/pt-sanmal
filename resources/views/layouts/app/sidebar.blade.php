@@ -20,8 +20,11 @@
                     <flux:sidebar.item icon="clock" :href="route('attendance')" :current="request()->routeIs('attendance')" wire:navigate>
                         {{ __('Absensi') }}
                     </flux:sidebar.item>
-                    <flux:sidebar.item icon="calendar" :href="route('leave-requests.index')" :current="request()->routeIs('leave-requests.*')" wire:navigate>
-                        {{ __('Permohonan Izin/Sakit/Cuti') }}
+                    <flux:sidebar.item icon="clipboard-document-list" :href="route('leave-requests.index')" :current="request()->routeIs('leave-requests.*')" wire:navigate>
+                        {{ __('Pusat Permohonan') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="clock" :href="route('overtime-requests.index')" :current="request()->routeIs('overtime-requests.*')" wire:navigate>
+                        {{ __('Alur Lembur') }}
                     </flux:sidebar.item>
                 @endif
                 </flux:sidebar.group>
