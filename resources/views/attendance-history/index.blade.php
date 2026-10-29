@@ -5,9 +5,14 @@
                 <flux:heading size="xl" level="1">{{ __('Riwayat Absensi') }}</flux:heading>
                 <flux:text class="mt-1">{{ __('Lihat catatan masuk, mulai lembur, dan pulang yang tercatat pada akun Anda.') }}</flux:text>
             </div>
-            <flux:button href="{{ route('attendance') }}" variant="primary" icon="clock" class="w-full sm:w-auto">
-                {{ __('Buka halaman absensi') }}
-            </flux:button>
+            <div class="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+                <flux:button href="{{ route('attendance-history.export', request()->query()) }}" variant="outline" icon="arrow-down-tray" class="w-full sm:w-auto">
+                    {{ __('Ekspor Excel (CSV)') }}
+                </flux:button>
+                <flux:button href="{{ route('attendance') }}" variant="primary" icon="clock" class="w-full sm:w-auto">
+                    {{ __('Buka halaman absensi') }}
+                </flux:button>
+            </div>
         </header>
 
         <section class="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900 sm:p-5">
@@ -91,7 +96,12 @@
                     <table class="w-full text-left text-sm">
                         <thead class="bg-zinc-50 text-xs uppercase tracking-wide text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
                             <tr>
-                                <th scope="col" class="px-4 py-3">{{ __('Waktu') }}</th>
+                                <th scope="col" class="whitespace-nowrap px-4 py-3">
+                                    <a href="{{ route('attendance-history.index', array_merge(request()->query(), ['direction' => $filters['direction'] === 'desc' ? 'asc' : 'desc', 'page' => null])) }}" class="inline-flex items-center gap-1 hover:text-zinc-900 dark:hover:text-white">
+                                        {{ __('Waktu') }}
+                                        <flux:icon name="{{ $filters['direction'] === 'asc' ? 'arrow-up' : 'arrow-down' }}" class="size-3.5" />
+                                    </a>
+                                </th>
                                 <th scope="col" class="px-4 py-3">{{ __('Aktivitas') }}</th>
                                 <th scope="col" class="px-4 py-3">{{ __('Jenis kerja') }}</th>
                                 <th scope="col" class="px-4 py-3">{{ __('Lokasi / proyek') }}</th>
