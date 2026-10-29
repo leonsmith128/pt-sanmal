@@ -22,6 +22,7 @@ function userWithRole(UserRole $role, bool $withEmployee = true): User
 test('guests are redirected from attendance pages to login', function () {
     $this->get(route('attendance'))->assertRedirect(route('login'));
     $this->get(route('attendance-history.index'))->assertRedirect(route('login'));
+    $this->get(route('attendance-history.selfie', 1))->assertRedirect(route('login'));
     $this->get(route('admin.kehadiran'))->assertRedirect(route('login'));
 });
 
