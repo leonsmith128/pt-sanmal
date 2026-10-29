@@ -43,9 +43,13 @@ class LeaveRequestController extends Controller
             'submitted' => 'submitted_at',
         ];
         $sortColumn = $sortColumns[$filters['sort']] ?? 'submitted_at';
+        $sortValue = fn (object $row) => $sortColumn === 'submitted_at'
+            ? ($row->submitted_at?->getTimestamp() ?? 0)
+            : (string) (data_get($row, $sortColumn) ?? '');
+
         $rows = $filters['direction'] === 'asc'
-            ? $rows->sortBy(fn (object $row) => data_get($row, $sortColumn) ?? '', SORT_NATURAL | SORT_FLAG_CASE)
-            : $rows->sortByDesc(fn (object $row) => data_get($row, $sortColumn) ?? '', SORT_NATURAL | SORT_FLAG_CASE);
+            ? $rows->sortBy($sortValue, SORT_NATURAL | SORT_FLAG_CASE)
+            : $rows->sortByDesc($sortValue, SORT_NATURAL | SORT_FLAG_CASE);
         $rows = $rows->values();
         $perPage = 30;
         $page = max(1, LengthAwarePaginator::resolveCurrentPage());
