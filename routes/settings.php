@@ -7,12 +7,11 @@ Route::middleware(['auth'])->group(function () {
     Route::redirect('settings', '/profil');
     Route::redirect('settings/profile', '/profil');
     Route::redirect('settings/appearance', '/profil');
-});
+    Route::redirect('settings/security', '/keamanan-akun');
 
-Route::middleware(['auth', 'verified'])->group(function () {
+    // Keep account security accessible after an email change, even before the new
+    // address is verified, so the user can resend verification or correct a typo.
     Route::livewire('keamanan-akun', 'pages::settings.security')
         ->middleware('password.confirm')
         ->name('security.edit');
-
-    Route::redirect('settings/security', '/keamanan-akun');
 });
