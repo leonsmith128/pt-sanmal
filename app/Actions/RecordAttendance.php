@@ -7,7 +7,8 @@ use App\Enums\OvertimeState;
 use App\Enums\SelfieSource;
 use App\Enums\WorkType;
 use App\Models\AttendanceRecord;
-use App\Support\AttendanceLocation;
+use App\Support\AttendanceEvidence;
+use App\Support\AttendanceSelfie;
 use App\Models\Employee;
 use App\Models\Location;
 use App\Models\OvertimeRequest;
@@ -15,7 +16,6 @@ use App\Models\Project;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
 class RecordAttendance
@@ -83,27 +83,13 @@ class RecordAttendance
 
         // Validasi ulang di action agar jalur pemanggilan lain tidak dapat
         // menyimpan koordinat dengan kualitas GPS yang tidak layak.
-        Validator::make([
-            'latitude' => $latitude,
-            'longitude' => $longitude,
-            'accuracy' => $accuracy,
-            'address_snapshot' => $addressSnapshot,
-            'selfie' => $selfie,
-        ], [
-            'latitude' => ['required', 'numeric', 'between:-90,90'],
-            'longitude' => ['required', 'numeric', 'between:-180,180'],
-            'accuracy' => ['required', 'numeric', 'min:0', 'max:'.AttendanceLocation::MAX_ACCURACY_METERS],
-            'address_snapshot' => ['nullable', 'string', 'max:500'],
-            'selfie' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:200'],
-        ], [
-            'accuracy.required' => 'Lokasi GPS belum memiliki data akurasi. Ambil ulang lokasi.',
-            'accuracy.max' => 'Akurasi GPS harus ±'.AttendanceLocation::MAX_ACCURACY_METERS.' meter atau lebih baik. Tunggu GPS lebih presisi lalu coba lagi.',
-        ])->validate();
-
-        return DB::transaction(function () use (
-            $employee, $type, $workType, $locationId, $projectId,
-            $latitude, $longitude, $accuracy, $selfie, $selfieSource, $addressSnapshot
-        ) {
+        AttendanceEvidence::validate(['latitude'=>$latitude,'longitude'=>$longitude,'accuracy'=>$accuracy,'address_snapshot'=>$addressSnapshot,'selfie'=>$selfie]);
+        $storedPath = null;
+        try {
+            return DB::transaction(function () use (
+                $employee, $type, $workType, $locationId, $projectId,
+                $latitude, $longitude, $accuracy, $selfie, $selfieSource, $addressSnapshot, &$storedPath
+            ) {
             Employee::query()->whereKey($employee->id)->lockForUpdate()->firstOrFail();
 
             $open = self::openSession($employee);
@@ -148,7 +134,7 @@ class RecordAttendance
             $timezone = $location?->timezone ?? self::DEFAULT_TIMEZONE;
             $now = now();
 
-            $path = $selfie->store('selfies/'.$employee->id.'/'.$now->format('Y/m'), 'local');
+            $storedPath = AttendanceSelfie::store($selfie, $employee->id, $now);
 
             $record = AttendanceRecord::create([
                 'employee_id' => $employee->id,
@@ -163,7 +149,7 @@ class RecordAttendance
                 'longitude' => $longitude,
                 'accuracy_m' => $accuracy,
                 'address_snapshot' => $addressSnapshot,
-                'selfie_path' => $path,
+                'selfie_path' => $storedPath,
                 'selfie_source' => $selfieSource,
             ]);
 
@@ -183,7 +169,12 @@ class RecordAttendance
             }
 
             return $record;
-        });
+            });
+        } catch (\Throwable $exception) {
+            try { AttendanceSelfie::delete($storedPath); }
+            catch (\Throwable $cleanupException) { report($cleanupException); }
+            throw $exception;
+        }
     }
 
     /** @return array{0: WorkType, 1: ?Location, 2: ?Project} */

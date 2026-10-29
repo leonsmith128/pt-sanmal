@@ -36,6 +36,7 @@ export default function attendanceCamera(config = {}) {
         capturedBlob: null,
         capturedUrl: null,
         capturedPosition: null,
+        capturedAddress: '',
         formattedTimestamp: '',
 
         get currentTimestamp() {
@@ -239,9 +240,10 @@ export default function attendanceCamera(config = {}) {
             this.capturedBlob = null;
             this.formattedTimestamp = '';
             this.capturedPosition = null;
+            this.capturedAddress = '';
         },
 
-        async makeFinalPhoto(video, position) {
+        async makeFinalPhoto(video, position, addressSnapshot) {
             const viewport = video.getBoundingClientRect();
             const targetRatio = viewport.width / viewport.height;
             const sourceRatio = video.videoWidth / video.videoHeight;
@@ -267,12 +269,9 @@ export default function attendanceCamera(config = {}) {
             const context = canvas.getContext('2d');
             if (!context) throw new Error('canvas-context-unavailable');
 
-            // Mirror pada canvas agar hasil sesuai dengan preview kamera depan.
-            context.save();
-            context.translate(width, 0);
-            context.scale(-1, 1);
+            // Preview kamera depan boleh di-mirror oleh CSS, tetapi foto final
+            // mempertahankan orientasi asli agar teks/objek tidak terbalik.
             context.drawImage(video, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, width, height);
-            context.restore();
 
             const timestamp = new Intl.DateTimeFormat('id-ID', {
                 dateStyle: 'medium',
@@ -292,7 +291,7 @@ export default function attendanceCamera(config = {}) {
             const watermarkLines = [
                 this.name,
                 this.eventLabel + ' · ' + timestamp,
-                this.address || (this.addressLoading ? 'Mencari alamat…' : 'Alamat belum tersedia'),
+                addressSnapshot || 'Alamat belum tersedia',
                 '© OpenStreetMap contributors',
             ];
 
@@ -377,6 +376,7 @@ export default function attendanceCamera(config = {}) {
 
             this.error = null;
             this.busy = true;
+            this.clearCapturedPhoto();
             try {
                 let position = await this.getPosition();
                 this.best = position;
@@ -391,9 +391,10 @@ export default function attendanceCamera(config = {}) {
                     this.liveAccuracy = Math.round(position.accuracy);
                 }
 
+                const addressSnapshot = this.address || '';
+                const blob = await this.makeFinalPhoto(video, position, addressSnapshot);
                 this.capturedPosition = position;
-                const blob = await this.makeFinalPhoto(video, position);
-                this.clearCapturedPhoto();
+                this.capturedAddress = addressSnapshot;
                 this.capturedBlob = blob;
                 this.capturedUrl = URL.createObjectURL(blob);
             } catch (error) {
@@ -426,7 +427,7 @@ export default function attendanceCamera(config = {}) {
                 this.$wire.latitude = position.latitude;
                 this.$wire.longitude = position.longitude;
                 this.$wire.accuracy = position.accuracy;
-                this.$wire.addressSnapshot = this.address || '';
+                this.$wire.addressSnapshot = this.capturedAddress || '';
                 this.$wire.selfieSource = 'camera';
 
                 const file = new File([this.capturedBlob], 'attendance-selfie.jpg', {

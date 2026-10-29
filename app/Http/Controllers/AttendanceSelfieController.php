@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\AttendanceRecord;
+use App\Support\AttendanceSelfie;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -14,7 +15,7 @@ class AttendanceSelfieController extends Controller
      */
     public function show(AttendanceRecord $record): StreamedResponse
     {
-        $disk = Storage::disk('local');
+        $disk = Storage::disk(AttendanceSelfie::DISK);
 
         abort_unless($record->selfie_path && $disk->exists($record->selfie_path), 404);
 
