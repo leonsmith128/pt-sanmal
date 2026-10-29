@@ -9,44 +9,34 @@ use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
-new #[Title('Profile settings')] class extends Component {
+new #[Title('Pengaturan Akun')] class extends Component {
     use ProfileValidationRules;
 
-    public string $name = '';
     public string $email = '';
 
-    /**
-     * Mount the component.
-     */
     public function mount(): void
     {
-        $this->name = Auth::user()->name;
         $this->email = Auth::user()->email;
     }
 
-    /**
-     * Update the profile information for the currently authenticated user.
-     */
+    /** Update only the login email; the official name is managed by an admin. */
     public function updateProfileInformation(): void
     {
         $user = Auth::user();
 
-        $validated = $this->validate($this->profileRules($user->id));
+        $validated = $this->validate([
+            'email' => $this->emailRules($user->id),
+        ]);
 
-        $user->fill($validated);
-
-        if ($user->isDirty('email')) {
+        if ($user->email !== $validated['email']) {
+            $user->email = $validated['email'];
             $user->email_verified_at = null;
+            $user->save();
         }
 
-        $user->save();
-
-        Flux::toast(variant: 'success', text: __('Profile updated.'));
+        Flux::toast(variant: 'success', text: __('Email akun berhasil diperbarui.'));
     }
 
-    /**
-     * Send an email verification notification to the current user.
-     */
     public function resendVerificationNotification(): void
     {
         $user = Auth::user();
@@ -67,58 +57,49 @@ new #[Title('Profile settings')] class extends Component {
     {
         return Auth::user() instanceof MustVerifyEmail && ! Auth::user()->hasVerifiedEmail();
     }
-
-    #[Computed]
-    public function showDeleteUser(): bool
-    {
-        return ! Auth::user() instanceof MustVerifyEmail
-            || (Auth::user() instanceof MustVerifyEmail && Auth::user()->hasVerifiedEmail());
-    }
 }; ?>
 
 <section class="w-full">
     @include('partials.settings-heading')
 
-    <flux:heading level="2" class="sr-only">{{ __('Profile settings') }}</flux:heading>
+    <flux:heading level="2" class="sr-only">{{ __('Pengaturan Akun') }}</flux:heading>
 
-    <x-pages::settings.layout :heading="__('Profile')" :subheading="__('Update your name and email address')">
+    <x-pages::settings.layout :heading="__('Email akun')" :subheading="__('Ubah alamat email yang digunakan untuk masuk ke akun Anda.')">
         <form wire:submit="updateProfileInformation" class="my-6 w-full space-y-6">
-            <flux:input wire:model="name" :label="__('Name')" type="text" required autofocus autocomplete="name" />
+            <flux:input
+                wire:model="email"
+                :label="__('Email')"
+                type="email"
+                required
+                autocomplete="email"
+            />
 
-            <div>
-                <flux:input wire:model="email" :label="__('Email')" type="email" required autocomplete="email" />
+            @if ($this->hasUnverifiedEmail)
+                <div>
+                    <flux:text class="mt-4">
+                        {{ __('Alamat email Anda belum diverifikasi.') }}
+                        <flux:link class="cursor-pointer text-sm" wire:click.prevent="resendVerificationNotification">
+                            {{ __('Kirim ulang email verifikasi.') }}
+                        </flux:link>
+                    </flux:text>
 
-                @if ($this->hasUnverifiedEmail)
-                    <div>
-                        <flux:text class="mt-4">
-                            {{ __('Your email address is unverified.') }}
-
-                            <flux:link class="text-sm cursor-pointer" wire:click.prevent="resendVerificationNotification">
-                                {{ __('Click here to re-send the verification email.') }}
-                            </flux:link>
+                    @if (session('status') === 'verification-link-sent')
+                        <flux:text class="mt-2 font-medium !text-green-600 dark:!text-green-400">
+                            {{ __('Tautan verifikasi baru telah dikirim ke alamat email Anda.') }}
                         </flux:text>
-
-                        @if (session('status') === 'verification-link-sent')
-                            <flux:text class="mt-2 font-medium !dark:text-green-400 !text-green-600">
-                                {{ __('A new verification link has been sent to your email address.') }}
-                            </flux:text>
-                        @endif
-                    </div>
-                @endif
-            </div>
+                    @endif
+                </div>
+            @endif
 
             <div class="flex items-center gap-4">
-                <div class="flex items-center justify-end">
-                    <flux:button variant="primary" type="submit" class="w-full" data-test="update-profile-button">
-                        {{ __('Save') }}
-                    </flux:button>
-                </div>
-
+                <flux:button variant="primary" type="submit" data-test="update-profile-button">
+                    {{ __('Simpan email') }}
+                </flux:button>
             </div>
         </form>
 
-        @if ($this->showDeleteUser)
-            <livewire:pages::settings.delete-user-form />
-        @endif
+        <flux:callout icon="information-circle" class="mt-6">
+            Nama resmi dan identitas kepegawaian hanya dapat diubah oleh admin.
+        </flux:callout>
     </x-pages::settings.layout>
 </section>
