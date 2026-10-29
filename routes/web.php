@@ -3,6 +3,7 @@
 use App\Enums\UserRole;
 use App\Http\Controllers\AdminLeaveRequestController;
 use App\Http\Controllers\AdminOvertimeRequestController;
+use App\Http\Controllers\AttendanceHistoryController;
 use App\Http\Controllers\AttendanceSelfieController;
 use App\Http\Controllers\LeaveRequestController;
 use App\Http\Controllers\OvertimeRequestController;
