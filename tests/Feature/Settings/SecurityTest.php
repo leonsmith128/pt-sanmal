@@ -11,7 +11,8 @@ test('security settings page can be rendered', function () {
         ->withSession(['auth.password_confirmed_at' => time()])
         ->get(route('security.edit'));
 
-    $response->assertOk();
+    $response->assertOk()
+        ->assertDontSee('Delete account');
 });
 
 test('security settings page requires password confirmation when enabled', function () {
@@ -38,7 +39,13 @@ test('account security page renders without two factor when feature is disabled'
         ->assertDontSee('Two-factor authentication');
 });
 
-test('two factor authentication disabled when confirmation abandoned between requests', function () {});
+test('self-service account deletion endpoint is not available', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->get('/settings/delete-account')
+        ->assertNotFound();
+});
 
 test('password can be updated', function () {
     $user = User::factory()->create([
