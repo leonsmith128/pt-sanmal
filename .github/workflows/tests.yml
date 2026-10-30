@@ -61,6 +61,7 @@ jobs:
           BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: |
           git diff --name-only "$BASE_SHA...$GITHUB_SHA" -- '*.php' |
+            sed '/\\.blade\\.php$/d' |
             xargs -r vendor/bin/pint --test
 
       - name: Run static analysis
