@@ -173,8 +173,11 @@ class RecordAttendance
                 $scheduledOvertime?->update(['clock_in_record_id' => $record->id]);
             }
 
-            if ($type === AttendanceType::ClockOut && $overtime
-                && ($overtime->start_record_id !== null || $overtime->state === OvertimeState::NeedsReview)) {
+            if (
+                $type === AttendanceType::ClockOut
+                && $overtime
+                && ($overtime->start_record_id !== null || $overtime->state === OvertimeState::NeedsReview)
+            ) {
                 $overtime->update([
                     'state' => OvertimeState::Completed,
                     'clock_out_record_id' => $record->id,
