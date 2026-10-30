@@ -5,6 +5,8 @@
             <flux:text>{{ $employee->user->email }}</flux:text>
         </div>
 
+        <x-admin.flash-message />
+
         <form method="POST" action="{{ route('admin.employees.update', $employee) }}" class="space-y-4 rounded-xl border border-zinc-200 p-5 dark:border-zinc-700">
             @csrf
             @method('PUT')
