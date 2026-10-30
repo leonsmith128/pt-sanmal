@@ -184,9 +184,13 @@ class RecordAttendance
 
             return $record;
             });
-        } catch (\Throwable $exception) {
-            try { AttendanceSelfie::delete($storedPath); }
-            catch (\Throwable $cleanupException) { report($cleanupException); }
+        } catch (\\Throwable $exception) {
+            try {
+                AttendanceSelfie::delete($storedPath);
+            } catch (\\Throwable $cleanupException) {
+                report($cleanupException);
+            }
+
             throw $exception;
         }
     }
