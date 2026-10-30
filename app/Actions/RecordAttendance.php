@@ -118,14 +118,15 @@ class RecordAttendance
                     ->lockForUpdate()
                     ->first();
 
-                if ($overtime && $overtime->scheduled_start_at->lte(now())) {
-                    if ($overtime->start_record_id === null && $overtime->state !== OvertimeState::NeedsReview) {
-                        $this->fail('form', 'Jadwal lembur sudah tiba. Ambil foto Absen Lembur terlebih dahulu sebelum absen pulang.');
-                    }
-
-                    if ($overtime->start_record_id === null && $overtime->state === OvertimeState::NeedsReview) {
-                        // Pengecualian yang diputuskan admin: sesi boleh ditutup tanpa foto lembur.
-                    }
+                if ($overtime && $overtime->start_record_id === null && $overtime->state !== OvertimeState::NeedsReview) {
+                    // Pilihan C: clock-out ditolak sejak jadwal masih aktif, termasuk sebelum
+                    // waktu mulai. Pegawai harus membatalkan pengajuan secara eksplisit.
+                    $this->fail(
+                        'form',
+                        $overtime->scheduled_start_at->isFuture()
+                            ? 'Anda masih memiliki jadwal lembur. Batalkan Lembur terlebih dahulu sebelum absen pulang.'
+                            : 'Jadwal lembur sudah tiba. Konfirmasi Lembur atau Batalkan Lembur terlebih dahulu sebelum absen pulang.'
+                    );
                 }
             } else {
                 $this->fail('form', 'Jenis event absensi tidak valid untuk proses ini.');
@@ -153,19 +154,31 @@ class RecordAttendance
                 'selfie_source' => $selfieSource,
             ]);
 
-            if ($type === AttendanceType::ClockOut && $overtime) {
-                if ($overtime->start_record_id !== null || $overtime->state === OvertimeState::NeedsReview) {
-                    $overtime->update([
-                        'state' => OvertimeState::Completed,
-                        'clock_out_record_id' => $record->id,
-                        'completed_at' => $now,
-                    ]);
-                } elseif ($overtime->scheduled_start_at->gt($now)) {
-                    $overtime->update([
-                        'state' => OvertimeState::Cancelled,
-                        'cancelled_at' => $now,
-                    ]);
-                }
+            if ($type === AttendanceType::ClockIn) {
+                // Kaitkan pengajuan yang dibuat sebelum clock-in ke sesi pada tanggal target.
+                $localDate = $record->recorded_at->copy()->setTimezone($timezone)->toDateString();
+                $dayStart = now($timezone)->parse($localDate)->startOfDay()->utc();
+                $dayEnd = $dayStart->copy()->addDay();
+
+                $scheduledOvertime = OvertimeRequest::query()
+                    ->where('employee_id', $employee->id)
+                    ->whereNull('clock_in_record_id')
+                    ->where('state', OvertimeState::Scheduled)
+                    ->where('scheduled_start_at', '>=', $dayStart)
+                    ->where('scheduled_start_at', '<', $dayEnd)
+                    ->lockForUpdate()
+                    ->first();
+
+                $scheduledOvertime?->update(['clock_in_record_id' => $record->id]);
+            }
+
+            if ($type === AttendanceType::ClockOut && $overtime
+                && ($overtime->start_record_id !== null || $overtime->state === OvertimeState::NeedsReview)) {
+                $overtime->update([
+                    'state' => OvertimeState::Completed,
+                    'clock_out_record_id' => $record->id,
+                    'completed_at' => $now,
+                ]);
             }
 
             return $record;
