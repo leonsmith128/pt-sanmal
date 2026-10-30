@@ -4,6 +4,7 @@ use App\Enums\UserRole;
 use App\Http\Controllers\AdminAttendanceCorrectionController;
 use App\Http\Controllers\AdminAuditLogController;
 use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\AdminDailyAttendanceController;
 use App\Http\Controllers\AdminEmployeeController;
 use App\Http\Controllers\AdminLeaveRequestController;
 use App\Http\Controllers\AdminOvertimeRequestController;
