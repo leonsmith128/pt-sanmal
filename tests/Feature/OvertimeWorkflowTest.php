@@ -151,3 +151,16 @@ it('blocks clock out before a future scheduled overtime until the request is can
     expect($overtime->fresh()->state)->toBe(OvertimeState::Scheduled)
         ->and($overtime->fresh()->cancelled_at)->toBeNull();
 });
+
+it('allows cancellation after the scheduled start while actual start is not confirmed', function () {
+    $employee = overtimeEmployee();
+    $clockIn = overtimeClockIn($employee);
+    $overtime = overtimeRequest($employee, $clockIn, now()->subMinute()->toDateTimeString());
+    $overtime->update(['state' => OvertimeState::AwaitingPhoto]);
+
+    $response = $this->actingAs($employee->user)->patch(route('overtime-requests.cancel', $overtime));
+
+    $response->assertRedirect(route('overtime-requests.index'));
+    expect($overtime->fresh()->state)->toBe(OvertimeState::Cancelled)
+        ->and($overtime->fresh()->cancelled_at)->not->toBeNull();
+});
