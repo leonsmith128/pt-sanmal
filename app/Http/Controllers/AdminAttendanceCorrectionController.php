@@ -26,12 +26,14 @@ class AdminAttendanceCorrectionController extends Controller
     public function show(AttendanceCorrection $attendanceCorrection): View
     {
         $attendanceCorrection->load(['employee.user', 'attendanceRecord', 'reviewedBy']);
+
         return view('pages::admin.attendance-corrections.show', ['correction' => $attendanceCorrection]);
     }
 
     public function attachment(AttendanceCorrection $attendanceCorrection)
     {
         abort_unless($attendanceCorrection->attachment_path && Storage::disk('local')->exists($attendanceCorrection->attachment_path), 404);
+
         return Storage::disk('local')->download($attendanceCorrection->attachment_path);
     }
 
