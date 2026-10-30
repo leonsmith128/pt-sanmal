@@ -120,7 +120,7 @@ it('paginates daily attendance employees before calculating their status', funct
 
     foreach (range(1, 51) as $number) {
         $user = User::factory()->create([
-            'name' => 'Pegawai nomor '.$number,
+            'name' => 'Pegawai nomor ' . $number,
         ]);
 
         Employee::query()->create(['user_id' => $user->id]);
