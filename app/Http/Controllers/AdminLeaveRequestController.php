@@ -226,7 +226,7 @@ class AdminLeaveRequestController extends Controller
 
                             fputcsv($out, array_map($this->spreadsheetSafe(...), [
                                 $employee->employee_number ?? $employee->id,
-                                $employee->user?->name ?? '(tanpa nama)',
+                                $employee->user->name,
                                 $dayStr,
                                 $daily['label'],
                                 $daily['reason'],
