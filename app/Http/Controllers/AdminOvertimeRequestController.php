@@ -44,7 +44,9 @@ class AdminOvertimeRequestController extends Controller
         $decision = OvertimeApprovalStatus::from($validated['decision']);
 
         DB::transaction(function () use ($request, $overtimeRequest, $decision, $validated): void {
-            $locked = OvertimeRequest::query()->whereKey($overtimeRequest->id)->lockForUpdate()->firstOrFail();
+            $locked = OvertimeRequest::query()->with('employee.user')->whereKey($overtimeRequest->id)->lockForUpdate()->firstOrFail();
+
+            abort_if($locked->employee?->user_id === $request->user()->id, 403, 'Anda tidak dapat memutuskan pengajuan lembur milik sendiri.');
 
             if ($locked->approval_status !== OvertimeApprovalStatus::Pending) {
                 abort(422, 'Pengajuan lembur sudah diputuskan dan tidak dapat diputuskan kembali.');
