@@ -116,3 +116,26 @@ it('logs out inactive administrators before they can access admin pages', functi
 
     $this->assertGuest();
 });
+
+
+it('paginates daily attendance employees before calculating their status', function () {
+    $admin = reportingUser(UserRole::Admin);
+
+    foreach (range(1, 51) as $number) {
+        $user = User::factory()->create([
+            'name' => 'Pegawai nomor '.$number,
+        ]);
+
+        Employee::query()->create(['user_id' => $user->id]);
+    }
+
+    $this->actingAs($admin)
+        ->get(route('admin.daily-attendance', [
+            'date' => '2026-11-02',
+            'page' => 2,
+        ]))
+        ->assertOk()
+        ->assertSee('Pegawai nomor 51')
+        ->assertDontSee('Pegawai nomor 1')
+        ->assertSee('page=2', false);
+});
