@@ -71,9 +71,9 @@ Route::middleware(['auth', EnsureUserIsActive::class, 'verified'])->group(functi
             Route::post('lembur/{overtimeRequest}/keputusan', [AdminOvertimeRequestController::class, 'decide'])->name('overtime-requests.decide');
             Route::post('lembur/{overtimeRequest}/pengecualian-foto', [AdminOvertimeRequestController::class, 'allowClockOutWithoutPhoto'])->name('overtime-requests.photo-exception');
 
-            Route::get('rekap-harian', [AdminLeaveRequestController::class, 'daily'])->name('daily-attendance');
-            Route::post('rekap-harian/koreksi', [AdminLeaveRequestController::class, 'correctDailyStatus'])->name('daily-attendance.correct');
-            Route::get('rekap-harian/export', [AdminLeaveRequestController::class, 'exportMonth'])->name('daily-attendance.export');
+            Route::get('rekap-harian', [AdminDailyAttendanceController::class, 'daily'])->name('daily-attendance');
+            Route::post('rekap-harian/koreksi', [AdminDailyAttendanceController::class, 'correctDailyStatus'])->name('daily-attendance.correct');
+            Route::get('rekap-harian/export', [AdminDailyAttendanceController::class, 'exportMonth'])->name('daily-attendance.export');
         });
 });
 
