@@ -20,7 +20,7 @@ test('authenticated users can visit the dashboard', function () {
 
 test('administrators see the administrative dashboard summary', function () {
     $user = User::factory()->create();
-    $user->forceFill(['role' => \\App\\Enums\\UserRole::Admin])->save();
+    $user->forceFill(['role' => \App\Enums\UserRole::Admin])->save();
 
     $this->actingAs($user)
         ->get(route('dashboard'))
