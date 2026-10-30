@@ -12,6 +12,7 @@ use App\Services\DailyAttendanceStatusService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
@@ -112,7 +113,7 @@ class AdminLeaveRequestController extends Controller
             ->paginate(50)
             ->withQueryString();
 
-        /** @var \Illuminate\Support\Collection<int, Employee> $employeePage */
+        /** @var Collection<int, Employee> $employeePage */
         $employeePage = $rows->getCollection();
 
         $statuses = $statusService->forEmployeesDateRange(
@@ -212,7 +213,7 @@ class AdminLeaveRequestController extends Controller
             Employee::query()
                 ->with('user')
                 ->chunkById(100, function ($employees) use ($statusService, $start, $end, $out): void {
-                    /** @var \Illuminate\Support\Collection<int, Employee> $employees */
+                    /** @var Collection<int, Employee> $employees */
                     $statuses = $statusService->forEmployeesDateRange($employees, $start, $end);
 
                     foreach ($employees as $employee) {
