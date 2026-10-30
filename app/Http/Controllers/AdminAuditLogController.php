@@ -16,6 +16,6 @@ class AdminAuditLogController extends Controller
             ->when($request->filled('to'), fn ($q) => $q->whereDate('created_at', '<=', $request->date('to')))
             ->latest('created_at')->paginate(30)->withQueryString();
 
-        return view('admin.audit-logs.index', compact('logs'));
+        return view('pages::admin.audit-logs.index', compact('logs'));
     }
 }

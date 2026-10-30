@@ -20,13 +20,13 @@ class AdminAttendanceCorrectionController extends Controller
             ->latest()
             ->paginate(20)->withQueryString();
 
-        return view('admin.attendance-corrections.index', compact('corrections'));
+        return view('pages::admin.attendance-corrections.index', compact('corrections'));
     }
 
     public function show(AttendanceCorrection $attendanceCorrection): View
     {
         $attendanceCorrection->load(['employee.user', 'attendanceRecord', 'reviewedBy']);
-        return view('admin.attendance-corrections.show', ['correction' => $attendanceCorrection]);
+        return view('pages::admin.attendance-corrections.show', ['correction' => $attendanceCorrection]);
     }
 
     public function attachment(AttendanceCorrection $attendanceCorrection)

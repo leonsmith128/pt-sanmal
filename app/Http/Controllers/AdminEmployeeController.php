@@ -29,12 +29,12 @@ class AdminEmployeeController extends Controller
             ->orderBy('employee_number')
             ->paginate(20)->withQueryString();
 
-        return view('admin.employees.index', compact('employees'));
+        return view('pages::admin.employees.index', compact('employees'));
     }
 
     public function create(): View
     {
-        return view('admin.employees.create', ['titles' => Title::query()->where('is_active', true)->orderBy('name')->get()]);
+        return view('pages::admin.employees.create', ['titles' => Title::query()->where('is_active', true)->orderBy('name')->get()]);
     }
 
     public function store(Request $request): RedirectResponse
@@ -73,7 +73,7 @@ class AdminEmployeeController extends Controller
     public function edit(Employee $employee): View
     {
         $employee->load(['user', 'title']);
-        return view('admin.employees.edit', [
+        return view('pages::admin.employees.edit', [
             'employee' => $employee,
             'titles' => Title::query()->where('is_active', true)->orderBy('name')->get(),
         ]);

@@ -30,14 +30,14 @@ class AdminLeaveRequestController extends Controller
 
         $requests = $query->latest()->paginate(20)->withQueryString();
 
-        return view('admin.leave-requests.index', compact('requests'));
+        return view('pages::admin.leave-requests.index', compact('requests'));
     }
 
     public function show(LeaveRequest $leaveRequest): View
     {
         $leaveRequest->load(['employee.user', 'leaveType', 'decidedBy']);
 
-        return view('admin.leave-requests.show', compact('leaveRequest'));
+        return view('pages::admin.leave-requests.show', compact('leaveRequest'));
     }
 
     public function downloadAttachment(LeaveRequest $leaveRequest): StreamedResponse
@@ -110,7 +110,7 @@ class AdminLeaveRequestController extends Controller
             'daily' => $statuses[$employee->id][$date] ?? $statusService->forEmployeeDate($employee, $date),
         ]);
 
-        return view('admin.daily-attendance', compact('date', 'rows'));
+        return view('pages::admin.daily-attendance', compact('date', 'rows'));
     }
 
     public function correctDailyStatus(Request $request): RedirectResponse
