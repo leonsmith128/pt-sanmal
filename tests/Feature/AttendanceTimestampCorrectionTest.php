@@ -63,7 +63,7 @@ it('lets another administrator correct a clock event without changing the origin
     ]);
     $admin = User::factory()->create();
     $admin->forceFill(['role' => UserRole::Admin, 'is_active' => true])->save();
-    $correctedLocal = $originalTime->copy()->subMinutes(15)->setTimezone('Asia/Makassar');
+    $correctedLocal = $originalTime->copy()->subMinutes(15)->setTimezone('Asia/Makassar')->startOfMinute();
 
     $response = $this->actingAs($admin)->post(route('admin.kehadiran.correct-timestamp', $record), [
         'recorded_at_local' => $correctedLocal->format('Y-m-d\TH:i'),

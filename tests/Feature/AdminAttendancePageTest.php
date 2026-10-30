@@ -127,7 +127,7 @@ it('filters attendance records by employee text, event type, and work type', fun
         ->set('dateFrom', '2026-11-02')
         ->set('dateTo', '2026-11-02')
         ->set('search', 'Pegawai Beta')
-        ->assertViewHas('records', fn ($records) => $records->total() === 1)
+        ->assertSee('data-record-count="1"', false)
         ->set('search', '')
         ->set('attendanceType', 'clock_in')
         ->assertSee('Pegawai Alpha')

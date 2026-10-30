@@ -155,10 +155,12 @@ new #[Title('Absensi')] class extends Component {
     #[Computed]
     public function history()
     {
-        return app(DailyAttendanceStatusService::class)
-            ->forEmployeeDate($this->employee, $this->selectedDate)['events']
-            ->load(['location', 'project', 'approvedCorrection'])
-            ->take(50);
+        $events = app(DailyAttendanceStatusService::class)
+            ->forEmployeeDate($this->employee, $this->selectedDate)['events'];
+
+        $events->each(fn (AttendanceRecord $record) => $record->load(['location', 'project', 'approvedCorrection']));
+
+        return $events->take(50);
     }
 
     public function retakeSelfie(): void
