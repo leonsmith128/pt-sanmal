@@ -5,8 +5,11 @@ namespace App\Http\Controllers;
 use App\Enums\LeaveRequestStatus;
 use App\Models\AuditLog;
 use App\Models\LeaveRequest;
+use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
