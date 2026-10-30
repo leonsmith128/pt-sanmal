@@ -324,8 +324,8 @@ new #[Title('Absensi')] class extends Component {
                     : null);
             $attendanceStatus = $clockInRecord ? __('Hadir') : __('Belum absen');
             $attendanceStatusColor = $clockInRecord ? 'green' : 'zinc';
-            $attendancePlace = $clockInRecord?->project?->name
-                ?? $clockInRecord?->location?->name
+            $attendancePlace = $clockInForDisplay?->project?->name
+                ?? $clockInForDisplay?->location?->name
                 ?? $session?->project?->name
                 ?? $session?->location?->name;
             $attendanceAddress = $this->history->first()?->address_snapshot
@@ -352,7 +352,7 @@ new #[Title('Absensi')] class extends Component {
         <div class="grid grid-cols-3 gap-2">
             <div class="rounded-xl border border-neutral-200 p-3 dark:border-neutral-700">
                 <flux:text class="text-xs">{{ __('Masuk') }}</flux:text>
-                <flux:heading size="lg">{{ $clockInRecord?->effectiveRecordedAtLocal()->format('H:i') ?? '—' }}</flux:heading>
+                <flux:heading size="lg">{{ $clockInForDisplay?->effectiveRecordedAtLocal()->format('H:i') ?? '—' }}</flux:heading>
             </div>
             <div class="rounded-xl border border-neutral-200 p-3 dark:border-neutral-700">
                 <flux:text class="text-xs">{{ __('Pulang') }}</flux:text>
