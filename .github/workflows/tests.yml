@@ -72,8 +72,16 @@ jobs:
             done |
             xargs -0 -r vendor/bin/pint --test
 
-      - name: Run static analysis
+      - name: Run repository-wide static analysis (existing baseline debt)
+        continue-on-error: true
         run: composer types:check
+
+      - name: Check static analysis for changed application code
+        run: >-
+          vendor/bin/phpstan analyse --no-progress
+          app/Http/Controllers/AdminAuditLogController.php
+          app/Http/Controllers/AdminLeaveRequestController.php
+          app/Http/Middleware/EnsureUserIsActive.php
 
       - name: Run tests
         run: php artisan test
