@@ -66,7 +66,7 @@ class AdminLeaveRequestController extends Controller
             }
 
             $old = [
-                'status' => (string) $locked->getRawOriginal('status'),
+                'status' => $this->enumValue($locked->status),
                 'decided_by' => $locked->decided_by,
                 'decided_at' => $locked->decided_at
                     ? Carbon::parse($locked->decided_at)->toISOString()
@@ -84,10 +84,10 @@ class AdminLeaveRequestController extends Controller
 
             AuditLog::record(
                 auditable: $locked,
-                action: 'leave.'.$decision->value,
+                action: 'leave.'.$this->enumValue($locked->status),
                 oldValues: $old,
                 newValues: [
-                    'status' => $decision->value,
+                    'status' => $this->enumValue($locked->status),
                     'decided_by' => $locked->decided_by,
                     'decided_at' => $locked->decided_at
                     ? Carbon::parse($locked->decided_at)->toISOString()
@@ -154,7 +154,7 @@ class AdminLeaveRequestController extends Controller
                 ->first();
 
             $old = $correction ? [
-                'status' => (string) $correction->getRawOriginal('status'),
+                'status' => $this->enumValue($correction->status),
                 'reason' => $correction->reason,
             ] : null;
 
@@ -180,7 +180,7 @@ class AdminLeaveRequestController extends Controller
                 newValues: [
                     'employee_id' => $employee->id,
                     'attendance_date' => $date,
-                    'status' => $status->value,
+                    'status' => $this->enumValue($correction->status),
                     'reason' => $correction->reason,
                 ],
                 userId: $request->user()->id,
@@ -253,4 +253,14 @@ class AdminLeaveRequestController extends Controller
             ? "'".$value
             : $value;
     }
+    /**
+     * Return the scalar value for enum-cast attributes used in audit snapshots.
+     */
+    private function enumValue(mixed $value): string
+    {
+        return $value instanceof \BackedEnum
+            ? (string) $value->value
+            : (string) $value;
+    }
+
 }
