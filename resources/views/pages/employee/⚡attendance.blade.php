@@ -406,7 +406,7 @@ new #[Title('Absensi')] class extends Component {
                 @if ($overtimeForDate)
                     <p>{{ __('Jadwal') }}: {{ $overtimeForDate->scheduledStartLocal()->format('d M Y, H:i') }} — {{ $overtimeForDate->scheduledEndLocal()?->format('d M Y, H:i') ?? '—' }}</p>
                     <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{{ $overtimeForDate->approval_status->label() }}</p>
-                    @if ($overtimeForDate->isAwaitingPhoto())
+                    @if ($overtimeForDate->start_record_id === null && $overtimeForDate->scheduled_start_at->lte(now()) && $overtimeForDate->state !== OvertimeState::NeedsReview)
                         <p class="mt-2 text-sm text-amber-700 dark:text-amber-300">{{ __('Waktu lembur telah tiba. Ambil foto mulai lembur sebelum absen pulang.') }}</p>
                     @elseif ($overtimeForDate->isInProgress())
                         <p class="mt-2 text-sm text-zinc-500 dark:text-zinc-400">{{ __('Lembur sedang berjalan.') }}</p>
