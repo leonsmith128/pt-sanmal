@@ -3,6 +3,7 @@
 use App\Actions\RecordAttendance;
 use App\Enums\AttendanceType;
 use App\Enums\LeaveRequestStatus;
+use App\Enums\SelfieSource;
 use App\Enums\WorkType;
 use App\Models\AttendanceRecord;
 use App\Models\Employee;
@@ -301,7 +302,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                                 <flux:table.cell class="whitespace-nowrap">
                                     @if ($record->selfie_path)
                                         <a href="{{ route('admin.attendance.selfie', $record) }}" target="_blank" rel="noopener" class="text-blue-600 underline dark:text-blue-400">{{ __('Lihat') }}</a>
-                                        @if ($record->selfie_source === \\App\\Enums\\SelfieSource::Upload)
+                                        @if ($record->selfie_source === SelfieSource::Upload)
                                             <flux:badge color="amber" size="sm" class="ml-1">{{ __('Unggahan') }}</flux:badge>
                                         @endif
                                     @else
