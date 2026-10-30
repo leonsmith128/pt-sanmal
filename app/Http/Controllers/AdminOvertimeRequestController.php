@@ -93,7 +93,9 @@ class AdminOvertimeRequestController extends Controller
         ]);
 
         DB::transaction(function () use ($request, $overtimeRequest, $validated): void {
-            $locked = OvertimeRequest::query()->whereKey($overtimeRequest->id)->lockForUpdate()->firstOrFail();
+            $locked = OvertimeRequest::query()->with('employee.user')->whereKey($overtimeRequest->id)->lockForUpdate()->firstOrFail();
+
+            abort_if($locked->employee?->user_id === $request->user()->id, 403, 'Anda tidak dapat memberi pengecualian pada lembur milik sendiri.');
 
             abort_if(
                 $locked->start_record_id !== null
