@@ -25,7 +25,7 @@ class AdminDashboardController extends Controller
         $daily = $statusService->forEmployeesDateRange($employees, $today, $today);
         $counts = collect($daily)->map(fn ($days) => $days[$today]['status'] ?? 'no_record')->countBy();
 
-        return view('dashboard', [
+        return view('pages::dashboard', [
             'isManager' => auth()->user()->isManager(),
             'activeEmployees' => $employees->count(),
             'presentToday' => $counts->get('present', 0),
