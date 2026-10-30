@@ -165,7 +165,7 @@ class RecordAttendance
                     ->where('employee_id', $employee->id)
                     ->whereNull('clock_in_record_id')
                     ->whereIn('state', [OvertimeState::Scheduled, OvertimeState::AwaitingPhoto])
-                    ->where('scheduled_start_at', '>=', $sessionStart)
+                    ->where('scheduled_end_at', '>', $sessionStart)
                     ->where('scheduled_start_at', '<', $sessionEnd)
                     ->lockForUpdate()
                     ->first();
