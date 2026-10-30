@@ -10,17 +10,9 @@
             </flux:button>
         </div>
 
-        @if (session('status'))
-            <div class="rounded-xl border border-green-200 bg-green-50 p-4 text-sm text-green-900 dark:border-green-800/60 dark:bg-green-950/40 dark:text-green-300">
-                {{ session('status') }}
-            </div>
-        @endif
 
-        @if ($errors->any())
-            <div class="rounded-xl border border-red-300 bg-red-50 p-4 text-sm text-red-800 dark:border-red-800 dark:bg-red-950/40 dark:text-red-300">
-                {{ $errors->first() }}
-            </div>
-        @endif
+        <x-admin.flash-message />
+
 
         <div class="flex flex-wrap items-end justify-between gap-4 rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-700 dark:bg-zinc-900">
             <form method="GET" action="{{ route('admin.daily-attendance') }}" class="flex flex-wrap items-end gap-3">
