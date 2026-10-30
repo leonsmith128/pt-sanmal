@@ -50,16 +50,18 @@ class DailyAttendanceStatusService
             ->whereIn('employee_id', $employeeIds)
             ->whereDate('attendance_date', '>=', Carbon::parse($start)->subDay()->toDateString())
             ->whereDate('attendance_date', '<=', Carbon::parse($end)->addDay()->toDateString())
+            ->with('approvedCorrection')
             ->orderBy('employee_id')
-            ->orderBy('recorded_at')
-            ->get();
+            ->get()
+            ->sortBy(fn (AttendanceRecord $event) => $event->effectiveRecordedAt()->timestamp)
+            ->values();
 
         $eventsByEmployeeAndDate = collect();
         $sessionDateByEmployee = [];
 
         foreach ($rawEvents as $event) {
             $employeeId = $event->employee_id;
-            $eventDate = $event->attendance_date->toDateString();
+            $eventDate = $event->effectiveAttendanceDate();
 
             if ($event->type->value === 'clock_in') {
                 $sessionDateByEmployee[$employeeId] = $eventDate;

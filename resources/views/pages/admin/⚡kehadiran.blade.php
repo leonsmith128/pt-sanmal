@@ -108,7 +108,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
             ->select('attendance_records.*')
             ->join('employees as sort_employees', 'sort_employees.id', '=', 'attendance_records.employee_id')
             ->join('users as sort_users', 'sort_users.id', '=', 'sort_employees.user_id')
-            ->with(['employee.user', 'location', 'project'])
+            ->with(['employee.user', 'location', 'project', 'approvedCorrection'])
             ->when($from !== '' && $to !== '', fn ($query) => $query->whereBetween('attendance_records.attendance_date', [$from, $to]))
             ->when($this->employeeId !== '', fn ($query) => $query->where('attendance_records.employee_id', (int) $this->employeeId))
             ->when($this->attendanceType !== '', fn ($query) => $query->where('attendance_records.type', $this->attendanceType))
@@ -276,7 +276,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                     <flux:table.rows>
                         @forelse ($records as $record)
                             <flux:table.row :key="$record->id">
-                                <flux:table.cell class="whitespace-nowrap">{{ $record->recordedAtLocal()->format('d M Y, H:i T') }}</flux:table.cell>
+                                <flux:table.cell class="whitespace-nowrap">{{ $record->effectiveRecordedAtLocal()->format('d M Y, H:i T') }}</flux:table.cell>
                                 <flux:table.cell>{{ $record->employee->user->name }}</flux:table.cell>
                                 <flux:table.cell>
                                     <flux:badge :color="$record->type === AttendanceType::ClockIn ? 'green' : 'blue'">

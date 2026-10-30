@@ -19,7 +19,7 @@ class AttendanceHistoryController extends Controller
 
         $filters = $this->validatedFilters($request);
         $records = $this->attendanceQuery($employee, $filters)
-            ->orderBy('recorded_at', $filters['direction'])
+            ->orderByRaw("COALESCE((SELECT ac.requested_recorded_at FROM attendance_corrections ac WHERE ac.attendance_record_id = attendance_records.id AND ac.status = 'approved' ORDER BY ac.reviewed_at DESC LIMIT 1), attendance_records.recorded_at) ".$filters['direction'])
             ->orderBy('id', $filters['direction'])
             ->paginate(20)
             ->withQueryString();
@@ -56,7 +56,7 @@ class AttendanceHistoryController extends Controller
 
             foreach ($records as $record) {
                 fputcsv($stream, array_map($this->spreadsheetSafe(...), [
-                    $record->recordedAtLocal()->format('Y-m-d H:i:s'),
+                    $record->effectiveRecordedAtLocal()->format('Y-m-d H:i:s'),
                     $record->type->label(),
                     $record->work_type->label(),
                     $record->project?->name ?? $record->location?->name ?? '',
@@ -77,9 +77,9 @@ class AttendanceHistoryController extends Controller
     private function attendanceQuery(Employee $employee, array $filters): HasMany
     {
         return $employee->attendanceRecords()
-            ->with(['location', 'project'])
-            ->when($filters['from'] !== '', fn ($query) => $query->whereDate('attendance_date', '>=', $filters['from']))
-            ->when($filters['to'] !== '', fn ($query) => $query->whereDate('attendance_date', '<=', $filters['to']));
+            ->with(['location', 'project', 'approvedCorrection'])
+            ->when($filters['from'] !== '', fn ($query) => $query->whereRaw("COALESCE((SELECT ac.attendance_date FROM attendance_corrections ac WHERE ac.attendance_record_id = attendance_records.id AND ac.status = 'approved' ORDER BY ac.reviewed_at DESC LIMIT 1), attendance_records.attendance_date) >= ?", [$filters['from']]))
+            ->when($filters['to'] !== '', fn ($query) => $query->whereRaw("COALESCE((SELECT ac.attendance_date FROM attendance_corrections ac WHERE ac.attendance_record_id = attendance_records.id AND ac.status = 'approved' ORDER BY ac.reviewed_at DESC LIMIT 1), attendance_records.attendance_date) <= ?", [$filters['to']]));
     }
 
     private function validatedFilters(Request $request): array

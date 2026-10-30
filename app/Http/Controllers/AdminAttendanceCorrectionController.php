@@ -45,13 +45,31 @@ class AdminAttendanceCorrectionController extends Controller
         ]);
 
         DB::transaction(function () use ($request, $attendanceCorrection, $data): void {
-            $locked = AttendanceCorrection::query()->with('employee.user')->whereKey($attendanceCorrection->id)->lockForUpdate()->firstOrFail();
+            $locked = AttendanceCorrection::query()
+                ->with(['employee.user', 'attendanceRecord'])
+                ->whereKey($attendanceCorrection->id)
+                ->lockForUpdate()
+                ->firstOrFail();
 
             abort_if($locked->employee?->user_id === $request->user()->id, 403, 'Anda tidak dapat memproses koreksi absensi milik sendiri.');
 
             abort_unless($locked->status === 'pending', 422, 'Permohonan koreksi sudah diproses.');
 
-            $old = ['status' => $locked->status, 'review_note' => $locked->review_note];
+            if ($data['decision'] === 'approved' && $locked->attendance_record_id !== null) {
+                abort_unless(
+                    $locked->attendanceRecord
+                        && $locked->attendanceRecord->employee_id === $locked->employee_id
+                        && $locked->attendanceRecord->type->value === $locked->requested_type,
+                    422,
+                    'Koreksi harus merujuk ke event absensi pegawai dan jenis event yang sama.'
+                );
+            }
+
+            $old = [
+                'status' => $locked->status,
+                'review_note' => $locked->review_note,
+                'original_recorded_at' => $locked->attendanceRecord?->recorded_at?->toISOString(),
+            ];
 
             $locked->update([
                 'status' => $data['decision'],
@@ -65,6 +83,10 @@ class AdminAttendanceCorrectionController extends Controller
                 'status' => $locked->status,
                 'review_note' => $locked->review_note,
                 'reviewed_by' => $locked->reviewed_by,
+                'original_recorded_at' => $locked->attendanceRecord?->recorded_at?->toISOString(),
+                'effective_recorded_at' => $data['decision'] === 'approved'
+                    ? $locked->requested_recorded_at?->toISOString()
+                    : $locked->attendanceRecord?->recorded_at?->toISOString(),
             ], $request->user()->id);
         });
 

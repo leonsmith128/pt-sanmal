@@ -69,13 +69,38 @@ class AttendanceRecord extends Model
         return $this->belongsTo(Project::class);
     }
 
+    /** Koreksi timestamp terakhir yang disetujui; bukti recorded_at asli tidak pernah diubah. */
+    public function approvedCorrection(): HasOne
+    {
+        return $this->hasOne(AttendanceCorrection::class)
+            ->where('status', 'approved')
+            ->latestOfMany('reviewed_at');
+    }
+
     /** Lembur yang dimulai oleh event ini, jika ada. */
     public function overtimeStarted(): HasOne
     {
         return $this->hasOne(OvertimeRequest::class, 'start_record_id');
     }
 
-    /** Waktu absen dalam zona waktu saat absen dilakukan, untuk tampilan. */
+    public function effectiveRecordedAt(): CarbonInterface
+    {
+        return $this->approvedCorrection?->requested_recorded_at ?? $this->recorded_at;
+    }
+
+    public function effectiveAttendanceDate(): string
+    {
+        return $this->approvedCorrection?->attendance_date?->toDateString()
+            ?? $this->attendance_date->toDateString();
+    }
+
+    /** Waktu efektif untuk laporan; recorded_at tetap merupakan bukti asli. */
+    public function effectiveRecordedAtLocal(): CarbonInterface
+    {
+        return $this->effectiveRecordedAt()->copy()->setTimezone($this->timezone);
+    }
+
+    /** Waktu asli dalam zona waktu saat event direkam. */
     public function recordedAtLocal(): CarbonInterface
     {
         return $this->recorded_at->copy()->setTimezone($this->timezone);

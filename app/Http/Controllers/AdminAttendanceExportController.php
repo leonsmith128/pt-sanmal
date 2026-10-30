@@ -23,9 +23,9 @@ class AdminAttendanceExportController extends Controller
         ]);
 
         $records = AttendanceRecord::query()
-            ->with(['employee.user', 'location', 'project'])
-            ->when($filters['from'] ?? null, fn ($query, $from) => $query->whereDate('attendance_date', '>=', $from))
-            ->when($filters['to'] ?? null, fn ($query, $to) => $query->whereDate('attendance_date', '<=', $to))
+            ->with(['employee.user', 'location', 'project', 'approvedCorrection'])
+            ->when($filters['from'] ?? null, fn ($query, $from) => $query->whereRaw("COALESCE((SELECT ac.attendance_date FROM attendance_corrections ac WHERE ac.attendance_record_id = attendance_records.id AND ac.status = 'approved' ORDER BY ac.reviewed_at DESC LIMIT 1), attendance_records.attendance_date) >= ?", [$from]))
+            ->when($filters['to'] ?? null, fn ($query, $to) => $query->whereRaw("COALESCE((SELECT ac.attendance_date FROM attendance_corrections ac WHERE ac.attendance_record_id = attendance_records.id AND ac.status = 'approved' ORDER BY ac.reviewed_at DESC LIMIT 1), attendance_records.attendance_date) <= ?", [$to]))
             ->when($filters['employee_id'] ?? null, fn ($query, $employeeId) => $query->where('employee_id', $employeeId))
             ->when($filters['attendance_type'] ?? null, fn ($query, $type) => $query->where('type', $type))
             ->when($filters['work_type'] ?? null, fn ($query, $type) => $query->where('work_type', $type))
@@ -54,7 +54,7 @@ class AdminAttendanceExportController extends Controller
             $records->chunk(500, function ($chunk) use ($stream): void {
                 foreach ($chunk as $record) {
                     fputcsv($stream, array_map($this->spreadsheetSafe(...), [
-                        $record->recordedAtLocal()->format('Y-m-d H:i:s'),
+                        $record->effectiveRecordedAtLocal()->format('Y-m-d H:i:s'),
                         $record->employee->employee_number,
                         $record->employee->user->name,
                         $record->type->label(),
