@@ -157,13 +157,13 @@ class RecordAttendance
             if ($type === AttendanceType::ClockIn) {
                 // Kaitkan pengajuan yang dibuat sebelum clock-in ke sesi pada tanggal target.
                 $localDate = $record->recorded_at->copy()->setTimezone($timezone)->toDateString();
-                $dayStart = now($timezone)->parse($localDate)->startOfDay()->utc();
+                $dayStart = $record->recorded_at->copy()->setTimezone($timezone)->startOfDay()->utc();
                 $dayEnd = $dayStart->copy()->addDay();
 
                 $scheduledOvertime = OvertimeRequest::query()
                     ->where('employee_id', $employee->id)
                     ->whereNull('clock_in_record_id')
-                    ->where('state', OvertimeState::Scheduled)
+                    ->whereIn('state', [OvertimeState::Scheduled, OvertimeState::AwaitingPhoto])
                     ->where('scheduled_start_at', '>=', $dayStart)
                     ->where('scheduled_start_at', '<', $dayEnd)
                     ->lockForUpdate()
