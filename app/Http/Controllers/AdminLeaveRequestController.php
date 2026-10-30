@@ -144,7 +144,7 @@ class AdminLeaveRequestController extends Controller
         $status = DailyAttendanceStatus::from($validated['status']);
 
         DB::transaction(function () use ($request, $validated, $status): void {
-            $employee = Employee::query()->findOrFail($validated['employee_id']);
+            $employee = Employee::query()->findOrFail((int) $validated['employee_id']);
             $date = $validated['attendance_date'];
 
             $correction = DailyStatusCorrection::query()
