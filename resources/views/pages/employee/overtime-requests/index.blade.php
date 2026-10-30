@@ -57,7 +57,7 @@
                     @if (in_array($request->state->value, ['scheduled', 'awaiting_photo'], true) && $request->start_record_id === null)
                         <form method="POST" action="{{ route('overtime-requests.cancel', $request) }}" class="mt-3" onsubmit="return confirm('Batalkan jadwal lembur ini? Setelah dibatalkan, Anda dapat clock-out jika sesi masih aktif.')">
                             @csrf @method('PATCH')
-                            <flux:button type="submit" variant="danger" color="red" size="sm" icon="x-circle">{{ __('Batalkan Lembur') }}</flux:button>
+                            <flux:button type="submit" variant="primary" color="red" size="sm" icon="x-circle">{{ __('Batalkan Lembur') }}</flux:button>
                         </form>
                     @endif
                 </article>
