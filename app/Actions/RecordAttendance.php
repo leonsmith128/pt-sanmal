@@ -151,7 +151,7 @@ class RecordAttendance
                 'project_id' => $project?->id,
                 'recorded_at' => $now,
                 'timezone' => $timezone,
-                'attendance_date' => $now->copy()->setTimezone($timezone)->toDateString(),
+                'attendance_date' => ($type === AttendanceType::ClockOut ? $open->attendance_date : $now->copy()->setTimezone($timezone))->toDateString(),
                 'latitude' => $latitude,
                 'longitude' => $longitude,
                 'accuracy_m' => $accuracy,
@@ -171,7 +171,7 @@ class RecordAttendance
                     ->where('employee_id', $employee->id)
                     ->whereNull('clock_in_record_id')
                     ->whereIn('state', [OvertimeState::Scheduled, OvertimeState::AwaitingPhoto])
-                    ->where('scheduled_end_at', '>', $sessionStart)
+                    ->where('scheduled_start_at', '>=', $sessionStart)
                     ->where('scheduled_start_at', '<', $sessionEnd)
                     ->lockForUpdate()
                     ->first();

@@ -44,14 +44,42 @@ class DailyAttendanceStatusService
             return [];
         }
 
-        // Query 1: Ambil semua absensi aktual
-        $eventsByEmployeeAndDate = AttendanceRecord::query()
+        // Query 1: Ambil event satu hari sebelum/sesudah rentang untuk memasangkan
+        // clock-in dan clock-out sesi lintas tengah malam (batas sesi teknis 24 jam).
+        $rawEvents = AttendanceRecord::query()
             ->whereIn('employee_id', $employeeIds)
-            ->whereDate('attendance_date', '>=', $start)
-            ->whereDate('attendance_date', '<=', $end)
+            ->whereDate('attendance_date', '>=', Carbon::parse($start)->subDay()->toDateString())
+            ->whereDate('attendance_date', '<=', Carbon::parse($end)->addDay()->toDateString())
+            ->orderBy('employee_id')
             ->orderBy('recorded_at')
-            ->get()
-            ->groupBy(fn (AttendanceRecord $r) => $r->employee_id.'_'.$r->attendance_date->format('Y-m-d'));
+            ->get();
+
+        $eventsByEmployeeAndDate = collect();
+        $sessionDateByEmployee = [];
+
+        foreach ($rawEvents as $event) {
+            $employeeId = $event->employee_id;
+            $eventDate = $event->attendance_date->toDateString();
+
+            if ($event->type->value === 'clock_in') {
+                $sessionDateByEmployee[$employeeId] = $eventDate;
+                $assignedDate = $eventDate;
+            } elseif (in_array($event->type->value, ['overtime_start', 'clock_out'], true)) {
+                $assignedDate = $sessionDateByEmployee[$employeeId] ?? $eventDate;
+            } else {
+                $assignedDate = $eventDate;
+            }
+
+            if ($assignedDate >= $start && $assignedDate <= $end) {
+                $key = $employeeId.'_'.$assignedDate;
+                $eventsByEmployeeAndDate[$key] ??= collect();
+                $eventsByEmployeeAndDate[$key]->push($event);
+            }
+
+            if ($event->type->value === 'clock_out') {
+                unset($sessionDateByEmployee[$employeeId]);
+            }
+        }
 
         // Query 2: Ambil permohonan izin/cuti/sakit yang sudah disetujui
         $leaveRequestsByEmployee = LeaveRequest::query()

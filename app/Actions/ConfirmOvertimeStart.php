@@ -75,7 +75,7 @@ class ConfirmOvertimeStart
                     'project_id' => $clockIn->project_id,
                     'recorded_at' => $now,
                     'timezone' => $locked->timezone,
-                    'attendance_date' => $now->copy()->setTimezone($locked->timezone)->toDateString(),
+                    'attendance_date' => $clockIn->attendance_date->toDateString(),
                     'latitude' => $latitude,
                     'longitude' => $longitude,
                     'accuracy_m' => $accuracy,

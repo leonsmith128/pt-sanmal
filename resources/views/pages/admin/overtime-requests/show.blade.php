@@ -145,14 +145,16 @@
         @if ($overtimeRequest->clock_out_record_id)
             <section class="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900">
                 <flux:heading size="lg">{{ __('Finalisasi rentang lembur') }}</flux:heading>
-                <flux:text class="mt-1">{{ __('Pilih rentang jadwal, aktual, atau koreksi manual. Data event asli tidak akan diubah. Alasan wajib dicatat.') }}</flux:text>
+                <flux:text class="mt-1">{{ $overtimeRequest->scheduled_end_at ? __('Pilih rentang jadwal lama, aktual, atau koreksi manual. Data event asli tidak akan diubah. Alasan wajib dicatat.') : __('Jadwal baru hanya menyimpan waktu mulai. Pilih waktu aktual atau koreksi manual untuk menetapkan rentang final. Data event asli tidak akan diubah.') }}</flux:text>
 
                 <form method="POST" action="{{ route('admin.overtime-requests.finalize', $overtimeRequest) }}" class="mt-4 flex flex-col gap-4">
                     @csrf
                     <flux:field>
                         <flux:label>{{ __('Sumber waktu final') }}</flux:label>
                         <flux:select name="finalization_source" :value="old('finalization_source', $overtimeRequest->finalization_source)" required>
-                            <flux:select.option value="scheduled">{{ __('Gunakan jadwal') }}</flux:select.option>
+                            @if ($overtimeRequest->scheduled_end_at)
+                                <flux:select.option value="scheduled">{{ __('Gunakan rentang jadwal lama') }}</flux:select.option>
+                            @endif
                             <flux:select.option value="actual">{{ __('Gunakan aktual') }}</flux:select.option>
                             <flux:select.option value="manual">{{ __('Koreksi manual') }}</flux:select.option>
                         </flux:select>
