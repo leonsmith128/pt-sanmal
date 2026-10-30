@@ -6,7 +6,19 @@
     <body class="min-h-screen bg-white dark:bg-zinc-800">
         <flux:sidebar sticky collapsible="mobile" class="border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
             <flux:sidebar.header>
-                <x-app-logo :sidebar="true" href="{{ route('dashboard') }}" wire:navigate />
+                <div class="flex w-full items-center justify-between gap-2">
+                    <x-app-logo :sidebar="true" href="{{ route('dashboard') }}" wire:navigate />
+                    <flux:dropdown position="bottom" align="end">
+                        <flux:button variant="ghost" size="sm" icon="sun" aria-label="{{ __('Change appearance') }}" />
+                        <flux:menu>
+                            <flux:menu.radio.group x-data x-model="$flux.appearance">
+                                <flux:menu.radio value="light" icon="sun">{{ __('Light') }}</flux:menu.radio>
+                                <flux:menu.radio value="dark" icon="moon">{{ __('Dark') }}</flux:menu.radio>
+                                <flux:menu.radio value="system" icon="computer-desktop">{{ __('System') }}</flux:menu.radio>
+                            </flux:menu.radio.group>
+                        </flux:menu>
+                    </flux:dropdown>
+                </div>
                 <flux:sidebar.collapse class="lg:hidden" />
             </flux:sidebar.header>
 
@@ -80,6 +92,7 @@
             <flux:dropdown position="top" align="end">
                 <flux:profile
                     :initials="auth()->user()->initials()"
+                    :avatar="auth()->user()->profilePhotoUrl()"
                     icon-trailing="chevron-down"
                 />
 
@@ -102,11 +115,12 @@
 
                     <flux:menu.separator />
 
-                    <flux:menu.radio.group>
-                        <flux:menu.item :href="route('profile.edit')" icon="cog" wire:navigate>
-                            {{ __('Settings') }}
-                        </flux:menu.item>
-                    </flux:menu.radio.group>
+                    <flux:menu.item :href="route('profile.edit')" icon="user-circle" wire:navigate>
+                        {{ __('Profil') }}
+                    </flux:menu.item>
+                    <flux:menu.item :href="route('security.edit')" icon="shield-check" wire:navigate>
+                        {{ __('Keamanan Akun') }}
+                    </flux:menu.item>
 
                     <flux:menu.separator />
 
