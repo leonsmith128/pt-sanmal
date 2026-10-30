@@ -20,8 +20,8 @@ class CreateOvertimeRequest
 
             // Pengajuan dapat dibuat sebelum clock-in. Zona waktu mengikuti lokasi sesi
             // jika sesi sudah ada; jika belum, gunakan zona waktu operasional default.
-            $clockIn = RecordAttendance::openSession($employee);
-            $timezone = $clockIn?->timezone ?: RecordAttendance::DEFAULT_TIMEZONE;
+            $openSession = RecordAttendance::openSession($employee);
+            $timezone = $openSession?->timezone ?: RecordAttendance::DEFAULT_TIMEZONE;
 
             try {
                 $scheduledStart = Carbon::createFromFormat('!Y-m-d\TH:i', $scheduledStartLocal, $timezone);
@@ -37,6 +37,14 @@ class CreateOvertimeRequest
             if ($scheduledEnd->lte($scheduledStart)) {
                 $this->fail('scheduled_end_at', 'Waktu selesai harus setelah waktu mulai. Untuk lembur lintas tengah malam, pilih tanggal selesai berikutnya.');
             }
+
+            // Jangan ikat pengajuan beberapa hari ke depan ke sesi hari ini.
+            // Hanya kaitkan bila rentang jadwal beririsan dengan jendela sesi aktif.
+            $clockIn = $openSession
+                && $scheduledEnd->utc()->gt($openSession->recorded_at)
+                && $scheduledStart->utc()->lt($openSession->recorded_at->copy()->addHours(RecordAttendance::OPEN_SESSION_HOURS))
+                    ? $openSession
+                    : null;
 
             if ($clockIn && $scheduledStart->utc()->lt($clockIn->recorded_at)) {
                 $this->fail('scheduled_start_at', 'Waktu mulai lembur tidak boleh sebelum waktu absen masuk.');
