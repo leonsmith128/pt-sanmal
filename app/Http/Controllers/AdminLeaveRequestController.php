@@ -212,8 +212,12 @@ class AdminLeaveRequestController extends Controller
             }
 
             fclose($out);
-        }, 'rekap-absensi-'.$month.'.csv', ['Content-Type' => 'text/csv; charset=UTF-8']);
+        }, 'rekap-absensi-'.$month.'.csv', [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Cache-Control' => 'private, no-store, no-cache, must-revalidate',
+        ]);
     }
+
     /**
      * Prevent spreadsheet applications from evaluating untrusted CSV cells as formulas.
      */
@@ -225,5 +229,4 @@ class AdminLeaveRequestController extends Controller
             ? "'".$value
             : $value;
     }
-
 }
