@@ -64,10 +64,10 @@
                         <flux:sidebar.item icon="calendar" :href="route('admin.leave-requests.index')" :current="request()->routeIs('admin.leave-requests.*')" wire:navigate>
                             {{ __('Persetujuan Permohonan') }}
                         </flux:sidebar.item>
-                        <flux:sidebar.item icon="clock-arrow-up" :href="route('admin.overtime-requests.index')" :current="request()->routeIs('admin.overtime-requests.*')" wire:navigate>
+                        <flux:sidebar.item icon="clock" :href="route('admin.overtime-requests.index')" :current="request()->routeIs('admin.overtime-requests.*')" wire:navigate>
                             {{ __('Persetujuan Lembur') }}
                         </flux:sidebar.item>
-                        <flux:sidebar.item icon="file-clock" :href="route('admin.attendance-corrections.index')" :current="request()->routeIs('admin.attendance-corrections.*')" wire:navigate>
+                        <flux:sidebar.item icon="document-check" :href="route('admin.attendance-corrections.index')" :current="request()->routeIs('admin.attendance-corrections.*')" wire:navigate>
                             {{ __('Koreksi Absensi') }}
                         </flux:sidebar.item>
                         <flux:sidebar.item icon="calendar-days" :href="route('admin.daily-attendance')" :current="request()->routeIs('admin.daily-attendance*')" wire:navigate>

@@ -1,1 +1,66 @@
-<x-layouts::app :title="__('Detail Koreksi Absensi')"><div class="mx-auto max-w-3xl space-y-5"><div class="flex items-center justify-between"><div><flux:heading size="xl">{{ __('Detail Koreksi Absensi') }}</flux:heading><flux:text>{{ $correction->employee->user->name }}</flux:text></div><flux:button href="{{ route('admin.attendance-corrections.index') }}" variant="ghost">{{ __('Kembali') }}</flux:button></div>@if(session('status'))<flux:callout variant="success">{{ session('status') }}</flux:callout>@endif<section class="space-y-3 rounded-xl border border-zinc-200 p-5 dark:border-zinc-700"><dl class="grid gap-3 sm:grid-cols-2"><div><dt class="text-sm text-zinc-500">{{ __('Tanggal') }}</dt><dd>{{ $correction->attendance_date->format('d M Y') }}</dd></div><div><dt class="text-sm text-zinc-500">{{ __('Jenis') }}</dt><dd>{{ $correction->requested_type }}</dd></div><div><dt class="text-sm text-zinc-500">{{ __('Waktu yang diminta') }}</dt><dd>{{ $correction->requested_recorded_at->format('d M Y H:i') }}</dd></div><div><dt class="text-sm text-zinc-500">{{ __('Status') }}</dt><dd>{{ ucfirst($correction->status) }}</dd></div></dl><div><p class="text-sm text-zinc-500">{{ __('Alasan pegawai') }}</p><p class="whitespace-pre-line">{{ $correction->reason }}</p></div>@if($correction->review_note)<div><p class="text-sm text-zinc-500">{{ __('Catatan peninjau') }}</p><p>{{ $correction->review_note }}</p></div>@endif @if($correction->attachment_path)<flux:button href="{{ route('admin.attendance-corrections.attachment', $correction) }}" icon="paperclip">{{ __('Unduh lampiran') }}</flux:button>@endif</section>@if($correction->status === 'pending')<form method="POST" action="{{ route('admin.attendance-corrections.decide', $correction) }}" class="space-y-3 rounded-xl border border-zinc-200 p-5 dark:border-zinc-700">@csrf<flux:select name="decision" :label="__('Keputusan')" required><flux:select.option value="approved">{{ __('Setujui') }}</flux:select.option><flux:select.option value="rejected">{{ __('Tolak') }}</flux:select.option></flux:select><flux:textarea name="review_note" :label="__('Catatan (opsional)')"/><flux:button type="submit" variant="primary">{{ __('Simpan keputusan') }}</flux:button></form>@endif</div></x-layouts::app>
+<x-layouts::app :title="__('Detail Koreksi Absensi')">
+    <div class="mx-auto max-w-3xl space-y-5">
+        <div class="flex items-center justify-between">
+            <div>
+                <flux:heading size="xl">{{ __('Detail Koreksi Absensi') }}</flux:heading>
+                <flux:text>{{ $correction->employee->user->name }}</flux:text>
+            </div>
+            <flux:button href="{{ route('admin.attendance-corrections.index') }}" variant="ghost">{{ __('Kembali') }}</flux:button>
+        </div>
+
+        @if (session('status'))
+            <flux:callout variant="success">{{ session('status') }}</flux:callout>
+        @endif
+
+        <section class="space-y-3 rounded-xl border border-zinc-200 p-5 dark:border-zinc-700">
+            <dl class="grid gap-3 sm:grid-cols-2">
+                <div>
+                    <dt class="text-sm text-zinc-500">{{ __('Tanggal') }}</dt>
+                    <dd>{{ $correction->attendance_date->format('d M Y') }}</dd>
+                </div>
+                <div>
+                    <dt class="text-sm text-zinc-500">{{ __('Jenis') }}</dt>
+                    <dd>{{ $correction->requested_type }}</dd>
+                </div>
+                <div>
+                    <dt class="text-sm text-zinc-500">{{ __('Waktu yang diminta') }}</dt>
+                    <dd>{{ $correction->requested_recorded_at->format('d M Y H:i') }}</dd>
+                </div>
+                <div>
+                    <dt class="text-sm text-zinc-500">{{ __('Status') }}</dt>
+                    <dd>{{ ucfirst($correction->status) }}</dd>
+                </div>
+            </dl>
+
+            <div>
+                <p class="text-sm text-zinc-500">{{ __('Alasan pegawai') }}</p>
+                <p class="whitespace-pre-line">{{ $correction->reason }}</p>
+            </div>
+
+            @if ($correction->review_note)
+                <div>
+                    <p class="text-sm text-zinc-500">{{ __('Catatan peninjau') }}</p>
+                    <p>{{ $correction->review_note }}</p>
+                </div>
+            @endif
+
+            @if ($correction->attachment_path)
+                <flux:button href="{{ route('admin.attendance-corrections.attachment', $correction) }}" icon="paperclip">
+                    {{ __('Unduh lampiran') }}
+                </flux:button>
+            @endif
+        </section>
+
+        @if ($correction->status === 'pending')
+            <form method="POST" action="{{ route('admin.attendance-corrections.decide', $correction) }}" class="space-y-3 rounded-xl border border-zinc-200 p-5 dark:border-zinc-700">
+                @csrf
+                <flux:select name="decision" :label="__('Keputusan')" required>
+                    <flux:select.option value="approved">{{ __('Setujui') }}</flux:select.option>
+                    <flux:select.option value="rejected">{{ __('Tolak') }}</flux:select.option>
+                </flux:select>
+                <flux:textarea name="review_note" :label="__('Catatan (opsional)')" />
+                <flux:button type="submit" variant="primary">{{ __('Simpan keputusan') }}</flux:button>
+            </form>
+        @endif
+    </div>
+</x-layouts::app>
