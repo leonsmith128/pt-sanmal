@@ -214,5 +214,4 @@ class AdminOvertimeRequestController extends Controller
         return redirect()->route('admin.overtime-requests.show', $overtimeRequest)
             ->with('status', 'Rentang final lembur berhasil disimpan dan dicatat dalam audit log.');
     }
-
 }
