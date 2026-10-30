@@ -35,7 +35,8 @@ Status: aturan produk dikunci untuk implementasi, dengan kebijakan jam kerja reg
 - Setelah clock-in, jika terdapat jadwal lembur pada tanggal kerja tersebut, kartu status lembur ditampilkan.
 - Ketika jadwal belum tiba, pegawai dapat melihat jadwal dan status approval.
 - Ketika jadwal tiba dan belum dibatalkan/dikonfirmasi, tampilkan tombol **Konfirmasi Lembur** dan **Batalkan Lembur**.
-- Dalam kondisi jadwal aktif yang belum dibatalkan/dikonfirmasi, clock-out dikunci di backend dan UI.
+- Selama pengajuan lembur masih aktif dan belum dikonfirmasi aktual, clock-out ditolak di backend dan UI, termasuk jika waktu jadwal belum tiba. Pegawai harus membatalkan pengajuan terlebih dahulu (pilihan C) untuk mencegah human error.
+- Tombol **Batalkan Lembur** harus menggunakan warna merah yang menonjol dan meminta konfirmasi sebelum pembatalan.
 - Konfirmasi lembur mencatat event aktual mulai menggunakan timestamp server dan bukti selfie/GPS.
 - Setelah konfirmasi atau pembatalan, tombol clock-out tersedia.
 - Jika pegawai tidak dapat konfirmasi/batal karena kendala, admin memiliki jalur pengecualian/pemulihan dengan alasan wajib.
