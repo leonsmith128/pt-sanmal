@@ -70,5 +70,7 @@
                 </div>
             @endforelse
         </div>
+
+        {{ $rows->links() }}
     </div>
 </x-layouts::app>
