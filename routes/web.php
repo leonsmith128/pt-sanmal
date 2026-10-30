@@ -1,12 +1,16 @@
 <?php
 
 use App\Enums\UserRole;
-use App\Http\Controllers\AdminLeaveRequestController;
-use App\Http\Controllers\AdminOvertimeRequestController;
 use App\Http\Controllers\AttendanceHistoryController;
 use App\Http\Controllers\AttendanceSelfieController;
 use App\Http\Controllers\LeaveRequestController;
 use App\Http\Controllers\OvertimeRequestController;
+use App\Http\Controllers\AdminLeaveRequestController;
+use App\Http\Controllers\AdminOvertimeRequestController;
+use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\AdminEmployeeController;
+use App\Http\Controllers\AdminAttendanceCorrectionController;
+use App\Http\Controllers\AdminAuditLogController;
 use App\Http\Middleware\EnsureUserHasRole;
 use Illuminate\Support\Facades\Route;
 
@@ -36,8 +40,25 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->prefix('admin')
         ->name('admin.')
         ->group(function () {
-            Route::livewire('kehadiran', 'pages::admin.kehadiran')->name('kehadiran');\n            Route::resource('pegawai', AdminEmployeeController::class)->parameters(['pegawai' => 'employee'])->names('employees')->except(['destroy']);\n            Route::get('koreksi-absensi', [AdminAttendanceCorrectionController::class, 'index'])->name('attendance-corrections.index');\n            Route::get('koreksi-absensi/{attendanceCorrection}', [AdminAttendanceCorrectionController::class, 'show'])->name('attendance-corrections.show');\n            Route::get('koreksi-absensi/{attendanceCorrection}/lampiran', [AdminAttendanceCorrectionController::class, 'attachment'])->name('attendance-corrections.attachment');\n            Route::post('koreksi-absensi/{attendanceCorrection}/keputusan', [AdminAttendanceCorrectionController::class, 'decide'])->name('attendance-corrections.decide');\n            Route::get('audit-log', [AdminAuditLogController::class, 'index'])->name('audit-logs.index');
+            
+            Route::livewire('kehadiran', 'pages::admin.kehadiran')->name('kehadiran');
             Route::get('kehadiran/{record}/selfie', [AttendanceSelfieController::class, 'show'])->name('attendance.selfie');
+                
+            Route::resource('pegawai', AdminEmployeeController::class)
+                ->parameters(['pegawai' => 'employee'])
+                ->names('employees')
+                ->except(['destroy']);
+
+            Route::get('koreksi-absensi', [AdminAttendanceCorrectionController::class, 'index'])
+                ->name('attendance-corrections.index');
+            Route::get('koreksi-absensi/{attendanceCorrection}', [AdminAttendanceCorrectionController::class, 'show'])
+                ->name('attendance-corrections.show');
+            Route::get('koreksi-absensi/{attendanceCorrection}/lampiran', [AdminAttendanceCorrectionController::class, 'attachment'])
+                ->name('attendance-corrections.attachment');
+            Route::post('koreksi-absensi/{attendanceCorrection}/keputusan', [AdminAttendanceCorrectionController::class, 'decide'])
+                ->name('attendance-corrections.decide');
+
+            Route::get('audit-log', [AdminAuditLogController::class, 'index'])->name('audit-logs.index');
 
             Route::get('permohonan', [AdminLeaveRequestController::class, 'index'])->name('leave-requests.index');
             Route::get('permohonan/{leaveRequest}', [AdminLeaveRequestController::class, 'show'])->name('leave-requests.show');

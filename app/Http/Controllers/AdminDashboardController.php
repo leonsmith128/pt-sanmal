@@ -1,16 +1,16 @@
 <?php
 
-namespace App\\Http\\Controllers;
+namespace App\Http\Controllers;
 
-use App\\Enums\\LeaveRequestStatus;
-use App\\Enums\\OvertimeApprovalStatus;
-use App\\Models\\AttendanceRecord;
-use App\\Models\\Employee;
-use App\\Models\\LeaveRequest;
-use App\\Models\\OvertimeRequest;
-use App\\Services\\DailyAttendanceStatusService;
-use Illuminate\\Support\\Carbon;
-use Illuminate\\View\\View;
+use App\Enums\LeaveRequestStatus;
+use App\Enums\OvertimeApprovalStatus;
+use App\Models\AttendanceRecord;
+use App\Models\Employee;
+use App\Models\LeaveRequest;
+use App\Models\OvertimeRequest;
+use App\Services\DailyAttendanceStatusService;
+use Illuminate\Support\Carbon;
+use Illuminate\View\View;
 
 class AdminDashboardController extends Controller
 {

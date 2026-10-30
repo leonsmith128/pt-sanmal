@@ -1,17 +1,17 @@
 <?php
 
-namespace App\\Http\\Controllers;
+namespace App\Http\Controllers;
 
-use App\\Enums\\UserRole;
-use App\\Models\\AuditLog;\nuse App\\Models\\Employee;
-use App\\Models\\Title;
-use App\\Models\\User;
-use Illuminate\\Http\\RedirectResponse;
-use Illuminate\\Http\\Request;
-use Illuminate\\Support\\Facades\\DB;
-use Illuminate\\Support\\Str;
-use Illuminate\\Validation\\Rule;
-use Illuminate\\View\\View;
+use App\Enums\UserRole;
+use App\Models\AuditLog;\nuse App\Models\Employee;
+use App\Models\Title;
+use App\Models\User;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
+use Illuminate\View\View;
 
 class AdminEmployeeController extends Controller
 {
