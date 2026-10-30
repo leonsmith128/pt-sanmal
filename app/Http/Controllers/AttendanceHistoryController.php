@@ -5,8 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Employee;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AttendanceHistoryController extends Controller
 {

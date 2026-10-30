@@ -116,8 +116,12 @@ class ConfirmOvertimeStart
                 return $record;
             });
         } catch (\Throwable $exception) {
-            try { AttendanceSelfie::delete($storedPath); }
-            catch (\Throwable $cleanupException) { report($cleanupException); }
+            try {
+                AttendanceSelfie::delete($storedPath);
+            } catch (\Throwable $cleanupException) {
+                report($cleanupException);
+            }
+
             throw $exception;
         }
     }

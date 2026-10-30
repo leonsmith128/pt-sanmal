@@ -13,6 +13,8 @@ use App\Models\AttendanceRecord;
 use App\Models\Employee;
 use App\Models\OvertimeRequest;
 use App\Models\User;
+use App\Services\DailyAttendanceStatusService;
+use Livewire\Livewire;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
@@ -261,7 +263,6 @@ it('prevents an administrator from approving their own overtime request', functi
     $response->assertForbidden();
     expect($overtime->fresh()->approval_status)->toBe(OvertimeApprovalStatus::Pending);
 });
-
 
 it('accepts the employee Livewire overtime form with only a start time and no reason', function () {
     $employee = overtimeEmployee();
