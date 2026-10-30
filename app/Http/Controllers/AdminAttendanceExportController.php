@@ -1,13 +1,13 @@
 <?php
 
-namespace App\\Http\\Controllers;
+namespace App\Http\Controllers;
 
-use App\\Enums\\AttendanceType;
-use App\\Enums\\WorkType;
-use App\\Models\\AttendanceRecord;
-use Illuminate\\Http\\Request;
-use Illuminate\\Validation\\Rule;
-use Symfony\\Component\\HttpFoundation\\StreamedResponse;
+use App\Enums\AttendanceType;
+use App\Enums\WorkType;
+use App\Models\AttendanceRecord;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AdminAttendanceExportController extends Controller
 {
@@ -48,7 +48,7 @@ class AdminAttendanceExportController extends Controller
                 return;
             }
 
-            fwrite($stream, "\\xEF\\xBB\\xBF");
+            fwrite($stream, "\xEF\xBB\xBF");
             fputcsv($stream, ['Waktu', 'Nomor Pegawai', 'Nama', 'Jenis Absensi', 'Jenis Kerja', 'Lokasi / Proyek', 'Latitude', 'Longitude', 'Catatan']);
 
             $records->chunk(500, function ($chunk) use ($stream): void {
@@ -78,7 +78,7 @@ class AdminAttendanceExportController extends Controller
     {
         $value = (string) ($value ?? '');
 
-        return preg_match('/^[\\s\\x00-\\x1F]*[=+\\-@]/u', $value) === 1
+        return preg_match('/^[\s\x00-\x1F]*[=+\-@]/u', $value) === 1
             ? "'".$value
             : $value;
     }
