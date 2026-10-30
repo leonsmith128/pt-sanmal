@@ -83,12 +83,14 @@ class AdminLeaveRequestController extends Controller
 
             AuditLog::record(
                 auditable: $locked,
-                action: 'leave.'.$decision->value,
+                action: 'leave.' . $decision->value,
                 oldValues: $old,
                 newValues: [
-                    'status' => $locked->status->value,
+                    'status' => LeaveRequestStatus::from((string) $locked->status)->value,
                     'decided_by' => $locked->decided_by,
-                    'decided_at' => $locked->decided_at?->toISOString(),
+                    'decided_at' => $locked->decided_at
+                    ? Carbon::parse($locked->decided_at)->toISOString()
+                    : null,
                     'decision_note' => $locked->decision_note,
                 ],
                 userId: $request->user()->id,
@@ -177,7 +179,7 @@ class AdminLeaveRequestController extends Controller
                 newValues: [
                     'employee_id' => $employee->id,
                     'attendance_date' => $date,
-                    'status' => $correction->status->value,
+                    'status' => DailyAttendanceStatus::from((string) $correction->status)->value,
                     'reason' => $correction->reason,
                 ],
                 userId: $request->user()->id,
