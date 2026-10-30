@@ -24,14 +24,14 @@ class AdminOvertimeRequestController extends Controller
 
         $requests = $query->latest('scheduled_start_at')->paginate(20)->withQueryString();
 
-        return view('admin.overtime-requests.index', compact('requests'));
+        return view('pages::admin.overtime-requests.index', compact('requests'));
     }
 
     public function show(OvertimeRequest $overtimeRequest): View
     {
         $overtimeRequest->load(['employee.user', 'clockInRecord', 'startRecord', 'clockOutRecord', 'decidedBy']);
 
-        return view('admin.overtime-requests.show', compact('overtimeRequest'));
+        return view('pages::admin.overtime-requests.show', compact('overtimeRequest'));
     }
 
     public function decide(Request $request, OvertimeRequest $overtimeRequest): RedirectResponse

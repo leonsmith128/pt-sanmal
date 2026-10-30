@@ -45,7 +45,7 @@
 
         @if ($records->isEmpty())
             <div class="rounded-2xl border border-dashed border-zinc-300 px-5 py-12 text-center dark:border-zinc-700">
-                <flux:icon name="calendar-clock" class="mx-auto size-9 text-zinc-400" />
+                <flux:icon name="clock" class="mx-auto size-9 text-zinc-400" />
                 <flux:heading size="md" class="mt-3">{{ __('Belum ada catatan absensi') }}</flux:heading>
                 <flux:text class="mt-1">{{ __('Coba rentang tanggal lain atau lakukan absensi terlebih dahulu.') }}</flux:text>
             </div>
