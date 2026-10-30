@@ -143,8 +143,12 @@ new #[Title('Absensi')] class extends Component {
     #[Computed]
     public function selectedDateOvertimeRequest(): ?OvertimeRequest
     {
+        $dayStart = Carbon::createFromFormat('!Y-m-d', $this->selectedDate, RecordAttendance::DEFAULT_TIMEZONE)->utc();
+        $dayEnd = $dayStart->copy()->addDay();
+
         return $this->employee->overtimeRequests()
-            ->whereDate('scheduled_start_at', $this->selectedDate)
+            ->where('scheduled_start_at', '>=', $dayStart)
+            ->where('scheduled_start_at', '<', $dayEnd)
             ->whereNotIn('state', [OvertimeState::Cancelled, OvertimeState::Completed])
             ->latest('scheduled_start_at')
             ->first();
