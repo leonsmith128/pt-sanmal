@@ -6,6 +6,7 @@ use Flux\Flux;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
@@ -173,7 +174,7 @@ new #[Title('Keamanan Akun')] class extends Component {
                 type="password"
                 required
                 autocomplete="new-password"
-                passwordrules="{{ IlluminateValidationRulesPassword::defaults()->toPasswordRulesString() }}"
+                passwordrules="{{ Password::defaults()->toPasswordRulesString() }}"
                 viewable
             />
             <flux:input
@@ -182,7 +183,7 @@ new #[Title('Keamanan Akun')] class extends Component {
                 type="password"
                 required
                 autocomplete="new-password"
-                passwordrules="{{ IlluminateValidationRulesPassword::defaults()->toPasswordRulesString() }}"
+                passwordrules="{{ Password::defaults()->toPasswordRulesString() }}"
                 viewable
             />
 
