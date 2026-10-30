@@ -11,7 +11,8 @@ test('security settings page can be rendered', function () {
         ->withSession(['auth.password_confirmed_at' => time()])
         ->get(route('security.edit'));
 
-    $response->assertOk();
+    $response->assertOk()
+        ->assertDontSee('Delete account');
 });
 
 test('security settings page requires password confirmation when enabled', function () {
