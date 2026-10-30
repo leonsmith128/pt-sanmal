@@ -45,14 +45,9 @@ class CreateOvertimeRequest
             $existing = OvertimeRequest::query()
                 ->where('employee_id', $employee->id)
                 ->whereNotIn('state', [OvertimeState::Completed, OvertimeState::Cancelled])
-                ->where(function ($query) use ($scheduledStart, $scheduledEnd) {
-                    $query->whereBetween('scheduled_start_at', [$scheduledStart->utc(), $scheduledEnd->utc()])
-                        ->orWhereBetween('scheduled_end_at', [$scheduledStart->utc(), $scheduledEnd->utc()])
-                        ->orWhere(function ($overlap) use ($scheduledStart, $scheduledEnd) {
-                            $overlap->where('scheduled_start_at', '<=', $scheduledStart->utc())
-                                ->where('scheduled_end_at', '>=', $scheduledEnd->utc());
-                        });
-                })->exists();
+                ->where('scheduled_start_at', '<', $scheduledEnd->utc())
+                ->where('scheduled_end_at', '>', $scheduledStart->utc())
+                ->exists();
 
             if ($existing) {
                 $this->fail('form', 'Anda sudah memiliki pengajuan lembur aktif pada rentang waktu tersebut.');
