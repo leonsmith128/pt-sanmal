@@ -1,22 +1,25 @@
 <?php
 
 use App\Enums\UserRole;
+use App\Http\Controllers\AdminAttendanceCorrectionController;
+use App\Http\Controllers\AdminAuditLogController;
+use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\AdminDailyAttendanceController;
+use App\Http\Controllers\AdminAttendanceExportController;
+use App\Http\Controllers\AdminEmployeeController;
+use App\Http\Controllers\AdminLeaveRequestController;
+use App\Http\Controllers\AdminOvertimeRequestController;
 use App\Http\Controllers\AttendanceHistoryController;
 use App\Http\Controllers\AttendanceSelfieController;
 use App\Http\Controllers\LeaveRequestController;
 use App\Http\Controllers\OvertimeRequestController;
-use App\Http\Controllers\AdminLeaveRequestController;
-use App\Http\Controllers\AdminOvertimeRequestController;
-use App\Http\Controllers\AdminDashboardController;
-use App\Http\Controllers\AdminEmployeeController;
-use App\Http\Controllers\AdminAttendanceCorrectionController;
-use App\Http\Controllers\AdminAuditLogController;
+use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\EnsureUserHasRole;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/login')->name('home');
 
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth', EnsureUserIsActive::class, 'verified'])->group(function () {
     Route::get('dashboard', AdminDashboardController::class)->name('dashboard');
     Route::livewire('profil', 'pages::employee-profile')->name('profile.edit');
     Route::redirect('profil-pegawai', '/profil')->name('employee-profile.edit');
@@ -40,10 +43,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->prefix('admin')
         ->name('admin.')
         ->group(function () {
-            
+
             Route::livewire('kehadiran', 'pages::admin.kehadiran')->name('kehadiran');
+            Route::get('kehadiran/ekspor', [AdminAttendanceExportController::class, 'export'])->name('kehadiran.export');
             Route::get('kehadiran/{record}/selfie', [AttendanceSelfieController::class, 'show'])->name('attendance.selfie');
-                
+
             Route::resource('pegawai', AdminEmployeeController::class)
                 ->parameters(['pegawai' => 'employee'])
                 ->names('employees')
@@ -70,9 +74,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::post('lembur/{overtimeRequest}/keputusan', [AdminOvertimeRequestController::class, 'decide'])->name('overtime-requests.decide');
             Route::post('lembur/{overtimeRequest}/pengecualian-foto', [AdminOvertimeRequestController::class, 'allowClockOutWithoutPhoto'])->name('overtime-requests.photo-exception');
 
-            Route::get('rekap-harian', [AdminLeaveRequestController::class, 'daily'])->name('daily-attendance');
-            Route::post('rekap-harian/koreksi', [AdminLeaveRequestController::class, 'correctDailyStatus'])->name('daily-attendance.correct');
-            Route::get('rekap-harian/export', [AdminLeaveRequestController::class, 'exportMonth'])->name('daily-attendance.export');
+            Route::get('rekap-harian', [AdminDailyAttendanceController::class, 'daily'])->name('daily-attendance');
+            Route::post('rekap-harian/koreksi', [AdminDailyAttendanceController::class, 'correctDailyStatus'])->name('daily-attendance.correct');
+            Route::get('rekap-harian/export', [AdminDailyAttendanceController::class, 'exportMonth'])->name('daily-attendance.export');
         });
 });
 

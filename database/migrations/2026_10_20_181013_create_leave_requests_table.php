@@ -8,15 +8,6 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // Master jenis permohonan (izin, sakit, cuti). Tanpa aturan saldo/hak cuti.
-        Schema::create('leave_types', function (Blueprint $table) {
-            $table->id();
-            $table->string('code', 30)->unique();
-            $table->string('name');
-            $table->boolean('is_active')->default(true);
-            $table->timestamps();
-        });
-
         Schema::create('leave_requests', function (Blueprint $table) {
             $table->id();
             $table->foreignId('employee_id')->constrained()->restrictOnDelete();
@@ -26,9 +17,10 @@ return new class extends Migration
             $table->text('reason');
             $table->string('attachment_path')->nullable();
 
-            $table->string('status', 20)->default('pending')->index(); // pending/approved/rejected/cancelled
+            $table->string('status', 20)->default('pending')->index();
             $table->foreignId('decided_by')->nullable()->constrained('users')->restrictOnDelete();
             $table->timestamp('decided_at')->nullable();
+            $table->timestamp('decision_seen_at')->nullable();
             $table->text('decision_note')->nullable();
             $table->timestamps();
 
@@ -39,6 +31,5 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('leave_requests');
-        Schema::dropIfExists('leave_types');
     }
 };

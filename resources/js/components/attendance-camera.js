@@ -192,18 +192,41 @@ export default function attendanceCamera(config = {}) {
 
         async switchCamera() {
             if (this.busy || this.starting) return;
-            this.facingMode = this.facingMode === 'user' ? 'environment' : 'user';
+
+            const previousFacingMode = this.facingMode;
+            const previousStream = this.stream;
+            let nextStream = null;
+
+            this.facingMode = previousFacingMode === 'user' ? 'environment' : 'user';
             this.starting = true;
+            this.error = null;
 
             try {
-                this.stream?.getTracks().forEach((track) => track.stop());
-                this.stream = await this.openCamera();
+                // Keep the current camera running until the replacement is ready.
+                nextStream = await this.openCamera();
+
                 const video = this.getVideoElement();
                 if (!video) throw new Error('video-element-not-found');
-                video.srcObject = this.stream;
+
+                video.srcObject = nextStream;
                 await video.play();
-                await this.refreshCameraList();
+
+                this.stream = nextStream;
+                previousStream?.getTracks().forEach((track) => track.stop());
+
+                // Device enumeration is informational; it must not invalidate a
+                // camera stream that has already switched successfully.
+                await this.refreshCameraList().catch(() => {});
             } catch (error) {
+                nextStream?.getTracks().forEach((track) => track.stop());
+                this.facingMode = previousFacingMode;
+
+                const video = this.getVideoElement();
+                if (video && previousStream && video.srcObject !== previousStream) {
+                    video.srcObject = previousStream;
+                    await video.play().catch(() => {});
+                }
+
                 this.error = 'Kamera tidak dapat diganti pada perangkat ini.';
                 console.warn('Pergantian kamera gagal:', error);
             } finally {

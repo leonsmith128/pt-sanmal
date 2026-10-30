@@ -90,7 +90,7 @@ new #[Title('Profil Pegawai')] class extends Component {
     <div class="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
         <div class="flex flex-col gap-5 sm:flex-row sm:items-center">
             <flux:avatar
-                :src="$photo?->temporaryUrl() ?? auth()->user()->profilePhotoUrl()"
+                :src="$photo?->isPreviewable() ? $photo->temporaryUrl() : auth()->user()->profilePhotoUrl()"
                 :name="auth()->user()->name"
                 :initials="auth()->user()->initials()"
                 size="xl"

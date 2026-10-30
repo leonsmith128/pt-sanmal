@@ -5,9 +5,8 @@
             <flux:text>{{ __('Tinjau permohonan perubahan catatan clock-in atau clock-out.') }}</flux:text>
         </div>
 
-        @if (session('status'))
-            <flux:callout variant="success">{{ session('status') }}</flux:callout>
-        @endif
+
+        <x-admin.flash-message />
 
         <form method="GET" class="flex items-end gap-3">
             <flux:select name="status" :label="__('Status')" :value="request('status')">

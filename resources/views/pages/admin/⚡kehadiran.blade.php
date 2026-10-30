@@ -1,7 +1,9 @@
 <?php
 
 use App\Actions\RecordAttendance;
+use App\Enums\AttendanceType;
 use App\Enums\LeaveRequestStatus;
+use App\Enums\WorkType;
 use App\Models\AttendanceRecord;
 use App\Models\Employee;
 use Carbon\Carbon;
@@ -17,11 +19,12 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
     public string $dateFrom = '';
     public string $dateTo = '';
     public string $employeeId = '';
+    public string $search = '';
+    public string $attendanceType = '';
+    public string $workType = '';
+    public string $sortBy = 'recorded_at';
+    public string $sortDirection = 'desc';
 
-    /**
-     * boot() berjalan di SETIAP request Livewire (bukan hanya saat halaman dibuka),
-     * jadi pengecekan role tetap berlaku untuk request update.
-     */
     public function boot(): void
     {
         abort_unless(Auth::user()?->isManager(), 403);
@@ -29,9 +32,9 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
 
     public function mount(): void
     {
-        $today = now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString();
-        $this->dateFrom = $today;
-        $this->dateTo = $today;
+        // Default view menampilkan aktivitas terbaru lintas tanggal.
+        $this->dateFrom = '';
+        $this->dateTo = '';
     }
 
     public function updated(string $property): void
@@ -39,13 +42,43 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
         $this->resetPage();
     }
 
-    /** @return array{0: string, 1: string} rentang tanggal yang valid (from <= to) */
+    public function sort(string $column): void
+    {
+        if (! in_array($column, ['recorded_at', 'employee', 'type', 'work_type'], true)) {
+            return;
+        }
+
+        if ($this->sortBy === $column) {
+            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->sortBy = $column;
+            $this->sortDirection = $column === 'recorded_at' ? 'desc' : 'asc';
+        }
+
+        $this->resetPage();
+    }
+
+    public function resetAdditionalFilters(): void
+    {
+        $this->search = '';
+        $this->attendanceType = '';
+        $this->workType = '';
+        $this->employeeId = '';
+        $this->resetPage();
+    }
+
+    /** @return array{0: string, 1: string} */
     private function range(): array
     {
-        $today = now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString();
+        $from = Carbon::canBeCreatedFromFormat($this->dateFrom, 'Y-m-d') ? $this->dateFrom : '';
+        $to = Carbon::canBeCreatedFromFormat($this->dateTo, 'Y-m-d') ? $this->dateTo : '';
 
-        $from = Carbon::canBeCreatedFromFormat($this->dateFrom, 'Y-m-d') ? $this->dateFrom : $today;
-        $to = Carbon::canBeCreatedFromFormat($this->dateTo, 'Y-m-d') ? $this->dateTo : $from;
+        if ($from === '' && $to === '') {
+            return ['', ''];
+        }
+
+        $from = $from !== '' ? $from : $to;
+        $to = $to !== '' ? $to : $from;
 
         return $from <= $to ? [$from, $to] : [$to, $from];
     }
@@ -63,26 +96,41 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
     {
         [$from, $to] = $this->range();
 
+        $sortColumns = [
+            'recorded_at' => 'attendance_records.recorded_at',
+            'employee' => 'sort_users.name',
+            'type' => 'attendance_records.type',
+            'work_type' => 'attendance_records.work_type',
+        ];
+
         return AttendanceRecord::query()
+            ->select('attendance_records.*')
+            ->join('employees as sort_employees', 'sort_employees.id', '=', 'attendance_records.employee_id')
+            ->join('users as sort_users', 'sort_users.id', '=', 'sort_employees.user_id')
             ->with(['employee.user', 'location', 'project'])
-            ->whereBetween('attendance_date', [$from, $to])
-            ->when($this->employeeId !== '', fn ($query) => $query->where('employee_id', (int) $this->employeeId))
-            ->orderByDesc('recorded_at')
-            ->orderByDesc('id')
-            ->paginate(20);
+            ->when($from !== '' && $to !== '', fn ($query) => $query->whereBetween('attendance_records.attendance_date', [$from, $to]))
+            ->when($this->employeeId !== '', fn ($query) => $query->where('attendance_records.employee_id', (int) $this->employeeId))
+            ->when($this->attendanceType !== '', fn ($query) => $query->where('attendance_records.type', $this->attendanceType))
+            ->when($this->workType !== '', fn ($query) => $query->where('attendance_records.work_type', $this->workType))
+            ->when(trim($this->search) !== '', function ($query) {
+                $term = trim($this->search);
+                $query->where(function ($nested) use ($term) {
+                    $nested->where('sort_users.name', 'like', '%'.$term.'%')
+                        ->orWhere('sort_employees.employee_number', 'like', '%'.$term.'%')
+                        ->orWhere('attendance_records.notes', 'like', '%'.$term.'%');
+                });
+            })
+            ->orderBy($sortColumns[$this->sortBy] ?? $sortColumns['recorded_at'], $this->sortDirection === 'asc' ? 'asc' : 'desc')
+            ->orderByDesc('attendance_records.id')
+            ->paginate(30);
     }
 
-    /**
-     * Pegawai aktif yang belum punya catatan absensi pada tanggal tersebut,
-     * serta tidak memiliki permohonan izin/cuti/sakit yang telah disetujui
-     * maupun koreksi status harian.
-     */
     #[Computed]
     public function notYetPresent()
     {
         [$from, $to] = $this->range();
 
-        if ($from !== $to || $this->employeeId !== '') {
+        if ($from === '' || $from !== $to || $this->employeeId !== '' || trim($this->search) !== '' || $this->attendanceType !== '' || $this->workType !== '') {
             return collect();
         }
 
@@ -103,104 +151,189 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
 }; ?>
 
 <section class="w-full">
-    <div class="mx-auto flex w-full max-w-6xl flex-col gap-6">
-        <div>
-            <flux:heading size="xl" level="1">{{ __('Kehadiran Pegawai') }}</flux:heading>
-            <flux:text class="mt-1">{{ __('Pantau catatan absensi semua pegawai.') }}</flux:text>
-        </div>
+    <div class="mx-auto flex w-full max-w-7xl flex-col gap-5">
+        <x-admin.page-header
+            :title="__('Kehadiran Pegawai')"
+            :description="__('Pantau dan telusuri catatan absensi seluruh pegawai.')"
+        />
 
         @php($records = $this->records)
 
-        {{-- Filter --}}
-        <div class="grid gap-4 rounded-xl border border-neutral-200 p-5 sm:grid-cols-3 dark:border-neutral-700">
-            <flux:input type="date" wire:model.live="dateFrom" :label="__('Dari tanggal')" />
-            <flux:input type="date" wire:model.live="dateTo" :label="__('Sampai tanggal')" />
-            <flux:select wire:model.live="employeeId" :label="__('Pegawai')">
-                <flux:select.option value="">{{ __('Semua pegawai') }}</flux:select.option>
-                @foreach ($this->employees as $employee)
-                    <flux:select.option value="{{ $employee->id }}">{{ $employee->user->name }}</flux:select.option>
-                @endforeach
-            </flux:select>
-        </div>
-
-        {{-- Belum ada absensi (khusus filter satu hari, semua pegawai) --}}
-        @if ($this->notYetPresent->isNotEmpty())
-            <div class="rounded-xl border border-amber-300 bg-amber-50 p-5 dark:border-amber-700/60 dark:bg-amber-950/30">
-                <flux:heading level="2">{{ __('Belum ada absensi') }} ({{ $this->notYetPresent->count() }})</flux:heading>
-                <div class="mt-3 flex flex-wrap gap-2">
-                    @foreach ($this->notYetPresent as $employee)
-                        <flux:badge color="amber">{{ $employee->user->name }}</flux:badge>
-                    @endforeach
+        <x-admin.filter-panel class="!p-3">
+            <div class="grid w-full grid-cols-2 items-end gap-2 sm:grid-cols-4 lg:grid-cols-6">
+                <div class="min-w-0">
+                    <flux:input size="sm" type="date" wire:model.live="dateFrom" :label="__('Dari tanggal')" />
                 </div>
-                <flux:text class="mt-3 text-sm">{{ __('Tidak mencakup pegawai yang izin/cutinya telah disetujui.') }}</flux:text>
+                <div class="min-w-0">
+                    <flux:input size="sm" type="date" wire:model.live="dateTo" :label="__('Sampai tanggal')" />
+                </div>
+                <div class="min-w-0">
+                    <flux:select size="sm" wire:model.live="employeeId" :label="__('Pegawai')">
+                        <flux:select.option value="">{{ __('Semua pegawai') }}</flux:select.option>
+                        @foreach ($this->employees as $employee)
+                            <flux:select.option value="{{ $employee->id }}">{{ $employee->user->name }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                </div>
+                <div class="min-w-0">
+                    <flux:input size="sm" wire:model.live.debounce.300ms="search" :label="__('Pencarian')" :placeholder="__('Nama / nomor / catatan')" />
+                </div>
+                <div class="min-w-0">
+                    <flux:select size="sm" wire:model.live="attendanceType" :label="__('Jenis absensi')">
+                        <flux:select.option value="">{{ __('Semua jenis') }}</flux:select.option>
+                        @foreach (AttendanceType::cases() as $type)
+                            <flux:select.option value="{{ $type->value }}">{{ $type->label() }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                </div>
+                <div class="min-w-0">
+                    <flux:select size="sm" wire:model.live="workType" :label="__('Jenis kerja')">
+                        <flux:select.option value="">{{ __('Semua jenis kerja') }}</flux:select.option>
+                        @foreach (WorkType::cases() as $type)
+                            <flux:select.option value="{{ $type->value }}">{{ $type->label() }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                </div>
+                <div class="col-span-2 flex justify-end sm:col-span-4 lg:col-span-6">
+                    <flux:button size="sm" type="button" variant="ghost" icon="arrow-counter-clockwise" wire:click="resetAdditionalFilters">
+                        {{ __('Reset') }}
+                    </flux:button>
+                </div>
             </div>
-        @endif
+        </x-admin.filter-panel>
 
-        {{-- Tabel catatan --}}
-        <div>
-            <flux:text class="mb-2 text-sm">{{ $records->total() }} {{ __('catatan') }}</flux:text>
+        <flux:card class="space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                    <flux:heading size="lg">{{ __('Aktivitas terbaru') }}</flux:heading>
+                    <flux:text class="mt-1 text-sm">
+                        {{ number_format($records->total()) }} {{ __('catatan absensi') }}
+                    </flux:text>
+                </div>
+                @php
+                    $exportFilters = array_filter([
+                        'employee_id' => $employeeId,
+                        'search' => $search,
+                        'attendance_type' => $attendanceType,
+                        'work_type' => $workType,
+                    ], fn ($value) => $value !== '');
+                    $today = Carbon::today();
+                    $weekStart = Carbon::today()->startOfWeek();
+                    $monthStart = Carbon::today()->startOfMonth();
+                @endphp
+                <flux:dropdown position="bottom" align="end">
+                    <flux:button size="sm" variant="outline" icon="arrow-down-tray">
+                        {{ __('Export') }}
+                        <flux:icon name="chevron-down" variant="micro" />
+                    </flux:button>
+                    <flux:menu>
+                        <flux:menu.item
+                            :href="route('admin.kehadiran.export', [...$exportFilters, 'from' => $today->toDateString(), 'to' => $today->toDateString()])"
+                            icon="calendar-days"
+                        >
+                            {{ __('Hari ini') }}
+                        </flux:menu.item>
+                        <flux:menu.item
+                            :href="route('admin.kehadiran.export', [...$exportFilters, 'from' => $weekStart->toDateString(), 'to' => $today->toDateString()])"
+                            icon="calendar-range"
+                        >
+                            {{ __('Minggu ini') }}
+                        </flux:menu.item>
+                        <flux:menu.item
+                            :href="route('admin.kehadiran.export', [...$exportFilters, 'from' => $monthStart->toDateString(), 'to' => $today->toDateString()])"
+                            icon="calendar"
+                        >
+                            {{ __('Bulan ini') }}
+                        </flux:menu.item>
+                        <flux:menu.separator />
+                        <flux:menu.item
+                            :href="route('admin.kehadiran.export', array_filter([
+                                ...$exportFilters,
+                                'from' => $dateFrom,
+                                'to' => $dateTo,
+                            ], fn ($value) => $value !== ''))"
+                            icon="file-spreadsheet"
+                        >
+                            {{ __('Sesuai filter tanggal') }}
+                        </flux:menu.item>
+                    </flux:menu>
+                </flux:dropdown>
+            </div>
 
-            <div class="overflow-x-auto rounded-xl border border-neutral-200 dark:border-neutral-700">
-                <table class="w-full text-left text-sm">
-                    <thead class="bg-zinc-50 text-xs uppercase text-zinc-500 dark:bg-zinc-900 dark:text-zinc-400">
-                        <tr>
-                            <th class="px-4 py-3">{{ __('Waktu') }}</th>
-                            <th class="px-4 py-3">{{ __('Pegawai') }}</th>
-                            <th class="px-4 py-3">{{ __('Jenis') }}</th>
-                            <th class="px-4 py-3">{{ __('Lokasi kerja') }}</th>
-                            <th class="px-4 py-3">{{ __('GPS') }}</th>
-                            <th class="px-4 py-3">{{ __('Foto') }}</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-neutral-200 dark:divide-neutral-700">
+            <div id="attendance-records" class="max-h-[70vh] overflow-auto rounded-lg border border-neutral-200 p-2 [--flux-bleed:0.5rem] [&_thead]:sticky [&_thead]:top-0 [&_thead]:z-20 [&_thead]:bg-white dark:border-neutral-700 dark:[&_thead]:bg-zinc-900">
+                <flux:table bleed :paginate="$records" pagination:scroll-to="#attendance-records">
+                    <flux:table.columns>
+                        <flux:table.column sortable :sorted="$sortBy === 'recorded_at'" :direction="$sortDirection" wire:click="sort('recorded_at')">{{ __('Waktu') }}</flux:table.column>
+                        <flux:table.column sortable :sorted="$sortBy === 'employee'" :direction="$sortDirection" wire:click="sort('employee')">{{ __('Pegawai') }}</flux:table.column>
+                        <flux:table.column sortable :sorted="$sortBy === 'type'" :direction="$sortDirection" wire:click="sort('type')">{{ __('Jenis') }}</flux:table.column>
+                        <flux:table.column sortable :sorted="$sortBy === 'work_type'" :direction="$sortDirection" wire:click="sort('work_type')">{{ __('Lokasi kerja') }}</flux:table.column>
+                        <flux:table.column>{{ __('GPS') }}</flux:table.column>
+                        <flux:table.column>{{ __('Foto') }}</flux:table.column>
+                    </flux:table.columns>
+                    <flux:table.rows>
                         @forelse ($records as $record)
-                            <tr wire:key="record-{{ $record->id }}">
-                                <td class="whitespace-nowrap px-4 py-3">{{ $record->recordedAtLocal()->format('d M Y, H:i T') }}</td>
-                                <td class="px-4 py-3">{{ $record->employee->user->name }}</td>
-                                <td class="px-4 py-3">
-                                    <flux:badge :color="$record->type === \App\Enums\AttendanceType::ClockIn ? 'green' : 'blue'">
+                            <flux:table.row :key="$record->id">
+                                <flux:table.cell class="whitespace-nowrap">{{ $record->recordedAtLocal()->format('d M Y, H:i T') }}</flux:table.cell>
+                                <flux:table.cell>{{ $record->employee->user->name }}</flux:table.cell>
+                                <flux:table.cell>
+                                    <flux:badge :color="$record->type === AttendanceType::ClockIn ? 'green' : 'blue'">
                                         {{ $record->type->label() }}
                                     </flux:badge>
-                                </td>
-                                <td class="px-4 py-3">
+                                </flux:table.cell>
+                                <flux:table.cell>
                                     {{ $record->work_type->label() }}
                                     @if ($record->project)
-                                        <span class="text-zinc-500">&middot; {{ $record->project->code }}</span>
+                                        <span class="text-zinc-500">· {{ $record->project->code }}</span>
                                     @elseif ($record->location)
-                                        <span class="text-zinc-500">&middot; {{ $record->location->name }}</span>
+                                        <span class="text-zinc-500">· {{ $record->location->name }}</span>
                                     @endif
-                                </td>
-                                <td class="whitespace-nowrap px-4 py-3">
-                                    @if ($record->latitude !== null)
+                                </flux:table.cell>
+                                <flux:table.cell class="whitespace-nowrap">
+                                    @if ($record->latitude !== null && $record->longitude !== null)
                                         @if ($record->accuracy_m !== null)
-                                            &plusmn;{{ round((float) $record->accuracy_m) }} m
+                                            ±{{ round((float) $record->accuracy_m) }} m
                                         @endif
                                         <a href="https://www.google.com/maps?q={{ $record->latitude }},{{ $record->longitude }}" target="_blank" rel="noopener noreferrer" class="ml-1 text-blue-600 underline dark:text-blue-400">{{ __('Peta') }}</a>
                                     @else
-                                        &mdash;
+                                        —
                                     @endif
-                                </td>
-                                <td class="whitespace-nowrap px-4 py-3">
+                                </flux:table.cell>
+                                <flux:table.cell class="whitespace-nowrap">
                                     @if ($record->selfie_path)
                                         <a href="{{ route('admin.attendance.selfie', $record) }}" target="_blank" rel="noopener" class="text-blue-600 underline dark:text-blue-400">{{ __('Lihat') }}</a>
-                                        @if ($record->selfie_source === \App\Enums\SelfieSource::Upload)
+                                        @if ($record->selfie_source === \\App\\Enums\\SelfieSource::Upload)
                                             <flux:badge color="amber" size="sm" class="ml-1">{{ __('Unggahan') }}</flux:badge>
                                         @endif
                                     @else
-                                        &mdash;
+                                        —
                                     @endif
-                                </td>
-                            </tr>
+                                </flux:table.cell>
+                            </flux:table.row>
                         @empty
-                            <tr>
-                                <td colspan="6" class="px-4 py-8 text-center text-zinc-500">{{ __('Tidak ada catatan pada filter ini.') }}</td>
-                            </tr>
+                            @if ($this->notYetPresent->isEmpty())
+                                <flux:table.row>
+                                    <flux:table.cell colspan="6">
+                                        <x-admin.empty-state :message="__('Tidak ada catatan pada filter ini.')" />
+                                    </flux:table.cell>
+                                </flux:table.row>
+                            @endif
                         @endforelse
-                    </tbody>
-                </table>
-            </div>
 
-            <div class="mt-4">{{ $records->links() }}</div>
-        </div>
+                        @foreach ($this->notYetPresent as $employee)
+                            <flux:table.row :key="'not-present-'.$employee->id">
+                                <flux:table.cell class="whitespace-nowrap">—</flux:table.cell>
+                                <flux:table.cell>{{ $employee->user->name }}</flux:table.cell>
+                                <flux:table.cell>
+                                    <flux:badge color="amber">{{ __('Belum ada absensi') }}</flux:badge>
+                                </flux:table.cell>
+                                <flux:table.cell>—</flux:table.cell>
+                                <flux:table.cell>—</flux:table.cell>
+                                <flux:table.cell>—</flux:table.cell>
+                            </flux:table.row>
+                        @endforeach
+                    </flux:table.rows>
+                </flux:table>
+            </div>
+        </flux:card>
     </div>
 </section>
