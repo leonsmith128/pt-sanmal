@@ -27,7 +27,15 @@
                             <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-300">{{ $request->scheduledStartLocal()->format('d M Y, H:i') }} · {{ Str::limit($request->reason, 110) }}</p>
                         </div>
                         <div class="flex flex-wrap gap-2">
-                            <flux:badge :color="match($request->approval_status->value) {'approved' => 'green', 'rejected' => 'red', default => 'amber'}">{{ $request->approval_status->label() }}</flux:badge>
+                            <flux:badge
+                                :color="match ($request->approval_status->value) {
+                                    'approved' => 'green',
+                                    'rejected' => 'red',
+                                    default => 'amber',
+                                }"
+                            >
+                                {{ $request->approval_status->label() }}
+                            </flux:badge>
                             <flux:badge>{{ $request->state->label() }}</flux:badge>
                             <flux:icon name="chevron-right" class="size-4 text-zinc-400" />
                         </div>
