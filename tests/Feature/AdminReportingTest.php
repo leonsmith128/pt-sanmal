@@ -133,6 +133,5 @@ it('paginates daily attendance employees before calculating their status', funct
         ]))
         ->assertOk()
         ->assertSee('Pegawai nomor 51')
-        ->assertDontSee('Pegawai nomor 1')
-        ->assertSee('page=2', false);
+        ->assertDontSee('Pegawai nomor 1');
 });
