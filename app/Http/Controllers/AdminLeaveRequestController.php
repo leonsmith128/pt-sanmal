@@ -42,7 +42,7 @@ class AdminLeaveRequestController extends Controller
 
     public function downloadAttachment(LeaveRequest $leaveRequest): StreamedResponse
     {
-        abort_unless($leaveRequest->attachment_path, 404);
+        abort_unless($leaveRequest->attachment_path !== null && $leaveRequest->attachment_path !== '', 404);
         abort_unless(Storage::disk('local')->exists($leaveRequest->attachment_path), 404);
 
         return Storage::disk('local')->download($leaveRequest->attachment_path);
@@ -65,9 +65,11 @@ class AdminLeaveRequestController extends Controller
             }
 
             $old = [
-                'status' => $locked->status->value,
+                'status' => LeaveRequestStatus::from((string) $locked->status)->value,
                 'decided_by' => $locked->decided_by,
-                'decided_at' => $locked->decided_at?->toISOString(),
+                'decided_at' => $locked->decided_at
+                    ? Carbon::parse($locked->decided_at)->toISOString()
+                    : null,
                 'decision_note' => $locked->decision_note,
             ];
 
@@ -108,14 +110,17 @@ class AdminLeaveRequestController extends Controller
             ->paginate(50)
             ->withQueryString();
 
+        /** @var \Illuminate\Support\Collection<int, Employee> $employeePage */
+        $employeePage = $rows->getCollection();
+
         $statuses = $statusService->forEmployeesDateRange(
-            $rows->getCollection(),
+            $employeePage,
             $date,
             $date,
         );
 
         $rows->setCollection(
-            $rows->getCollection()->map(fn (Employee $employee) => [
+            $employeePage->map(fn (Employee $employee) => [
                 'employee' => $employee,
                 'daily' => $statuses[$employee->id][$date] ?? $statusService->forEmployeeDate($employee, $date),
             ]),
@@ -146,7 +151,7 @@ class AdminLeaveRequestController extends Controller
                 ->first();
 
             $old = $correction ? [
-                'status' => $correction->status->value,
+                'status' => DailyAttendanceStatus::from((string) $correction->status)->value,
                 'reason' => $correction->reason,
             ] : null;
 
@@ -205,6 +210,7 @@ class AdminLeaveRequestController extends Controller
             Employee::query()
                 ->with('user')
                 ->chunkById(100, function ($employees) use ($statusService, $start, $end, $out): void {
+                    /** @var \Illuminate\Support\Collection<int, Employee> $employees */
                     $statuses = $statusService->forEmployeesDateRange($employees, $start, $end);
 
                     foreach ($employees as $employee) {
