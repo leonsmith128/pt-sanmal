@@ -14,7 +14,7 @@ use App\Http\Controllers\AdminAuditLogController;
 use App\Http\Middleware\EnsureUserHasRole;
 use Illuminate\Support\Facades\Route;
 
-Route::view('/', 'welcome')->name('home');
+Route::redirect('/', '/login')->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', AdminDashboardController::class)->name('dashboard');
