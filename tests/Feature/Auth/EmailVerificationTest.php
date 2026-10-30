@@ -1,10 +1,10 @@
 <?php
 
-use App\Models\User;
-use Illuminate\Auth\Events\Verified;
-use Illuminate\Support\Facades\Event;
-use Illuminate\Support\Facades\URL;
-use Laravel\Fortify\Features;
+use App\\Models\\User;
+use Illuminate\\Auth\\Events\\Verified;
+use Illuminate\\Support\\Facades\\Event;
+use Illuminate\\Support\\Facades\\URL;
+use Laravel\\Fortify\\Features;
 
 beforeEach(function () {
     $this->skipUnlessFortifyHas(Features::emailVerification());
@@ -13,17 +13,17 @@ beforeEach(function () {
 test('email verification screen can be rendered', function () {
     $user = User::factory()->unverified()->create();
 
-    $response = $this->actingAs($user)->get(route('verification.notice'));
-
-    $response->assertOk();
+    $this->actingAs($user)
+        ->get(route('verification.notice'))
+        ->assertOk();
 });
 
 test('unverified users are redirected to the email verification prompt', function () {
     $user = User::factory()->unverified()->create();
 
-    $response = $this->actingAs($user)->get(route('appearance.edit'));
-
-    $response->assertRedirect(route('verification.notice'));
+    $this->actingAs($user)
+        ->get(route('profile.edit'))
+        ->assertRedirect(route('verification.notice'));
 });
 
 test('email can be verified', function () {
