@@ -1,9 +1,9 @@
 <?php
 
-use App\\Enums\\UserRole;
-use App\\Models\\Employee;
-use App\\Models\\User;
-use Livewire\\Livewire;
+use App\Enums\UserRole;
+use App\Models\Employee;
+use App\Models\User;
+use Livewire\Livewire;
 
 function attendancePageAdmin(): User
 {
