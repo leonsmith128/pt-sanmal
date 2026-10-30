@@ -100,7 +100,6 @@ it('prevents an administrator from correcting their own clock event', function (
     expect($record->fresh()->approvedCorrection)->toBeNull();
 });
 
-
 it('corrects a clock-out timestamp without changing its original event time', function () {
     $employeeUser = User::factory()->create();
     $employee = Employee::create(['user_id' => $employeeUser->id]);

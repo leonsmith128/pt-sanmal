@@ -367,7 +367,6 @@ it('finalizes overtime from a manual range with a required reason', function () 
         ->and($finalized->final_end_at->toISOString())->toBe($manualEnd->copy()->utc()->toISOString());
 });
 
-
 it('prevents an administrator from finalizing their own overtime', function () {
     $employee = overtimeEmployee();
     $employee->user->forceFill(['role' => UserRole::Admin])->save();
