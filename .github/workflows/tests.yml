@@ -62,7 +62,12 @@ jobs:
         run: |
           git diff --name-only "$BASE_SHA...$GITHUB_SHA" -- '*.php' |
             sed '/\\.blade\\.php$/d' |
-            xargs -r vendor/bin/pint --test
+            while IFS= read -r file; do
+              if [ -f "$file" ]; then
+                printf '%s\\0' "$file"
+              fi
+            done |
+            xargs -0 -r vendor/bin/pint --test
 
       - name: Run static analysis
         run: composer types:check
