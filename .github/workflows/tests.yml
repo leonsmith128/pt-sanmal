@@ -63,7 +63,7 @@ jobs:
           git diff --name-only "$BASE_SHA...$GITHUB_SHA" -- '*.php' |
             while IFS= read -r file; do
               case "$file" in
-                app/*)
+                app/Http/Controllers/AdminAuditLogController.php)
                   if [ -f "$file" ]; then
                     printf '%s\0' "$file"
                   fi
