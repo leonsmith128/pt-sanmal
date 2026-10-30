@@ -201,17 +201,29 @@ class AdminLeaveRequestController extends Controller
                         'reason' => '',
                     ];
                     $notes = $daily['reason'] ?? '';
-                    fputcsv($out, [
+                    fputcsv($out, array_map($this->spreadsheetSafe(...), [
                         $employee->employee_number ?? $employee->id,
                         $employee->user?->name ?? '(tanpa nama)',
                         $dayStr,
                         $daily['label'],
                         $notes,
-                    ]);
+                    ]));
                 }
             }
 
             fclose($out);
         }, 'rekap-absensi-'.$month.'.csv', ['Content-Type' => 'text/csv; charset=UTF-8']);
     }
+    /**
+     * Prevent spreadsheet applications from evaluating untrusted CSV cells as formulas.
+     */
+    private function spreadsheetSafe(mixed $value): string
+    {
+        $value = (string) ($value ?? '');
+
+        return preg_match('/^[\\s\\x00-\\x1F]*[=+\\-@]/u', $value) === 1
+            ? "'".$value
+            : $value;
+    }
+
 }
