@@ -44,7 +44,7 @@ Route::middleware(['auth', EnsureUserIsActive::class, 'verified'])->group(functi
         ->group(function () {
 
             Route::livewire('kehadiran', 'pages::admin.kehadiran')->name('kehadiran');
-            Route::get('kehadiran/ekspor', [\\App\\Http\\Controllers\\AdminAttendanceExportController::class, 'export'])->name('kehadiran.export');
+            Route::get('kehadiran/ekspor', [\App\Http\Controllers\AdminAttendanceExportController::class, 'export'])->name('kehadiran.export');
             Route::get('kehadiran/{record}/selfie', [AttendanceSelfieController::class, 'show'])->name('attendance.selfie');
 
             Route::resource('pegawai', AdminEmployeeController::class)
