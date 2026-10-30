@@ -12,6 +12,7 @@ use App\Http\Controllers\AdminEmployeeController;
 use App\Http\Controllers\AdminAttendanceCorrectionController;
 use App\Http\Controllers\AdminAuditLogController;
 use App\Http\Middleware\EnsureUserHasRole;
+use App\Http\Middleware\EnsureUserIsActive;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/login')->name('home');
