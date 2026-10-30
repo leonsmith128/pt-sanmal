@@ -365,6 +365,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                                 <flux:table.cell>—</flux:table.cell>
                                 <flux:table.cell>—</flux:table.cell>
                                 <flux:table.cell>—</flux:table.cell>
+                                <flux:table.cell>—</flux:table.cell>
                             </flux:table.row>
                         @endforeach
                     </flux:table.rows>
