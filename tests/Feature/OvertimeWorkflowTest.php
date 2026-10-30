@@ -170,16 +170,14 @@ it('keeps a future-date overtime schedule detached from the current work session
     $employee = overtimeEmployee();
     overtimeClockIn($employee);
     $start = now('Asia/Makassar')->addDays(2)->setTime(17, 0);
-    $end = $start->copy()->addHours(2);
-
     $overtime = app(CreateOvertimeRequest::class)->handle(
         employee: $employee,
-        reason: 'Penyelesaian pekerjaan terjadwal.',
+        reason: null,
         scheduledStartLocal: $start->format('Y-m-d\\TH:i'),
-        scheduledEndLocal: $end->format('Y-m-d\\TH:i'),
     );
 
     expect($overtime->clock_in_record_id)->toBeNull()
+        ->and($overtime->reason)->toBeNull()
         ->and($overtime->scheduled_start_at->toISOString())->toBe($start->copy()->utc()->toISOString())
-        ->and($overtime->scheduled_end_at->toISOString())->toBe($end->copy()->utc()->toISOString());
+        ->and($overtime->scheduled_end_at)->toBeNull();
 });
