@@ -21,6 +21,9 @@ function userWithRole(UserRole $role, bool $withEmployee = true): User
 
 test('guests are redirected from attendance pages to login', function () {
     $this->get(route('attendance'))->assertRedirect(route('login'));
+    $this->get(route('attendance-history.index'))->assertRedirect(route('login'));
+    $this->get(route('attendance-history.export'))->assertRedirect(route('login'));
+    $this->get(route('attendance-history.selfie', 1))->assertRedirect(route('login'));
     $this->get(route('admin.kehadiran'))->assertRedirect(route('login'));
 });
 
@@ -31,6 +34,16 @@ test('employees can visit the attendance clock page', function () {
         ->assertOk()
         ->assertSee(__('Absensi'))
         ->assertDontSee(__('Kehadiran Pegawai'));
+});
+
+test('employees can visit their own attendance history', function () {
+    $this->actingAs(userWithRole(UserRole::Employee));
+
+    $this->get(route('attendance-history.index'))
+        ->assertOk()
+        ->assertSee(__('Riwayat Absensi'))
+        ->assertSee(__('Ekspor Excel (CSV)'))
+        ->assertSee(__('Belum ada catatan absensi'));
 });
 
 test('employees are forbidden from the admin attendance page', function () {

@@ -3,6 +3,7 @@
 use App\Enums\UserRole;
 use App\Http\Controllers\AdminLeaveRequestController;
 use App\Http\Controllers\AdminOvertimeRequestController;
+use App\Http\Controllers\AttendanceHistoryController;
 use App\Http\Controllers\AttendanceSelfieController;
 use App\Http\Controllers\LeaveRequestController;
 use App\Http\Controllers\OvertimeRequestController;
@@ -13,9 +14,15 @@ Route::view('/', 'welcome')->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::view('dashboard', 'dashboard')->name('dashboard');
+    Route::livewire('profil', 'pages::employee-profile')->name('profile.edit');
+    Route::redirect('profil-pegawai', '/profil')->name('employee-profile.edit');
     Route::livewire('absensi', 'pages::attendance')->name('attendance');
+    Route::get('riwayat-absensi', [AttendanceHistoryController::class, 'index'])->name('attendance-history.index');
+    Route::get('riwayat-absensi/ekspor', [AttendanceHistoryController::class, 'export'])->name('attendance-history.export');
+    Route::get('riwayat-absensi/{record}/foto', [AttendanceSelfieController::class, 'showForEmployee'])->name('attendance-history.selfie');
 
     Route::get('permohonan', [LeaveRequestController::class, 'index'])->name('leave-requests.index');
+    Route::get('permohonan/ekspor', [LeaveRequestController::class, 'export'])->name('leave-requests.export');
     Route::get('permohonan/buat', [LeaveRequestController::class, 'create'])->name('leave-requests.create');
     Route::post('permohonan', [LeaveRequestController::class, 'store'])->name('leave-requests.store');
     Route::patch('permohonan/{leaveRequest}/batalkan', [LeaveRequestController::class, 'cancel'])->name('leave-requests.cancel');

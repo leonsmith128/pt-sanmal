@@ -1,7 +1,8 @@
 <flux:dropdown position="bottom" align="start">
-    <flux:sidebar.profile
+    <flux:profile
         :name="auth()->user()->name"
         :initials="auth()->user()->initials()"
+        :avatar="auth()->user()->profilePhotoUrl()"
         icon:trailing="chevrons-up-down"
         data-test="sidebar-menu-button"
     />
@@ -11,6 +12,7 @@
             <flux:avatar
                 :name="auth()->user()->name"
                 :initials="auth()->user()->initials()"
+                :src="auth()->user()->profilePhotoUrl()"
             />
             <div class="grid flex-1 text-start text-sm leading-tight">
                 <flux:heading class="truncate">{{ auth()->user()->name }}</flux:heading>
@@ -18,11 +20,13 @@
             </div>
         </div>
         <flux:menu.separator />
-        <flux:menu.radio.group>
-            <flux:menu.item :href="route('profile.edit')" icon="cog" wire:navigate>
-                {{ __('Settings') }}
-            </flux:menu.item>
-            <form method="POST" action="{{ route('logout') }}" class="w-full">
+        <flux:menu.item :href="route('profile.edit')" icon="user-circle" wire:navigate>
+            {{ __('Profil') }}
+        </flux:menu.item>
+        <flux:menu.item :href="route('security.edit')" icon="shield-check" wire:navigate>
+            {{ __('Keamanan Akun') }}
+        </flux:menu.item>
+        <form method="POST" action="{{ route('logout') }}" class="w-full">
                 @csrf
                 <flux:menu.item
                     as="button"
@@ -33,7 +37,6 @@
                 >
                     {{ __('Log out') }}
                 </flux:menu.item>
-            </form>
-        </flux:menu.radio.group>
+        </form>
     </flux:menu>
 </flux:dropdown>

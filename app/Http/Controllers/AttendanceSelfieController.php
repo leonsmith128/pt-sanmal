@@ -4,16 +4,39 @@ namespace App\Http\Controllers;
 
 use App\Models\AttendanceRecord;
 use App\Support\AttendanceSelfie;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AttendanceSelfieController extends Controller
 {
     /**
-     * Menampilkan selfie dari disk private. Hanya admin/superadmin,
-     * dijaga oleh middleware pada route (lihat routes/web.php).
+     * Menampilkan selfie hanya kepada pemilik catatan absensi.
+     */
+    public function showForEmployee(Request $request, AttendanceRecord $record): StreamedResponse
+    {
+        $user = $request->user();
+        $employee = $user->employee;
+
+        abort_unless(
+            $user->is_active && $employee && $record->employee_id === $employee->id,
+            403,
+            'Anda tidak memiliki akses ke foto absensi ini.'
+        );
+
+        return $this->streamSelfie($record);
+    }
+
+    /**
+     * Menampilkan selfie dari disk private untuk admin/superadmin.
+     * Route ini dilindungi middleware peran pada routes/web.php.
      */
     public function show(AttendanceRecord $record): StreamedResponse
+    {
+        return $this->streamSelfie($record);
+    }
+
+    private function streamSelfie(AttendanceRecord $record): StreamedResponse
     {
         $disk = Storage::disk(AttendanceSelfie::DISK);
 
