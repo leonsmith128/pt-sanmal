@@ -39,11 +39,11 @@ class AttendanceHistoryController extends Controller
 
         $filters = $this->validatedFilters($request);
         $records = $this->attendanceQuery($employee, $filters)
-            ->orderBy('recorded_at', $filters['direction'])
+            ->orderByRaw("COALESCE((SELECT ac.requested_recorded_at FROM attendance_corrections ac WHERE ac.attendance_record_id = attendance_records.id AND ac.status = 'approved' ORDER BY ac.reviewed_at DESC LIMIT 1), attendance_records.recorded_at) ".$filters['direction'])
             ->orderBy('id', $filters['direction'])
             ->get();
 
-        $filename = 'riwayat-absensi-' . now()->format('Ymd-His') . '.csv';
+        $filename = 'riwayat-absensi-'.now()->format('Ymd-His').'.csv';
 
         return response()->streamDownload(function () use ($records): void {
             $stream = fopen('php://output', 'w');
@@ -104,6 +104,6 @@ class AttendanceHistoryController extends Controller
         $value = (string) ($value ?? '');
 
         // Cegah teks yang tidak tepercaya dieksekusi sebagai formula spreadsheet.
-        return preg_match('/^[\s\x00-\x1F]*[=+\-@]/u', $value) === 1 ? "'" . $value : $value;
+        return preg_match('/^[\s\x00-\x1F]*[=+\-@]/u', $value) === 1 ? "'".$value : $value;
     }
 }

@@ -5,7 +5,7 @@ namespace App\Models;
 use App\Enums\AttendanceType;
 use App\Enums\SelfieSource;
 use App\Enums\WorkType;
-use Carbon\CarbonInterface;
+use Carbon\\\Carbon\\CarbonInterface;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -83,7 +83,7 @@ class AttendanceRecord extends Model
         return $this->hasOne(OvertimeRequest::class, 'start_record_id');
     }
 
-    public function effectiveRecordedAt(): CarbonInterface
+    public function effectiveRecordedAt(): \\Carbon\\CarbonInterface
     {
         return $this->approvedCorrection?->requested_recorded_at ?? $this->recorded_at;
     }
@@ -95,13 +95,13 @@ class AttendanceRecord extends Model
     }
 
     /** Waktu efektif untuk laporan; recorded_at tetap merupakan bukti asli. */
-    public function effectiveRecordedAtLocal(): CarbonInterface
+    public function effectiveRecordedAtLocal(): \\Carbon\\CarbonInterface
     {
         return $this->effectiveRecordedAt()->copy()->setTimezone($this->timezone);
     }
 
     /** Waktu asli dalam zona waktu saat event direkam. */
-    public function recordedAtLocal(): CarbonInterface
+    public function recordedAtLocal(): \\Carbon\\CarbonInterface
     {
         return $this->recorded_at->copy()->setTimezone($this->timezone);
     }

@@ -54,7 +54,7 @@ class ConfirmOvertimeStart
                     ->lockForUpdate()
                     ->firstOrFail();
 
-                if (! in_array($locked->state, [OvertimeState::Scheduled, OvertimeState::AwaitingPhoto], true)
+                if (in_array($locked->state, [OvertimeState::Scheduled, OvertimeState::AwaitingPhoto], true) === false
                     || $locked->start_record_id !== null) {
                     $this->fail('form', 'Pengajuan ini tidak lagi menunggu konfirmasi foto lembur.');
                 }
@@ -66,7 +66,7 @@ class ConfirmOvertimeStart
                 $clockIn = $locked->clockInRecord()->with(['location', 'project'])->firstOrFail();
 
                 $open = RecordAttendance::openSession($employee);
-                if (! $open || $open->id !== $clockIn->id) {
+                if ($open === null || $open->id !== $clockIn->id) {
                     $this->fail('form', 'Sesi kerja sudah tidak aktif. Hubungi admin untuk peninjauan.');
                 }
 

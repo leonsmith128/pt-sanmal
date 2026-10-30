@@ -108,7 +108,7 @@ class RecordAttendance
 
                     [$workType, $location, $project] = $this->resolveTarget($employee, $workType, $locationId, $projectId);
                 } elseif ($type === AttendanceType::ClockOut) {
-                    if (! $open) {
+                    if ($open === null) {
                         $this->fail('form', 'Tidak ada clock-in yang perlu ditutup. Lakukan clock-in terlebih dahulu.');
                     }
 
@@ -214,7 +214,7 @@ class RecordAttendance
         if ($workType === WorkType::Office) {
             $location = self::officeLocations()->find($locationId);
 
-            if (! $location) {
+            if ($location === null) {
                 $this->fail('locationId', 'Lokasi kantor tidak valid.');
             }
 
@@ -224,7 +224,7 @@ class RecordAttendance
         if ($workType === WorkType::Onsite) {
             $project = self::assignableProjects($employee)->with('location')->find($projectId);
 
-            if (! $project) {
+            if ($project === null) {
                 $this->fail('projectId', 'Proyek tidak valid atau tidak ditugaskan kepada Anda.');
             }
 
