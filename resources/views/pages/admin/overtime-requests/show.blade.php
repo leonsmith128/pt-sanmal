@@ -225,7 +225,7 @@
             </section>
         @endif
 
-        @if (in_array($overtimeRequest->state->value, ['scheduled', 'awaiting_photo'], true) && ! $overtimeRequest->start_record_id)
+        @if ($overtimeRequest->clock_in_record_id && $overtimeRequest->scheduled_start_at->lte(now()) && in_array($overtimeRequest->state->value, ['scheduled', 'awaiting_photo'], true) && ! $overtimeRequest->start_record_id)
             <section class="rounded-2xl border border-amber-300 bg-amber-50 p-5 dark:border-amber-800 dark:bg-amber-950/30">
                 <flux:heading size="lg">{{ __('Pengecualian foto mulai lembur') }}</flux:heading>
                 <flux:text class="mt-1">
