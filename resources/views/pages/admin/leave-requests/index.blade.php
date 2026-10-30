@@ -10,11 +10,8 @@
             </flux:button>
         </div>
 
-        @if (session('status'))
-            <div class="rounded-xl border border-green-200 bg-green-50 p-4 text-sm text-green-900 dark:border-green-800/60 dark:bg-green-950/40 dark:text-green-300">
-                {{ session('status') }}
-            </div>
-        @endif
+
+        <x-admin.flash-message />
 
         <form method="GET" action="{{ route('admin.leave-requests.index') }}" class="flex flex-wrap items-end gap-3 rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-700 dark:bg-zinc-900">
             <div class="w-full sm:w-64">
