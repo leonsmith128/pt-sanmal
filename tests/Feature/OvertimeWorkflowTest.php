@@ -183,3 +183,42 @@ it('keeps a future-date overtime schedule detached from the current work session
         ->and($overtime->scheduled_start_at->toISOString())->toBe($start->copy()->utc()->toISOString())
         ->and($overtime->scheduled_end_at->toISOString())->toBe($end->copy()->utc()->toISOString());
 });
+
+it('finalizes a completed overtime range using scheduled timestamps with an audit trail', function () {
+    $employee = overtimeEmployee();
+    $clockIn = overtimeClockIn($employee);
+    $overtime = overtimeRequest($employee, $clockIn, now()->subHour()->toDateTimeString());
+    $scheduledEnd = now()->addHour();
+
+    $clockOut = AttendanceRecord::create([
+        'employee_id' => $employee->id,
+        'type' => AttendanceType::ClockOut,
+        'work_type' => WorkType::Office,
+        'recorded_at' => now(),
+        'timezone' => 'Asia/Makassar',
+        'attendance_date' => now('Asia/Makassar')->toDateString(),
+    ]);
+
+    $overtime->update([
+        'scheduled_end_at' => $scheduledEnd,
+        'clock_out_record_id' => $clockOut->id,
+        'state' => OvertimeState::Completed,
+    ]);
+
+    $admin = User::factory()->create();
+    $admin->forceFill(['role' => UserRole::Admin, 'is_active' => true])->save();
+
+    $response = $this->actingAs($admin)->post(route('admin.overtime-requests.finalize', $overtime), [
+        'finalization_source' => 'scheduled',
+        'finalization_reason' => 'Rentang jadwal sesuai bukti pekerjaan.',
+    ]);
+
+    $response->assertRedirect(route('admin.overtime-requests.show', $overtime));
+
+    $finalized = $overtime->fresh();
+    expect($finalized->finalization_source)->toBe('scheduled')
+        ->and($finalized->final_start_at->toISOString())->toBe($overtime->scheduled_start_at->toISOString())
+        ->and($finalized->final_end_at->toISOString())->toBe($scheduledEnd->toISOString())
+        ->and($finalized->finalized_by)->toBe($admin->id)
+        ->and($finalized->finalization_reason)->toBe('Rentang jadwal sesuai bukti pekerjaan.');
+});
