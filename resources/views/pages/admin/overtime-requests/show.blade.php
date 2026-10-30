@@ -7,9 +7,8 @@
             </div>
             <flux:button href="{{ route('admin.overtime-requests.index') }}" variant="ghost" icon="arrow-left">{{ __('Kembali') }}</flux:button>
         </div>
-        @if (session('status'))
-            <flux:callout variant="success" icon="check-circle"><flux:callout.text>{{ session('status') }}</flux:callout.text></flux:callout>
-        @endif
+
+        <x-admin.flash-message />
         <section class="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900">
             <div class="flex flex-wrap gap-2">
                 <flux:badge :color="match($overtimeRequest->approval_status->value) {'approved' => 'green', 'rejected' => 'red', default => 'amber'}">{{ $overtimeRequest->approval_status->label() }}</flux:badge>
