@@ -5,11 +5,11 @@ namespace App\Models;
 use App\Enums\AttendanceType;
 use App\Enums\SelfieSource;
 use App\Enums\WorkType;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-
 
 /**
  * @property int $id
@@ -18,9 +18,9 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @property WorkType $work_type
  * @property int|null $location_id
  * @property int|null $project_id
- * @property \\Carbon\\CarbonInterface $recorded_at Stored in UTC.
+ * @property \Carbon\Carbon $recorded_at Stored in UTC.
  * @property string $timezone
- * @property \\Carbon\\CarbonInterface $attendance_date Local attendance date.
+ * @property \Carbon\Carbon $attendance_date Local attendance date.
  * @property string|null $latitude
  * @property string|null $longitude
  * @property string|null $accuracy_m
@@ -83,7 +83,7 @@ class AttendanceRecord extends Model
         return $this->hasOne(OvertimeRequest::class, 'start_record_id');
     }
 
-    public function effectiveRecordedAt(): \\Carbon\\CarbonInterface
+    public function effectiveRecordedAt(): CarbonInterface
     {
         return $this->approvedCorrection?->requested_recorded_at ?? $this->recorded_at;
     }
@@ -95,13 +95,13 @@ class AttendanceRecord extends Model
     }
 
     /** Waktu efektif untuk laporan; recorded_at tetap merupakan bukti asli. */
-    public function effectiveRecordedAtLocal(): \\Carbon\\CarbonInterface
+    public function effectiveRecordedAtLocal(): CarbonInterface
     {
         return $this->effectiveRecordedAt()->copy()->setTimezone($this->timezone);
     }
 
     /** Waktu asli dalam zona waktu saat event direkam. */
-    public function recordedAtLocal(): \\Carbon\\CarbonInterface
+    public function recordedAtLocal(): CarbonInterface
     {
         return $this->recorded_at->copy()->setTimezone($this->timezone);
     }
