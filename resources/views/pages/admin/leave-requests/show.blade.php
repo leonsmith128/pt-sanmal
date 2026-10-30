@@ -1,4 +1,4 @@
-<x-layouts::app :title="'Detail Permohonan'">
+<x-layouts::app :title="__('Detail Permohonan')">
     <div class="mx-auto max-w-3xl space-y-6 p-6">
         <div>
             <flux:button href="{{ route('admin.leave-requests.index') }}" variant="ghost" icon="arrow-left" size="sm">
@@ -16,14 +16,7 @@
             </flux:badge>
         </div>
 
-
         <x-admin.flash-message />
-
-        @if ($errors->any())
-            <div class="rounded-xl border border-red-300 bg-red-50 p-4 text-sm text-red-800 dark:border-red-800 dark:bg-red-950/40 dark:text-red-300">
-                {{ $errors->first() }}
-            </div>
-        @endif
 
         <div class="rounded-xl border border-neutral-200 bg-white p-6 dark:border-neutral-700 dark:bg-zinc-900">
             <dl class="grid gap-6 sm:grid-cols-2">
@@ -71,13 +64,21 @@
                 @csrf
                 <flux:heading size="lg">{{ __('Keputusan Admin') }}</flux:heading>
 
-                <flux:select name="decision" :label="__('Keputusan')" required>
-                    <flux:select.option value="">{{ __('Pilih keputusan') }}</flux:select.option>
-                    <flux:select.option value="approved">{{ __('Setujui') }}</flux:select.option>
-                    <flux:select.option value="rejected">{{ __('Tolak') }}</flux:select.option>
-                </flux:select>
+                <flux:field>
+                    <flux:label>{{ __('Keputusan') }}</flux:label>
+                    <flux:select name="decision" :value="old('decision')" required>
+                        <flux:select.option value="">{{ __('Pilih keputusan') }}</flux:select.option>
+                        <flux:select.option value="approved">{{ __('Setujui') }}</flux:select.option>
+                        <flux:select.option value="rejected">{{ __('Tolak') }}</flux:select.option>
+                    </flux:select>
+                    <flux:error name="decision" />
+                </flux:field>
 
-                <flux:textarea name="decision_note" :label="__('Catatan (opsional)')" rows="3" maxlength="2000" placeholder="{{ __('Tuliskan catatan persetujuan atau penolakan...') }}">{{ old('decision_note') }}</flux:textarea>
+                <flux:field>
+                    <flux:label>{{ __('Catatan (opsional)') }}</flux:label>
+                    <flux:textarea name="decision_note" rows="3" maxlength="2000" placeholder="{{ __('Tuliskan catatan persetujuan atau penolakan...') }}">{{ old('decision_note') }}</flux:textarea>
+                    <flux:error name="decision_note" />
+                </flux:field>
 
                 <flux:text class="text-xs text-zinc-500">
                     {{ __('Jika terdapat absensi aktual atau permohonan lain yang tumpang tindih, rekap harian akan menandainya sebagai perlu ditinjau.') }}
@@ -85,18 +86,14 @@
 
                 <div class="flex justify-end pt-2">
                     <flux:modal.trigger name="confirm-decision">
-                        <flux:button variant="primary">
-                            {{ __('Simpan keputusan') }}
-                        </flux:button>
+                        <flux:button variant="primary">{{ __('Simpan keputusan') }}</flux:button>
                     </flux:modal.trigger>
                 </div>
 
                 <flux:modal name="confirm-decision" class="max-w-md">
                     <div class="space-y-4">
                         <flux:heading size="lg">{{ __('Konfirmasi Keputusan') }}</flux:heading>
-                        <flux:text>
-                            {{ __('Apakah Anda yakin ingin memproses dan menyimpan keputusan untuk permohonan ini?') }}
-                        </flux:text>
+                        <flux:text>{{ __('Apakah Anda yakin ingin memproses dan menyimpan keputusan untuk permohonan ini?') }}</flux:text>
                         <div class="flex justify-end gap-2 pt-2">
                             <flux:modal.close>
                                 <flux:button variant="filled">{{ __('Batal') }}</flux:button>
