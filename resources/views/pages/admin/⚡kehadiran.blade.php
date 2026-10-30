@@ -153,44 +153,48 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
 
         @php($records = $this->records)
 
-        <x-admin.filter-panel class="space-y-4">
-            <flux:input type="date" wire:model.live="dateFrom" :label="__('Dari tanggal')" />
-            <flux:input type="date" wire:model.live="dateTo" :label="__('Sampai tanggal')" />
-            <flux:select wire:model.live="employeeId" :label="__('Pegawai')">
-                <flux:select.option value="">{{ __('Semua pegawai') }}</flux:select.option>
-                @foreach ($this->employees as $employee)
-                    <flux:select.option value="{{ $employee->id }}">{{ $employee->user->name }}</flux:select.option>
-                @endforeach
-            </flux:select>
-            <flux:input wire:model.live.debounce.300ms="search" :label="__('Pencarian')" :placeholder="__('Nama, nomor pegawai, atau catatan')" />
-            <flux:select wire:model.live="attendanceType" :label="__('Jenis absensi')">
-                <flux:select.option value="">{{ __('Semua jenis') }}</flux:select.option>
-                @foreach (AttendanceType::cases() as $type)
-                    <flux:select.option value="{{ $type->value }}">{{ $type->label() }}</flux:select.option>
-                @endforeach
-            </flux:select>
-            <flux:select wire:model.live="workType" :label="__('Jenis kerja')">
-                <flux:select.option value="">{{ __('Semua jenis kerja') }}</flux:select.option>
-                @foreach (WorkType::cases() as $type)
-                    <flux:select.option value="{{ $type->value }}">{{ $type->label() }}</flux:select.option>
-                @endforeach
-            </flux:select>
-            <flux:button type="button" variant="ghost" wire:click="resetAdditionalFilters">
-                {{ __('Reset filter tambahan') }}
-            </flux:button>
-        </x-admin.filter-panel>
-
-        @if ($this->notYetPresent->isNotEmpty())
-            <section class="rounded-xl border border-amber-300 bg-amber-50 p-5 dark:border-amber-700/60 dark:bg-amber-950/30">
-                <flux:heading level="2">{{ __('Belum ada absensi') }} ({{ $this->notYetPresent->count() }})</flux:heading>
-                <div class="mt-3 flex flex-wrap gap-2">
-                    @foreach ($this->notYetPresent as $employee)
-                        <flux:badge color="amber">{{ $employee->user->name }}</flux:badge>
-                    @endforeach
+        <x-admin.filter-panel class="!p-3">
+            <div class="grid w-full grid-cols-2 items-end gap-3 sm:grid-cols-3 lg:grid-cols-6">
+                <div class="min-w-0">
+                    <flux:input size="sm" type="date" wire:model.live="dateFrom" :label="__('Dari tanggal')" />
                 </div>
-                <flux:text class="mt-3 text-sm">{{ __('Tidak mencakup pegawai yang izin/cutinya telah disetujui atau memiliki koreksi status.') }}</flux:text>
-            </section>
-        @endif
+                <div class="min-w-0">
+                    <flux:input size="sm" type="date" wire:model.live="dateTo" :label="__('Sampai tanggal')" />
+                </div>
+                <div class="min-w-0">
+                    <flux:select size="sm" wire:model.live="employeeId" :label="__('Pegawai')">
+                        <flux:select.option value="">{{ __('Semua pegawai') }}</flux:select.option>
+                        @foreach ($this->employees as $employee)
+                            <flux:select.option value="{{ $employee->id }}">{{ $employee->user->name }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                </div>
+                <div class="col-span-2 min-w-0 sm:col-span-1 lg:col-span-2">
+                    <flux:input size="sm" wire:model.live.debounce.300ms="search" :label="__('Pencarian')" :placeholder="__('Nama, nomor pegawai, atau catatan')" />
+                </div>
+                <div class="min-w-0">
+                    <flux:select size="sm" wire:model.live="attendanceType" :label="__('Jenis absensi')">
+                        <flux:select.option value="">{{ __('Semua jenis') }}</flux:select.option>
+                        @foreach (AttendanceType::cases() as $type)
+                            <flux:select.option value="{{ $type->value }}">{{ $type->label() }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                </div>
+                <div class="min-w-0">
+                    <flux:select size="sm" wire:model.live="workType" :label="__('Jenis kerja')">
+                        <flux:select.option value="">{{ __('Semua jenis kerja') }}</flux:select.option>
+                        @foreach (WorkType::cases() as $type)
+                            <flux:select.option value="{{ $type->value }}">{{ $type->label() }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                </div>
+                <div class="col-span-2 flex justify-end sm:col-span-3 lg:col-span-6">
+                    <flux:button size="sm" type="button" variant="ghost" wire:click="resetAdditionalFilters">
+                        {{ __('Reset filter tambahan') }}
+                    </flux:button>
+                </div>
+            </div>
+        </x-admin.filter-panel>
 
         <div class="space-y-3">
             <div class="flex flex-wrap items-center justify-between gap-2">
@@ -248,12 +252,27 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                                 </flux:table.cell>
                             </flux:table.row>
                         @empty
-                            <flux:table.row>
-                                <flux:table.cell colspan="6">
-                                    <x-admin.empty-state :message="__('Tidak ada catatan pada filter ini.')" />
-                                </flux:table.cell>
-                            </flux:table.row>
+                            @if ($this->notYetPresent->isEmpty())
+                                <flux:table.row>
+                                    <flux:table.cell colspan="6">
+                                        <x-admin.empty-state :message="__('Tidak ada catatan pada filter ini.')" />
+                                    </flux:table.cell>
+                                </flux:table.row>
+                            @endif
                         @endforelse
+
+                        @foreach ($this->notYetPresent as $employee)
+                            <flux:table.row :key="'not-present-'.$employee->id">
+                                <flux:table.cell class="whitespace-nowrap">—</flux:table.cell>
+                                <flux:table.cell>{{ $employee->user->name }}</flux:table.cell>
+                                <flux:table.cell>
+                                    <flux:badge color="amber">{{ __('Belum ada absensi') }}</flux:badge>
+                                </flux:table.cell>
+                                <flux:table.cell>—</flux:table.cell>
+                                <flux:table.cell>—</flux:table.cell>
+                                <flux:table.cell>—</flux:table.cell>
+                            </flux:table.row>
+                        @endforeach
                     </flux:table.rows>
                 </flux:table>
             </div>
