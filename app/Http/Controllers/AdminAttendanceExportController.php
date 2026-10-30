@@ -24,17 +24,24 @@ class AdminAttendanceExportController extends Controller
 
         $records = AttendanceRecord::query()
             ->with(['employee.user', 'location', 'project', 'approvedCorrection'])
-            ->when(($filters['from'] ?? null) && ($filters['to'] ?? null), function ($query) use ($filters): void {
-                $from = $filters['from'];
-                $to = $filters['to'];
-                $query->where(function ($nested) use ($from, $to): void {
-                    $nested->whereRaw(
-                        "COALESCE((SELECT ac.attendance_date FROM attendance_corrections ac WHERE ac.attendance_record_id = attendance_records.id AND ac.status = 'approved' ORDER BY ac.reviewed_at DESC LIMIT 1), attendance_records.attendance_date) BETWEEN ? AND ?",
-                        [$from, $to],
-                    )->orWhereRaw(
-                        "(SELECT ci.attendance_date FROM attendance_records ci WHERE ci.employee_id = attendance_records.employee_id AND ci.type = 'clock_in' AND ci.recorded_at <= attendance_records.recorded_at AND ci.recorded_at >= DATE_SUB(attendance_records.recorded_at, INTERVAL 24 HOUR) ORDER BY ci.recorded_at DESC LIMIT 1) BETWEEN ? AND ?",
-                        [$from, $to],
-                    );
+            ->when(($filters['from'] ?? null) || ($filters['to'] ?? null), function ($query) use ($filters): void {
+                $from = $filters['from'] ?? null;
+                $to = $filters['to'] ?? null;
+                $effectiveDate = "COALESCE((SELECT ac.attendance_date FROM attendance_corrections ac WHERE ac.attendance_record_id = attendance_records.id AND ac.status = 'approved' ORDER BY ac.reviewed_at DESC LIMIT 1), attendance_records.attendance_date)";
+                $sessionDate = "(SELECT ci.attendance_date FROM attendance_records ci WHERE ci.employee_id = attendance_records.employee_id AND ci.type = 'clock_in' AND ci.recorded_at <= attendance_records.recorded_at AND ci.recorded_at >= DATE_SUB(attendance_records.recorded_at, INTERVAL 24 HOUR) ORDER BY ci.recorded_at DESC LIMIT 1)";
+
+                $query->where(function ($nested) use ($from, $to, $effectiveDate, $sessionDate): void {
+                    foreach ([$effectiveDate, $sessionDate] as $dateExpression) {
+                        $nested->orWhere(function ($range) use ($from, $to, $dateExpression): void {
+                            if ($from) {
+                                $range->whereRaw($dateExpression.' >= ?', [$from]);
+                            }
+
+                            if ($to) {
+                                $range->whereRaw($dateExpression.' <= ?', [$to]);
+                            }
+                        });
+                    }
                 });
             })
             ->when($filters['employee_id'] ?? null, fn ($query, $employeeId) => $query->where('employee_id', $employeeId))
@@ -48,7 +55,7 @@ class AdminAttendanceExportController extends Controller
                         ->orWhere('notes', 'like', '%'.$term.'%');
                 });
             })
-            ->orderByDesc('recorded_at')
+            ->orderByRaw("COALESCE((SELECT ac.requested_recorded_at FROM attendance_corrections ac WHERE ac.attendance_record_id = attendance_records.id AND ac.status = 'approved' ORDER BY ac.reviewed_at DESC LIMIT 1), attendance_records.recorded_at) DESC")
             ->orderByDesc('id');
 
         $filename = 'aktivitas-absensi-'.now()->format('Ymd-His').'.csv';
