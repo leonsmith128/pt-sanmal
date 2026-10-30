@@ -3,11 +3,10 @@
         <div class="flex items-center justify-between">
             <div>
                 <flux:heading size="xl">{{ __('Detail Koreksi Absensi') }}</flux:heading>
-                <flux:text>{{ $correction->employee->user->name }}</flux:text>
+                <flux:text>{{ $correction->employee?->user?->name ?? 'Pegawai #'.$correction->employee_id }}</flux:text>
             </div>
             <flux:button href="{{ route('admin.attendance-corrections.index') }}" variant="ghost">{{ __('Kembali') }}</flux:button>
         </div>
-
 
         <x-admin.flash-message />
 
@@ -53,11 +52,19 @@
         @if ($correction->status === 'pending')
             <form method="POST" action="{{ route('admin.attendance-corrections.decide', $correction) }}" class="space-y-3 rounded-xl border border-zinc-200 p-5 dark:border-zinc-700">
                 @csrf
-                <flux:select name="decision" :label="__('Keputusan')" required>
-                    <flux:select.option value="approved">{{ __('Setujui') }}</flux:select.option>
-                    <flux:select.option value="rejected">{{ __('Tolak') }}</flux:select.option>
-                </flux:select>
-                <flux:textarea name="review_note" :label="__('Catatan (opsional)')" />
+                <flux:field>
+                    <flux:label>{{ __('Keputusan') }}</flux:label>
+                    <flux:select name="decision" :value="old('decision')" required>
+                        <flux:select.option value="approved">{{ __('Setujui') }}</flux:select.option>
+                        <flux:select.option value="rejected">{{ __('Tolak') }}</flux:select.option>
+                    </flux:select>
+                    <flux:error name="decision" />
+                </flux:field>
+                <flux:field>
+                    <flux:label>{{ __('Catatan (opsional)') }}</flux:label>
+                    <flux:textarea name="review_note">{{ old('review_note') }}</flux:textarea>
+                    <flux:error name="review_note" />
+                </flux:field>
                 <flux:button type="submit" variant="primary">{{ __('Simpan keputusan') }}</flux:button>
             </form>
         @endif
