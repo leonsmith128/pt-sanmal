@@ -122,19 +122,17 @@ new #[Title('Absensi')] class extends Component {
     public function requestOvertime(): void
     {
         $validated = $this->validate([
-            'overtimeReason' => ['required', 'string', 'min:5', 'max:2000'],
+            'overtimeReason' => ['nullable', 'string', 'max:2000'],
             'overtimeStartAt' => ['required', 'date_format:Y-m-d\\TH:i'],
-            'overtimeEndAt' => ['required', 'date_format:Y-m-d\\TH:i', 'after:overtimeStartAt'],
         ]);
 
         app(CreateOvertimeRequest::class)->handle(
             employee: $this->employee,
-            reason: $validated['overtimeReason'],
+            reason: $validated['overtimeReason'] ?: null,
             scheduledStartLocal: $validated['overtimeStartAt'],
-            scheduledEndLocal: $validated['overtimeEndAt'],
         );
 
-        $this->reset('overtimeReason', 'overtimeStartAt', 'overtimeEndAt');
+        $this->reset('overtimeReason', 'overtimeStartAt');
         unset($this->overtimeRequest);
         Flux::modal('request-overtime')->close();
         Flux::toast(variant: 'success', text: 'Pengajuan lembur berhasil disimpan.');
@@ -404,8 +402,8 @@ new #[Title('Absensi')] class extends Component {
                 :status-color="$overtimeStatusColor"
             >
                 @if ($overtimeForDate)
-                    <p>{{ __('Jadwal') }}: {{ $overtimeForDate->scheduledStartLocal()->format('d M Y, H:i') }} — {{ $overtimeForDate->scheduledEndLocal()?->format('d M Y, H:i') ?? '—' }}</p>
-                    <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{{ $overtimeForDate->approval_status->label() }}</p>
+                    <p>{{ __('Mulai terjadwal') }}: {{ $overtimeForDate->scheduledStartLocal()->format('d M Y, H:i') }}</p>
+                    <flux:badge class="mt-2" :color="$overtimeForDate->approval_status->badgeColor()">{{ $overtimeForDate->approval_status->label() }}</flux:badge>
                     @if ($overtimeForDate->start_record_id === null && $overtimeForDate->scheduled_start_at->lte(now()) && $overtimeForDate->state !== OvertimeState::NeedsReview)
                         <p class="mt-2 text-sm text-amber-700 dark:text-amber-300">{{ __('Waktu lembur telah tiba. Ambil foto mulai lembur sebelum absen pulang.') }}</p>
                     @elseif ($overtimeForDate->isInProgress())
@@ -578,7 +576,7 @@ new #[Title('Absensi')] class extends Component {
             <form wire:submit="requestOvertime" class="flex flex-col gap-5">
                 <div>
                     <flux:heading size="lg">{{ __('Ajukan lembur') }}</flux:heading>
-                    <flux:subheading>{{ __('Pengajuan dapat dibuat sebelum clock-in. Tentukan waktu mulai, selesai, dan alasan. Jika jadwal tiba sebelum admin menyetujui, Anda tetap harus mengambil foto konfirmasi lembur.') }}</flux:subheading>
+                    <flux:subheading>{{ __('Pengajuan dapat dibuat sebelum clock-in. Tentukan waktu mulai; alasan bersifat opsional. Waktu selesai dicatat dari clock-out aktual. Jika jadwal tiba sebelum admin menyetujui, Anda tetap harus mengambil foto konfirmasi lembur.') }}</flux:subheading>
                 </div>
                 <flux:field>
                     <flux:label>{{ __('Waktu mulai lembur') }}</flux:label>
@@ -586,13 +584,8 @@ new #[Title('Absensi')] class extends Component {
                     <flux:error name="overtimeStartAt" />
                 </flux:field>
                 <flux:field>
-                    <flux:label>{{ __('Waktu selesai lembur') }}</flux:label>
-                    <flux:input type="datetime-local" wire:model="overtimeEndAt" required />
-                    <flux:error name="overtimeEndAt" />
-                </flux:field>
-                <flux:field>
-                    <flux:label>{{ __('Alasan lembur') }}</flux:label>
-                    <flux:textarea wire:model="overtimeReason" rows="3" required placeholder="{{ __('Pekerjaan yang perlu diselesaikan...') }}" />
+                    <flux:label>{{ __('Alasan lembur (opsional)') }}</flux:label>
+                    <flux:textarea wire:model="overtimeReason" rows="3" placeholder="{{ __('Jika diperlukan, jelaskan pekerjaan yang perlu diselesaikan...') }}" />
                     <flux:error name="overtimeReason" />
                 </flux:field>
                 @error('form') <flux:text class="text-sm text-red-600 dark:text-red-400">{{ $message }}</flux:text> @enderror

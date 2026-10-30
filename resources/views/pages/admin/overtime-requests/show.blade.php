@@ -20,16 +20,12 @@
         <section class="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900">
             <div class="flex flex-wrap gap-2">
                 <flux:badge
-                    :color="match ($overtimeRequest->approval_status->value) {
-                        'approved' => 'green',
-                        'rejected' => 'red',
-                        default => 'amber',
-                    }"
+                    :color="$overtimeRequest->approval_status->badgeColor()"
                 >
                     {{ $overtimeRequest->approval_status->label() }}
                 </flux:badge>
 
-                <flux:badge>{{ $overtimeRequest->state->label() }}</flux:badge>
+                <flux:badge :color="$overtimeRequest->state->badgeColor()">{{ $overtimeRequest->state->label() }}</flux:badge>
             </div>
 
             <dl class="mt-4 grid gap-4 sm:grid-cols-2">
@@ -41,7 +37,7 @@
                 </div>
 
                 <div>
-                    <dt class="text-sm text-zinc-500">{{ __('Waktu selesai terjadwal') }}</dt>
+                    <dt class="text-sm text-zinc-500">{{ __('Waktu selesai terjadwal (data lama)') }}</dt>
                     <dd class="mt-1 font-medium">
                         {{ $overtimeRequest->scheduledEndLocal()?->format('d M Y, H:i T') ?? '—' }}
                     </dd>

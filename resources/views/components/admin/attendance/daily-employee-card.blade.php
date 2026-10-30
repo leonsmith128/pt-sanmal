@@ -33,7 +33,7 @@
                     size="sm"
                     :color="$event->type === \App\Enums\AttendanceType::ClockIn ? 'green' : 'blue'"
                 >
-                    {{ $event->type->label() }}: {{ $event->recordedAtLocal()->format('H:i') }}
+                    {{ $event->type->label() }}: {{ $event->effectiveRecordedAtLocal()->format('H:i') }}
                 </flux:badge>
             @endforeach
         </div>

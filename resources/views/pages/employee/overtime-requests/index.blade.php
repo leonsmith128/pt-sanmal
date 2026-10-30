@@ -44,8 +44,8 @@
                             @endif
                         </div>
                         <div class="flex flex-wrap gap-2">
-                            <flux:badge :color="match($request->approval_status->value) {'approved' => 'green', 'rejected' => 'red', default => 'amber'}">{{ $request->approval_status->label() }}</flux:badge>
-                            <flux:badge :color="match($request->state->value) {'in_progress' => 'blue', 'completed' => 'green', 'needs_review' => 'red', 'cancelled' => 'zinc', default => 'amber'}">{{ $request->state->label() }}</flux:badge>
+                            <flux:badge  :color="$request->approval_status->badgeColor()">{{ $request->approval_status->label() }}</flux:badge>
+                            <flux:badge  :color="$request->state->badgeColor()">{{ $request->state->label() }}</flux:badge>
                         </div>
                     </div>
                     @if ($request->decision_note)
