@@ -165,7 +165,7 @@ class AdminOvertimeRequestController extends Controller
                 try {
                     $finalStart = Carbon::createFromFormat('!Y-m-d\\TH:i', $validated['final_start_local'] ?? '', $timezone);
                     $finalEnd = Carbon::createFromFormat('!Y-m-d\\TH:i', $validated['final_end_local'] ?? '', $timezone);
-                } catch (\\Throwable) {
+                } catch (\Throwable) {
                     abort(422, 'Rentang waktu koreksi manual tidak valid.');
                 }
 
