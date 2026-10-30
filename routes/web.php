@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/login')->name('home');
 
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth', EnsureUserIsActive::class, 'verified'])->group(function () {
     Route::get('dashboard', AdminDashboardController::class)->name('dashboard');
     Route::livewire('profil', 'pages::employee-profile')->name('profile.edit');
     Route::redirect('profil-pegawai', '/profil')->name('employee-profile.edit');
