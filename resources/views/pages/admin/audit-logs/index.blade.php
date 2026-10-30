@@ -5,6 +5,8 @@
             <flux:text>{{ __('Riwayat tindakan administratif. Catatan audit bersifat hanya-baca.') }}</flux:text>
         </div>
 
+        <x-admin.flash-message />
+
         <form method="GET" class="flex flex-wrap items-end gap-3">
             <flux:input name="action" :label="__('Aksi')" value="{{ request('action') }}" placeholder="leave.approved" />
             <flux:input type="date" name="from" :label="__('Dari tanggal')" value="{{ request('from') }}" />
