@@ -57,3 +57,39 @@ it('rejects non-manager access during Livewire requests', function () {
         ->test('pages::admin.kehadiran')
         ->assertForbidden();
 });
+
+it('supports an allowlisted attendance table sort and toggles its direction', function () {
+    $admin = attendancePageAdmin();
+
+    Livewire::actingAs($admin)
+        ->test('pages::admin.kehadiran')
+        ->assertSet('sortBy', 'recorded_at')
+        ->assertSet('sortDirection', 'desc')
+        ->call('sort', 'employee')
+        ->assertSet('sortBy', 'employee')
+        ->assertSet('sortDirection', 'asc')
+        ->call('sort', 'employee')
+        ->assertSet('sortDirection', 'desc')
+        ->call('sort', 'untrusted_column')
+        ->assertSet('sortBy', 'employee');
+});
+
+it('resets the additional attendance filters without changing the date range', function () {
+    $admin = attendancePageAdmin();
+
+    Livewire::actingAs($admin)
+        ->test('pages::admin.kehadiran')
+        ->set('dateFrom', '2026-11-02')
+        ->set('dateTo', '2026-11-03')
+        ->set('search', 'Budi')
+        ->set('attendanceType', 'clock_in')
+        ->set('workType', 'onsite')
+        ->set('employeeId', '12')
+        ->call('resetAdditionalFilters')
+        ->assertSet('search', '')
+        ->assertSet('attendanceType', '')
+        ->assertSet('workType', '')
+        ->assertSet('employeeId', '')
+        ->assertSet('dateFrom', '2026-11-02')
+        ->assertSet('dateTo', '2026-11-03');
+});
