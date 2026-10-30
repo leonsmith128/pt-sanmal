@@ -281,7 +281,6 @@ it('accepts the employee Livewire overtime form with only a start time and no re
         ->and($request->scheduled_end_at)->toBeNull();
 });
 
-
 it('finalizes overtime from actual timestamps', function () {
     $employee = overtimeEmployee();
     $clockIn = overtimeClockIn($employee);
