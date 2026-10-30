@@ -27,6 +27,10 @@ it('prevents employees from accessing administrative reports', function () {
     $this->actingAs($employee)
         ->get(route('admin.daily-attendance.export', ['month' => '2026-11']))
         ->assertForbidden();
+
+    $this->actingAs($employee)
+        ->get(route('admin.employees.index'))
+        ->assertForbidden();
 });
 
 it('validates audit log date filters before querying', function () {
