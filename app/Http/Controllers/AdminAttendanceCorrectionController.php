@@ -52,6 +52,7 @@ class AdminAttendanceCorrectionController extends Controller
             abort_unless($locked->status === 'pending', 422, 'Permohonan koreksi sudah diproses.');
 
             $old = ['status' => $locked->status, 'review_note' => $locked->review_note];
+
             $locked->update([
                 'status' => $data['decision'],
                 'review_note' => $data['review_note'] ?? null,
