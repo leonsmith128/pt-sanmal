@@ -1,6 +1,9 @@
 <?php
 
+use App\Enums\AttendanceType;
 use App\Enums\UserRole;
+use App\Enums\WorkType;
+use App\Models\AttendanceRecord;
 use App\Models\Employee;
 use App\Models\User;
 use Livewire\Livewire;
@@ -92,4 +95,46 @@ it('resets the additional attendance filters without changing the date range', f
         ->assertSet('employeeId', '')
         ->assertSet('dateFrom', '2026-11-02')
         ->assertSet('dateTo', '2026-11-03');
+});
+
+it('filters attendance records by employee text, event type, and work type', function () {
+    $admin = attendancePageAdmin();
+    $alpha = attendancePageEmployee('Pegawai Alpha');
+    $beta = attendancePageEmployee('Pegawai Beta');
+
+    AttendanceRecord::query()->create([
+        'employee_id' => $alpha->id,
+        'type' => AttendanceType::ClockIn,
+        'work_type' => WorkType::Office,
+        'recorded_at' => '2026-11-02 01:00:00',
+        'timezone' => 'Asia/Makassar',
+        'attendance_date' => '2026-11-02',
+        'notes' => 'Masuk kantor',
+    ]);
+
+    AttendanceRecord::query()->create([
+        'employee_id' => $beta->id,
+        'type' => AttendanceType::ClockOut,
+        'work_type' => WorkType::Onsite,
+        'recorded_at' => '2026-11-02 09:00:00',
+        'timezone' => 'Asia/Makassar',
+        'attendance_date' => '2026-11-02',
+        'notes' => 'Pulang proyek',
+    ]);
+
+    Livewire::actingAs($admin)
+        ->test('pages::admin.kehadiran')
+        ->set('dateFrom', '2026-11-02')
+        ->set('dateTo', '2026-11-02')
+        ->set('search', 'Pegawai Beta')
+        ->assertSee('Pegawai Beta')
+        ->assertDontSee('Pegawai Alpha')
+        ->set('search', '')
+        ->set('attendanceType', 'clock_in')
+        ->assertSee('Pegawai Alpha')
+        ->assertDontSee('Pegawai Beta')
+        ->set('attendanceType', '')
+        ->set('workType', 'onsite')
+        ->assertSee('Pegawai Beta')
+        ->assertDontSee('Pegawai Alpha');
 });
