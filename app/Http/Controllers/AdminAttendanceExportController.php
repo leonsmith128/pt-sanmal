@@ -24,8 +24,19 @@ class AdminAttendanceExportController extends Controller
 
         $records = AttendanceRecord::query()
             ->with(['employee.user', 'location', 'project', 'approvedCorrection'])
-            ->when($filters['from'] ?? null, fn ($query, $from) => $query->whereRaw("COALESCE((SELECT ac.attendance_date FROM attendance_corrections ac WHERE ac.attendance_record_id = attendance_records.id AND ac.status = 'approved' ORDER BY ac.reviewed_at DESC LIMIT 1), attendance_records.attendance_date) >= ?", [$from]))
-            ->when($filters['to'] ?? null, fn ($query, $to) => $query->whereRaw("COALESCE((SELECT ac.attendance_date FROM attendance_corrections ac WHERE ac.attendance_record_id = attendance_records.id AND ac.status = 'approved' ORDER BY ac.reviewed_at DESC LIMIT 1), attendance_records.attendance_date) <= ?", [$to]))
+            ->when(($filters['from'] ?? null) && ($filters['to'] ?? null), function ($query) use ($filters): void {
+                $from = $filters['from'];
+                $to = $filters['to'];
+                $query->where(function ($nested) use ($from, $to): void {
+                    $nested->whereRaw(
+                        "COALESCE((SELECT ac.attendance_date FROM attendance_corrections ac WHERE ac.attendance_record_id = attendance_records.id AND ac.status = 'approved' ORDER BY ac.reviewed_at DESC LIMIT 1), attendance_records.attendance_date) BETWEEN ? AND ?",
+                        [$from, $to],
+                    )->orWhereRaw(
+                        "(SELECT ci.attendance_date FROM attendance_records ci WHERE ci.employee_id = attendance_records.employee_id AND ci.type = 'clock_in' AND ci.recorded_at <= attendance_records.recorded_at AND ci.recorded_at >= DATE_SUB(attendance_records.recorded_at, INTERVAL 24 HOUR) ORDER BY ci.recorded_at DESC LIMIT 1) BETWEEN ? AND ?",
+                        [$from, $to],
+                    );
+                });
+            })
             ->when($filters['employee_id'] ?? null, fn ($query, $employeeId) => $query->where('employee_id', $employeeId))
             ->when($filters['attendance_type'] ?? null, fn ($query, $type) => $query->where('type', $type))
             ->when($filters['work_type'] ?? null, fn ($query, $type) => $query->where('work_type', $type))

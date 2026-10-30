@@ -261,3 +261,21 @@ it('prevents an administrator from approving their own overtime request', functi
     $response->assertForbidden();
     expect($overtime->fresh()->approval_status)->toBe(OvertimeApprovalStatus::Pending);
 });
+
+
+it('accepts the employee Livewire overtime form with only a start time and no reason', function () {
+    $employee = overtimeEmployee();
+    $scheduledStart = now('Asia/Makassar')->addDay()->setTime(17, 0);
+
+    Livewire::actingAs($employee->user)
+        ->test('pages::employee.attendance')
+        ->set('overtimeStartAt', $scheduledStart->format('Y-m-d\\TH:i'))
+        ->set('overtimeReason', '')
+        ->call('requestOvertime')
+        ->assertHasNoErrors();
+
+    $request = OvertimeRequest::query()->where('employee_id', $employee->id)->firstOrFail();
+
+    expect($request->reason)->toBeNull()
+        ->and($request->scheduled_end_at)->toBeNull();
+});

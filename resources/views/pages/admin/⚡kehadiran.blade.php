@@ -109,7 +109,17 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
             ->join('employees as sort_employees', 'sort_employees.id', '=', 'attendance_records.employee_id')
             ->join('users as sort_users', 'sort_users.id', '=', 'sort_employees.user_id')
             ->with(['employee.user', 'location', 'project', 'approvedCorrection'])
-            ->when($from !== '' && $to !== '', fn ($query) => $query->whereRaw("COALESCE((SELECT ac.attendance_date FROM attendance_corrections ac WHERE ac.attendance_record_id = attendance_records.id AND ac.status = 'approved' ORDER BY ac.reviewed_at DESC LIMIT 1), attendance_records.attendance_date) BETWEEN ? AND ?", [$from, $to]))
+            ->when($from !== '' && $to !== '', function ($query) use ($from, $to): void {
+                $query->where(function ($nested) use ($from, $to): void {
+                    $nested->whereRaw(
+                        "COALESCE((SELECT ac.attendance_date FROM attendance_corrections ac WHERE ac.attendance_record_id = attendance_records.id AND ac.status = 'approved' ORDER BY ac.reviewed_at DESC LIMIT 1), attendance_records.attendance_date) BETWEEN ? AND ?",
+                        [$from, $to],
+                    )->orWhereRaw(
+                        "(SELECT ci.attendance_date FROM attendance_records ci WHERE ci.employee_id = attendance_records.employee_id AND ci.type = 'clock_in' AND ci.recorded_at <= attendance_records.recorded_at AND ci.recorded_at >= DATE_SUB(attendance_records.recorded_at, INTERVAL 24 HOUR) ORDER BY ci.recorded_at DESC LIMIT 1) BETWEEN ? AND ?",
+                        [$from, $to],
+                    );
+                });
+            })
             ->when($this->employeeId !== '', fn ($query) => $query->where('attendance_records.employee_id', (int) $this->employeeId))
             ->when($this->attendanceType !== '', fn ($query) => $query->where('attendance_records.type', $this->attendanceType))
             ->when($this->workType !== '', fn ($query) => $query->where('attendance_records.work_type', $this->workType))
