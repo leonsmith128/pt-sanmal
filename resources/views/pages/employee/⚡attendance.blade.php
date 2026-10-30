@@ -318,35 +318,25 @@ new #[Title('Absensi')] class extends Component {
         @php
             $clockInRecord = $this->history->firstWhere('type', AttendanceType::ClockIn);
             $clockOutRecord = $this->history->where('type', AttendanceType::ClockOut)->last();
-            $workedMinutes = ($clockInRecord && $clockOutRecord)
-                ? max(0, (int) $clockInRecord->recorded_at->diffInMinutes($clockOutRecord->recorded_at))
+            $clockInForDisplay = $clockInRecord
+                ?? ($selectedDate === now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString() ? $session : null);
+            $workedMinutes = ($clockInForDisplay && $clockOutRecord)
+                ? max(0, (int) $clockInForDisplay->effectiveRecordedAt()->diffInMinutes($clockOutRecord->effectiveRecordedAt()))
                 : (($selectedDate === now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString() && $session)
                     ? max(0, (int) $session->recorded_at->diffInMinutes(now(RecordAttendance::DEFAULT_TIMEZONE)))
                     : null);
-            $attendanceStatus = $clockInRecord ? __('Hadir') : __('Belum absen');
-            $attendanceStatusColor = $clockInRecord ? 'green' : 'zinc';
+            $attendanceStatus = $clockInForDisplay ? __('Hadir') : __('Belum absen');
+            $attendanceStatusColor = $clockInForDisplay ? 'green' : 'zinc';
             $attendancePlace = $clockInForDisplay?->project?->name
                 ?? $clockInForDisplay?->location?->name
                 ?? $session?->project?->name
                 ?? $session?->location?->name;
-            $attendanceAddress = $this->history->first()?->address_snapshot
+            $attendanceAddress = $clockInForDisplay?->address_snapshot
+                ?? $this->history->first()?->address_snapshot
                 ?? ($selectedDate === now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString() ? $session?->address_snapshot : null);
             $overtimeForDate = $this->selectedDateOvertimeRequest;
-            $overtimeStatus = $overtimeForDate
-                ? ($overtimeForDate->state === OvertimeState::InProgress
-                    ? 'Berjalan'
-                    : ($overtimeForDate->state === OvertimeState::Completed
-                        ? 'Selesai'
-                        : $overtimeForDate->approval_status->label()))
-                : __('Tidak mengajukan');
-            $overtimeStatusColor = match (true) {
-                ! $overtimeForDate => 'zinc',
-                $overtimeForDate->approval_status === \App\Enums\OvertimeApprovalStatus::Rejected => 'red',
-                $overtimeForDate->state === OvertimeState::InProgress => 'green',
-                $overtimeForDate->state === OvertimeState::Completed => 'blue',
-                $overtimeForDate->approval_status === \App\Enums\OvertimeApprovalStatus::Approved => 'green',
-                default => 'amber',
-            };
+            $overtimeStatus = $overtimeForDate?->state->label() ?? __('Tidak mengajukan');
+            $overtimeStatusColor = $overtimeForDate?->state->badgeColor() ?? 'zinc';
         @endphp
 
         {{-- Ringkasan jam --}}
@@ -386,11 +376,11 @@ new #[Title('Absensi')] class extends Component {
                 @if ($attendanceAddress)
                     <p class="mt-1 break-words text-sm text-zinc-500 dark:text-zinc-400">{{ $attendanceAddress }}</p>
                 @endif
-                @if ($this->history->isNotEmpty())
+                @if ($clockInForDisplay)
                     <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-                        {{ __('Masuk') }}: {{ $clockInRecord?->recordedAtLocal()->format('H:i') ?? '—' }}
+                        {{ __('Masuk') }}: {{ $clockInForDisplay?->effectiveRecordedAtLocal()->format('H:i') ?? '—' }}
                         <span aria-hidden="true">·</span>
-                        {{ __('Pulang') }}: {{ $clockOutRecord?->recordedAtLocal()->format('H:i') ?? '—' }}
+                        {{ __('Pulang') }}: {{ $clockOutRecord?->effectiveRecordedAtLocal()->format('H:i') ?? '—' }}
                     </p>
                 @endif
             </x-attendance.info-card>
