@@ -44,7 +44,9 @@ class AdminAttendanceCorrectionController extends Controller
 
         DB::transaction(function () use ($request, $attendanceCorrection, $data): void {
             $locked = AttendanceCorrection::query()->with('employee.user')->whereKey($attendanceCorrection->id)->lockForUpdate()->firstOrFail();
+
             abort_if($locked->employee?->user_id === $request->user()->id, 403, 'Anda tidak dapat memproses koreksi absensi milik sendiri.');
+
             abort_unless($locked->status === 'pending', 422, 'Permohonan koreksi sudah diproses.');
 
             $old = ['status' => $locked->status, 'review_note' => $locked->review_note];
