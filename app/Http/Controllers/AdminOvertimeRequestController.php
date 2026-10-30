@@ -30,7 +30,7 @@ class AdminOvertimeRequestController extends Controller
 
     public function show(OvertimeRequest $overtimeRequest): View
     {
-        $overtimeRequest->load(['employee.user', 'clockInRecord', 'startRecord', 'clockOutRecord', 'decidedBy']);
+        $overtimeRequest->load(['employee.user', 'clockInRecord', 'startRecord', 'clockOutRecord', 'decidedBy', 'finalizedBy']);
 
         return view('pages::admin.overtime-requests.show', compact('overtimeRequest'));
     }
