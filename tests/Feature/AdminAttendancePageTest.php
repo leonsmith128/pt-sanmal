@@ -138,3 +138,57 @@ it('filters attendance records by employee text, event type, and work type', fun
         ->assertSee('Pegawai Beta')
         ->assertDontSee('Pegawai Alpha');
 });
+
+
+it('shows recent attendance across dates and paginates after thirty records', function () {
+    $admin = attendancePageAdmin();
+    $employee = attendancePageEmployee('Pegawai Aktivitas');
+
+    foreach (range(1, 31) as $number) {
+        AttendanceRecord::query()->create([
+            'employee_id' => $employee->id,
+            'type' => AttendanceType::ClockIn,
+            'work_type' => WorkType::Office,
+            'recorded_at' => now()->subMinutes($number),
+            'timezone' => 'Asia/Makassar',
+            'attendance_date' => now()->subMinutes($number)->toDateString(),
+        ]);
+    }
+
+    Livewire::actingAs($admin)
+        ->test('pages::admin.kehadiran')
+        ->assertSee('Aktivitas terbaru')
+        ->assertSee('page=2', false);
+});
+
+it('exports filtered admin attendance as spreadsheet-safe CSV', function () {
+    $admin = attendancePageAdmin();
+    $alpha = attendancePageEmployee('=Pegawai Formula');
+    $beta = attendancePageEmployee('Pegawai Lain');
+
+    foreach ([[$alpha, '2026-11-02'], [$beta, '2026-11-03']] as [$employee, $date]) {
+        AttendanceRecord::query()->create([
+            'employee_id' => $employee->id,
+            'type' => AttendanceType::ClockIn,
+            'work_type' => WorkType::Office,
+            'recorded_at' => $date.' 01:00:00',
+            'timezone' => 'Asia/Makassar',
+            'attendance_date' => $date,
+        ]);
+    }
+
+    $response = $this->actingAs($admin)->get(route('admin.kehadiran.export', [
+        'from' => '2026-11-02',
+        'to' => '2026-11-02',
+    ]));
+
+    $response->assertOk();
+    expect($response->headers->get('content-type'))->toContain('text/csv');
+
+    $csv = $response->streamedContent();
+
+    expect($csv)
+        ->toContain("'=Pegawai Formula")
+        ->toContain('2026-11-02')
+        ->not->toContain('2026-11-03');
+});
