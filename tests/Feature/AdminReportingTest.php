@@ -75,3 +75,17 @@ it('exports spreadsheet-safe daily attendance CSV values', function () {
         ->toContain("'@SUM(1+1)")
         ->toContain("'=HYPERLINK");
 });
+
+
+it('renders the daily attendance report with a reusable employee card', function () {
+    $admin = reportingUser(UserRole::Admin);
+    $employeeUser = User::factory()->create(['name' => 'Pegawai Uji']);
+    Employee::query()->create(['user_id' => $employeeUser->id]);
+
+    $this->actingAs($admin)
+        ->get(route('admin.daily-attendance', ['date' => '2026-11-02']))
+        ->assertOk()
+        ->assertSee('Rekap Absensi Harian')
+        ->assertSee('Pegawai Uji')
+        ->assertSee('Koreksi status harian');
+});
