@@ -33,8 +33,11 @@ class CreateOvertimeRequest
             }
 
             // Jadwal hanya ditautkan ke sesi aktif bila mulai berada dalam jendela sesi teknis.
+            if ($openSession && $scheduledStart->utc()->lt($openSession->recorded_at)) {
+                $this->fail('scheduled_start_at', 'Waktu mulai lembur tidak boleh sebelum waktu clock-in.');
+            }
+
             $clockIn = $openSession
-                && $scheduledStart->utc()->gte($openSession->recorded_at)
                 && $scheduledStart->utc()->lt($openSession->recorded_at->copy()->addHours(RecordAttendance::OPEN_SESSION_HOURS))
                     ? $openSession
                     : null;

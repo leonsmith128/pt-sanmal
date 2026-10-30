@@ -151,7 +151,11 @@ class RecordAttendance
                     'project_id' => $project?->id,
                     'recorded_at' => $now,
                     'timezone' => $timezone,
-                    'attendance_date' => ($type === AttendanceType::ClockOut ? $open->attendance_date : $now->copy()->setTimezone($timezone))->toDateString(),
+                    'attendance_date' => (
+                        $type === AttendanceType::ClockOut
+                            ? $open->attendance_date
+                            : $now->copy()->setTimezone($timezone)
+                    )->toDateString(),
                     'latitude' => $latitude,
                     'longitude' => $longitude,
                     'accuracy_m' => $accuracy,
