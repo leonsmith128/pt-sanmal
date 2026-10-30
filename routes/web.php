@@ -72,6 +72,7 @@ Route::middleware(['auth', EnsureUserIsActive::class, 'verified'])->group(functi
             Route::get('lembur', [AdminOvertimeRequestController::class, 'index'])->name('overtime-requests.index');
             Route::get('lembur/{overtimeRequest}', [AdminOvertimeRequestController::class, 'show'])->name('overtime-requests.show');
             Route::post('lembur/{overtimeRequest}/keputusan', [AdminOvertimeRequestController::class, 'decide'])->name('overtime-requests.decide');
+            Route::post('lembur/{overtimeRequest}/finalisasi', [AdminOvertimeRequestController::class, 'finalize'])->name('overtime-requests.finalize');
             Route::post('lembur/{overtimeRequest}/pengecualian-foto', [AdminOvertimeRequestController::class, 'allowClockOutWithoutPhoto'])->name('overtime-requests.photo-exception');
 
             Route::get('rekap-harian', [AdminDailyAttendanceController::class, 'daily'])->name('daily-attendance');
