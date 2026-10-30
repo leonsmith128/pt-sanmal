@@ -127,3 +127,27 @@ it('completes a confirmed overtime session when the employee clocks out', functi
         ->and($overtime->fresh()->state)->toBe(OvertimeState::Completed)
         ->and($overtime->fresh()->clock_out_record_id)->toBe($clockOut->id);
 });
+
+it('blocks clock out before a future scheduled overtime until the request is cancelled', function () {
+    Storage::fake('local');
+    $employee = overtimeEmployee();
+    $clockIn = overtimeClockIn($employee);
+    $overtime = overtimeRequest($employee, $clockIn, now()->addHour()->toDateTimeString());
+    $overtime->update(['state' => OvertimeState::Scheduled]);
+
+    expect(fn () => app(RecordAttendance::class)->handle(
+        employee: $employee,
+        type: AttendanceType::ClockOut,
+        workType: null,
+        locationId: null,
+        projectId: null,
+        latitude: -5.14,
+        longitude: 119.41,
+        accuracy: 25,
+        selfie: UploadedFile::fake()->image('clock-out.jpg'),
+        selfieSource: SelfieSource::Camera,
+    ))->toThrow(ValidationException::class);
+
+    expect($overtime->fresh()->state)->toBe(OvertimeState::Scheduled)
+        ->and($overtime->fresh()->cancelled_at)->toBeNull();
+});
