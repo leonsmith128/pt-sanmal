@@ -1,18 +1,18 @@
 <?php
 
 use App\Enums\UserRole;
+use App\Http\Controllers\AdminAttendanceCorrectionController;
+use App\Http\Controllers\AdminAuditLogController;
+use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\AdminEmployeeController;
+use App\Http\Controllers\AdminLeaveRequestController;
+use App\Http\Controllers\AdminOvertimeRequestController;
 use App\Http\Controllers\AttendanceHistoryController;
 use App\Http\Controllers\AttendanceSelfieController;
 use App\Http\Controllers\LeaveRequestController;
 use App\Http\Controllers\OvertimeRequestController;
-use App\Http\Controllers\AdminLeaveRequestController;
-use App\Http\Controllers\AdminOvertimeRequestController;
-use App\Http\Controllers\AdminDashboardController;
-use App\Http\Controllers\AdminEmployeeController;
-use App\Http\Controllers\AdminAttendanceCorrectionController;
-use App\Http\Controllers\AdminAuditLogController;
-use App\Http\Middleware\EnsureUserHasRole;
 use App\Http\Middleware\EnsureUserIsActive;
+use App\Http\Middleware\EnsureUserHasRole;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/login')->name('home');
@@ -41,10 +41,10 @@ Route::middleware(['auth', EnsureUserIsActive::class, 'verified'])->group(functi
         ->prefix('admin')
         ->name('admin.')
         ->group(function () {
-            
+
             Route::livewire('kehadiran', 'pages::admin.kehadiran')->name('kehadiran');
             Route::get('kehadiran/{record}/selfie', [AttendanceSelfieController::class, 'show'])->name('attendance.selfie');
-                
+
             Route::resource('pegawai', AdminEmployeeController::class)
                 ->parameters(['pegawai' => 'employee'])
                 ->names('employees')
