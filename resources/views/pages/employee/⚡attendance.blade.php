@@ -414,7 +414,7 @@ new #[Title('Absensi')] class extends Component {
                     @if (in_array($overtimeForDate->state, [OvertimeState::Scheduled, OvertimeState::AwaitingPhoto], true) && $overtimeForDate->start_record_id === null)
                         <form method="POST" action="{{ route('overtime-requests.cancel', $overtimeForDate) }}" class="mt-3" onsubmit="return confirm('Batalkan jadwal lembur ini? Anda harus membatalkannya sebelum dapat absen pulang.')">
                             @csrf @method('PATCH')
-                            <flux:button type="submit" variant="danger" color="red" size="sm" icon="x-circle">{{ __('Batalkan Lembur') }}</flux:button>
+                            <flux:button type="submit" variant="primary" color="red" size="sm" icon="x-circle">{{ __('Batalkan Lembur') }}</flux:button>
                         </form>
                     @endif
                     <a href="{{ route('overtime-requests.index') }}" class="mt-3 inline-flex items-center gap-1 text-sm font-medium text-blue-600 underline underline-offset-4 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
