@@ -282,6 +282,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                         <flux:table.column sortable :sorted="$sortBy === 'work_type'" :direction="$sortDirection" wire:click="sort('work_type')">{{ __('Lokasi kerja') }}</flux:table.column>
                         <flux:table.column>{{ __('GPS') }}</flux:table.column>
                         <flux:table.column>{{ __('Foto') }}</flux:table.column>
+                        <flux:table.column>{{ __('Koreksi waktu') }}</flux:table.column>
                     </flux:table.columns>
                     <flux:table.rows>
                         @forelse ($records as $record)
@@ -321,11 +322,33 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                                         —
                                     @endif
                                 </flux:table.cell>
+                                <flux:table.cell>
+                                    @if (in_array($record->type, [AttendanceType::ClockIn, AttendanceType::ClockOut], true))
+                                        <details class="min-w-56">
+                                            <summary class="cursor-pointer text-sm font-medium text-blue-600 underline dark:text-blue-400">{{ __('Koreksi timestamp') }}</summary>
+                                            <form method="POST" action="{{ route('admin.kehadiran.correct-timestamp', $record) }}" class="mt-2 grid min-w-64 gap-2 rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-700 dark:bg-zinc-800">
+                                                @csrf
+                                                <label class="grid gap-1 text-xs">
+                                                    <span>{{ __('Waktu efektif') }}</span>
+                                                    <input type="datetime-local" name="recorded_at_local" required value="{{ $record->effectiveRecordedAtLocal()->format('Y-m-d\\TH:i') }}" class="rounded-md border-zinc-300 text-sm dark:border-zinc-600 dark:bg-zinc-900">
+                                                </label>
+                                                <label class="grid gap-1 text-xs">
+                                                    <span>{{ __('Alasan wajib') }}</span>
+                                                    <textarea name="reason" required minlength="5" maxlength="2000" rows="2" class="rounded-md border-zinc-300 text-sm dark:border-zinc-600 dark:bg-zinc-900"></textarea>
+                                                </label>
+                                                <button type="submit" class="rounded-md bg-blue-600 px-3 py-2 text-xs font-semibold text-white hover:bg-blue-700">{{ __('Simpan koreksi') }}</button>
+                                                <p class="text-xs text-zinc-500">{{ __('Timestamp bukti asli tidak diubah; perubahan dicatat di audit log.') }}</p>
+                                            </form>
+                                        </details>
+                                    @else
+                                        —
+                                    @endif
+                                </flux:table.cell>
                             </flux:table.row>
                         @empty
                             @if ($this->notYetPresent->isEmpty())
                                 <flux:table.row>
-                                    <flux:table.cell colspan="6">
+                                    <flux:table.cell colspan="7">
                                         <x-admin.empty-state :message="__('Tidak ada catatan pada filter ini.')" />
                                     </flux:table.cell>
                                 </flux:table.row>

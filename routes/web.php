@@ -47,6 +47,7 @@ Route::middleware(['auth', EnsureUserIsActive::class, 'verified'])->group(functi
             Route::livewire('kehadiran', 'pages::admin.kehadiran')->name('kehadiran');
             Route::get('kehadiran/ekspor', [AdminAttendanceExportController::class, 'export'])->name('kehadiran.export');
             Route::get('kehadiran/{record}/selfie', [AttendanceSelfieController::class, 'show'])->name('attendance.selfie');
+            Route::post('kehadiran/{record}/koreksi-waktu', [AdminAttendanceCorrectionController::class, 'correctTimestamp'])->name('kehadiran.correct-timestamp');
 
             Route::resource('pegawai', AdminEmployeeController::class)
                 ->parameters(['pegawai' => 'employee'])
