@@ -84,7 +84,7 @@ class AdminLeaveRequestController extends Controller
 
             AuditLog::record(
                 auditable: $locked,
-                action: 'leave.' . $decision->value,
+                action: 'leave.'.$decision->value,
                 oldValues: $old,
                 newValues: [
                     'status' => LeaveRequestStatus::from((string) $locked->status)->value,
@@ -196,7 +196,7 @@ class AdminLeaveRequestController extends Controller
         $month = $request->query('month', now()->format('Y-m'));
         validator(['month' => $month], ['month' => ['required', 'date_format:Y-m']])->validate();
 
-        $start = Carbon::parse($month . '-01')->startOfMonth();
+        $start = Carbon::parse($month.'-01')->startOfMonth();
         $end = $start->copy()->endOfMonth();
 
         return response()->streamDownload(function () use ($start, $end, $statusService): void {
@@ -236,7 +236,7 @@ class AdminLeaveRequestController extends Controller
                 });
 
             fclose($out);
-        }, 'rekap-absensi-' . $month . '.csv', [
+        }, 'rekap-absensi-'.$month.'.csv', [
             'Content-Type' => 'text/csv; charset=UTF-8',
             'Cache-Control' => 'private, no-store, no-cache, must-revalidate',
         ]);
@@ -250,7 +250,7 @@ class AdminLeaveRequestController extends Controller
         $value = (string) ($value ?? '');
 
         return preg_match('/^[\\s\\x00-\\x1F]*[=+\\-@]/u', $value) === 1
-            ? "'" . $value
+            ? "'".$value
             : $value;
     }
 }
