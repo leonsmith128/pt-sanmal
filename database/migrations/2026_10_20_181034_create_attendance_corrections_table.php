@@ -11,11 +11,11 @@ return new class extends Migration
         Schema::create('attendance_corrections', function (Blueprint $table) {
             $table->id();
             $table->foreignId('employee_id')->constrained()->restrictOnDelete();
-            // Nullable: untuk kasus lupa clock-out (belum ada record yang dikoreksi)
+            // Nullable untuk kasus lupa clock-out (belum ada record yang dikoreksi).
             $table->foreignId('attendance_record_id')->nullable()->constrained('attendance_records')->restrictOnDelete();
 
-            $table->string('requested_type', 20);          // clock_in / clock_out
-            $table->timestamp('requested_recorded_at');    // UTC
+            $table->string('requested_type', 20);
+            $table->timestamp('requested_recorded_at');
             $table->date('attendance_date');
             $table->text('reason');
             $table->string('attachment_path')->nullable();
@@ -23,6 +23,7 @@ return new class extends Migration
             $table->string('status', 20)->default('pending')->index();
             $table->foreignId('reviewed_by')->nullable()->constrained('users')->restrictOnDelete();
             $table->timestamp('reviewed_at')->nullable();
+            $table->timestamp('decision_seen_at')->nullable();
             $table->text('review_note')->nullable();
             $table->timestamps();
         });

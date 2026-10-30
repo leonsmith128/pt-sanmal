@@ -16,17 +16,18 @@ return new class extends Migration
             $table->foreignId('clock_out_record_id')->nullable()->unique()->constrained('attendance_records')->restrictOnDelete();
 
             $table->string('reason', 2000);
-            $table->timestamp('scheduled_start_at'); // UTC, waktu rencana
+            $table->timestamp('scheduled_start_at');
             $table->string('timezone', 50)->default('Asia/Makassar');
             $table->string('state', 30)->default('scheduled');
             $table->string('approval_status', 20)->default('pending');
-            $table->timestamp('photo_confirmed_at')->nullable(); // waktu server, bukan waktu browser
+            $table->timestamp('photo_confirmed_at')->nullable();
             $table->timestamp('reminder_sent_at')->nullable();
             $table->timestamp('start_due_notified_at')->nullable();
             $table->timestamp('completed_at')->nullable();
             $table->timestamp('cancelled_at')->nullable();
             $table->foreignId('decided_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamp('decided_at')->nullable();
+            $table->timestamp('decision_seen_at')->nullable();
             $table->text('decision_note')->nullable();
             $table->text('photo_exception_reason')->nullable();
             $table->timestamps();
