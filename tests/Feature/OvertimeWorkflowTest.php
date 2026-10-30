@@ -166,8 +166,9 @@ it('allows cancellation after the scheduled start while actual start is not conf
         ->and($overtime->fresh()->cancelled_at)->not->toBeNull();
 });
 
-it('allows an employee to schedule overtime before clocking in', function () {
+it('keeps a future-date overtime schedule detached from the current work session', function () {
     $employee = overtimeEmployee();
+    overtimeClockIn($employee);
     $start = now('Asia/Makassar')->addDays(2)->setTime(17, 0);
     $end = $start->copy()->addHours(2);
 
