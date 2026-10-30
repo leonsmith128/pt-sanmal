@@ -21,9 +21,9 @@ Route::redirect('/', '/login')->name('home');
 
 Route::middleware(['auth', EnsureUserIsActive::class, 'verified'])->group(function () {
     Route::get('dashboard', AdminDashboardController::class)->name('dashboard');
-    Route::livewire('profil', 'pages::employee-profile')->name('profile.edit');
+    Route::livewire('profil', 'pages::employee.employee-profile')->name('profile.edit');
     Route::redirect('profil-pegawai', '/profil')->name('employee-profile.edit');
-    Route::livewire('absensi', 'pages::attendance')->name('attendance');
+    Route::livewire('absensi', 'pages::employee.attendance')->name('attendance');
     Route::get('riwayat-absensi', [AttendanceHistoryController::class, 'index'])->name('attendance-history.index');
     Route::get('riwayat-absensi/ekspor', [AttendanceHistoryController::class, 'export'])->name('attendance-history.export');
     Route::get('riwayat-absensi/{record}/foto', [AttendanceSelfieController::class, 'showForEmployee'])->name('attendance-history.selfie');

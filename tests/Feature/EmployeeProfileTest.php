@@ -22,7 +22,7 @@ test('employees can update their phone number without changing official data', f
 
     $this->actingAs($user);
 
-    Livewire::test('pages::employee-profile')
+    Livewire::test('pages::employee.employee-profile')
         ->set('phone', '08222222222')
         ->call('saveContactDetails')
         ->assertHasNoErrors();
@@ -40,7 +40,7 @@ test('employees can upload and replace their profile photo', function () {
 
     $this->actingAs($user);
 
-    Livewire::test('pages::employee-profile')
+    Livewire::test('pages::employee.employee-profile')
         ->set('photo', UploadedFile::fake()->image('profile.jpg', 200, 200))
         ->call('saveProfilePhoto')
         ->assertHasNoErrors();
@@ -51,7 +51,7 @@ test('employees can upload and replace their profile photo', function () {
 
     $oldPath = $user->profile_photo_path;
 
-    Livewire::test('pages::employee-profile')
+    Livewire::test('pages::employee.employee-profile')
         ->set('photo', UploadedFile::fake()->image('new-profile.png', 200, 200))
         ->call('saveProfilePhoto')
         ->assertHasNoErrors();
@@ -68,7 +68,7 @@ test('profile photo upload rejects non-image files', function () {
     $user = User::factory()->create();
     $this->actingAs($user);
 
-    Livewire::test('pages::employee-profile')
+    Livewire::test('pages::employee.employee-profile')
         ->set('photo', UploadedFile::fake()->create('script.php', 20, 'application/x-php'))
         ->call('saveProfilePhoto')
         ->assertHasErrors(['photo']);
@@ -83,7 +83,7 @@ test('employee profile can remove its current profile photo', function () {
 
     $this->actingAs($user);
 
-    Livewire::test('pages::employee-profile')
+    Livewire::test('pages::employee.employee-profile')
         ->call('removeProfilePhoto')
         ->assertHasNoErrors();
 
@@ -97,7 +97,7 @@ test('profile photo upload rejects images over two megabytes', function () {
     $user = User::factory()->create();
     $this->actingAs($user);
 
-    Livewire::test('pages::employee-profile')
+    Livewire::test('pages::employee.employee-profile')
         ->set('photo', UploadedFile::fake()->image('large-profile.jpg')->size(3000))
         ->call('saveProfilePhoto')
         ->assertHasErrors(['photo']);

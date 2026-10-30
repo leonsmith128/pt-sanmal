@@ -23,7 +23,7 @@ class OvertimeRequestController extends Controller
             ->latest('scheduled_start_at')
             ->paginate(15);
 
-        return view('overtime-requests.index', compact('requests'));
+        return view('pages::employee.overtime-requests.index', compact('requests'));
     }
 
     public function store(Request $request, CreateOvertimeRequest $createOvertimeRequest): RedirectResponse

@@ -24,7 +24,7 @@ class AttendanceHistoryController extends Controller
             ->paginate(20)
             ->withQueryString();
 
-        return view('attendance-history.index', [
+        return view('pages::employee.attendance-history.index', [
             'records' => $records,
             'filters' => $filters,
         ]);

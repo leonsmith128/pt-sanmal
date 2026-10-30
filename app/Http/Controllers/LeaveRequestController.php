@@ -61,7 +61,7 @@ class LeaveRequestController extends Controller
             ['path' => LengthAwarePaginator::resolveCurrentPath(), 'query' => $request->query()]
         );
 
-        return view('leave-requests.index', [
+        return view('pages::employee.leave-requests.index', [
             'requests' => $requests,
             'filters' => $filters,
             'totalCount' => $rows->count(),
@@ -119,7 +119,7 @@ class LeaveRequestController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('leave-requests.create', compact('leaveTypes'));
+        return view('pages::employee.leave-requests.create', compact('leaveTypes'));
     }
 
     public function store(Request $request): RedirectResponse
