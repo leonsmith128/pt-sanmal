@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\UserRole;
 use App\Models\User;
 
 test('guests are redirected to the login page', function () {
@@ -20,7 +21,7 @@ test('authenticated users can visit the dashboard', function () {
 
 test('administrators see the administrative dashboard summary', function () {
     $user = User::factory()->create();
-    $user->forceFill(['role' => \App\Enums\UserRole::Admin])->save();
+    $user->forceFill(['role' => UserRole::Admin])->save();
 
     $this->actingAs($user)
         ->get(route('dashboard'))
