@@ -31,7 +31,13 @@ class ConfirmOvertimeStart
             $this->fail('selfieSource', 'Foto lembur harus diambil langsung dari kamera.');
         }
 
-        AttendanceEvidence::validate(['latitude'=>$latitude,'longitude'=>$longitude,'accuracy'=>$accuracy,'address_snapshot'=>$addressSnapshot,'selfie'=>$selfie]);
+        AttendanceEvidence::validate([
+            'latitude' => $latitude,
+            'longitude' => $longitude,
+            'accuracy' => $accuracy,
+            'address_snapshot' => $addressSnapshot,
+            'selfie' => $selfie,
+        ]);
 
         $storedPath = null;
 

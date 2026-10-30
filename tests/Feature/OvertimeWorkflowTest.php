@@ -182,7 +182,6 @@ it('keeps a future-date overtime schedule detached from the current work session
         ->and($overtime->scheduled_end_at)->toBeNull();
 });
 
-
 it('anchors a clock-out after midnight to the original clock-in attendance date', function () {
     Storage::fake('local');
     $employee = overtimeEmployee();

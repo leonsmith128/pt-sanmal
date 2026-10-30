@@ -96,102 +96,102 @@ class RecordAttendance
                 $employee, $type, $workType, $locationId, $projectId,
                 $latitude, $longitude, $accuracy, $selfie, $selfieSource, $addressSnapshot, &$storedPath
             ) {
-            Employee::query()->whereKey($employee->id)->lockForUpdate()->firstOrFail();
+                Employee::query()->whereKey($employee->id)->lockForUpdate()->firstOrFail();
 
-            $open = self::openSession($employee);
-            $overtime = null;
+                $open = self::openSession($employee);
+                $overtime = null;
 
-            if ($type === AttendanceType::ClockIn) {
-                if ($open) {
-                    $this->fail('form', 'Anda sudah clock-in dan belum clock-out.');
+                if ($type === AttendanceType::ClockIn) {
+                    if ($open) {
+                        $this->fail('form', 'Anda sudah clock-in dan belum clock-out.');
+                    }
+
+                    [$workType, $location, $project] = $this->resolveTarget($employee, $workType, $locationId, $projectId);
+                } elseif ($type === AttendanceType::ClockOut) {
+                    if (! $open) {
+                        $this->fail('form', 'Tidak ada clock-in yang perlu ditutup. Lakukan clock-in terlebih dahulu.');
+                    }
+
+                    $workType = $open->work_type;
+                    $location = $open->location;
+                    $project = $open->project;
+
+                    $overtime = OvertimeRequest::query()
+                        ->where('employee_id', $employee->id)
+                        ->where('clock_in_record_id', $open->id)
+                        ->whereNotIn('state', [OvertimeState::Completed->value, OvertimeState::Cancelled->value])
+                        ->orderByDesc('scheduled_start_at')
+                        ->lockForUpdate()
+                        ->first();
+
+                    if ($overtime && $overtime->start_record_id === null && $overtime->state !== OvertimeState::NeedsReview) {
+                        // Pilihan C: clock-out ditolak sejak jadwal masih aktif, termasuk sebelum
+                        // waktu mulai. Pegawai harus membatalkan pengajuan secara eksplisit.
+                        $this->fail(
+                            'form',
+                            $overtime->scheduled_start_at->isFuture()
+                                ? 'Anda masih memiliki jadwal lembur. Batalkan Lembur terlebih dahulu sebelum absen pulang.'
+                                : 'Jadwal lembur sudah tiba. Konfirmasi Lembur atau Batalkan Lembur terlebih dahulu sebelum absen pulang.'
+                        );
+                    }
+                } else {
+                    $this->fail('form', 'Jenis event absensi tidak valid untuk proses ini.');
                 }
 
-                [$workType, $location, $project] = $this->resolveTarget($employee, $workType, $locationId, $projectId);
-            } elseif ($type === AttendanceType::ClockOut) {
-                if (! $open) {
-                    $this->fail('form', 'Tidak ada clock-in yang perlu ditutup. Lakukan clock-in terlebih dahulu.');
-                }
+                $timezone = $location?->timezone ?? self::DEFAULT_TIMEZONE;
+                $now = now();
 
-                $workType = $open->work_type;
-                $location = $open->location;
-                $project = $open->project;
+                $storedPath = AttendanceSelfie::store($selfie, $employee->id, $now);
 
-                $overtime = OvertimeRequest::query()
-                    ->where('employee_id', $employee->id)
-                    ->where('clock_in_record_id', $open->id)
-                    ->whereNotIn('state', [OvertimeState::Completed->value, OvertimeState::Cancelled->value])
-                    ->orderByDesc('scheduled_start_at')
-                    ->lockForUpdate()
-                    ->first();
-
-                if ($overtime && $overtime->start_record_id === null && $overtime->state !== OvertimeState::NeedsReview) {
-                    // Pilihan C: clock-out ditolak sejak jadwal masih aktif, termasuk sebelum
-                    // waktu mulai. Pegawai harus membatalkan pengajuan secara eksplisit.
-                    $this->fail(
-                        'form',
-                        $overtime->scheduled_start_at->isFuture()
-                            ? 'Anda masih memiliki jadwal lembur. Batalkan Lembur terlebih dahulu sebelum absen pulang.'
-                            : 'Jadwal lembur sudah tiba. Konfirmasi Lembur atau Batalkan Lembur terlebih dahulu sebelum absen pulang.'
-                    );
-                }
-            } else {
-                $this->fail('form', 'Jenis event absensi tidak valid untuk proses ini.');
-            }
-
-            $timezone = $location?->timezone ?? self::DEFAULT_TIMEZONE;
-            $now = now();
-
-            $storedPath = AttendanceSelfie::store($selfie, $employee->id, $now);
-
-            $record = AttendanceRecord::create([
-                'employee_id' => $employee->id,
-                'type' => $type,
-                'work_type' => $workType,
-                'location_id' => $location?->id,
-                'project_id' => $project?->id,
-                'recorded_at' => $now,
-                'timezone' => $timezone,
-                'attendance_date' => ($type === AttendanceType::ClockOut ? $open->attendance_date : $now->copy()->setTimezone($timezone))->toDateString(),
-                'latitude' => $latitude,
-                'longitude' => $longitude,
-                'accuracy_m' => $accuracy,
-                'address_snapshot' => $addressSnapshot,
-                'selfie_path' => $storedPath,
-                'selfie_source' => $selfieSource,
-            ]);
-
-            if ($type === AttendanceType::ClockIn) {
-                // Kaitkan pengajuan yang dibuat sebelum clock-in ke sesi pada tanggal target.
-                // Kaitkan jadwal yang mulai dalam jendela sesi teknis (maks. 24 jam),
-                // termasuk jadwal setelah tengah malam pada sesi yang sama.
-                $sessionStart = $record->recorded_at->copy();
-                $sessionEnd = $sessionStart->copy()->addHours(self::OPEN_SESSION_HOURS);
-
-                $scheduledOvertime = OvertimeRequest::query()
-                    ->where('employee_id', $employee->id)
-                    ->whereNull('clock_in_record_id')
-                    ->whereIn('state', [OvertimeState::Scheduled, OvertimeState::AwaitingPhoto])
-                    ->where('scheduled_start_at', '>=', $sessionStart)
-                    ->where('scheduled_start_at', '<', $sessionEnd)
-                    ->lockForUpdate()
-                    ->first();
-
-                $scheduledOvertime?->update(['clock_in_record_id' => $record->id]);
-            }
-
-            if (
-                $type === AttendanceType::ClockOut
-                && $overtime
-                && ($overtime->start_record_id !== null || $overtime->state === OvertimeState::NeedsReview)
-            ) {
-                $overtime->update([
-                    'state' => OvertimeState::Completed,
-                    'clock_out_record_id' => $record->id,
-                    'completed_at' => $now,
+                $record = AttendanceRecord::create([
+                    'employee_id' => $employee->id,
+                    'type' => $type,
+                    'work_type' => $workType,
+                    'location_id' => $location?->id,
+                    'project_id' => $project?->id,
+                    'recorded_at' => $now,
+                    'timezone' => $timezone,
+                    'attendance_date' => ($type === AttendanceType::ClockOut ? $open->attendance_date : $now->copy()->setTimezone($timezone))->toDateString(),
+                    'latitude' => $latitude,
+                    'longitude' => $longitude,
+                    'accuracy_m' => $accuracy,
+                    'address_snapshot' => $addressSnapshot,
+                    'selfie_path' => $storedPath,
+                    'selfie_source' => $selfieSource,
                 ]);
-            }
 
-            return $record;
+                if ($type === AttendanceType::ClockIn) {
+                    // Kaitkan pengajuan yang dibuat sebelum clock-in ke sesi pada tanggal target.
+                    // Kaitkan jadwal yang mulai dalam jendela sesi teknis (maks. 24 jam),
+                    // termasuk jadwal setelah tengah malam pada sesi yang sama.
+                    $sessionStart = $record->recorded_at->copy();
+                    $sessionEnd = $sessionStart->copy()->addHours(self::OPEN_SESSION_HOURS);
+
+                    $scheduledOvertime = OvertimeRequest::query()
+                        ->where('employee_id', $employee->id)
+                        ->whereNull('clock_in_record_id')
+                        ->whereIn('state', [OvertimeState::Scheduled, OvertimeState::AwaitingPhoto])
+                        ->where('scheduled_start_at', '>=', $sessionStart)
+                        ->where('scheduled_start_at', '<', $sessionEnd)
+                        ->lockForUpdate()
+                        ->first();
+
+                    $scheduledOvertime?->update(['clock_in_record_id' => $record->id]);
+                }
+
+                if (
+                    $type === AttendanceType::ClockOut
+                    && $overtime
+                    && ($overtime->start_record_id !== null || $overtime->state === OvertimeState::NeedsReview)
+                ) {
+                    $overtime->update([
+                        'state' => OvertimeState::Completed,
+                        'clock_out_record_id' => $record->id,
+                        'completed_at' => $now,
+                    ]);
+                }
+
+                return $record;
             });
         } catch (\Throwable $exception) {
             try {

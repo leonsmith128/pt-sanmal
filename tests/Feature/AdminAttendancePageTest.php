@@ -138,7 +138,6 @@ it('filters attendance records by employee text, event type, and work type', fun
         ->assertDontSee('Pegawai Alpha');
 });
 
-
 it('shows recent attendance across dates and paginates after thirty records', function () {
     $admin = attendancePageAdmin();
     $employee = attendancePageEmployee('Pegawai Aktivitas');
