@@ -80,7 +80,7 @@ it('paginates request center results without paginator contract errors', functio
             'leave_type_id' => $type->id,
             'start_date' => '2026-11-02',
             'end_date' => '2026-11-03',
-            'reason' => 'Permohonan keluarga nomor '.$number,
+            'reason' => 'Permohonan keluarga nomor ' . $number,
             'status' => 'pending',
         ]);
 
