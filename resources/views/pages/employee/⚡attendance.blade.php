@@ -3,6 +3,7 @@
 use App\Actions\ConfirmOvertimeStart;
 use App\Actions\CreateOvertimeRequest;
 use App\Actions\RecordAttendance;
+use App\Services\DailyAttendanceStatusService;
 use App\Enums\AttendanceType;
 use App\Enums\SelfieSource;
 use App\Enums\WorkType;
@@ -155,7 +156,7 @@ new #[Title('Absensi')] class extends Component {
     #[Computed]
     public function history()
     {
-        return app(\\App\\Services\\DailyAttendanceStatusService::class)
+        return app(DailyAttendanceStatusService::class)
             ->forEmployeeDate($this->employee, $this->selectedDate)['events']
             ->load(['location', 'project', 'approvedCorrection'])
             ->take(50);

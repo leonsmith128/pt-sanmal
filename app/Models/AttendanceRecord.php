@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Support\Carbon;
+
 
 /**
  * @property int $id
@@ -18,9 +18,9 @@ use Illuminate\Support\Carbon;
  * @property WorkType $work_type
  * @property int|null $location_id
  * @property int|null $project_id
- * @property Carbon $recorded_at Stored in UTC.
+ * @property \\Carbon\\CarbonInterface $recorded_at Stored in UTC.
  * @property string $timezone
- * @property Carbon $attendance_date Local attendance date.
+ * @property \\Carbon\\CarbonInterface $attendance_date Local attendance date.
  * @property string|null $latitude
  * @property string|null $longitude
  * @property string|null $accuracy_m
@@ -83,7 +83,7 @@ class AttendanceRecord extends Model
         return $this->hasOne(OvertimeRequest::class, 'start_record_id');
     }
 
-    public function effectiveRecordedAt(): Carbon
+    public function effectiveRecordedAt(): \\Carbon\\CarbonInterface
     {
         return $this->approvedCorrection?->requested_recorded_at ?? $this->recorded_at;
     }
@@ -95,13 +95,13 @@ class AttendanceRecord extends Model
     }
 
     /** Waktu efektif untuk laporan; recorded_at tetap merupakan bukti asli. */
-    public function effectiveRecordedAtLocal(): Carbon
+    public function effectiveRecordedAtLocal(): \\Carbon\\CarbonInterface
     {
         return $this->effectiveRecordedAt()->copy()->setTimezone($this->timezone);
     }
 
     /** Waktu asli dalam zona waktu saat event direkam. */
-    public function recordedAtLocal(): Carbon
+    public function recordedAtLocal(): \\Carbon\\CarbonInterface
     {
         return $this->recorded_at->copy()->setTimezone($this->timezone);
     }

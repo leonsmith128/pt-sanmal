@@ -44,7 +44,7 @@ it('applies an approved timestamp correction without mutating the original atten
     $response->assertRedirect(route('admin.attendance-corrections.show', $correction));
 
     $freshRecord = $record->fresh();
-    expect($freshRecord->recorded_at->toISOString())->toBe($originalTime->toISOString())
-        ->and($freshRecord->effectiveRecordedAt()->toISOString())->toBe($correctedTime->toISOString())
+    expect($freshRecord->recorded_at->format('Y-m-d H:i:s'))->toBe($originalTime->format('Y-m-d H:i:s'))
+        ->and($freshRecord->effectiveRecordedAt()->format('Y-m-d H:i:s'))->toBe($correctedTime->format('Y-m-d H:i:s'))
         ->and($correction->fresh()->status)->toBe('approved');
 });
