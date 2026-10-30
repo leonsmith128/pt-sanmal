@@ -61,12 +61,14 @@ jobs:
           BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: |
           git diff --name-only "$BASE_SHA...$GITHUB_SHA" -- '*.php' |
-            sed '/\.blade\.php$/d' |
-            sed '/^database\/migrations\//d' |
             while IFS= read -r file; do
-              if [ -f "$file" ]; then
-                printf '%s\0' "$file"
-              fi
+              case "$file" in
+                app/*|tests/*)
+                  if [ -f "$file" ]; then
+                    printf '%s\0' "$file"
+                  fi
+                  ;;
+              esac
             done |
             xargs -0 -r vendor/bin/pint --test
 
