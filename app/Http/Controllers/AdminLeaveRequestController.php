@@ -229,7 +229,7 @@ class AdminLeaveRequestController extends Controller
                                 $employee->user?->name ?? '(tanpa nama)',
                                 $dayStr,
                                 $daily['label'],
-                                $daily['reason'] ?? '',
+                                $daily['reason'],
                             ]));
                         }
                     }
