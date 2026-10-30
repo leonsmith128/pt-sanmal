@@ -5,6 +5,8 @@
             <flux:text>{{ __('Buat akun pegawai dan lengkapi data administrasinya.') }}</flux:text>
         </div>
 
+        <x-admin.flash-message />
+
         <form method="POST" action="{{ route('admin.employees.store') }}" class="space-y-4 rounded-xl border border-zinc-200 p-5 dark:border-zinc-700">
             @csrf
             <flux:input name="name" :label="__('Nama lengkap')" value="{{ old('name') }}" required />
