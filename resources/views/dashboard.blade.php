@@ -3,7 +3,7 @@
         <div><flux:heading size="xl" level="1">{{ $isManager ? __('Dashboard Administrasi') : __('Dashboard') }}</flux:heading><flux:text class="mt-1">{{ $today }}</flux:text></div>
         @if ($isManager)
             <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                @foreach ([['Pegawai aktif', $activeEmployees, 'users'], ['Hadir hari ini', $presentToday, 'check-circle'], ['Belum lengkap', $incompleteToday, 'clock'], ['Belum ada catatan', $noRecordToday, 'alert-circle']] as [$label, $value, $icon])
+                @foreach ([['Pegawai aktif', $activeEmployees, 'user-group'], ['Hadir hari ini', $presentToday, 'check-circle'], ['Belum lengkap', $incompleteToday, 'clock'], ['Belum ada catatan', $noRecordToday, 'exclamation-circle']] as [$label, $value, $icon])
                     <div class="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900"><div class="flex items-center justify-between"><flux:text>{{ __($label) }}</flux:text><flux:icon :name="$icon" class="size-5 text-zinc-400" /></div><p class="mt-3 text-3xl font-semibold tabular-nums">{{ $value }}</p></div>
                 @endforeach
             </div>
