@@ -366,3 +366,40 @@ it('finalizes overtime from a manual range with a required reason', function () 
         ->and($finalized->final_start_at->toISOString())->toBe($manualStart->copy()->utc()->toISOString())
         ->and($finalized->final_end_at->toISOString())->toBe($manualEnd->copy()->utc()->toISOString());
 });
+
+
+it('prevents an administrator from finalizing their own overtime', function () {
+    $employee = overtimeEmployee();
+    $employee->user->forceFill(['role' => UserRole::Admin])->save();
+    $clockIn = overtimeClockIn($employee);
+    $startRecord = AttendanceRecord::create([
+        'employee_id' => $employee->id,
+        'type' => AttendanceType::OvertimeStart,
+        'work_type' => WorkType::Office,
+        'recorded_at' => now()->subHour(),
+        'timezone' => 'Asia/Makassar',
+        'attendance_date' => $clockIn->attendance_date,
+    ]);
+    $clockOut = AttendanceRecord::create([
+        'employee_id' => $employee->id,
+        'type' => AttendanceType::ClockOut,
+        'work_type' => WorkType::Office,
+        'recorded_at' => now(),
+        'timezone' => 'Asia/Makassar',
+        'attendance_date' => $clockIn->attendance_date,
+    ]);
+    $overtime = overtimeRequest($employee, $clockIn, now()->subHour()->subMinutes(5)->toDateTimeString());
+    $overtime->update([
+        'state' => OvertimeState::Completed,
+        'start_record_id' => $startRecord->id,
+        'clock_out_record_id' => $clockOut->id,
+    ]);
+
+    $response = $this->actingAs($employee->user)->post(route('admin.overtime-requests.finalize', $overtime), [
+        'finalization_source' => 'actual',
+        'finalization_reason' => 'Tidak boleh memproses lembur sendiri.',
+    ]);
+
+    $response->assertForbidden();
+    expect($overtime->fresh()->finalized_at)->toBeNull();
+});

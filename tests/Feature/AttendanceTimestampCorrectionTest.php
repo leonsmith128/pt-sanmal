@@ -99,3 +99,40 @@ it('prevents an administrator from correcting their own clock event', function (
     $response->assertForbidden();
     expect($record->fresh()->approvedCorrection)->toBeNull();
 });
+
+
+it('corrects a clock-out timestamp without changing its original event time', function () {
+    $employeeUser = User::factory()->create();
+    $employee = Employee::create(['user_id' => $employeeUser->id]);
+    $clockInTime = now()->subHours(4);
+    $clockOutTime = now()->subHours(2);
+    AttendanceRecord::create([
+        'employee_id' => $employee->id,
+        'type' => AttendanceType::ClockIn,
+        'work_type' => WorkType::Office,
+        'recorded_at' => $clockInTime,
+        'timezone' => 'Asia/Makassar',
+        'attendance_date' => $clockInTime->copy()->setTimezone('Asia/Makassar')->toDateString(),
+    ]);
+    $clockOut = AttendanceRecord::create([
+        'employee_id' => $employee->id,
+        'type' => AttendanceType::ClockOut,
+        'work_type' => WorkType::Office,
+        'recorded_at' => $clockOutTime,
+        'timezone' => 'Asia/Makassar',
+        'attendance_date' => $clockOutTime->copy()->setTimezone('Asia/Makassar')->toDateString(),
+    ]);
+    $admin = User::factory()->create();
+    $admin->forceFill(['role' => UserRole::Admin, 'is_active' => true])->save();
+    $correctedLocal = $clockOutTime->copy()->addMinutes(10)->setTimezone('Asia/Makassar')->startOfMinute();
+
+    $response = $this->actingAs($admin)->post(route('admin.kehadiran.correct-timestamp', $clockOut), [
+        'recorded_at_local' => $correctedLocal->format('Y-m-d\TH:i'),
+        'reason' => 'Waktu pulang dikoreksi sesuai bukti absensi.',
+    ]);
+
+    $response->assertRedirect();
+    $freshRecord = $clockOut->fresh();
+    expect($freshRecord->recorded_at->format('Y-m-d H:i:s'))->toBe($clockOutTime->format('Y-m-d H:i:s'))
+        ->and($freshRecord->effectiveRecordedAt()->format('Y-m-d H:i:s'))->toBe($correctedLocal->copy()->utc()->format('Y-m-d H:i:s'));
+});

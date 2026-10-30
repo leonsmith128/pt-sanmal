@@ -328,7 +328,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                                     @endif
                                 </flux:table.cell>
                                 <flux:table.cell>
-                                    @if (in_array($record->type, [AttendanceType::ClockIn, AttendanceType::ClockOut], true))
+                                    @if (in_array($record->type, [AttendanceType::ClockIn, AttendanceType::ClockOut], true) && $record->employee->user_id !== auth()->id())
                                         <details class="min-w-56">
                                             <summary class="cursor-pointer text-sm font-medium text-blue-600 underline dark:text-blue-400">{{ __('Koreksi timestamp') }}</summary>
                                             <form method="POST" action="{{ route('admin.kehadiran.correct-timestamp', $record) }}" class="mt-2 grid min-w-64 gap-2 rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-700 dark:bg-zinc-800">
