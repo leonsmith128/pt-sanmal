@@ -39,6 +39,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          fetch-depth: 0
 
       - name: Setup PHP
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
@@ -56,27 +57,11 @@ jobs:
         run: composer setup
 
       - name: Check formatting for changed PHP files
-        run: >-
-          vendor/bin/pint --test
-          app/Actions/ConfirmOvertimeStart.php
-          app/Actions/CreateOvertimeRequest.php
-          app/Actions/RecordAttendance.php
-          app/Console/Commands/RefreshOvertimeStates.php
-          app/Enums/AttendanceType.php
-          app/Enums/OvertimeApprovalStatus.php
-          app/Enums/OvertimeState.php
-          app/Http/Controllers/AdminOvertimeRequestController.php
-          app/Http/Controllers/OvertimeRequestController.php
-          app/Models/AttendanceRecord.php
-          app/Models/Employee.php
-          app/Models/OvertimeRequest.php
-          app/Notifications/OvertimeScheduleNotification.php
-          database/migrations/2026_10_20_180954_create_attendance_records_tables.php
-          database/migrations/2026_10_29_000001_create_overtime_requests_table.php
-          database/migrations/2026_10_29_000002_create_notifications_table.php
-          routes/console.php
-          routes/web.php
-          tests/Feature/OvertimeWorkflowTest.php
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          git diff --name-only "$BASE_SHA...$GITHUB_SHA" -- '*.php' |
+            xargs -r vendor/bin/pint --test
 
       - name: Run static analysis
         run: composer types:check
