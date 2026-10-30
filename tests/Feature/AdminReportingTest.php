@@ -89,3 +89,25 @@ it('renders the daily attendance report with a reusable employee card', function
         ->assertSee('Pegawai Uji')
         ->assertSee('Koreksi status harian');
 });
+
+
+it('logs out inactive users before they can access authenticated pages', function () {
+    $inactiveUser = User::factory()->create(['is_active' => false]);
+
+    $this->actingAs($inactiveUser)
+        ->get(route('dashboard'))
+        ->assertRedirect(route('login'));
+
+    $this->assertGuest();
+});
+
+it('logs out inactive administrators before they can access admin pages', function () {
+    $inactiveAdmin = reportingUser(UserRole::Admin);
+    $inactiveAdmin->forceFill(['is_active' => false])->save();
+
+    $this->actingAs($inactiveAdmin)
+        ->get(route('admin.audit-logs.index'))
+        ->assertRedirect(route('login'));
+
+    $this->assertGuest();
+});
