@@ -49,7 +49,6 @@ it('applies an approved timestamp correction without mutating the original atten
         ->and($correction->fresh()->status)->toBe('approved');
 });
 
-
 it('lets another administrator correct a clock event without changing the original timestamp', function () {
     $employeeUser = User::factory()->create();
     $employee = Employee::create(['user_id' => $employeeUser->id]);
