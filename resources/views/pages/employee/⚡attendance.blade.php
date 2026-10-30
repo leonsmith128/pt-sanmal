@@ -3,11 +3,11 @@
 use App\Actions\ConfirmOvertimeStart;
 use App\Actions\CreateOvertimeRequest;
 use App\Actions\RecordAttendance;
-use App\Services\DailyAttendanceStatusService;
 use App\Enums\AttendanceType;
+use App\Enums\OvertimeState;
 use App\Enums\SelfieSource;
 use App\Enums\WorkType;
-use App\Enums\OvertimeState;
+use App\Services\DailyAttendanceStatusService;
 use App\Models\AttendanceRecord;
 use App\Models\OvertimeRequest;
 use App\Support\AttendanceEvidence;
@@ -37,7 +37,6 @@ new #[Title('Absensi')] class extends Component {
     public string $selectedDate = '';
     public string $overtimeReason = '';
     public string $overtimeStartAt = '';
-    public string $overtimeEndAt = '';
 
     public function mount(): void
     {

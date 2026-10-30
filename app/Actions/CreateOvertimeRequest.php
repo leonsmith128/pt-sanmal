@@ -47,7 +47,7 @@ class CreateOvertimeRequest
 
             $existing = OvertimeRequest::query()
                 ->where('employee_id', $employee->id)
-                ->whereNotIn('state', [OvertimeState::Completed, OvertimeState::Cancelled])
+                ->whereNotIn('state', [OvertimeState::Completed->value, OvertimeState::Cancelled->value])
                 ->where('scheduled_start_at', '>=', $dayStartUtc)
                 ->where('scheduled_start_at', '<', $nextDayStartUtc)
                 ->exists();
