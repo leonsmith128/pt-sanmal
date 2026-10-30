@@ -253,6 +253,7 @@ class AdminLeaveRequestController extends Controller
             ? "'".$value
             : $value;
     }
+
     /**
      * Return the scalar value for enum-cast attributes used in audit snapshots.
      */
@@ -262,5 +263,4 @@ class AdminLeaveRequestController extends Controller
             ? (string) $value->value
             : (string) $value;
     }
-
 }
