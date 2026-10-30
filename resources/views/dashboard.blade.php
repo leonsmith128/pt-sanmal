@@ -33,7 +33,7 @@
                 <x-dashboard.stat-card
                     :label="__('Belum ada catatan')"
                     :value="$noRecordToday"
-                    icon="alert-circle"
+                    icon="exclamation-triangle"
                 />
             </section>
 
