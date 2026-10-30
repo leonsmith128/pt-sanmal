@@ -130,6 +130,10 @@
                         <dd class="font-medium">{{ $overtimeRequest->finalized_at->setTimezone($overtimeRequest->timezone)->format('d M Y, H:i') }}</dd>
                     </div>
                     <div>
+                        <dt class="text-sm text-zinc-500">{{ __('Diperiksa oleh') }}</dt>
+                        <dd class="font-medium">{{ $overtimeRequest->finalizedBy?->name ?? '—' }}</dd>
+                    </div>
+                    <div>
                         <dt class="text-sm text-zinc-500">{{ __('Mulai final') }}</dt>
                         <dd class="font-medium">{{ $overtimeRequest->final_start_at?->setTimezone($overtimeRequest->timezone)->format('d M Y, H:i') ?? '—' }}</dd>
                     </div>
