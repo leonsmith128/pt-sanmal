@@ -98,7 +98,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
         [$from, $to] = $this->range();
 
         $sortColumns = [
-            'recorded_at' => 'attendance_records.recorded_at',
+            'recorded_at' => "COALESCE((SELECT ac.requested_recorded_at FROM attendance_corrections ac WHERE ac.attendance_record_id = attendance_records.id AND ac.status = 'approved' ORDER BY ac.reviewed_at DESC LIMIT 1), attendance_records.recorded_at)",
             'employee' => 'sort_users.name',
             'type' => 'attendance_records.type',
             'work_type' => 'attendance_records.work_type',
@@ -109,7 +109,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
             ->join('employees as sort_employees', 'sort_employees.id', '=', 'attendance_records.employee_id')
             ->join('users as sort_users', 'sort_users.id', '=', 'sort_employees.user_id')
             ->with(['employee.user', 'location', 'project', 'approvedCorrection'])
-            ->when($from !== '' && $to !== '', fn ($query) => $query->whereBetween('attendance_records.attendance_date', [$from, $to]))
+            ->when($from !== '' && $to !== '', fn ($query) => $query->whereRaw("COALESCE((SELECT ac.attendance_date FROM attendance_corrections ac WHERE ac.attendance_record_id = attendance_records.id AND ac.status = 'approved' ORDER BY ac.reviewed_at DESC LIMIT 1), attendance_records.attendance_date) BETWEEN ? AND ?", [$from, $to]))
             ->when($this->employeeId !== '', fn ($query) => $query->where('attendance_records.employee_id', (int) $this->employeeId))
             ->when($this->attendanceType !== '', fn ($query) => $query->where('attendance_records.type', $this->attendanceType))
             ->when($this->workType !== '', fn ($query) => $query->where('attendance_records.work_type', $this->workType))
@@ -121,7 +121,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                         ->orWhere('attendance_records.notes', 'like', '%'.$term.'%');
                 });
             })
-            ->orderBy($sortColumns[$this->sortBy] ?? $sortColumns['recorded_at'], $this->sortDirection === 'asc' ? 'asc' : 'desc')
+            ->orderByRaw(($sortColumns[$this->sortBy] ?? $sortColumns['recorded_at']).' '.($this->sortDirection === 'asc' ? 'asc' : 'desc'))
             ->orderByDesc('attendance_records.id')
             ->paginate(30);
     }

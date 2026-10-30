@@ -48,8 +48,14 @@ class DailyAttendanceStatusService
         // clock-in dan clock-out sesi lintas tengah malam (batas sesi teknis 24 jam).
         $rawEvents = AttendanceRecord::query()
             ->whereIn('employee_id', $employeeIds)
-            ->whereDate('attendance_date', '>=', Carbon::parse($start)->subDay()->toDateString())
-            ->whereDate('attendance_date', '<=', Carbon::parse($end)->addDay()->toDateString())
+            ->where(function ($query) use ($start, $end): void {
+                $rangeStart = Carbon::parse($start)->subDay()->toDateString();
+                $rangeEnd = Carbon::parse($end)->addDay()->toDateString();
+
+                $query->whereBetween('attendance_date', [$rangeStart, $rangeEnd])
+                    ->orWhereHas('approvedCorrection', fn ($correctionQuery) => $correctionQuery
+                        ->whereBetween('attendance_date', [$rangeStart, $rangeEnd]));
+            })
             ->with('approvedCorrection')
             ->orderBy('employee_id')
             ->get()
