@@ -83,7 +83,13 @@ class RecordAttendance
 
         // Validasi ulang di action agar jalur pemanggilan lain tidak dapat
         // menyimpan koordinat dengan kualitas GPS yang tidak layak.
-        AttendanceEvidence::validate(['latitude'=>$latitude,'longitude'=>$longitude,'accuracy'=>$accuracy,'address_snapshot'=>$addressSnapshot,'selfie'=>$selfie]);
+        AttendanceEvidence::validate([
+            'latitude' => $latitude,
+            'longitude' => $longitude,
+            'accuracy' => $accuracy,
+            'address_snapshot' => $addressSnapshot,
+            'selfie' => $selfie,
+        ]);
         $storedPath = null;
         try {
             return DB::transaction(function () use (
