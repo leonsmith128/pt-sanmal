@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Route;
 Route::view('/', 'welcome')->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::view('dashboard', 'dashboard')->name('dashboard');
+    Route::get('dashboard', AdminDashboardController::class)->name('dashboard');
     Route::livewire('profil', 'pages::employee-profile')->name('profile.edit');
     Route::redirect('profil-pegawai', '/profil')->name('employee-profile.edit');
     Route::livewire('absensi', 'pages::attendance')->name('attendance');
@@ -36,7 +36,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->prefix('admin')
         ->name('admin.')
         ->group(function () {
-            Route::livewire('kehadiran', 'pages::admin.kehadiran')->name('kehadiran');
+            Route::livewire('kehadiran', 'pages::admin.kehadiran')->name('kehadiran');\n            Route::resource('pegawai', AdminEmployeeController::class)->parameters(['pegawai' => 'employee'])->names('employees')->except(['destroy']);\n            Route::get('koreksi-absensi', [AdminAttendanceCorrectionController::class, 'index'])->name('attendance-corrections.index');\n            Route::get('koreksi-absensi/{attendanceCorrection}', [AdminAttendanceCorrectionController::class, 'show'])->name('attendance-corrections.show');\n            Route::get('koreksi-absensi/{attendanceCorrection}/lampiran', [AdminAttendanceCorrectionController::class, 'attachment'])->name('attendance-corrections.attachment');\n            Route::post('koreksi-absensi/{attendanceCorrection}/keputusan', [AdminAttendanceCorrectionController::class, 'decide'])->name('attendance-corrections.decide');\n            Route::get('audit-log', [AdminAuditLogController::class, 'index'])->name('audit-logs.index');
             Route::get('kehadiran/{record}/selfie', [AttendanceSelfieController::class, 'show'])->name('attendance.selfie');
 
             Route::get('permohonan', [AdminLeaveRequestController::class, 'index'])->name('leave-requests.index');
