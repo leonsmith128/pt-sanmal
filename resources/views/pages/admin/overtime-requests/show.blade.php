@@ -130,10 +130,6 @@
                         <dd class="font-medium">{{ $overtimeRequest->finalized_at->setTimezone($overtimeRequest->timezone)->format('d M Y, H:i') }}</dd>
                     </div>
                     <div>
-                        <dt class="text-sm text-zinc-500">{{ __('Diperiksa oleh') }}</dt>
-                        <dd class="font-medium">{{ $overtimeRequest->finalizedBy?->name ?? '—' }}</dd>
-                    </div>
-                    <div>
                         <dt class="text-sm text-zinc-500">{{ __('Mulai final') }}</dt>
                         <dd class="font-medium">{{ $overtimeRequest->final_start_at?->setTimezone($overtimeRequest->timezone)->format('d M Y, H:i') ?? '—' }}</dd>
                     </div>
@@ -225,7 +221,7 @@
             </section>
         @endif
 
-        @if ($overtimeRequest->clock_in_record_id && $overtimeRequest->scheduled_start_at->lte(now()) && in_array($overtimeRequest->state->value, ['scheduled', 'awaiting_photo'], true) && ! $overtimeRequest->start_record_id)
+        @if (in_array($overtimeRequest->state->value, ['scheduled', 'awaiting_photo'], true) && ! $overtimeRequest->start_record_id)
             <section class="rounded-2xl border border-amber-300 bg-amber-50 p-5 dark:border-amber-800 dark:bg-amber-950/30">
                 <flux:heading size="lg">{{ __('Pengecualian foto mulai lembur') }}</flux:heading>
                 <flux:text class="mt-1">

@@ -32,20 +32,16 @@ class OvertimeRequestController extends Controller
         abort_unless($request->user()->is_active && $employee, 403, 'Akun ini belum terhubung dengan data pegawai aktif.');
 
         $validated = $request->validate([
-            'reason' => ['required', 'string', 'min:5', 'max:2000'],
-            'scheduled_start_at' => ['required', 'date_format:Y-m-d\TH:i'],
-            'scheduled_end_at' => ['required', 'date_format:Y-m-d\TH:i', 'after:scheduled_start_at'],
+            'reason' => ['nullable', 'string', 'max:2000'],
+            'scheduled_start_at' => ['required', 'date_format:Y-m-d\\TH:i'],
         ], [
-            'reason.min' => 'Alasan lembur minimal 5 karakter.',
             'scheduled_start_at.date_format' => 'Waktu mulai lembur tidak valid.',
-            'scheduled_end_at.after' => 'Waktu selesai harus setelah waktu mulai.',
         ]);
 
         $createOvertimeRequest->handle(
             employee: $employee,
-            reason: $validated['reason'],
+            reason: $validated['reason'] ?? null,
             scheduledStartLocal: $validated['scheduled_start_at'],
-            scheduledEndLocal: $validated['scheduled_end_at'],
         );
 
         return redirect()->route('overtime-requests.index')

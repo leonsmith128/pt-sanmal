@@ -13,52 +13,44 @@ use Illuminate\Validation\ValidationException;
 
 class CreateOvertimeRequest
 {
-    public function handle(Employee $employee, string $reason, string $scheduledStartLocal, string $scheduledEndLocal): OvertimeRequest
+    public function handle(Employee $employee, ?string $reason, string $scheduledStartLocal): OvertimeRequest
     {
-        return DB::transaction(function () use ($employee, $reason, $scheduledStartLocal, $scheduledEndLocal) {
+        return DB::transaction(function () use ($employee, $reason, $scheduledStartLocal) {
             Employee::query()->whereKey($employee->id)->lockForUpdate()->firstOrFail();
 
-            // Pengajuan dapat dibuat sebelum clock-in. Zona waktu mengikuti lokasi sesi
-            // jika sesi sudah ada; jika belum, gunakan zona waktu operasional default.
+            // Jadwal hanya menyimpan waktu mulai. Waktu selesai berasal dari clock-out aktual.
             $openSession = RecordAttendance::openSession($employee);
             $timezone = $openSession?->timezone ?: RecordAttendance::DEFAULT_TIMEZONE;
 
             try {
-                $scheduledStart = Carbon::createFromFormat('!Y-m-d\TH:i', $scheduledStartLocal, $timezone);
-                $scheduledEnd = Carbon::createFromFormat('!Y-m-d\TH:i', $scheduledEndLocal, $timezone);
+                $scheduledStart = Carbon::createFromFormat('!Y-m-d\\TH:i', $scheduledStartLocal, $timezone);
             } catch (\Throwable) {
-                $this->fail('scheduled_start_at', 'Format jadwal lembur tidak valid.');
+                $this->fail('scheduled_start_at', 'Format jadwal mulai lembur tidak valid.');
             }
 
-            if (! $scheduledStart || ! $scheduledEnd || $scheduledStart->lt(now($timezone)->startOfMinute())) {
+            if (! $scheduledStart || $scheduledStart->lt(now($timezone)->startOfMinute())) {
                 $this->fail('scheduled_start_at', 'Waktu mulai lembur tidak boleh di masa lalu.');
             }
 
-            if ($scheduledEnd->lte($scheduledStart)) {
-                $this->fail('scheduled_end_at', 'Waktu selesai harus setelah waktu mulai. Untuk lembur lintas tengah malam, pilih tanggal selesai berikutnya.');
-            }
-
-            // Jangan ikat pengajuan beberapa hari ke depan ke sesi hari ini.
-            // Hanya kaitkan bila rentang jadwal beririsan dengan jendela sesi aktif.
+            // Jadwal hanya ditautkan ke sesi aktif bila mulai berada dalam jendela sesi teknis.
             $clockIn = $openSession
-                && $scheduledEnd->utc()->gt($openSession->recorded_at)
+                && $scheduledStart->utc()->gte($openSession->recorded_at)
                 && $scheduledStart->utc()->lt($openSession->recorded_at->copy()->addHours(RecordAttendance::OPEN_SESSION_HOURS))
                     ? $openSession
                     : null;
 
-            if ($clockIn && $scheduledStart->utc()->lt($clockIn->recorded_at)) {
-                $this->fail('scheduled_start_at', 'Waktu mulai lembur tidak boleh sebelum waktu absen masuk.');
-            }
+            $dayStartUtc = $scheduledStart->copy()->startOfDay()->utc();
+            $nextDayStartUtc = $scheduledStart->copy()->addDay()->startOfDay()->utc();
 
             $existing = OvertimeRequest::query()
                 ->where('employee_id', $employee->id)
                 ->whereNotIn('state', [OvertimeState::Completed, OvertimeState::Cancelled])
-                ->where('scheduled_start_at', '<', $scheduledEnd->utc())
-                ->where('scheduled_end_at', '>', $scheduledStart->utc())
+                ->where('scheduled_start_at', '>=', $dayStartUtc)
+                ->where('scheduled_start_at', '<', $nextDayStartUtc)
                 ->exists();
 
             if ($existing) {
-                $this->fail('form', 'Anda sudah memiliki pengajuan lembur aktif pada rentang waktu tersebut.');
+                $this->fail('form', 'Anda sudah memiliki pengajuan lembur aktif pada tanggal tersebut.');
             }
 
             $overtime = OvertimeRequest::create([
@@ -66,7 +58,7 @@ class CreateOvertimeRequest
                 'clock_in_record_id' => $clockIn?->id,
                 'reason' => $reason,
                 'scheduled_start_at' => $scheduledStart->utc(),
-                'scheduled_end_at' => $scheduledEnd->utc(),
+                'scheduled_end_at' => null,
                 'timezone' => $timezone,
                 'state' => $scheduledStart->utc()->lte(now()) ? OvertimeState::AwaitingPhoto : OvertimeState::Scheduled,
                 'approval_status' => OvertimeApprovalStatus::Pending,
@@ -77,7 +69,7 @@ class CreateOvertimeRequest
                 action: 'overtime.requested',
                 newValues: [
                     'scheduled_start_at' => $overtime->scheduled_start_at->toISOString(),
-                    'scheduled_end_at' => $overtime->scheduled_end_at->toISOString(),
+                    'scheduled_end_at' => null,
                     'clock_in_record_id' => $overtime->clock_in_record_id,
                     'state' => $overtime->state->value,
                     'approval_status' => $overtime->approval_status->value,

@@ -3,7 +3,7 @@
         <div class="flex items-start justify-between gap-4">
             <div>
                 <flux:heading size="xl">{{ __('Pengajuan lembur') }}</flux:heading>
-                <flux:text class="mt-1">{{ __('Ajukan jadwal lembur sebelum pelaksanaan. Jadwal dan waktu aktual akan dicatat terpisah.') }}</flux:text>
+                <flux:text class="mt-1">{{ __('Ajukan waktu mulai lembur sebelum pelaksanaan. Waktu selesai mengikuti clock-out aktual dan dicatat terpisah.') }}</flux:text>
             </div>
             <flux:button href="{{ route('attendance') }}" variant="ghost" icon="arrow-left">{{ __('Absensi') }}</flux:button>
         </div>
@@ -14,7 +14,7 @@
 
         <section class="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900">
             <flux:heading size="lg">{{ __('Ajukan lembur') }}</flux:heading>
-            <flux:text class="mt-1 text-sm">{{ __('Pengajuan dapat dibuat sebelum clock-in, termasuk beberapa hari sebelumnya. Untuk lembur lintas tengah malam, isi tanggal selesai pada hari berikutnya.') }}</flux:text>
+            <flux:text class="mt-1 text-sm">{{ __('Pengajuan dapat dibuat sebelum clock-in, termasuk beberapa hari sebelumnya. Jadwal hanya memerlukan waktu mulai; selesai lembur dicatat saat clock-out.') }}</flux:text>
             <form method="POST" action="{{ route('overtime-requests.store') }}" class="mt-5 flex flex-col gap-4">
                 @csrf
                 <flux:field>
@@ -23,13 +23,8 @@
                     <flux:error name="scheduled_start_at" />
                 </flux:field>
                 <flux:field>
-                    <flux:label>{{ __('Jadwal selesai') }}</flux:label>
-                    <flux:input type="datetime-local" name="scheduled_end_at" required value="{{ old('scheduled_end_at') }}" />
-                    <flux:error name="scheduled_end_at" />
-                </flux:field>
-                <flux:field>
-                    <flux:label>{{ __('Alasan lembur') }}</flux:label>
-                    <flux:textarea name="reason" rows="3" required placeholder="{{ __('Jelaskan pekerjaan yang perlu diselesaikan...') }}">{{ old('reason') }}</flux:textarea>
+                    <flux:label>{{ __('Alasan lembur (opsional)') }}</flux:label>
+                    <flux:textarea name="reason" rows="3" placeholder="{{ __('Jika diperlukan, jelaskan pekerjaan yang perlu diselesaikan...') }}">{{ old('reason') }}</flux:textarea>
                     <flux:error name="reason" />
                 </flux:field>
                 @error('form') <flux:text class="text-sm text-red-600 dark:text-red-400">{{ $message }}</flux:text> @enderror
@@ -43,8 +38,10 @@
                 <article class="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
                     <div class="flex flex-wrap items-start justify-between gap-3">
                         <div class="min-w-0">
-                            <p class="font-medium text-zinc-900 dark:text-zinc-100">{{ $request->scheduledStartLocal()->format('D, d M Y · H:i') }} — {{ $request->scheduledEndLocal()?->format('D, d M Y · H:i') ?? '—' }}</p>
-                            <p class="mt-1 whitespace-pre-line text-sm text-zinc-600 dark:text-zinc-300">{{ $request->reason }}</p>
+                            <p class="font-medium text-zinc-900 dark:text-zinc-100">{{ __('Mulai terjadwal:') }} {{ $request->scheduledStartLocal()->format('D, d M Y · H:i') }}</p>
+                            @if ($request->reason)
+                                <p class="mt-1 whitespace-pre-line text-sm text-zinc-600 dark:text-zinc-300">{{ $request->reason }}</p>
+                            @endif
                         </div>
                         <div class="flex flex-wrap gap-2">
                             <flux:badge :color="match($request->approval_status->value) {'approved' => 'green', 'rejected' => 'red', default => 'amber'}">{{ $request->approval_status->label() }}</flux:badge>

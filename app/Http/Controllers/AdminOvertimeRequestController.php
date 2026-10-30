@@ -30,7 +30,7 @@ class AdminOvertimeRequestController extends Controller
 
     public function show(OvertimeRequest $overtimeRequest): View
     {
-        $overtimeRequest->load(['employee.user', 'clockInRecord', 'startRecord', 'clockOutRecord', 'decidedBy', 'finalizedBy']);
+        $overtimeRequest->load(['employee.user', 'clockInRecord', 'startRecord', 'clockOutRecord', 'decidedBy']);
 
         return view('pages::admin.overtime-requests.show', compact('overtimeRequest'));
     }
@@ -97,12 +97,6 @@ class AdminOvertimeRequestController extends Controller
             $locked = OvertimeRequest::query()->with('employee.user')->whereKey($overtimeRequest->id)->lockForUpdate()->firstOrFail();
 
             abort_if($locked->employee?->user_id === $request->user()->id, 403, 'Anda tidak dapat memberi pengecualian pada lembur milik sendiri.');
-
-            abort_unless(
-                $locked->clock_in_record_id !== null && $locked->scheduled_start_at->lte(now()),
-                422,
-                'Pengecualian hanya dapat diberikan setelah jadwal tiba dan sesi clock-in terhubung.'
-            );
 
             abort_if(
                 $locked->start_record_id !== null
