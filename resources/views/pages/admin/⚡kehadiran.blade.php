@@ -210,24 +210,57 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                         {{ number_format($records->total()) }} {{ __('catatan absensi') }}
                     </flux:text>
                 </div>
-                <flux:button
-                    size="sm"
-                    variant="outline"
-                    icon="arrow-down-tray"
-                    :href="route('admin.kehadiran.export', array_filter([
-                        'from' => $dateFrom,
-                        'to' => $dateTo,
+                @php
+                    $exportFilters = array_filter([
                         'employee_id' => $employeeId,
                         'search' => $search,
                         'attendance_type' => $attendanceType,
                         'work_type' => $workType,
-                    ], fn ($value) => $value !== ''))"
-                >
-                    {{ __('Export') }}
-                </flux:button>
+                    ], fn ($value) => $value !== '');
+                    $today = Carbon::today();
+                    $weekStart = Carbon::today()->startOfWeek();
+                    $monthStart = Carbon::today()->startOfMonth();
+                @endphp
+                <flux:dropdown position="bottom" align="end">
+                    <flux:button size="sm" variant="outline" icon="arrow-down-tray">
+                        {{ __('Export') }}
+                        <flux:icon name="chevron-down" variant="micro" />
+                    </flux:button>
+                    <flux:menu>
+                        <flux:menu.item
+                            :href="route('admin.kehadiran.export', [...$exportFilters, 'from' => $today->toDateString(), 'to' => $today->toDateString()])"
+                            icon="calendar-days"
+                        >
+                            {{ __('Hari ini') }}
+                        </flux:menu.item>
+                        <flux:menu.item
+                            :href="route('admin.kehadiran.export', [...$exportFilters, 'from' => $weekStart->toDateString(), 'to' => $today->toDateString()])"
+                            icon="calendar-range"
+                        >
+                            {{ __('Minggu ini') }}
+                        </flux:menu.item>
+                        <flux:menu.item
+                            :href="route('admin.kehadiran.export', [...$exportFilters, 'from' => $monthStart->toDateString(), 'to' => $today->toDateString()])"
+                            icon="calendar"
+                        >
+                            {{ __('Bulan ini') }}
+                        </flux:menu.item>
+                        <flux:menu.separator />
+                        <flux:menu.item
+                            :href="route('admin.kehadiran.export', array_filter([
+                                ...$exportFilters,
+                                'from' => $dateFrom,
+                                'to' => $dateTo,
+                            ], fn ($value) => $value !== ''))"
+                            icon="file-spreadsheet"
+                        >
+                            {{ __('Sesuai filter tanggal') }}
+                        </flux:menu.item>
+                    </flux:menu>
+                </flux:dropdown>
             </div>
 
-            <div id="attendance-records" class="overflow-x-auto rounded-lg border border-neutral-200 p-2 [--flux-bleed:0.5rem] dark:border-neutral-700">
+            <div id="attendance-records" class="max-h-[70vh] overflow-auto rounded-lg border border-neutral-200 p-2 [--flux-bleed:0.5rem] [&_thead]:sticky [&_thead]:top-0 [&_thead]:z-20 [&_thead]:bg-white dark:border-neutral-700 dark:[&_thead]:bg-zinc-900">
                 <flux:table bleed :paginate="$records" pagination:scroll-to="#attendance-records">
                     <flux:table.columns>
                         <flux:table.column sortable :sorted="$sortBy === 'recorded_at'" :direction="$sortDirection" wire:click="sort('recorded_at')">{{ __('Waktu') }}</flux:table.column>
