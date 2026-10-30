@@ -3,7 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Enums\UserRole;
-use App\Models\AuditLog;\nuse App\Models\Employee;
+use App\Models\AuditLog;
+use App\Models\Employee;
 use App\Models\Title;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
