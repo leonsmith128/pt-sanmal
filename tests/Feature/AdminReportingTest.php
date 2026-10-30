@@ -80,7 +80,6 @@ it('exports spreadsheet-safe daily attendance CSV values', function () {
         ->toContain("'=HYPERLINK");
 });
 
-
 it('renders the daily attendance report with a reusable employee card', function () {
     $admin = reportingUser(UserRole::Admin);
     $employeeUser = User::factory()->create(['name' => 'Pegawai Uji']);
@@ -93,7 +92,6 @@ it('renders the daily attendance report with a reusable employee card', function
         ->assertSee('Pegawai Uji')
         ->assertSee('Koreksi status harian');
 });
-
 
 it('logs out inactive users before they can access authenticated pages', function () {
     $inactiveUser = User::factory()->create();
@@ -116,7 +114,6 @@ it('logs out inactive administrators before they can access admin pages', functi
 
     $this->assertGuest();
 });
-
 
 it('paginates daily attendance employees before calculating their status', function () {
     $admin = reportingUser(UserRole::Admin);
