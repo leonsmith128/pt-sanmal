@@ -122,7 +122,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
             })
             ->orderBy($sortColumns[$this->sortBy] ?? $sortColumns['recorded_at'], $this->sortDirection === 'asc' ? 'asc' : 'desc')
             ->orderByDesc('attendance_records.id')
-            ->paginate(20);
+            ->paginate(30);
     }
 
     #[Computed]
@@ -227,7 +227,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                 </flux:button>
             </div>
 
-            <div class="overflow-x-auto rounded-lg border border-neutral-200 p-1 dark:border-neutral-700">
+            <div id="attendance-records" class="overflow-x-auto rounded-lg border border-neutral-200 p-2 [--flux-bleed:0.5rem] dark:border-neutral-700">
                 <flux:table bleed :paginate="$records" pagination:scroll-to="#attendance-records">
                     <flux:table.columns>
                         <flux:table.column sortable :sorted="$sortBy === 'recorded_at'" :direction="$sortDirection" wire:click="sort('recorded_at')">{{ __('Waktu') }}</flux:table.column>
