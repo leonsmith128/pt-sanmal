@@ -16,11 +16,8 @@
             </flux:badge>
         </div>
 
-        @if (session('status'))
-            <div class="rounded-xl border border-green-200 bg-green-50 p-4 text-sm text-green-900 dark:border-green-800/60 dark:bg-green-950/40 dark:text-green-300">
-                {{ session('status') }}
-            </div>
-        @endif
+
+        <x-admin.flash-message />
 
         @if ($errors->any())
             <div class="rounded-xl border border-red-300 bg-red-50 p-4 text-sm text-red-800 dark:border-red-800 dark:bg-red-950/40 dark:text-red-300">
