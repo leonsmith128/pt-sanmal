@@ -66,7 +66,7 @@ class AdminLeaveRequestController extends Controller
             }
 
             $old = [
-                'status' => LeaveRequestStatus::from((string) $locked->status)->value,
+                'status' => (string) $locked->getRawOriginal('status'),
                 'decided_by' => $locked->decided_by,
                 'decided_at' => $locked->decided_at
                     ? Carbon::parse($locked->decided_at)->toISOString()
@@ -87,7 +87,7 @@ class AdminLeaveRequestController extends Controller
                 action: 'leave.'.$decision->value,
                 oldValues: $old,
                 newValues: [
-                    'status' => LeaveRequestStatus::from((string) $locked->status)->value,
+                    'status' => $decision->value,
                     'decided_by' => $locked->decided_by,
                     'decided_at' => $locked->decided_at
                     ? Carbon::parse($locked->decided_at)->toISOString()
@@ -154,7 +154,7 @@ class AdminLeaveRequestController extends Controller
                 ->first();
 
             $old = $correction ? [
-                'status' => DailyAttendanceStatus::from((string) $correction->status)->value,
+                'status' => (string) $correction->getRawOriginal('status'),
                 'reason' => $correction->reason,
             ] : null;
 
@@ -180,7 +180,7 @@ class AdminLeaveRequestController extends Controller
                 newValues: [
                     'employee_id' => $employee->id,
                     'attendance_date' => $date,
-                    'status' => DailyAttendanceStatus::from((string) $correction->status)->value,
+                    'status' => $status->value,
                     'reason' => $correction->reason,
                 ],
                 userId: $request->user()->id,
