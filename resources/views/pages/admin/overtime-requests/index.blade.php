@@ -4,9 +4,8 @@
             <flux:heading size="xl">{{ __('Pengelolaan lembur') }}</flux:heading>
             <flux:text class="mt-1">{{ __('Tinjau pengajuan, status konfirmasi foto, dan keputusan lembur pegawai.') }}</flux:text>
         </div>
-        @if (session('status'))
-            <flux:callout variant="success" icon="check-circle"><flux:callout.text>{{ session('status') }}</flux:callout.text></flux:callout>
-        @endif
+
+        <x-admin.flash-message />
         <form method="GET" class="flex flex-wrap items-end gap-3">
             <flux:field class="min-w-48">
                 <flux:label>{{ __('Status persetujuan') }}</flux:label>
