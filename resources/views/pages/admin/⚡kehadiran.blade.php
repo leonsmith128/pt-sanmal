@@ -273,7 +273,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                 </flux:dropdown>
             </div>
 
-            <div id="attendance-records" class="max-h-[70vh] overflow-auto rounded-lg border border-neutral-200 p-2 [--flux-bleed:0.5rem] [&_thead]:sticky [&_thead]:top-0 [&_thead]:z-20 [&_thead]:bg-white dark:border-neutral-700 dark:[&_thead]:bg-zinc-900">
+            <div id="attendance-records" data-record-count="{{ $records->total() }}" class="max-h-[70vh] overflow-auto rounded-lg border border-neutral-200 p-2 [--flux-bleed:0.5rem] [&_thead]:sticky [&_thead]:top-0 [&_thead]:z-20 [&_thead]:bg-white dark:border-neutral-700 dark:[&_thead]:bg-zinc-900">
                 <flux:table bleed :paginate="$records" pagination:scroll-to="#attendance-records">
                     <flux:table.columns>
                         <flux:table.column sortable :sorted="$sortBy === 'recorded_at'" :direction="$sortDirection" wire:click="sort('recorded_at')">{{ __('Waktu') }}</flux:table.column>
