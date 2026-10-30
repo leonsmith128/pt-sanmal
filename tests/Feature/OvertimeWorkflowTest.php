@@ -181,3 +181,84 @@ it('keeps a future-date overtime schedule detached from the current work session
         ->and($overtime->scheduled_start_at->toISOString())->toBe($start->copy()->utc()->toISOString())
         ->and($overtime->scheduled_end_at)->toBeNull();
 });
+
+
+it('anchors a clock-out after midnight to the original clock-in attendance date', function () {
+    Storage::fake('local');
+    $employee = overtimeEmployee();
+    $clockIn = overtimeClockIn($employee);
+    $sessionDate = now('Asia/Makassar')->subDay()->toDateString();
+    $clockIn->update([
+        'recorded_at' => now()->subHours(6),
+        'attendance_date' => $sessionDate,
+    ]);
+
+    $clockOut = app(RecordAttendance::class)->handle(
+        employee: $employee,
+        type: AttendanceType::ClockOut,
+        workType: null,
+        locationId: null,
+        projectId: null,
+        latitude: -5.14,
+        longitude: 119.41,
+        accuracy: 25,
+        selfie: UploadedFile::fake()->image('clock-out-midnight.jpg'),
+        selfieSource: SelfieSource::Camera,
+    );
+
+    expect($clockOut->attendance_date->toDateString())->toBe($sessionDate);
+});
+
+it('groups legacy cross-midnight clock-out into the clock-in day in daily status', function () {
+    $employee = overtimeEmployee();
+    $start = now('Asia/Makassar')->subDay()->setTime(20, 0);
+    $end = $start->copy()->addHours(8);
+
+    AttendanceRecord::create([
+        'employee_id' => $employee->id,
+        'type' => AttendanceType::ClockIn,
+        'work_type' => WorkType::Office,
+        'recorded_at' => $start->copy()->utc(),
+        'timezone' => 'Asia/Makassar',
+        'attendance_date' => $start->toDateString(),
+    ]);
+    AttendanceRecord::create([
+        'employee_id' => $employee->id,
+        'type' => AttendanceType::ClockOut,
+        'work_type' => WorkType::Office,
+        'recorded_at' => $end->copy()->utc(),
+        'timezone' => 'Asia/Makassar',
+        'attendance_date' => $end->toDateString(),
+    ]);
+
+    $result = app(DailyAttendanceStatusService::class)->forEmployeeDate($employee, $start->toDateString());
+
+    expect($result['status'])->toBe('present')
+        ->and($result['events'])->toHaveCount(2);
+});
+
+it('allows an overtime request without a reason through the employee form', function () {
+    $employee = overtimeEmployee();
+    $scheduledStart = now('Asia/Makassar')->addDay()->setTime(17, 0);
+
+    $response = $this->actingAs($employee->user)->post(route('overtime-requests.store'), [
+        'scheduled_start_at' => $scheduledStart->format('Y-m-d\\TH:i'),
+    ]);
+
+    $response->assertRedirect(route('overtime-requests.index'));
+    expect(OvertimeRequest::query()->where('employee_id', $employee->id)->first()?->reason)->toBeNull();
+});
+
+it('prevents an administrator from approving their own overtime request', function () {
+    $employee = overtimeEmployee();
+    $employee->user->forceFill(['role' => UserRole::Admin])->save();
+    $clockIn = overtimeClockIn($employee);
+    $overtime = overtimeRequest($employee, $clockIn, now()->addHour()->toDateTimeString());
+
+    $response = $this->actingAs($employee->user)->post(route('admin.overtime-requests.decide', $overtime), [
+        'decision' => 'approved',
+    ]);
+
+    $response->assertForbidden();
+    expect($overtime->fresh()->approval_status)->toBe(OvertimeApprovalStatus::Pending);
+});
