@@ -31,9 +31,11 @@ class AdminAttendanceExportController extends Controller
             ->when($filters['work_type'] ?? null, fn ($query, $type) => $query->where('work_type', $type))
             ->when(trim($filters['search'] ?? '') !== '', function ($query) use ($filters): void {
                 $term = trim($filters['search']);
-                $query->whereHas('employee.user', fn ($userQuery) => $userQuery->where('name', 'like', '%'.$term.'%'))
-                    ->orWhereHas('employee', fn ($employeeQuery) => $employeeQuery->where('employee_number', 'like', '%'.$term.'%'))
-                    ->orWhere('notes', 'like', '%'.$term.'%');
+                $query->where(function ($nested) use ($term): void {
+                    $nested->whereHas('employee.user', fn ($userQuery) => $userQuery->where('name', 'like', '%'.$term.'%'))
+                        ->orWhereHas('employee', fn ($employeeQuery) => $employeeQuery->where('employee_number', 'like', '%'.$term.'%'))
+                        ->orWhere('notes', 'like', '%'.$term.'%');
+                });
             })
             ->orderByDesc('recorded_at')
             ->orderByDesc('id')
