@@ -56,6 +56,7 @@ class AdminDailyAttendanceController extends Controller
 
         DB::transaction(function () use ($request, $validated, $status): void {
             $employee = Employee::query()->findOrFail((int) $validated['employee_id']);
+            abort_if($employee->user_id === $request->user()->id, 403, 'Anda tidak dapat mengoreksi status kehadiran milik sendiri.');
             $date = $validated['attendance_date'];
 
             $correction = DailyStatusCorrection::query()
