@@ -24,7 +24,7 @@ function dailyStatusLeave(string $code): LeaveRequest
 it('gives an explicit administrative correction precedence over events and leave requests', function () {
     $correction = new DailyStatusCorrection(['status' => DailyAttendanceStatus::Absent, 'reason' => 'Koreksi admin']);
 
-    $result = app(DailyAttendanceStatusService::class)->resolveStatus(
+    $result = new DailyAttendanceStatusService()->resolveStatus(
         collect([dailyStatusEvent(AttendanceType::ClockIn)]),
         collect([dailyStatusLeave('sakit')]),
         $correction,
@@ -36,7 +36,7 @@ it('gives an explicit administrative correction precedence over events and leave
 });
 
 it('marks different approved leave categories on the same day for review', function () {
-    $result = app(DailyAttendanceStatusService::class)->resolveStatus(
+    $result = new DailyAttendanceStatusService()->resolveStatus(
         collect(),
         collect([dailyStatusLeave('sakit'), dailyStatusLeave('cuti')]),
         null,
@@ -47,7 +47,7 @@ it('marks different approved leave categories on the same day for review', funct
 });
 
 it('marks approved leave combined with an attendance event for review', function () {
-    $result = app(DailyAttendanceStatusService::class)->resolveStatus(
+    $result = new DailyAttendanceStatusService()->resolveStatus(
         collect([dailyStatusEvent(AttendanceType::ClockIn)]),
         collect([dailyStatusLeave('izin')]),
         null,
@@ -58,7 +58,7 @@ it('marks approved leave combined with an attendance event for review', function
 });
 
 it('maps approved leave categories to daily statuses', function (string $code, DailyAttendanceStatus $expected) {
-    $result = app(DailyAttendanceStatusService::class)->resolveStatus(
+    $result = new DailyAttendanceStatusService()->resolveStatus(
         collect(),
         collect([dailyStatusLeave($code)]),
         null,
@@ -72,7 +72,7 @@ it('maps approved leave categories to daily statuses', function (string $code, D
 ]);
 
 it('marks a day present only when both clock-in and clock-out events exist', function () {
-    $service = app(DailyAttendanceStatusService::class);
+    $service = new DailyAttendanceStatusService();
 
     $complete = $service->resolveStatus(
         collect([
@@ -93,7 +93,7 @@ it('marks a day present only when both clock-in and clock-out events exist', fun
 });
 
 it('keeps a day without events or leave as no record rather than absent', function () {
-    $result = app(DailyAttendanceStatusService::class)->resolveStatus(collect(), collect(), null);
+    $result = new DailyAttendanceStatusService()->resolveStatus(collect(), collect(), null);
 
     expect($result['status'])->toBe(DailyAttendanceStatus::NoRecord->value)
         ->and($result['status'])->not->toBe(DailyAttendanceStatus::Absent->value);
