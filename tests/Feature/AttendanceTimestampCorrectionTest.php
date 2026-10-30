@@ -11,7 +11,7 @@ use App\Models\User;
 it('applies an approved timestamp correction without mutating the original attendance evidence', function () {
     $employeeUser = User::factory()->create();
     $employee = Employee::create(['user_id' => $employeeUser->id]);
-    $originalTime = now()->subHours(3);
+    $originalTime = now()->subHours(3)->startOfSecond();
 
     $record = AttendanceRecord::create([
         'employee_id' => $employee->id,

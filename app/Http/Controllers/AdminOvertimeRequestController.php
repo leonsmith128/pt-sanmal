@@ -160,8 +160,8 @@ class AdminOvertimeRequestController extends Controller
                 $finalEnd = $locked->scheduled_end_at->copy();
             } elseif ($source === 'actual') {
                 abort_unless($locked->startRecord && $locked->clockOutRecord, 422, 'Rentang aktual belum lengkap sehingga tidak dapat dipilih.');
-                $finalStart = $locked->startRecord->recorded_at->copy();
-                $finalEnd = $locked->clockOutRecord->recorded_at->copy();
+                $finalStart = $locked->startRecord->effectiveRecordedAt()->copy();
+                $finalEnd = $locked->clockOutRecord->effectiveRecordedAt()->copy();
             } else {
                 try {
                     $finalStart = Carbon::createFromFormat('!Y-m-d\\TH:i', $validated['final_start_local'] ?? '', $timezone);

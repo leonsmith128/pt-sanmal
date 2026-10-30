@@ -46,7 +46,7 @@
                 <div>
                     <dt class="text-sm text-zinc-500">{{ __('Waktu aktual mulai') }}</dt>
                     <dd class="mt-1 font-medium">
-                        {{ $overtimeRequest->startRecord?->recordedAtLocal()->format('d M Y, H:i T') ?? '—' }}
+                        {{ $overtimeRequest->startRecord?->effectiveRecordedAtLocal()->format('d M Y, H:i T') ?? '—' }}
                     </dd>
                 </div>
 
@@ -60,14 +60,14 @@
                 <div>
                     <dt class="text-sm text-zinc-500">{{ __('Clock-in terkait') }}</dt>
                     <dd class="mt-1 font-medium">
-                        {{ $overtimeRequest->clockInRecord?->recordedAtLocal()->format('d M Y, H:i') ?? '—' }}
+                        {{ $overtimeRequest->clockInRecord?->effectiveRecordedAtLocal()->format('d M Y, H:i') ?? '—' }}
                     </dd>
                 </div>
 
                 <div>
                     <dt class="text-sm text-zinc-500">{{ __('Clock-out terkait') }}</dt>
                     <dd class="mt-1 font-medium">
-                        {{ $overtimeRequest->clockOutRecord?->recordedAtLocal()->format('d M Y, H:i') ?? '—' }}
+                        {{ $overtimeRequest->clockOutRecord?->effectiveRecordedAtLocal()->format('d M Y, H:i') ?? '—' }}
                     </dd>
                 </div>
             </dl>

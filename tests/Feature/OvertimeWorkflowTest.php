@@ -280,3 +280,90 @@ it('accepts the employee Livewire overtime form with only a start time and no re
     expect($request->reason)->toBeNull()
         ->and($request->scheduled_end_at)->toBeNull();
 });
+
+
+it('finalizes overtime from actual timestamps', function () {
+    $employee = overtimeEmployee();
+    $clockIn = overtimeClockIn($employee);
+    $start = now()->subHour();
+    $end = now();
+    $startRecord = AttendanceRecord::create([
+        'employee_id' => $employee->id,
+        'type' => AttendanceType::OvertimeStart,
+        'work_type' => WorkType::Office,
+        'recorded_at' => $start,
+        'timezone' => 'Asia/Makassar',
+        'attendance_date' => $start->copy()->setTimezone('Asia/Makassar')->toDateString(),
+    ]);
+    $clockOut = AttendanceRecord::create([
+        'employee_id' => $employee->id,
+        'type' => AttendanceType::ClockOut,
+        'work_type' => WorkType::Office,
+        'recorded_at' => $end,
+        'timezone' => 'Asia/Makassar',
+        'attendance_date' => $clockIn->attendance_date,
+    ]);
+    $overtime = overtimeRequest($employee, $clockIn, $start->copy()->subMinutes(5)->toDateTimeString());
+    $overtime->update([
+        'state' => OvertimeState::Completed,
+        'start_record_id' => $startRecord->id,
+        'clock_out_record_id' => $clockOut->id,
+    ]);
+    $admin = User::factory()->create();
+    $admin->forceFill(['role' => UserRole::Admin, 'is_active' => true])->save();
+
+    $response = $this->actingAs($admin)->post(route('admin.overtime-requests.finalize', $overtime), [
+        'finalization_source' => 'actual',
+        'finalization_reason' => 'Menggunakan bukti waktu aktual yang tercatat.',
+    ]);
+
+    $response->assertRedirect(route('admin.overtime-requests.show', $overtime));
+    $finalized = $overtime->fresh();
+    expect($finalized->final_start_at->toISOString())->toBe($start->copy()->startOfSecond()->toISOString())
+        ->and($finalized->final_end_at->toISOString())->toBe($end->copy()->startOfSecond()->toISOString())
+        ->and($finalized->finalization_source)->toBe('actual');
+});
+
+it('finalizes overtime from a manual range with a required reason', function () {
+    $employee = overtimeEmployee();
+    $clockIn = overtimeClockIn($employee);
+    $startRecord = AttendanceRecord::create([
+        'employee_id' => $employee->id,
+        'type' => AttendanceType::OvertimeStart,
+        'work_type' => WorkType::Office,
+        'recorded_at' => now()->subHour(),
+        'timezone' => 'Asia/Makassar',
+        'attendance_date' => now('Asia/Makassar')->toDateString(),
+    ]);
+    $clockOut = AttendanceRecord::create([
+        'employee_id' => $employee->id,
+        'type' => AttendanceType::ClockOut,
+        'work_type' => WorkType::Office,
+        'recorded_at' => now(),
+        'timezone' => 'Asia/Makassar',
+        'attendance_date' => $clockIn->attendance_date,
+    ]);
+    $overtime = overtimeRequest($employee, $clockIn, now()->subHour()->subMinutes(5)->toDateTimeString());
+    $overtime->update([
+        'state' => OvertimeState::Completed,
+        'start_record_id' => $startRecord->id,
+        'clock_out_record_id' => $clockOut->id,
+    ]);
+    $admin = User::factory()->create();
+    $admin->forceFill(['role' => UserRole::Admin, 'is_active' => true])->save();
+    $manualStart = now('Asia/Makassar')->subHour()->startOfMinute();
+    $manualEnd = now('Asia/Makassar')->startOfMinute();
+
+    $response = $this->actingAs($admin)->post(route('admin.overtime-requests.finalize', $overtime), [
+        'finalization_source' => 'manual',
+        'final_start_local' => $manualStart->format('Y-m-d\TH:i'),
+        'final_end_local' => $manualEnd->format('Y-m-d\TH:i'),
+        'finalization_reason' => 'Koreksi manual berdasarkan dokumen pekerjaan.',
+    ]);
+
+    $response->assertRedirect(route('admin.overtime-requests.show', $overtime));
+    $finalized = $overtime->fresh();
+    expect($finalized->finalization_source)->toBe('manual')
+        ->and($finalized->final_start_at->toISOString())->toBe($manualStart->copy()->utc()->toISOString())
+        ->and($finalized->final_end_at->toISOString())->toBe($manualEnd->copy()->utc()->toISOString());
+});
