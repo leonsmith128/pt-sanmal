@@ -32,9 +32,9 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
 
     public function mount(): void
     {
-        $today = now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString();
-        $this->dateFrom = $today;
-        $this->dateTo = $today;
+        // Default view menampilkan aktivitas terbaru lintas tanggal.
+        $this->dateFrom = '';
+        $this->dateTo = '';
     }
 
     public function updated(string $property): void
@@ -70,9 +70,15 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
     /** @return array{0: string, 1: string} */
     private function range(): array
     {
-        $today = now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString();
-        $from = Carbon::canBeCreatedFromFormat($this->dateFrom, 'Y-m-d') ? $this->dateFrom : $today;
-        $to = Carbon::canBeCreatedFromFormat($this->dateTo, 'Y-m-d') ? $this->dateTo : $from;
+        $from = Carbon::canBeCreatedFromFormat($this->dateFrom, 'Y-m-d') ? $this->dateFrom : '';
+        $to = Carbon::canBeCreatedFromFormat($this->dateTo, 'Y-m-d') ? $this->dateTo : '';
+
+        if ($from === '' && $to === '') {
+            return ['', ''];
+        }
+
+        $from = $from !== '' ? $from : $to;
+        $to = $to !== '' ? $to : $from;
 
         return $from <= $to ? [$from, $to] : [$to, $from];
     }
@@ -102,7 +108,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
             ->join('employees as sort_employees', 'sort_employees.id', '=', 'attendance_records.employee_id')
             ->join('users as sort_users', 'sort_users.id', '=', 'sort_employees.user_id')
             ->with(['employee.user', 'location', 'project'])
-            ->whereBetween('attendance_records.attendance_date', [$from, $to])
+            ->when($from !== '' && $to !== '', fn ($query) => $query->whereBetween('attendance_records.attendance_date', [$from, $to]))
             ->when($this->employeeId !== '', fn ($query) => $query->where('attendance_records.employee_id', (int) $this->employeeId))
             ->when($this->attendanceType !== '', fn ($query) => $query->where('attendance_records.type', $this->attendanceType))
             ->when($this->workType !== '', fn ($query) => $query->where('attendance_records.work_type', $this->workType))
@@ -124,7 +130,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
     {
         [$from, $to] = $this->range();
 
-        if ($from !== $to || $this->employeeId !== '' || trim($this->search) !== '' || $this->attendanceType !== '' || $this->workType !== '') {
+        if ($from === '' || $from !== $to || $this->employeeId !== '' || trim($this->search) !== '' || $this->attendanceType !== '' || $this->workType !== '') {
             return collect();
         }
 
@@ -145,7 +151,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
 }; ?>
 
 <section class="w-full">
-    <div class="mx-auto flex w-full max-w-7xl flex-col gap-6">
+    <div class="mx-auto flex w-full max-w-7xl flex-col gap-5">
         <x-admin.page-header
             :title="__('Kehadiran Pegawai')"
             :description="__('Pantau dan telusuri catatan absensi seluruh pegawai.')"
@@ -154,7 +160,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
         @php($records = $this->records)
 
         <x-admin.filter-panel class="!p-3">
-            <div class="grid w-full grid-cols-2 items-end gap-3 sm:grid-cols-3 lg:grid-cols-6">
+            <div class="grid w-full grid-cols-2 items-end gap-2 sm:grid-cols-4 lg:grid-cols-6">
                 <div class="min-w-0">
                     <flux:input size="sm" type="date" wire:model.live="dateFrom" :label="__('Dari tanggal')" />
                 </div>
@@ -169,8 +175,8 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                         @endforeach
                     </flux:select>
                 </div>
-                <div class="col-span-2 min-w-0 sm:col-span-1 lg:col-span-2">
-                    <flux:input size="sm" wire:model.live.debounce.300ms="search" :label="__('Pencarian')" :placeholder="__('Nama, nomor pegawai, atau catatan')" />
+                <div class="min-w-0">
+                    <flux:input size="sm" wire:model.live.debounce.300ms="search" :label="__('Pencarian')" :placeholder="__('Nama / nomor / catatan')" />
                 </div>
                 <div class="min-w-0">
                     <flux:select size="sm" wire:model.live="attendanceType" :label="__('Jenis absensi')">
@@ -188,22 +194,41 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                         @endforeach
                     </flux:select>
                 </div>
-                <div class="col-span-2 flex justify-end sm:col-span-3 lg:col-span-6">
-                    <flux:button size="sm" type="button" variant="ghost" wire:click="resetAdditionalFilters">
-                        {{ __('Reset filter tambahan') }}
+                <div class="col-span-2 flex justify-end sm:col-span-4 lg:col-span-6">
+                    <flux:button size="sm" type="button" variant="ghost" icon="arrow-counter-clockwise" wire:click="resetAdditionalFilters">
+                        {{ __('Reset') }}
                     </flux:button>
                 </div>
             </div>
         </x-admin.filter-panel>
 
-        <div class="space-y-3">
-            <div class="flex flex-wrap items-center justify-between gap-2">
-                <flux:text class="text-sm">{{ number_format($records->total()) }} {{ __('catatan') }}</flux:text>
-                <flux:text class="text-xs text-zinc-500">{{ __('Pilih judul kolom untuk mengurutkan data.') }}</flux:text>
+        <flux:card class="space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                    <flux:heading size="lg">{{ __('Aktivitas terbaru') }}</flux:heading>
+                    <flux:text class="mt-1 text-sm">
+                        {{ number_format($records->total()) }} {{ __('catatan absensi') }}
+                    </flux:text>
+                </div>
+                <flux:button
+                    size="sm"
+                    variant="outline"
+                    icon="arrow-down-tray"
+                    :href="route('admin.kehadiran.export', array_filter([
+                        'from' => $dateFrom,
+                        'to' => $dateTo,
+                        'employee_id' => $employeeId,
+                        'search' => $search,
+                        'attendance_type' => $attendanceType,
+                        'work_type' => $workType,
+                    ], fn ($value) => $value !== ''))"
+                >
+                    {{ __('Export') }}
+                </flux:button>
             </div>
 
-            <div class="overflow-x-auto rounded-xl border border-neutral-200 dark:border-neutral-700">
-                <flux:table>
+            <div class="overflow-x-auto rounded-lg border border-neutral-200 p-1 dark:border-neutral-700">
+                <flux:table bleed :paginate="$records" pagination:scroll-to="#attendance-records">
                     <flux:table.columns>
                         <flux:table.column sortable :sorted="$sortBy === 'recorded_at'" :direction="$sortDirection" wire:click="sort('recorded_at')">{{ __('Waktu') }}</flux:table.column>
                         <flux:table.column sortable :sorted="$sortBy === 'employee'" :direction="$sortDirection" wire:click="sort('employee')">{{ __('Pegawai') }}</flux:table.column>
@@ -243,7 +268,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                                 <flux:table.cell class="whitespace-nowrap">
                                     @if ($record->selfie_path)
                                         <a href="{{ route('admin.attendance.selfie', $record) }}" target="_blank" rel="noopener" class="text-blue-600 underline dark:text-blue-400">{{ __('Lihat') }}</a>
-                                        @if ($record->selfie_source === \App\Enums\SelfieSource::Upload)
+                                        @if ($record->selfie_source === \\App\\Enums\\SelfieSource::Upload)
                                             <flux:badge color="amber" size="sm" class="ml-1">{{ __('Unggahan') }}</flux:badge>
                                         @endif
                                     @else
@@ -276,8 +301,6 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                     </flux:table.rows>
                 </flux:table>
             </div>
-
-            {{ $records->links() }}
-        </div>
+        </flux:card>
     </div>
 </section>
