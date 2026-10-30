@@ -84,7 +84,7 @@ class AdminLeaveRequestController extends Controller
 
             AuditLog::record(
                 auditable: $locked,
-                action: 'leave.'.$this->enumValue($locked->status),
+                action: 'leave.'.$decision->value,
                 oldValues: $old,
                 newValues: [
                     'status' => $this->enumValue($locked->status),
