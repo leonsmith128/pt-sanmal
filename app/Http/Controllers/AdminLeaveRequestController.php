@@ -2,22 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\DailyAttendanceStatus;
 use App\Enums\LeaveRequestStatus;
 use App\Models\AuditLog;
-use App\Models\DailyStatusCorrection;
-use App\Models\Employee;
 use App\Models\LeaveRequest;
-use App\Services\DailyAttendanceStatusService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Validation\Rule;
-use Illuminate\View\View;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AdminLeaveRequestController extends Controller
 {
