@@ -98,6 +98,12 @@ class AdminOvertimeRequestController extends Controller
 
             abort_if($locked->employee?->user_id === $request->user()->id, 403, 'Anda tidak dapat memberi pengecualian pada lembur milik sendiri.');
 
+            abort_unless(
+                $locked->clock_in_record_id !== null && $locked->scheduled_start_at->lte(now()),
+                422,
+                'Pengecualian hanya dapat diberikan setelah jadwal tiba dan sesi clock-in terhubung.'
+            );
+
             abort_if(
                 $locked->start_record_id !== null
                     || ! in_array($locked->state, [OvertimeState::Scheduled, OvertimeState::AwaitingPhoto], true),
