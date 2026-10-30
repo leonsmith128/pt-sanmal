@@ -75,21 +75,29 @@ it('paginates request center results without paginator contract errors', functio
     $employee = requestCenterEmployee($user);
     $type = LeaveType::create(['code' => 'izin', 'name' => 'Izin', 'is_active' => true]);
 
-    foreach (range(1, 11) as $number) {
-        $employee->leaveRequests()->create([
+    foreach (range(1, 31) as $number) {
+        $request = $employee->leaveRequests()->create([
             'leave_type_id' => $type->id,
             'start_date' => '2026-11-02',
             'end_date' => '2026-11-03',
             'reason' => 'Permohonan keluarga nomor '.$number,
             'status' => 'pending',
         ]);
+
+        // Use distinct timestamps so the expected page is deterministic.
+        $timestamp = now()->subSeconds(31 - $number);
+        $request->forceFill([
+            'created_at' => $timestamp,
+            'updated_at' => $timestamp,
+        ])->saveQuietly();
     }
 
     $this->actingAs($user)
         ->get(route('leave-requests.index', ['page' => 2]))
         ->assertOk()
         ->assertSee('page=2', false)
-        ->assertSee('Permohonan keluarga nomor');
+        ->assertSee('Permohonan keluarga nomor 1')
+        ->assertDontSee('Permohonan keluarga nomor 31');
 });
 
 it('validates an inverted date range on the request center', function () {
