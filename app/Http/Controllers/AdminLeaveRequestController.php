@@ -102,13 +102,24 @@ class AdminLeaveRequestController extends Controller
         $date = $request->query('date', now()->toDateString());
         validator(['date' => $date], ['date' => ['required', 'date_format:Y-m-d']])->validate();
 
-        $employees = Employee::query()->with('user')->orderBy('id')->get();
-        $statuses = $statusService->forEmployeesDateRange($employees, $date, $date);
+        $rows = Employee::query()
+            ->with('user')
+            ->orderBy('id')
+            ->paginate(50)
+            ->withQueryString();
 
-        $rows = $employees->map(fn (Employee $employee) => [
-            'employee' => $employee,
-            'daily' => $statuses[$employee->id][$date] ?? $statusService->forEmployeeDate($employee, $date),
-        ]);
+        $statuses = $statusService->forEmployeesDateRange(
+            $rows->getCollection(),
+            $date,
+            $date,
+        );
+
+        $rows->setCollection(
+            $rows->getCollection()->map(fn (Employee $employee) => [
+                'employee' => $employee,
+                'daily' => $statuses[$employee->id][$date] ?? $statusService->forEmployeeDate($employee, $date),
+            ]),
+        );
 
         return view('pages::admin.daily-attendance', compact('date', 'rows'));
     }
@@ -179,10 +190,7 @@ class AdminLeaveRequestController extends Controller
 
         $start = Carbon::parse($month.'-01')->startOfMonth();
         $end = $start->copy()->endOfMonth();
-        $employees = Employee::query()->with('user')->orderBy('id')->get();
-        $statuses = $statusService->forEmployeesDateRange($employees, $start, $end);
-
-        return response()->streamDownload(function () use ($employees, $start, $end, $statuses): void {
+        return response()->streamDownload(function () use ($start, $end, $statusService): void {
             $out = fopen('php://output', 'w');
 
             if ($out === false) {
@@ -193,23 +201,29 @@ class AdminLeaveRequestController extends Controller
             fwrite($out, "\xEF\xBB\xBF");
             fputcsv($out, ['ID Pegawai', 'Nama', 'Tanggal', 'Status', 'Catatan']);
 
-            foreach ($employees as $employee) {
-                for ($day = $start->copy(); $day->lte($end); $day->addDay()) {
-                    $dayStr = $day->toDateString();
-                    $daily = $statuses[$employee->id][$dayStr] ?? [
-                        'label' => 'Belum ada data',
-                        'reason' => '',
-                    ];
-                    $notes = $daily['reason'] ?? '';
-                    fputcsv($out, array_map($this->spreadsheetSafe(...), [
-                        $employee->employee_number ?? $employee->id,
-                        $employee->user?->name ?? '(tanpa nama)',
-                        $dayStr,
-                        $daily['label'],
-                        $notes,
-                    ]));
-                }
-            }
+            Employee::query()
+                ->with('user')
+                ->chunkById(100, function ($employees) use ($statusService, $start, $end, $out): void {
+                    $statuses = $statusService->forEmployeesDateRange($employees, $start, $end);
+
+                    foreach ($employees as $employee) {
+                        for ($day = $start->copy(); $day->lte($end); $day->addDay()) {
+                            $dayStr = $day->toDateString();
+                            $daily = $statuses[$employee->id][$dayStr] ?? [
+                                'label' => 'Belum ada data',
+                                'reason' => '',
+                            ];
+
+                            fputcsv($out, array_map($this->spreadsheetSafe(...), [
+                                $employee->employee_number ?? $employee->id,
+                                $employee->user?->name ?? '(tanpa nama)',
+                                $dayStr,
+                                $daily['label'],
+                                $daily['reason'] ?? '',
+                            ]));
+                        }
+                    }
+                });
 
             fclose($out);
         }, 'rekap-absensi-'.$month.'.csv', [
