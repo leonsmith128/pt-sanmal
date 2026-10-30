@@ -10,9 +10,8 @@
             </flux:button>
         </div>
 
-        @if (session('status'))
-            <flux:callout variant="success">{{ session('status') }}</flux:callout>
-        @endif
+
+        <x-admin.flash-message />
 
         <form method="GET" class="flex flex-wrap items-end gap-3">
             <flux:input name="q" value="{{ request('q') }}" :label="__('Cari pegawai')" placeholder="Nama, email, nomor pegawai" />
