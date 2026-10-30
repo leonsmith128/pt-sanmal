@@ -96,7 +96,8 @@ it('renders the daily attendance report with a reusable employee card', function
 
 
 it('logs out inactive users before they can access authenticated pages', function () {
-    $inactiveUser = User::factory()->create(['is_active' => false]);
+    $inactiveUser = User::factory()->create();
+    $inactiveUser->forceFill(['is_active' => false])->save();
 
     $this->actingAs($inactiveUser)
         ->get(route('dashboard'))
