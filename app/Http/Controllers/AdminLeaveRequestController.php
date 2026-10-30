@@ -226,7 +226,7 @@ class AdminLeaveRequestController extends Controller
         $value = (string) ($value ?? '');
 
         return preg_match('/^[\\s\\x00-\\x1F]*[=+\\-@]/u', $value) === 1
-            ? "'".$value
+            ? "'" . $value
             : $value;
     }
 }
