@@ -38,8 +38,7 @@ class AdminAttendanceExportController extends Controller
                 });
             })
             ->orderByDesc('recorded_at')
-            ->orderByDesc('id')
-            ->get();
+            ->orderByDesc('id');
 
         $filename = 'aktivitas-absensi-'.now()->format('Ymd-His').'.csv';
 
@@ -52,19 +51,21 @@ class AdminAttendanceExportController extends Controller
             fwrite($stream, "\\xEF\\xBB\\xBF");
             fputcsv($stream, ['Waktu', 'Nomor Pegawai', 'Nama', 'Jenis Absensi', 'Jenis Kerja', 'Lokasi / Proyek', 'Latitude', 'Longitude', 'Catatan']);
 
-            foreach ($records as $record) {
-                fputcsv($stream, array_map($this->spreadsheetSafe(...), [
-                    $record->recordedAtLocal()->format('Y-m-d H:i:s'),
-                    $record->employee->employee_number,
-                    $record->employee->user->name,
-                    $record->type->label(),
-                    $record->work_type->label(),
-                    $record->project?->name ?? $record->location?->name ?? '',
-                    $record->latitude,
-                    $record->longitude,
-                    $record->notes,
-                ]));
-            }
+            $records->chunk(500, function ($chunk) use ($stream): void {
+                foreach ($chunk as $record) {
+                    fputcsv($stream, array_map($this->spreadsheetSafe(...), [
+                        $record->recordedAtLocal()->format('Y-m-d H:i:s'),
+                        $record->employee->employee_number,
+                        $record->employee->user->name,
+                        $record->type->label(),
+                        $record->work_type->label(),
+                        $record->project?->name ?? $record->location?->name ?? '',
+                        $record->latitude,
+                        $record->longitude,
+                        $record->notes,
+                    ]));
+                }
+            });
 
             fclose($stream);
         }, $filename, [
