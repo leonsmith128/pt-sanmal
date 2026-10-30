@@ -158,7 +158,9 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
             :description="__('Pantau dan telusuri catatan absensi seluruh pegawai.')"
         />
 
-        @php($records = $this->records)
+        @php
+            ($records = $this->records)
+        @endphp
 
         <x-admin.filter-panel class="!p-3">
             <div class="grid w-full grid-cols-2 items-end gap-2 sm:grid-cols-4 lg:grid-cols-6">
@@ -196,7 +198,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                     </flux:select>
                 </div>
                 <div class="col-span-2 flex justify-end sm:col-span-4 lg:col-span-6">
-                    <flux:button size="sm" type="button" variant="ghost" icon="arrow-counter-clockwise" wire:click="resetAdditionalFilters">
+                    <flux:button size="sm" type="button" variant="ghost" icon="arrows-up-down" wire:click="resetAdditionalFilters">
                         {{ __('Reset') }}
                     </flux:button>
                 </div>
@@ -236,7 +238,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                         </flux:menu.item>
                         <flux:menu.item
                             :href="route('admin.kehadiran.export', [...$exportFilters, 'from' => $weekStart->toDateString(), 'to' => $today->toDateString()])"
-                            icon="calendar-range"
+                            icon="calendar-days"
                         >
                             {{ __('Minggu ini') }}
                         </flux:menu.item>
@@ -253,7 +255,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                                 'from' => $dateFrom,
                                 'to' => $dateTo,
                             ], fn ($value) => $value !== ''))"
-                            icon="file-spreadsheet"
+                            icon="arrow-down-tray"
                         >
                             {{ __('Sesuai filter tanggal') }}
                         </flux:menu.item>
