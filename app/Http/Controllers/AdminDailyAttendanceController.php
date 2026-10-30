@@ -1,20 +1,20 @@
 <?php
 
-namespace App\\Http\\Controllers;
+namespace App\Http\Controllers;
 
-use App\\Enums\\DailyAttendanceStatus;
-use App\\Models\\AuditLog;
-use App\\Models\\DailyStatusCorrection;
-use App\\Models\\Employee;
-use App\\Services\\DailyAttendanceStatusService;
-use Illuminate\\Http\\RedirectResponse;
-use Illuminate\\Http\\Request;
-use Illuminate\\Support\\Carbon;
-use Illuminate\\Support\\Collection;
-use Illuminate\\Support\\Facades\\DB;
-use Illuminate\\Validation\\Rule;
-use Illuminate\\View\\View;
-use Symfony\\Component\\HttpFoundation\\StreamedResponse;
+use App\Enums\DailyAttendanceStatus;
+use App\Models\AuditLog;
+use App\Models\DailyStatusCorrection;
+use App\Models\Employee;
+use App\Services\DailyAttendanceStatusService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
+use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AdminDailyAttendanceController extends Controller
 {
@@ -150,13 +150,13 @@ class AdminDailyAttendanceController extends Controller
     {
         $value = (string) ($value ?? '');
 
-        return preg_match('/^[\\s\\x00-\\x1F]*[=+\\-@]/u', $value) === 1
+        return preg_match('/^[\s\x00-\x1F]*[=+\-@]/u', $value) === 1
             ? "'".$value
             : $value;
     }
 
     private function enumValue(mixed $value): string
     {
-        return $value instanceof \\BackedEnum ? (string) $value->value : (string) $value;
+        return $value instanceof \BackedEnum ? (string) $value->value : (string) $value;
     }
 }
