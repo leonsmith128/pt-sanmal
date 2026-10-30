@@ -8,9 +8,8 @@
             <flux:button href="{{ route('admin.attendance-corrections.index') }}" variant="ghost">{{ __('Kembali') }}</flux:button>
         </div>
 
-        @if (session('status'))
-            <flux:callout variant="success">{{ session('status') }}</flux:callout>
-        @endif
+
+        <x-admin.flash-message />
 
         <section class="space-y-3 rounded-xl border border-zinc-200 p-5 dark:border-zinc-700">
             <dl class="grid gap-3 sm:grid-cols-2">
