@@ -3,7 +3,7 @@
         <div class="flex items-start justify-between gap-4">
             <div>
                 <flux:heading size="xl">{{ __('Pengajuan lembur') }}</flux:heading>
-                <flux:text class="mt-1">{{ __('Atur waktu mulai lembur. Ketika jadwal tiba, foto konfirmasi tetap wajib sebelum Anda dapat absen pulang.') }}</flux:text>
+                <flux:text class="mt-1">{{ __('Ajukan jadwal lembur sebelum pelaksanaan. Jadwal dan waktu aktual akan dicatat terpisah.') }}</flux:text>
             </div>
             <flux:button href="{{ route('attendance') }}" variant="ghost" icon="arrow-left">{{ __('Absensi') }}</flux:button>
         </div>
@@ -14,13 +14,18 @@
 
         <section class="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900">
             <flux:heading size="lg">{{ __('Ajukan lembur') }}</flux:heading>
-            <flux:text class="mt-1 text-sm">{{ __('Pengajuan boleh menunggu persetujuan admin ketika jadwal dimulai. Status persetujuan dan konfirmasi foto dicatat terpisah.') }}</flux:text>
+            <flux:text class="mt-1 text-sm">{{ __('Pengajuan dapat dibuat sebelum clock-in, termasuk beberapa hari sebelumnya. Untuk lembur lintas tengah malam, isi tanggal selesai pada hari berikutnya.') }}</flux:text>
             <form method="POST" action="{{ route('overtime-requests.store') }}" class="mt-5 flex flex-col gap-4">
                 @csrf
                 <flux:field>
                     <flux:label>{{ __('Jadwal mulai') }}</flux:label>
                     <flux:input type="datetime-local" name="scheduled_start_at" required value="{{ old('scheduled_start_at') }}" />
                     <flux:error name="scheduled_start_at" />
+                </flux:field>
+                <flux:field>
+                    <flux:label>{{ __('Jadwal selesai') }}</flux:label>
+                    <flux:input type="datetime-local" name="scheduled_end_at" required value="{{ old('scheduled_end_at') }}" />
+                    <flux:error name="scheduled_end_at" />
                 </flux:field>
                 <flux:field>
                     <flux:label>{{ __('Alasan lembur') }}</flux:label>
@@ -38,7 +43,7 @@
                 <article class="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
                     <div class="flex flex-wrap items-start justify-between gap-3">
                         <div class="min-w-0">
-                            <p class="font-medium text-zinc-900 dark:text-zinc-100">{{ $request->scheduledStartLocal()->format('D, d M Y · H:i') }}</p>
+                            <p class="font-medium text-zinc-900 dark:text-zinc-100">{{ $request->scheduledStartLocal()->format('D, d M Y · H:i') }} — {{ $request->scheduledEndLocal()?->format('D, d M Y · H:i') ?? '—' }}</p>
                             <p class="mt-1 whitespace-pre-line text-sm text-zinc-600 dark:text-zinc-300">{{ $request->reason }}</p>
                         </div>
                         <div class="flex flex-wrap gap-2">
@@ -49,10 +54,10 @@
                     @if ($request->decision_note)
                         <p class="mt-3 rounded-lg bg-zinc-50 p-3 text-sm text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300"><strong>{{ __('Catatan admin:') }}</strong> {{ $request->decision_note }}</p>
                     @endif
-                    @if (in_array($request->state->value, ['scheduled', 'awaiting_photo'], true) && $request->scheduled_start_at->isFuture())
-                        <form method="POST" action="{{ route('overtime-requests.cancel', $request) }}" class="mt-3" onsubmit="return confirm('Batalkan pengajuan lembur ini?')">
+                    @if (in_array($request->state->value, ['scheduled', 'awaiting_photo'], true) && $request->start_record_id === null)
+                        <form method="POST" action="{{ route('overtime-requests.cancel', $request) }}" class="mt-3" onsubmit="return confirm('Batalkan jadwal lembur ini? Setelah dibatalkan, Anda dapat clock-out jika sesi masih aktif.')">
                             @csrf @method('PATCH')
-                            <flux:button type="submit" variant="ghost" size="sm" icon="x-circle">{{ __('Batalkan pengajuan') }}</flux:button>
+                            <flux:button type="submit" variant="danger" color="red" size="sm" icon="x-circle">{{ __('Batalkan Lembur') }}</flux:button>
                         </form>
                     @endif
                 </article>
