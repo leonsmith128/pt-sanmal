@@ -20,7 +20,7 @@ class AdminAuditLogController extends Controller
             ->with('user')
             ->when(
                 $filters['action'] ?? null,
-                fn ($query, string $action) => $query->where('action', 'like', '%'.$action.'%'),
+                fn ($query, string $action) => $query->where('action', 'like', '%' . $action . '%'),
             )
             ->when(
                 $filters['from'] ?? null,
