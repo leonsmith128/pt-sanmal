@@ -27,8 +27,12 @@ class AdminAttendanceExportController extends Controller
             ->when(($filters['from'] ?? null) || ($filters['to'] ?? null), function ($query) use ($filters): void {
                 $from = $filters['from'] ?? null;
                 $to = $filters['to'] ?? null;
+                $previousDayBoundary = match (\\Illuminate\\Support\\Facades\\DB::connection()->getDriverName()) {
+                    'sqlite' => "datetime(attendance_records.recorded_at, '-24 hours')",
+                    default => 'DATE_SUB(attendance_records.recorded_at, INTERVAL 24 HOUR)',
+                };
                 $effectiveDate = "COALESCE((SELECT ac.attendance_date FROM attendance_corrections ac WHERE ac.attendance_record_id = attendance_records.id AND ac.status = 'approved' ORDER BY ac.reviewed_at DESC LIMIT 1), attendance_records.attendance_date)";
-                $sessionDate = "(SELECT COALESCE((SELECT ac2.attendance_date FROM attendance_corrections ac2 WHERE ac2.attendance_record_id = ci.id AND ac2.status = 'approved' ORDER BY ac2.reviewed_at DESC LIMIT 1), ci.attendance_date) FROM attendance_records ci WHERE ci.employee_id = attendance_records.employee_id AND ci.type = 'clock_in' AND ci.recorded_at <= attendance_records.recorded_at AND ci.recorded_at >= DATE_SUB(attendance_records.recorded_at, INTERVAL 24 HOUR) ORDER BY ci.recorded_at DESC LIMIT 1)";
+                $sessionDate = "(SELECT COALESCE((SELECT ac2.attendance_date FROM attendance_corrections ac2 WHERE ac2.attendance_record_id = ci.id AND ac2.status = 'approved' ORDER BY ac2.reviewed_at DESC LIMIT 1), ci.attendance_date) FROM attendance_records ci WHERE ci.employee_id = attendance_records.employee_id AND ci.type = 'clock_in' AND ci.recorded_at <= attendance_records.recorded_at AND ci.recorded_at >= {$previousDayBoundary} ORDER BY ci.recorded_at DESC LIMIT 1)";
 
                 $query->where(function ($nested) use ($from, $to, $effectiveDate, $sessionDate): void {
                     foreach ([$effectiveDate, $sessionDate] as $dateExpression) {
