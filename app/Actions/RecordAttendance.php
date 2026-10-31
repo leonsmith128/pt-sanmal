@@ -174,7 +174,8 @@ class RecordAttendance
                     $scheduledOvertime = OvertimeRequest::query()
                         ->where('employee_id', $employee->id)
                         ->whereNull('clock_in_record_id')
-                        ->whereIn('state', [OvertimeState::Scheduled, OvertimeState::AwaitingPhoto])
+                        // Kaitkan juga pengajuan yang sudah dibatalkan sebelum clock-in.
+                        // Riwayat tersebut tetap menghabiskan jatah satu pengajuan per sesi.
                         ->where('scheduled_start_at', '>=', $sessionStart)
                         ->where('scheduled_start_at', '<', $sessionEnd)
                         ->lockForUpdate()
