@@ -161,6 +161,16 @@
                     </div>
                 </div>
 
+                <div
+                    x-show="starting && ! active"
+                    x-cloak
+                    role="status"
+                    aria-live="polite"
+                    class="rounded-xl bg-zinc-100 p-3 text-sm text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200"
+                >
+                    {{ __('Memeriksa izin dan layanan lokasi. Proses pencarian lokasi dibatasi 5 detik setelah izin diberikan; koordinat dapat menyusul.') }}
+                </div>
+
                 <div x-show="fallback && ! active" x-cloak class="rounded-xl bg-zinc-100 p-3 text-sm text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
                     <p>{{ __('Kamera tidak tersedia. Pastikan izin kamera diberikan dan halaman dibuka melalui HTTPS atau localhost.') }}</p>
                     <p x-show="error" x-text="error" class="mt-1 text-red-600 dark:text-red-400"></p>
