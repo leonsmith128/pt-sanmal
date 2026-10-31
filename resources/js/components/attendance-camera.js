@@ -31,6 +31,7 @@ export default function attendanceCamera(config = {}) {
         isLandscape: window.matchMedia('(orientation: landscape)').matches,
         orientationQuery: null,
         orientationHandler: null,
+        watermarkRenderId: 0,
 
         locationTracker: null,
         best: null,
@@ -122,7 +123,7 @@ export default function attendanceCamera(config = {}) {
             return this.locationTracker.getFreshPosition();
         },
 
-        updateWatermarkPreview() {
+        updateWatermarkPreview(timestamp = new Date(), address = this.address) {
             const video = this.getVideoElement();
             const canvas = this.$refs?.watermarkPreview;
             if (!video || !canvas || !video.videoWidth || !video.videoHeight) return;
@@ -135,19 +136,22 @@ export default function attendanceCamera(config = {}) {
             const context = canvas.getContext('2d');
             if (!context) return;
 
+            const renderId = ++this.watermarkRenderId;
             context.clearRect(0, 0, canvas.width, canvas.height);
+
             loadAttendanceWatermarkLogo().then((logo) => {
-                if (!this.active || canvas !== this.$refs?.watermarkPreview) return;
+                if (
+                    !this.active
+                    || renderId !== this.watermarkRenderId
+                    || canvas !== this.$refs?.watermarkPreview
+                ) return;
+
                 context.clearRect(0, 0, canvas.width, canvas.height);
                 drawAttendanceWatermark(context, canvas.width, canvas.height, {
                     name: this.name,
                     eventLabel: this.eventLabel,
-                    timestamp: {
-                    time: new Intl.DateTimeFormat('id-ID', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(new Date()),
-                    date: new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date()),
-                    weekday: new Intl.DateTimeFormat('id-ID', { weekday: 'long' }).format(new Date()),
-                },
-                    address: this.address,
+                    timestamp,
+                    address,
                 }, logo);
             });
         },
@@ -431,12 +435,15 @@ export default function attendanceCamera(config = {}) {
                 }
 
                 const addressSnapshot = position ? this.address || '' : '';
+                const capturedAt = new Date();
+                this.updateWatermarkPreview(capturedAt, addressSnapshot);
                 const photo = await createAttendancePhoto({
                     video,
                     facingMode: this.facingMode,
                     name: this.name,
                     eventLabel: this.eventLabel,
                     address: addressSnapshot,
+                    capturedAt,
                 });
                 this.capturedAt = photo.capturedAt;
                 this.capturedPosition = position;
