@@ -34,9 +34,10 @@ class RecordAttendance
             ->orderByDesc('id')
             ->first();
 
-        if ($latest
-            && $latest->type === AttendanceType::ClockIn
-            && $latest->recorded_at->gt(now()->subHours(self::OPEN_SESSION_HOURS))) {
+        if ($latest && $latest->type === AttendanceType::ClockIn) {
+            // Sesi tetap terbuka sampai ada Clock Out, termasuk bila melewati tengah malam.
+            // Batas 24 jam hanya dipakai untuk mengelompokkan jadwal lembur masa depan,
+            // bukan untuk mengakhiri sesi secara otomatis.
             return $latest;
         }
 
@@ -106,6 +107,23 @@ class RecordAttendance
                         $this->fail('form', 'Anda sudah clock-in dan belum clock-out.');
                     }
 
+                    $today = now(self::DEFAULT_TIMEZONE)->toDateString();
+                    $alreadyClockedInToday = AttendanceRecord::query()
+                        ->where('employee_id', $employee->id)
+                        ->where('type', AttendanceType::ClockIn)
+                        ->where(function (Builder $query) use ($today): void {
+                            $query->where(function (Builder $original) use ($today): void {
+                                $original->whereDate('attendance_date', $today)
+                                    ->whereDoesntHave('approvedCorrection');
+                            })->orWhereHas('approvedCorrection', fn (Builder $correction) => $correction
+                                ->whereDate('attendance_date', $today));
+                        })
+                        ->exists();
+
+                    if ($alreadyClockedInToday) {
+                        $this->fail('form', 'Anda sudah menggunakan sesi absensi untuk tanggal ini. Setelah Clock Out, Anda tidak dapat Clock In lagi pada tanggal yang sama.');
+                    }
+
                     [$workType, $location, $project] = $this->resolveTarget($employee, $workType, $locationId, $projectId);
                 } elseif ($type === AttendanceType::ClockOut) {
                     if ($open === null) {
@@ -168,20 +186,36 @@ class RecordAttendance
                     // Kaitkan pengajuan yang dibuat sebelum clock-in ke sesi pada tanggal target.
                     // Kaitkan jadwal yang mulai dalam jendela sesi teknis (maks. 24 jam),
                     // termasuk jadwal setelah tengah malam pada sesi yang sama.
-                    $sessionStart = $record->recorded_at->copy();
-                    $sessionEnd = $sessionStart->copy()->addHours(self::OPEN_SESSION_HOURS);
+                    $sessionDate = $record->attendance_date->toDateString();
+                    $dayStartUtc = now(self::DEFAULT_TIMEZONE)->setDate(
+                        (int) substr($sessionDate, 0, 4),
+                        (int) substr($sessionDate, 5, 2),
+                        (int) substr($sessionDate, 8, 2),
+                    )->startOfDay()->utc();
+                    $dayEndUtc = $dayStartUtc->copy()->addDay();
 
                     $scheduledOvertime = OvertimeRequest::query()
                         ->where('employee_id', $employee->id)
                         ->whereNull('clock_in_record_id')
+                        ->where(function (Builder $query) use ($sessionDate, $dayStartUtc, $dayEndUtc): void {
+                            $query->whereDate('session_date', $sessionDate)
+                                ->orWhere(function (Builder $legacy) use ($dayStartUtc, $dayEndUtc): void {
+                                    $legacy->whereNull('session_date')
+                                        ->where('scheduled_start_at', '>=', $dayStartUtc)
+                                        ->where('scheduled_start_at', '<', $dayEndUtc);
+                                });
+                        })
                         // Kaitkan juga pengajuan yang sudah dibatalkan sebelum clock-in.
                         // Riwayat tersebut tetap menghabiskan jatah satu pengajuan per sesi.
-                        ->where('scheduled_start_at', '>=', $sessionStart)
-                        ->where('scheduled_start_at', '<', $sessionEnd)
+                        ->orderBy('created_at')
+                        ->orderBy('id')
                         ->lockForUpdate()
                         ->first();
 
-                    $scheduledOvertime?->update(['clock_in_record_id' => $record->id]);
+                    $scheduledOvertime?->update([
+                        'clock_in_record_id' => $record->id,
+                        'session_date' => $sessionDate,
+                    ]);
                 }
 
                 if (
