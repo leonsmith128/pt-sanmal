@@ -415,13 +415,17 @@ new #[Title('Absensi')] class extends Component {
                     </a>
                 @else
                     <p class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('Belum ada pengajuan lembur untuk tanggal ini.') }}</p>
-                    @if ($selectedDate >= now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString())
-                        <flux:modal.trigger name="request-overtime">
-                            <button type="button" class="mt-3 inline-flex items-center gap-1 text-sm font-medium text-blue-600 underline underline-offset-4 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
-                                {{ __('Ajukan lembur') }} <span aria-hidden="true">↗</span>
-                            </button>
-                        </flux:modal.trigger>
-                    @endif
+                @endif
+                @if (
+                    $selectedDate >= now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString()
+                    && (! $session || ! $this->overtimeRequest)
+                    && (! $overtimeForDate || in_array($overtimeForDate->state, [OvertimeState::Completed, OvertimeState::Cancelled], true))
+                )
+                    <flux:modal.trigger name="request-overtime">
+                        <button type="button" class="mt-3 inline-flex items-center gap-1 text-sm font-medium text-blue-600 underline underline-offset-4 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
+                            {{ __('Ajukan lembur') }} <span aria-hidden="true">↗</span>
+                        </button>
+                    </flux:modal.trigger>
                 @endif
             </x-attendance.info-card>
         </div>
