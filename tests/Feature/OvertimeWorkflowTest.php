@@ -403,7 +403,6 @@ it('prevents an administrator from finalizing their own overtime', function () {
     expect($overtime->fresh()->finalized_at)->toBeNull();
 });
 
-
 it('allows only one overtime request for a work session even after the first request is cancelled', function () {
     $employee = overtimeEmployee();
     $clockIn = overtimeClockIn($employee);
