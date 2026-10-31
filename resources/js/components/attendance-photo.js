@@ -13,7 +13,7 @@ export function loadAttendanceWatermarkLogo() {
             const image = new Image();
             image.onload = () => resolve(image);
             image.onerror = () => resolve(null);
-            image.src = '/images/sanmal-logo-watermark.svg';
+            image.src = '/images/logo-sanmal.png';
         });
     }
 
@@ -106,9 +106,9 @@ export function drawAttendanceWatermark(context, width, height, details, logo = 
     const watermarkWidth = Math.round(width * 0.72);
     const bottom = Math.max(8, Math.round(height * 0.025));
     // Logo ditempatkan pada footer agar tidak bersaing dengan informasi waktu.
-    const footerLogoWidth = Math.max(18, Math.round(width * 0.028));
-    const footerLogoHeight = logo ? footerLogoWidth * (logo.height / logo.width) : footerLogoWidth * 0.30;
-    const footerFontSize = Math.max(8, Math.round(Math.max(width, height) * 0.010));
+    const footerLogoWidth = Math.max(18, Math.round(width * 0.088));
+    const footerLogoHeight = logo ? footerLogoWidth * (logo.height / logo.width) : footerLogoWidth * 0.40;
+    const footerFontSize = Math.max(8, Math.round(Math.max(width, height) * 0.014));
     const footerGap = Math.max(4, Math.round(width * 0.008));
     const gap = Math.max(5, Math.round(width * 0.012));
 
@@ -116,9 +116,9 @@ export function drawAttendanceWatermark(context, width, height, details, logo = 
     // - timeSize mengatur ukuran jam utama. Naikkan/turunkan faktor 0.064 untuk mengubahnya.
     // - dateSize, nameSize, addressSize, dan footerFontSize mengatur teks pendamping.
     // - Jam memakai DIN Condensed jika font tersedia pada perangkat; fallback dipakai jika tidak.
-    const timeSize = Math.max(18, Math.round(width * 0.064));
-    const dateSize = Math.max(11, Math.round(width * 0.021));
-    const nameSize = Math.max(12, Math.round(width * 0.022));
+    const timeSize = Math.max(19, Math.round(width * 0.064));
+    const dateSize = Math.max(13, Math.round(width * 0.021));
+    const nameSize = Math.max(10, Math.round(width * 0.022));
     // Gunakan sisi terpanjang agar ukuran teks alamat konsisten pada foto portrait dan landscape.
     const addressSize = Math.max(11, Math.round(Math.max(width, height) * 0.018));
     const lineHeight = Math.ceil(addressSize * 1.18);
@@ -164,10 +164,10 @@ export function drawAttendanceWatermark(context, width, height, details, logo = 
 
     const footerRowHeight = Math.max(footerLogoHeight, footerFontSize);
     const footerTop = height - bottom - footerRowHeight;
-    const footerBaseline = footerTop + footerFontSize;
-    const addressFooterGap = Math.max(4, Math.round(addressSize * 0.35));
+    const footerBaseline = footerTop + (footerRowHeight - footerFontSize) / 1.2 + footerFontSize * 0.8;
+    const addressFooterGap = Math.max(4, Math.round(addressSize * 0.45));
     const addressFirstBaseline = footerTop - addressFooterGap - (addressLines.length - 1) * lineHeight;
-    const addressTopBaselineGap = Math.max(8, Math.round(addressSize * 0.7));
+    const addressTopBaselineGap = Math.max(4, Math.round(addressSize * 0.4));
     const nameBaseline = addressFirstBaseline - addressTopBaselineGap - addressSize;
 
     // TUNING WATERMARK:
@@ -177,7 +177,7 @@ export function drawAttendanceWatermark(context, width, height, details, logo = 
 
     // - dateWeekdayGap mengatur jarak tanggal ke hari.
     //   Nilai lebih besar menurunkan posisi hari; gunakan proporsi dateSize agar responsif.
-    const dateWeekdayGap = Math.max(10, Math.round(dateSize * 1.15));
+    const dateWeekdayGap = Math.max(10, Math.round(dateSize * 1.6));
     const dateWeekdayHeight = dateSize * 2 + dateWeekdayGap;
     const topRowHeight = Math.max(timeSize, dateWeekdayHeight);
     const topRowY = nameBaseline - nameSize - rowGap - topRowHeight;
@@ -185,11 +185,11 @@ export function drawAttendanceWatermark(context, width, height, details, logo = 
     context.fillStyle = '#ffffff';
     // DIN Condensed memberi angka yang lebih tinggi dan ramping untuk penanda waktu.
     // Agar konsisten di semua perangkat, sediakan font DIN berlisensi sebagai webfont bila diperlukan.
-    context.font = '700 ' + timeSize + 'px "DIN Condensed", DIN, "Bahnschrift", "Roboto Condensed", "Arial Narrow", sans-serif';
+    context.font = '800 ' + timeSize + 'px "DIN Condensed", DIN, "Bahnschrift", "Roboto Condensed", "Arial Narrow", sans-serif';
     const timeWidth = context.measureText(time).width;
     context.fillText(time, textX, topRowY + timeSize);
 
-    const dividerX = textX + timeWidth + gap * 0.75;
+    const dividerX = textX + timeWidth + gap * 0.7;
     context.shadowBlur = 0;
     context.fillStyle = '#f4c542';
     context.fillRect(
@@ -226,7 +226,7 @@ export function drawAttendanceWatermark(context, width, height, details, logo = 
     context.arc(
         separatorX,
         nameBaseline - nameSize * 0.32,
-        Math.max(1.5, nameSize * 0.09),
+        Math.max(1.8, nameSize * 0.09),
         0,
         Math.PI * 2
     );
@@ -250,7 +250,7 @@ export function drawAttendanceWatermark(context, width, height, details, logo = 
     if (logo) {
         const logoY = footerTop + (footerRowHeight - footerLogoHeight) / 2;
         context.save();
-        context.globalAlpha = 0.62;
+        context.globalAlpha = 0.82;
         context.shadowBlur = 0;
         context.drawImage(logo, marginX, logoY, footerLogoWidth, footerLogoHeight);
         context.restore();
@@ -258,9 +258,9 @@ export function drawAttendanceWatermark(context, width, height, details, logo = 
 
     context.save();
     context.shadowBlur = 0;
-    context.globalAlpha = 0.72;
+    context.globalAlpha = 0.88;
     context.fillStyle = '#ffffff';
-    context.font = '500 ' + footerFontSize + 'px "Roboto Condensed", "Arial Narrow", Roboto, sans-serif';
+    context.font = '550 ' + footerFontSize + 'px "Roboto Condensed", "Arial Narrow", Roboto, sans-serif';
     const footerTextX = marginX + (logo ? footerLogoWidth + footerGap : 0);
     context.fillText('PT SanMal Calibration', footerTextX, footerBaseline, Math.max(0, rightEdge - footerTextX));
     context.restore();
