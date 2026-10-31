@@ -424,8 +424,12 @@ new #[Title('Absensi')] class extends Component {
         <form wire:submit="confirm('{{ $mode }}')" class="flex flex-col gap-5 rounded-xl border border-neutral-200 p-5 dark:border-neutral-700 {{ $selectedDate !== now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString() ? 'hidden' : '' }}">
             @if ($mode === 'overtime_locked')
                 <flux:callout variant="warning" icon="lock-closed">
-                    <flux:callout.heading>{{ __('Clock-out terkunci') }}</flux:callout.heading>
-                    <flux:callout.text>{{ __('Anda memiliki jadwal lembur aktif. Batalkan Lembur terlebih dahulu jika tidak jadi lembur, atau tunggu jadwal mulai untuk melakukan konfirmasi.') }}</flux:callout.text>
+                    <flux:callout.heading>{{ __('Menunggu jadwal lembur') }}</flux:callout.heading>
+                    <flux:callout.text>
+                        {{ __('Tombol Absen Lembur dikunci sampai jadwal mulai:') }}
+                        <strong>{{ $sessionOvertime->scheduledStartLocal()->format('d M Y, H:i') }}</strong>.
+                        {{ __('Tombol Clock Out tidak tersedia selama pengajuan ini masih aktif. Jika tidak jadi lembur, batalkan pengajuan terlebih dahulu.') }}
+                    </flux:callout.text>
                 </flux:callout>
             @elseif ($mode === 'clock_in')
                 <flux:select wire:model.live="workType" :label="__('Jenis lokasi kerja')">
@@ -460,34 +464,42 @@ new #[Title('Absensi')] class extends Component {
                 <flux:text>{{ __('Konfirmasi mulai lembur memerlukan foto dan lokasi terbaru. Sesi kerja utama tetap berjalan.') }}</flux:text>
             @endif
 
-            <x-attendance.camera
-                :name="Auth::user()->name"
-                :event-label="$mode === 'overtime_start' ? 'Lembur' : ($mode === 'clock_in' ? 'Clock In' : 'Clock Out')"
-                :selfie="$selfie"
-            />
+            @if ($mode !== 'overtime_locked')
+                <x-attendance.camera
+                    :name="Auth::user()->name"
+                    :event-label="$mode === 'overtime_start' ? 'Lembur' : ($mode === 'clock_in' ? 'Clock In' : 'Clock Out')"
+                    :selfie="$selfie"
+                />
+            @endif
 
                         @error('form') <flux:text class="text-red-500">{{ $message }}</flux:text> @enderror
             @error('workType') <flux:text class="text-red-500">{{ $message }}</flux:text> @enderror
 
             <div class="flex items-center gap-2">
-                <flux:button
-                    type="submit"
-                    variant="primary"
-                    class="min-w-0 flex-1"
-                    wire:loading.attr="disabled"
-                    wire:target="confirm,submit,selfie"
-                >
-                    {{ match ($mode) { 'clock_in' => __('Absen Masuk'), 'overtime_start' => __('Absen Lembur'), default => __('Absen Pulang') } }}
-                </flux:button>
-                <flux:button
-                    type="button"
-                    variant="ghost"
-                    icon="camera"
-                    square
-                    aria-label="{{ __('Buka kamera') }}"
-                    title="{{ __('Buka kamera') }}"
-                    x-on:click="$dispatch('attendance-camera-open')"
-                />
+                @if ($mode === 'overtime_locked')
+                    <flux:button type="button" variant="primary" class="min-w-0 flex-1" disabled icon="lock-closed">
+                        {{ __('Absen Lembur') }}
+                    </flux:button>
+                @else
+                    <flux:button
+                        type="submit"
+                        variant="primary"
+                        class="min-w-0 flex-1"
+                        wire:loading.attr="disabled"
+                        wire:target="confirm,submit,selfie"
+                    >
+                        {{ match ($mode) { 'clock_in' => __('Absen Masuk'), 'overtime_start' => __('Absen Lembur'), default => __('Absen Pulang') } }}
+                    </flux:button>
+                    <flux:button
+                        type="button"
+                        variant="ghost"
+                        icon="camera"
+                        square
+                        aria-label="{{ __('Buka kamera') }}"
+                        title="{{ __('Buka kamera') }}"
+                        x-on:click="$dispatch('attendance-camera-open')"
+                    />
+                @endif
             </div>
         </form>
 
