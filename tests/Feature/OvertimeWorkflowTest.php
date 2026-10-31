@@ -45,6 +45,7 @@ function overtimeRequest(Employee $employee, AttendanceRecord $clockIn, string $
 {
     return OvertimeRequest::create([
         'employee_id' => $employee->id,
+        'session_date' => $clockIn->attendance_date->toDateString(),
         'clock_in_record_id' => $clockIn->id,
         'reason' => 'Penyelesaian pekerjaan kalibrasi.',
         'scheduled_start_at' => $scheduledAt,
@@ -432,4 +433,117 @@ it('shows a disabled overtime attendance button instead of clock out before the 
         ->assertSee('Absen Lembur')
         ->assertDontSee('Absen Pulang')
         ->assertSee('Menunggu jadwal lembur');
+});
+
+it('rejects a second clock-in after clock-out on the same local calendar date', function () {
+    Storage::fake('local');
+    $employee = overtimeEmployee();
+    $clockIn = overtimeClockIn($employee);
+
+    AttendanceRecord::create([
+        'employee_id' => $employee->id,
+        'type' => AttendanceType::ClockOut,
+        'work_type' => WorkType::Office,
+        'recorded_at' => now()->addMinute(),
+        'timezone' => 'Asia/Makassar',
+        'attendance_date' => $clockIn->attendance_date,
+    ]);
+
+    expect(fn () => app(RecordAttendance::class)->handle(
+        employee: $employee,
+        type: AttendanceType::ClockIn,
+        workType: WorkType::Office,
+        locationId: null,
+        projectId: null,
+        latitude: -5.14,
+        longitude: 119.41,
+        accuracy: 25,
+        selfie: UploadedFile::fake()->image('second-clock-in.jpg'),
+        selfieSource: SelfieSource::Camera,
+    ))->toThrow(ValidationException::class);
+
+    expect(AttendanceRecord::query()
+        ->where('employee_id', $employee->id)
+        ->where('type', AttendanceType::ClockIn)
+        ->count())->toBe(1);
+});
+
+it('keeps a closed session overtime request counted after cancellation', function () {
+    $employee = overtimeEmployee();
+    $clockIn = overtimeClockIn($employee);
+    $first = overtimeRequest($employee, $clockIn, now()->addHour()->toDateTimeString());
+    $first->update([
+        'state' => OvertimeState::Cancelled,
+        'cancelled_at' => now(),
+    ]);
+
+    AttendanceRecord::create([
+        'employee_id' => $employee->id,
+        'type' => AttendanceType::ClockOut,
+        'work_type' => WorkType::Office,
+        'recorded_at' => now()->addMinute(),
+        'timezone' => 'Asia/Makassar',
+        'attendance_date' => $clockIn->attendance_date,
+    ]);
+
+    expect(fn () => app(CreateOvertimeRequest::class)->handle(
+        employee: $employee,
+        reason: 'Percobaan pengajuan ulang setelah sesi ditutup.',
+        scheduledStartLocal: now('Asia/Makassar')->addHours(2)->format('Y-m-d\\TH:i'),
+    ))->toThrow(ValidationException::class);
+
+    expect(OvertimeRequest::query()
+        ->where('employee_id', $employee->id)
+        ->whereDate('session_date', $clockIn->attendance_date->toDateString())
+        ->count())->toBe(1);
+});
+
+it('prevents duplicate detached requests for the same future session even after cancellation', function () {
+    $employee = overtimeEmployee();
+    $scheduledStart = now('Asia/Makassar')->addDays(2)->setTime(17, 0);
+
+    $first = app(CreateOvertimeRequest::class)->handle(
+        employee: $employee,
+        reason: null,
+        scheduledStartLocal: $scheduledStart->format('Y-m-d\\TH:i'),
+    );
+    $first->update([
+        'state' => OvertimeState::Cancelled,
+        'cancelled_at' => now(),
+    ]);
+
+    expect(fn () => app(CreateOvertimeRequest::class)->handle(
+        employee: $employee,
+        reason: 'Pengajuan kedua pada sesi terencana yang sama.',
+        scheduledStartLocal: $scheduledStart->copy()->addHour()->format('Y-m-d\\TH:i'),
+    ))->toThrow(ValidationException::class);
+
+    expect(OvertimeRequest::query()->where('employee_id', $employee->id)->count())->toBe(1);
+});
+
+it('keeps a cross-midnight session open until clock-out even after 24 hours', function () {
+    $employee = overtimeEmployee();
+    $clockIn = overtimeClockIn($employee);
+    $clockIn->update(['recorded_at' => now()->subHours(30)]);
+
+    expect(RecordAttendance::openSession($employee)?->id)->toBe($clockIn->id);
+});
+
+it('shows the used-session state after the employee has clocked out today', function () {
+    $employee = overtimeEmployee();
+    $clockIn = overtimeClockIn($employee);
+
+    AttendanceRecord::create([
+        'employee_id' => $employee->id,
+        'type' => AttendanceType::ClockOut,
+        'work_type' => WorkType::Office,
+        'recorded_at' => now()->addMinute(),
+        'timezone' => 'Asia/Makassar',
+        'attendance_date' => $clockIn->attendance_date,
+    ]);
+
+    Livewire::actingAs($employee->user)
+        ->test('pages::employee.attendance')
+        ->assertSee('Absensi hari ini sudah digunakan')
+        ->assertSee('Sesi hari ini sudah digunakan');
 });
