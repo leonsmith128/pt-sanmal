@@ -60,7 +60,6 @@ test('admins can visit the admin attendance page', function () {
         ->assertSee(__('Kehadiran Pegawai'));
 });
 
-
 test('attendance camera controls reflect camera availability and video readiness', function () {
     $this->actingAs(userWithRole(UserRole::Employee));
 
