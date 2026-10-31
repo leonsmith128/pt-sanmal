@@ -100,7 +100,9 @@ export default function attendanceCamera(config = {}) {
                     this.locationStatusMessage = state.locationStatus === 'geocoding'
                         ? 'Sedang menyiapkan alamat lokasi...'
                         : state.locationStatus === 'failed'
-                            ? 'Alamat belum berhasil ditemukan. Coba buka kembali kamera.'
+                            ? state.locationError === 'address-not-found'
+                                ? 'Alamat belum berhasil ditemukan. Coba buka kembali kamera.'
+                                : 'Lokasi GPS belum berhasil ditemukan. Coba buka kembali kamera.'
                             : 'Sedang mencari lokasi...';
                     this.gpsReady = state.gpsReady;
                     this.locationAccessReady = state.accessGranted;
