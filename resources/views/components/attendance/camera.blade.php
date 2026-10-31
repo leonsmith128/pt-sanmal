@@ -81,13 +81,13 @@
                             <flux:icon name="arrow-path" variant="outline" class="size-5" />
                         </button>
 
-                        <div class="absolute inset-x-0 bottom-0 flex min-h-[14%] items-center justify-center gap-5 bg-black/90 px-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-2 sm:gap-7 sm:pb-5">
+                        <div class="absolute inset-x-0 bottom-0 flex min-h-[14%] items-center justify-center gap-5 bg-transparent px-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-2 sm:gap-7 sm:pb-5">
                             <button
                                 type="button"
                                 x-show="! capturedUrl"
                                 x-on:click="remeasureLocation()"
                                 x-bind:disabled="busy || starting"
-                                class="flex size-10 shrink-0 items-center justify-center rounded-full bg-transparent text-white transition hover:bg-white/15 disabled:opacity-50 sm:size-11"
+                                class="flex size-10 shrink-0 items-center justify-center rounded-full bg-black/35 text-white transition hover:bg-black/55 disabled:opacity-50 sm:size-11"
                                 aria-label="{{ __('Refresh lokasi') }}"
                                 title="{{ __('Refresh lokasi') }}"
                             >
@@ -111,7 +111,7 @@
                                 x-show="! capturedUrl"
                                 x-on:click="stop()"
                                 x-bind:disabled="busy"
-                                class="flex size-10 shrink-0 items-center justify-center rounded-full bg-transparent text-white transition hover:bg-white/15 disabled:opacity-50 sm:size-11"
+                                class="flex size-10 shrink-0 items-center justify-center rounded-full bg-black/35 text-white transition hover:bg-black/55 disabled:opacity-50 sm:size-11"
                                 aria-label="{{ __('Tutup kamera') }}"
                                 title="{{ __('Tutup kamera') }}"
                             >
