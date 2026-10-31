@@ -211,6 +211,7 @@ new #[Title('Absensi')] class extends Component {
             'longitude.required' => 'Lokasi belum terambil. Ambil ulang foto agar lokasi ikut terambil.',
             'accuracy.required' => 'Akurasi GPS belum tersedia. Tunggu hingga GPS siap lalu ambil foto.',
             ...AttendanceEvidence::messages('accuracy', 'selfie'),
+            'selfie.required' => 'Foto belum diambil.',
         ]);
     }
 
