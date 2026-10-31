@@ -81,9 +81,11 @@ class DailyAttendanceStatusService
                     $sessionStartedAt = $event->effectiveRecordedAt();
                     $assignedDate = $eventDate;
                 } elseif (in_array($event->type->value, ['overtime_start', 'clock_out'], true)) {
-                    $withinSessionWindow = $sessionStartedAt !== null
-                        && $event->effectiveRecordedAt()->greaterThanOrEqualTo($sessionStartedAt)
-                        && $event->effectiveRecordedAt()->lessThanOrEqualTo($sessionStartedAt->copy()->addHours(24));
+                    $eventTimestamp = $event->effectiveRecordedAt()->getTimestamp();
+                    $sessionStartTimestamp = $sessionStartedAt?->getTimestamp();
+                    $withinSessionWindow = $sessionStartTimestamp !== null
+                        && $eventTimestamp >= $sessionStartTimestamp
+                        && $eventTimestamp <= ($sessionStartTimestamp + 86400);
 
                     $assignedDate = $withinSessionWindow && $sessionDate !== null
                         ? $sessionDate
