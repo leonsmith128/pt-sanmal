@@ -574,3 +574,25 @@ it('flags historical duplicate attendance sessions on one date for admin review'
         ->and($result['needs_review'])->toBeTrue()
         ->and($result['events'])->toHaveCount(4);
 });
+
+it('rejects an overtime request created after the target date session has already closed', function () {
+    $employee = overtimeEmployee();
+    $clockIn = overtimeClockIn($employee);
+
+    AttendanceRecord::create([
+        'employee_id' => $employee->id,
+        'type' => AttendanceType::ClockOut,
+        'work_type' => WorkType::Office,
+        'recorded_at' => now()->addMinute(),
+        'timezone' => 'Asia/Makassar',
+        'attendance_date' => $clockIn->attendance_date,
+    ]);
+
+    expect(fn () => app(CreateOvertimeRequest::class)->handle(
+        employee: $employee,
+        reason: 'Pengajuan setelah sesi ditutup.',
+        scheduledStartLocal: now('Asia/Makassar')->addHours(2)->format('Y-m-d\\TH:i'),
+    ))->toThrow(ValidationException::class);
+
+    expect(OvertimeRequest::query()->where('employee_id', $employee->id)->count())->toBe(0);
+});
