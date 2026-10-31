@@ -41,6 +41,10 @@ export default function attendanceCamera(config = {}) {
         gpsStatusText: 'Memeriksa izin dan layanan lokasi…',
         address: '',
         addressLoading: false,
+        locationSnapshot: null,
+        locationSnapshotReady: false,
+        locationSnapshotFailed: false,
+        locationStatusMessage: 'Sedang mencari lokasi...',
 
         capturedBlob: null,
         capturedUrl: null,
@@ -90,6 +94,14 @@ export default function attendanceCamera(config = {}) {
                     this.liveAccuracy = state.liveAccuracy;
                     this.address = state.address;
                     this.addressLoading = state.addressLoading;
+                    this.locationSnapshot = state.locationSnapshot;
+                    this.locationSnapshotReady = state.locationStatus === 'ready' && Boolean(state.locationSnapshot?.address);
+                    this.locationSnapshotFailed = state.locationStatus === 'failed';
+                    this.locationStatusMessage = state.locationStatus === 'geocoding'
+                        ? 'Sedang menyiapkan alamat lokasi...'
+                        : state.locationStatus === 'failed'
+                            ? 'Alamat belum berhasil ditemukan. Coba buka kembali kamera.'
+                            : 'Sedang mencari lokasi...';
                     this.gpsReady = state.gpsReady;
                     this.locationAccessReady = state.accessGranted;
                     this.gpsStatusText = state.gpsStatusText;
@@ -103,6 +115,18 @@ export default function attendanceCamera(config = {}) {
 
         startLocationWatch() {
             this.locationTracker?.start();
+            this.prepareLocationSnapshot();
+        },
+
+        async prepareLocationSnapshot() {
+            this.locationSnapshotReady = false;
+            this.locationSnapshotFailed = false;
+            try {
+                await this.locationTracker.prepareSnapshot();
+            } catch (error) {
+                // Status gagal sudah dipublikasikan oleh LocationTracker.
+                this.locationSnapshotFailed = true;
+            }
         },
 
         stopLocationWatch() {
@@ -137,9 +161,11 @@ export default function attendanceCamera(config = {}) {
                 && position.accuracy >= 0
                 && position.accuracy <= 100
             );
-            const address = positionIsUsable
-                ? this.locationTracker?.getAddressForPosition(position) || ''
-                : '';
+            const snapshot = this.locationSnapshot;
+            const address = snapshot && positionIsUsable
+                && this.locationTracker?.samePosition(snapshot, position)
+                ? snapshot.address
+                : this.locationStatusMessage;
 
             return Object.freeze({
                 name: this.name,
@@ -254,6 +280,10 @@ export default function attendanceCamera(config = {}) {
             this.fallback = false;
             this.starting = true;
             this.locationAccessReady = false;
+            this.locationSnapshot = null;
+            this.locationSnapshotReady = false;
+            this.locationSnapshotFailed = false;
+            this.locationStatusMessage = 'Sedang mencari lokasi...';
             this.startingLocation = true;
             const sessionId = ++this.cameraSessionId;
 
@@ -439,6 +469,10 @@ export default function attendanceCamera(config = {}) {
         stop() {
             this.stopCameraStream();
             this.locationAccessReady = false;
+            this.locationSnapshot = null;
+            this.locationSnapshotReady = false;
+            this.locationSnapshotFailed = false;
+            this.locationStatusMessage = 'Sedang mencari lokasi...';
             this.clearCapturedPhoto();
         },
 
@@ -454,8 +488,8 @@ export default function attendanceCamera(config = {}) {
         async capture() {
             const video = this.getVideoElement();
             if (!video || !this.videoReady || !video.videoWidth || !video.videoHeight || this.busy) return;
-            if (!this.locationAccessReady || !this.locationTracker?.accessGranted) {
-                this.error = 'Izin lokasi dan layanan lokasi perangkat harus aktif sebelum mengambil foto.';
+            if (!this.locationSnapshotReady || !this.locationSnapshot?.address) {
+                this.error = 'Lokasi belum siap. Tunggu sampai alamat ditemukan atau buka kembali kamera jika pencarian gagal.';
                 return;
             }
 
@@ -463,34 +497,11 @@ export default function attendanceCamera(config = {}) {
             this.busy = true;
             this.clearCapturedPhoto();
             try {
-                let position = null;
-
-                // GPS adalah bukti pendukung. Kegagalan setelah tiga percobaan
-                // tidak boleh menghalangi pegawai mengambil foto absensi.
-                // Jangan menahan shutter menunggu GPS hingga 15 detik.
-                // Gunakan pembacaan akurat yang masih segar; jika belum tersedia,
-                // foto tetap diproses dan GPS terus diperbarui di latar belakang.
-                const latestPosition = this.best;
-                const positionAge = latestPosition
-                    ? Date.now() - (latestPosition.measuredAt ?? latestPosition.receivedAt)
-                    : Infinity;
-                if (
-                    latestPosition
-                    && positionAge >= 0
-                    && positionAge <= 15_000
-                    && Number.isFinite(latestPosition.accuracy)
-                    && latestPosition.accuracy <= 100
-                ) {
-                    position = latestPosition;
-                } else {
-                    this.gpsStatusText = 'GPS belum siap. Foto tetap dapat diambil tanpa lokasi.';
-                }
-
-                // Satu snapshot immutable menjadi sumber watermark, GPS, dan payload upload.
-                // Alamat kosong berarti alamat belum tersedia untuk koordinat ini.
+                // Koordinat dan alamat selalu berasal dari snapshot sesi kamera.
+                const position = this.locationSnapshot;
                 const capturedAt = new Date();
                 const watermarkSnapshot = this.getWatermarkSnapshot(capturedAt, position);
-                const addressSnapshot = watermarkSnapshot.address;
+                const addressSnapshot = position.address;
                 this.updateWatermarkPreview(watermarkSnapshot);
                 const photo = await createAttendancePhoto({
                     video,
@@ -498,7 +509,13 @@ export default function attendanceCamera(config = {}) {
                     watermarkSnapshot,
                 });
                 this.capturedAt = photo.capturedAt;
-                this.capturedPosition = position ? Object.freeze({ ...position }) : null;
+                this.capturedPosition = Object.freeze({
+                    latitude: position.latitude,
+                    longitude: position.longitude,
+                    accuracy: position.accuracy,
+                    measuredAt: position.measuredAt,
+                    receivedAt: position.receivedAt,
+                });
                 this.capturedAddress = addressSnapshot;
                 this.capturedBlob = photo.blob;
                 this.capturedUrl = URL.createObjectURL(photo.blob);
