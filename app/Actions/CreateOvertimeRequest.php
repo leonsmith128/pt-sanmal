@@ -93,6 +93,7 @@ class CreateOvertimeRequest
                 newValues: [
                     'scheduled_start_at' => $overtime->scheduled_start_at->toISOString(),
                     'scheduled_end_at' => null,
+                    'session_date' => $overtime->session_date?->toDateString(),
                     'clock_in_record_id' => $overtime->clock_in_record_id,
                     'state' => $overtime->state->value,
                     'approval_status' => $overtime->approval_status->value,
