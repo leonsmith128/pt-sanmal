@@ -88,7 +88,8 @@ export function drawAttendanceWatermark(context, width, height, details, logo = 
     const marginX = Math.round(width * 0.03);
     const watermarkWidth = Math.round(width * 0.72);
     const bottom = Math.max(8, Math.round(height * 0.025));
-    const logoWidth = Math.round(width * 0.11);
+    // Logo hanya menjadi identitas sekunder: kecil dan berada di ujung kanan baris waktu.
+    const logoWidth = Math.max(28, Math.round(width * 0.055));
     const logoHeight = logo ? logoWidth * (logo.height / logo.width) : logoWidth * 0.38;
     const gap = Math.max(5, Math.round(width * 0.012));
     const timeSize = Math.max(18, Math.round(width * 0.058));
@@ -100,7 +101,7 @@ export function drawAttendanceWatermark(context, width, height, details, logo = 
     const rightEdge = Math.min(width - marginX, marginX + watermarkWidth);
     const textWidth = rightEdge - marginX;
     const addressWidth = Math.min(Math.round(width * 0.60), width - marginX * 2);
-    const textX = marginX + (logo ? logoWidth + gap : 0);
+    const textX = marginX;
     const shadow = 'rgba(0, 0, 0, 0.82)';
 
     const timestamp = details.timestamp instanceof Date
@@ -147,15 +148,20 @@ export function drawAttendanceWatermark(context, width, height, details, logo = 
     const topRowY = nameBaseline - nameSize - rowGap - topRowHeight;
 
     if (logo) {
+        const logoX = rightEdge - logoWidth;
         const logoY = topRowY + (topRowHeight - logoHeight) / 2;
-        context.drawImage(logo, marginX, logoY, logoWidth, logoHeight);
+        context.save();
+        context.globalAlpha = 0.68;
+        context.drawImage(logo, logoX, logoY, logoWidth, logoHeight);
+        context.restore();
     }
 
     context.fillStyle = '#ffffff';
     context.font = '700 ' + timeSize + 'px "Roboto Condensed", "Arial Narrow", Roboto, sans-serif';
+    const timeWidth = context.measureText(time).width;
     context.fillText(time, textX, topRowY + timeSize);
 
-    const dividerX = textX + context.measureText(time).width + gap * 0.55;
+    const dividerX = textX + timeWidth + gap * 0.55;
     context.shadowBlur = 0;
     context.fillStyle = '#f4c542';
     context.fillRect(
@@ -169,9 +175,10 @@ export function drawAttendanceWatermark(context, width, height, details, logo = 
     context.shadowBlur = Math.max(2, width * 0.0025);
     context.fillStyle = '#ffffff';
     context.font = '600 ' + dateSize + 'px "Roboto Condensed", "Arial Narrow", Roboto, sans-serif';
-    context.fillText(dateParts, dateX, topRowY + dateSize);
+    const dateMaxWidth = Math.max(0, (logo ? rightEdge - logoWidth - gap : rightEdge) - dateX);
+    context.fillText(dateParts, dateX, topRowY + dateSize, dateMaxWidth);
     context.font = '400 ' + dateSize + 'px "Roboto Condensed", "Arial Narrow", Roboto, sans-serif';
-    context.fillText(weekday, dateX, topRowY + dateSize * 2 + dateWeekdayGap);
+    context.fillText(weekday, dateX, topRowY + dateSize * 2 + dateWeekdayGap, dateMaxWidth);
 
     context.font = '600 ' + nameSize + 'px "Roboto Condensed", "Arial Narrow", Roboto, sans-serif';
     context.fillStyle = '#ffffff';
