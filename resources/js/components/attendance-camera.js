@@ -125,7 +125,31 @@ export default function attendanceCamera(config = {}) {
             return this.locationTracker.getFreshPosition();
         },
 
-        updateWatermarkPreview(timestamp = new Date(), address = this.address) {
+        getWatermarkSnapshot(timestamp = new Date(), position = this.best) {
+            const age = position
+                ? Date.now() - (position.measuredAt ?? position.receivedAt)
+                : Infinity;
+            const positionIsUsable = Boolean(
+                position
+                && age >= 0
+                && age <= 15_000
+                && Number.isFinite(position.accuracy)
+                && position.accuracy >= 0
+                && position.accuracy <= 100
+            );
+            const address = positionIsUsable
+                ? this.locationTracker?.getAddressForPosition(position) || ''
+                : '';
+
+            return Object.freeze({
+                name: this.name,
+                eventLabel: this.eventLabel,
+                timestamp,
+                address,
+            });
+        },
+
+        updateWatermarkPreview(snapshot = this.getWatermarkSnapshot()) {
             const video = this.getVideoElement();
             const canvas = this.$refs?.watermarkPreview;
             if (!video || !canvas || !video.videoWidth || !video.videoHeight) return;
@@ -149,12 +173,7 @@ export default function attendanceCamera(config = {}) {
                 ) return;
 
                 context.clearRect(0, 0, canvas.width, canvas.height);
-                drawAttendanceWatermark(context, canvas.width, canvas.height, {
-                    name: this.name,
-                    eventLabel: this.eventLabel,
-                    timestamp,
-                    address,
-                }, logo);
+                drawAttendanceWatermark(context, canvas.width, canvas.height, snapshot, logo);
             });
         },
 
@@ -467,19 +486,19 @@ export default function attendanceCamera(config = {}) {
                     this.gpsStatusText = 'GPS belum siap. Foto tetap dapat diambil tanpa lokasi.';
                 }
 
-                const addressSnapshot = position ? this.address || '' : '';
+                // Satu snapshot immutable menjadi sumber watermark, GPS, dan payload upload.
+                // Alamat kosong berarti alamat belum tersedia untuk koordinat ini.
                 const capturedAt = new Date();
-                this.updateWatermarkPreview(capturedAt, addressSnapshot);
+                const watermarkSnapshot = this.getWatermarkSnapshot(capturedAt, position);
+                const addressSnapshot = watermarkSnapshot.address;
+                this.updateWatermarkPreview(watermarkSnapshot);
                 const photo = await createAttendancePhoto({
                     video,
                     facingMode: this.facingMode,
-                    name: this.name,
-                    eventLabel: this.eventLabel,
-                    address: addressSnapshot,
-                    capturedAt,
+                    watermarkSnapshot,
                 });
                 this.capturedAt = photo.capturedAt;
-                this.capturedPosition = position;
+                this.capturedPosition = position ? Object.freeze({ ...position }) : null;
                 this.capturedAddress = addressSnapshot;
                 this.capturedBlob = photo.blob;
                 this.capturedUrl = URL.createObjectURL(photo.blob);
