@@ -15,14 +15,19 @@ Status: aturan produk dikunci untuk implementasi, dengan kebijakan jam kerja reg
 - Satu sesi kerja terdiri dari clock-in, event lembur (opsional), dan clock-out.
 - Sesi dapat melewati tengah malam; perubahan tanggal kalender tidak membuat sesi baru.
 - Tanggal acuan sesi adalah tanggal lokal clock-in.
+- Satu sesi absensi diperbolehkan untuk setiap tanggal lokal: hanya satu pasangan Clock In–Clock Out. Setelah Clock Out, Clock In kedua pada tanggal yang sama ditolak oleh backend.
+- Sesi tetap terbuka sampai Clock Out; pergantian tanggal dan lewatnya 24 jam tidak otomatis menutup sesi.
+- Batas 24 jam hanya digunakan sebagai batas teknis untuk mengaitkan jadwal lembur ke sesi aktif versus sesi masa depan yang belum dimulai.
 - Timestamp asli setiap event tetap menyimpan tanggal dan waktu aktualnya.
-- Sesi aktif saat ini memiliki batas teknis 24 jam; batas ini perlu ditinjau bersama aturan pemulihan admin sebelum diubah.
 - Clock-out menutup sesi yang sama dan mempertahankan work type, lokasi, dan proyek dari clock-in.
 
 ## 3. Pengajuan dan jadwal lembur
 
 - Pegawai dapat membuat pengajuan lembur kapan saja, termasuk beberapa hari sebelum tanggal pelaksanaan (contoh: tanggal 3 untuk tanggal 5) dan mendekati waktu mulai (hingga satu menit sebelum jadwal).
-- Pengajuan memuat tanggal target, waktu mulai, waktu selesai, alasan, dan zona waktu.
+- Form pengajuan baru hanya meminta waktu mulai terjadwal; alasan bersifat opsional.
+- Waktu selesai aktual berasal dari Clock Out. Kolom waktu selesai terjadwal lama dipertahankan hanya untuk kompatibilitas data historis.
+- Satu pengajuan lembur diperbolehkan per sesi absensi. Pengajuan sebelum Clock In ikut dikaitkan ke tanggal sesi target; pengajuan yang dibatalkan atau selesai tetap menghabiskan jatah tersebut.
+- Pengajuan tidak dapat dibuat ulang setelah sesi target ditutup. Pengajuan untuk tanggal masa depan tetap dapat dibuat sebelum sesi dimulai.
 - Jadwal dapat melewati tengah malam.
 - Approval admin dan status operasional jadwal adalah dua hal berbeda.
 - Admin dapat menyetujui sebelum jadwal tiba.
