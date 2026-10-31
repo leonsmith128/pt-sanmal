@@ -45,15 +45,27 @@ class CreateOvertimeRequest
             $dayStartUtc = $scheduledStart->copy()->startOfDay()->utc();
             $nextDayStartUtc = $scheduledStart->copy()->addDay()->startOfDay()->utc();
 
-            $existing = OvertimeRequest::query()
+            // Satu sesi kerja hanya boleh memiliki satu pengajuan lembur.
+            // Pemeriksaan mencakup semua status, termasuk dibatalkan/selesai, agar
+            // pengajuan tidak dapat dibuat ulang dalam sesi yang sama.
+            $existingForSession = $openSession
+                ? OvertimeRequest::query()
+                    ->where('employee_id', $employee->id)
+                    ->where('clock_in_record_id', $openSession->id)
+                    ->exists()
+                : false;
+
+            // Sebelum clock-in, pengajuan belum dapat dikaitkan ke ID sesi.
+            // Batasi satu pengajuan pada tanggal target yang belum terikat sesi.
+            $existingUnlinkedForDate = OvertimeRequest::query()
                 ->where('employee_id', $employee->id)
-                ->whereNotIn('state', [OvertimeState::Completed->value, OvertimeState::Cancelled->value])
+                ->whereNull('clock_in_record_id')
                 ->where('scheduled_start_at', '>=', $dayStartUtc)
                 ->where('scheduled_start_at', '<', $nextDayStartUtc)
                 ->exists();
 
-            if ($existing) {
-                $this->fail('form', 'Anda sudah memiliki pengajuan lembur aktif pada tanggal tersebut.');
+            if ($existingForSession || $existingUnlinkedForDate) {
+                $this->fail('form', 'Anda hanya dapat mengajukan lembur satu kali dalam satu sesi kerja.');
             }
 
             $overtime = OvertimeRequest::create([
