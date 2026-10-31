@@ -86,19 +86,21 @@ function formatCaptureTimestamp(date) {
  * Preview dan foto final memakai fungsi renderer yang sama.
  */
 export function drawAttendanceWatermark(context, width, height, details, logo = null) {
-    const marginX = Math.round(width * 0.035);
-    const bottom = Math.round(height * 0.045);
-    const logoWidth = Math.round(width * 0.145);
+    const marginX = Math.round(width * 0.03);
+    const bottom = Math.round(height * 0.035);
+    const logoWidth = Math.round(width * 0.12);
     const logoHeight = logo ? logoWidth * (logo.height / logo.width) : logoWidth * 0.38;
-    const gap = Math.round(width * 0.018);
-    const timeSize = Math.max(22, Math.round(width * 0.075));
-    const dateSize = Math.max(13, Math.round(width * 0.027));
-    const nameSize = Math.max(14, Math.round(width * 0.028));
-    const addressSize = Math.max(12, Math.round(width * 0.024));
-    const lineHeight = Math.round(addressSize * 1.3);
+    const gap = Math.round(width * 0.012);
+    const timeSize = Math.max(19, Math.round(width * 0.06));
+    const dateSize = Math.max(11, Math.round(width * 0.022));
+    const nameSize = Math.max(12, Math.round(width * 0.023));
+    const addressSize = Math.max(11, Math.round(width * 0.019));
+    const lineHeight = Math.round(addressSize * 1.2);
     const rightEdge = width - marginX;
     const textX = marginX + (logo ? logoWidth + gap : 0);
-    const topRowY = height - bottom - Math.max(logoHeight, timeSize + dateSize * 1.9) - nameSize * 1.7 - lineHeight * 2.8;
+    const topRowHeight = Math.max(logoHeight, timeSize + dateSize * 1.55);
+    const nameGap = Math.max(2, Math.round(nameSize * 0.35));
+    const topRowY = height - bottom - topRowHeight - nameGap - nameSize - addressSize * 1.2 - lineHeight * 2.2;
     const shadow = 'rgba(0, 0, 0, 0.82)';
 
     context.save();
@@ -146,7 +148,7 @@ export function drawAttendanceWatermark(context, width, height, details, logo = 
     context.font = '400 ' + dateSize + 'px "Roboto Condensed", "Arial Narrow", Roboto, sans-serif';
     context.fillText(weekday, dateX, topRowY + dateSize * 2.05);
 
-    const nameY = topRowY + Math.max(timeSize + dateSize * 1.8, logoHeight) + nameSize * 1.2;
+    const nameY = topRowY + topRowHeight + nameGap + nameSize;
     context.font = '600 ' + nameSize + 'px "Roboto Condensed", "Arial Narrow", Roboto, sans-serif';
     context.fillStyle = '#ffffff';
     const name = String(details.name || 'Pegawai SanMal');
@@ -166,7 +168,7 @@ export function drawAttendanceWatermark(context, width, height, details, logo = 
     }
 
     addressLines.forEach((line, index) => {
-        context.fillText(line, marginX, nameY + addressSize * 1.55 + index * lineHeight, rightEdge - marginX);
+        context.fillText(line, marginX, nameY + addressSize * 1.25 + index * lineHeight, rightEdge - marginX);
     });
 
     context.restore();
