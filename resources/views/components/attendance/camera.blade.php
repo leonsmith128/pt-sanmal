@@ -81,7 +81,7 @@
                             <flux:icon name="arrow-path" variant="outline" class="size-5" />
                         </button>
 
-                        <div class="absolute inset-x-0 bottom-0 flex min-h-[14%] items-center justify-center gap-5 bg-transparent px-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-2 sm:gap-7 sm:pb-5">
+                        <div class="absolute right-4 bottom-[calc(env(safe-area-inset-bottom)+1rem)] z-20 flex flex-col items-center gap-3 sm:right-6 sm:bottom-6">
                             <button
                                 type="button"
                                 x-show="! capturedUrl"
