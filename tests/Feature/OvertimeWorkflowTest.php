@@ -402,3 +402,35 @@ it('prevents an administrator from finalizing their own overtime', function () {
     $response->assertForbidden();
     expect($overtime->fresh()->finalized_at)->toBeNull();
 });
+
+
+it('allows only one overtime request for a work session even after the first request is cancelled', function () {
+    $employee = overtimeEmployee();
+    $clockIn = overtimeClockIn($employee);
+    $first = overtimeRequest($employee, $clockIn, now()->addHour()->toDateTimeString());
+    $first->update([
+        'state' => OvertimeState::Cancelled,
+        'cancelled_at' => now(),
+    ]);
+
+    expect(fn () => app(CreateOvertimeRequest::class)->handle(
+        employee: $employee,
+        reason: 'Pengajuan kedua dalam sesi yang sama.',
+        scheduledStartLocal: now('Asia/Makassar')->addHours(2)->format('Y-m-d\\TH:i'),
+    ))->toThrow(ValidationException::class);
+
+    expect(OvertimeRequest::query()->where('clock_in_record_id', $clockIn->id)->count())->toBe(1);
+});
+
+it('shows a disabled overtime attendance button instead of clock out before the scheduled start', function () {
+    $employee = overtimeEmployee();
+    $clockIn = overtimeClockIn($employee);
+    $overtime = overtimeRequest($employee, $clockIn, now()->addHour()->toDateTimeString());
+    $overtime->update(['state' => OvertimeState::Scheduled]);
+
+    Livewire::actingAs($employee->user)
+        ->test('pages::employee.attendance')
+        ->assertSee('Absen Lembur')
+        ->assertDontSee('Absen Pulang')
+        ->assertSee('Menunggu jadwal lembur');
+});
