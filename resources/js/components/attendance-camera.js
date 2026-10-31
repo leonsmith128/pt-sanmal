@@ -1,5 +1,5 @@
 import LocationTracker from './location-tracker.js';
-import { createAttendancePhoto, drawAttendanceWatermark } from './attendance-photo.js';
+import { createAttendancePhoto, drawAttendanceWatermark, loadAttendanceWatermarkLogo } from './attendance-photo.js';
 /**
  * Kamera absensi berbasis Alpine.
  *
@@ -143,11 +143,15 @@ export default function attendanceCamera(config = {}) {
             if (!context) return;
 
             context.clearRect(0, 0, canvas.width, canvas.height);
-            drawAttendanceWatermark(context, canvas.width, canvas.height, {
-                name: this.name,
-                eventLabel: this.eventLabel,
-                timestamp: this.currentTimestamp,
-                address: this.address,
+            loadAttendanceWatermarkLogo().then((logo) => {
+                if (!this.active || canvas !== this.$refs?.watermarkPreview) return;
+                context.clearRect(0, 0, canvas.width, canvas.height);
+                drawAttendanceWatermark(context, canvas.width, canvas.height, {
+                    name: this.name,
+                    eventLabel: this.eventLabel,
+                    timestamp: this.currentTimestamp,
+                    address: this.address,
+                }, logo);
             });
         },
 
