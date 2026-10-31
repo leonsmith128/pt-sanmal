@@ -24,7 +24,7 @@ export function loadAttendanceWatermarkLogo() {
  * Membuat foto absensi dari seluruh frame kamera.
  * Modul ini menangani gambar saja; alur kamera dan upload tetap di attendance-camera.js.
  */
-export async function createAttendancePhoto({ video, facingMode, name, eventLabel, address }) {
+export async function createAttendancePhoto({ video, facingMode, name, eventLabel, address, capturedAt = new Date() }) {
     const dimensions = getProportionalDimensions(video.videoWidth, video.videoHeight, MAX_PHOTO_DIMENSION);
     const canvas = document.createElement('canvas');
     canvas.width = dimensions.width;
@@ -40,7 +40,6 @@ export async function createAttendancePhoto({ video, facingMode, name, eventLabe
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
     context.setTransform(1, 0, 0, 1, 0, 0);
 
-    const capturedAt = new Date();
     const details = {
         name,
         eventLabel,
@@ -87,6 +86,7 @@ function formatCaptureTimestamp(date) {
  */
 export function drawAttendanceWatermark(context, width, height, details, logo = null) {
     const marginX = Math.round(width * 0.03);
+    const watermarkWidth = Math.round(width * 0.72);
     const bottom = Math.max(8, Math.round(height * 0.025));
     const logoWidth = Math.round(width * 0.11);
     const logoHeight = logo ? logoWidth * (logo.height / logo.width) : logoWidth * 0.38;
@@ -96,16 +96,18 @@ export function drawAttendanceWatermark(context, width, height, details, logo = 
     const nameSize = Math.max(12, Math.round(width * 0.022));
     const addressSize = Math.max(11, Math.round(width * 0.018));
     const lineHeight = Math.ceil(addressSize * 1.18);
-    const rightEdge = width - marginX;
+    const rightEdge = Math.min(width - marginX, marginX + watermarkWidth);
     const textWidth = rightEdge - marginX;
     const textX = marginX + (logo ? logoWidth + gap : 0);
     const shadow = 'rgba(0, 0, 0, 0.82)';
 
-    const timestamp = details.timestamp;
+    const timestamp = details.timestamp instanceof Date
+        ? formatCaptureTimestamp(details.timestamp)
+        : details.timestamp;
     const time = typeof timestamp === 'string'
         ? timestamp.match(/\\d{1,2}:\\d{2}/)?.[0] || ''
         : timestamp?.time || '';
-    const capturedDate = timestamp instanceof Date ? timestamp : new Date();
+    const capturedDate = new Date();
     const dateParts = typeof timestamp === 'object' && timestamp?.date
         ? timestamp.date
         : new Intl.DateTimeFormat('id-ID', {
@@ -134,7 +136,7 @@ export function drawAttendanceWatermark(context, width, height, details, logo = 
     }
 
     const addressFirstBaseline = height - bottom - (addressLines.length - 1) * lineHeight;
-    const addressTopBaselineGap = Math.max(1, Math.round(addressSize * 0.18));
+    const addressTopBaselineGap = Math.max(4, Math.round(addressSize * 0.45));
     const nameBaseline = addressFirstBaseline - addressTopBaselineGap - addressSize;
     const rowGap = Math.max(3, Math.round(nameSize * 0.18));
     const topRowHeight = Math.max(logoHeight, timeSize, dateSize * 2.05);
