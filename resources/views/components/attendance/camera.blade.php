@@ -73,12 +73,7 @@
                             </div>
                         </div>
 
-                        <div class="relative z-20 flex min-h-[76px] shrink-0 items-center justify-between gap-3 bg-zinc-950 px-4 py-2 text-white sm:min-h-[84px] sm:px-6">
-                            <div class="min-w-0 flex-1">
-                                <p x-show="! capturedUrl" x-text="gpsStatusText" class="line-clamp-2 text-xs text-zinc-300" role="status" aria-live="polite"></p>
-                                <p x-show="capturedUrl" class="text-xs text-zinc-300">{{ __('Pratinjau foto siap') }}</p>
-                            </div>
-
+                        <div class="relative z-20 flex min-h-[76px] shrink-0 items-center justify-center gap-3 bg-zinc-950 px-4 py-2 text-white sm:min-h-[84px] sm:px-6">
                             <div class="flex shrink-0 items-center gap-2 sm:gap-3">
                                 <button
                                     type="button"
