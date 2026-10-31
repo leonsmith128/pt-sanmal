@@ -105,7 +105,7 @@ export function drawAttendanceWatermark(context, width, height, details, logo = 
         ? formatCaptureTimestamp(details.timestamp)
         : details.timestamp;
     const time = typeof timestamp === 'string'
-        ? timestamp.match(/\\d{1,2}:\\d{2}/)?.[0] || ''
+        ? timestamp.match(/\d{1,2}:\d{2}/)?.[0] || ''
         : timestamp?.time || '';
     const capturedDate = new Date();
     const dateParts = typeof timestamp === 'object' && timestamp?.date
