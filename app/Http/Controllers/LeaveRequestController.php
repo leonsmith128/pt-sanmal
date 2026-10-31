@@ -3,16 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Enums\LeaveRequestStatus;
-use App\Enums\OvertimeApprovalStatus;
 use App\Models\AttendanceCorrection;
 use App\Models\AuditLog;
 use App\Models\Employee;
 use App\Models\LeaveRequest;
 use App\Models\LeaveType;
 use App\Models\OvertimeRequest;
-use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -53,7 +52,7 @@ class LeaveRequestController extends Controller
         $rows = $rows->values();
         $perPage = 30;
         $page = max(1, LengthAwarePaginator::resolveCurrentPage());
-        $requests = new \Illuminate\Pagination\LengthAwarePaginator(
+        $requests = new LengthAwarePaginator(
             $rows->forPage($page, $perPage)->values(),
             $rows->count(),
             $perPage,
@@ -75,7 +74,7 @@ class LeaveRequestController extends Controller
         abort_unless($request->user()->is_active && $employee, 403, 'Akun ini belum terhubung dengan data pegawai aktif.');
 
         $rows = $this->filteredRows($employee, $this->validatedFilters($request));
-        $filename = 'permohonan-' . now()->format('Ymd-His') . '.csv';
+        $filename = 'permohonan-'.now()->format('Ymd-His').'.csv';
 
         return response()->streamDownload(function () use ($rows): void {
             $stream = fopen('php://output', 'w');
@@ -203,7 +202,7 @@ class LeaveRequestController extends Controller
                 $rows->push((object) [
                     'source' => 'leave',
                     'source_id' => $item->id,
-                    'reference' => 'IZ-' . str_pad((string) $item->id, 5, '0', STR_PAD_LEFT),
+                    'reference' => 'IZ-'.str_pad((string) $item->id, 5, '0', STR_PAD_LEFT),
                     'type' => in_array($code, ['izin', 'sakit', 'cuti'], true) ? $code : 'izin',
                     'type_label' => $item->leaveType?->name ?? 'Jenis tidak tersedia',
                     'submitted_at' => $item->created_at,
@@ -229,7 +228,7 @@ class LeaveRequestController extends Controller
                 $rows->push((object) [
                     'source' => 'overtime',
                     'source_id' => $item->id,
-                    'reference' => 'LM-' . str_pad((string) $item->id, 5, '0', STR_PAD_LEFT),
+                    'reference' => 'LM-'.str_pad((string) $item->id, 5, '0', STR_PAD_LEFT),
                     'type' => 'lembur',
                     'type_label' => 'Lembur',
                     'submitted_at' => $item->created_at,
@@ -256,14 +255,14 @@ class LeaveRequestController extends Controller
                 $rows->push((object) [
                     'source' => 'correction',
                     'source_id' => $item->id,
-                    'reference' => 'KA-' . str_pad((string) $item->id, 5, '0', STR_PAD_LEFT),
+                    'reference' => 'KA-'.str_pad((string) $item->id, 5, '0', STR_PAD_LEFT),
                     'type' => 'koreksi_absensi',
                     'type_label' => 'Koreksi Absensi',
                     'submitted_at' => $item->created_at,
                     'period_start' => $item->attendance_date?->toDateString(),
                     'period_end' => $item->attendance_date?->toDateString(),
-                    'summary' => strtoupper(str_replace('_', ' ', $item->requested_type)) . ' · '
-                        . $item->requested_recorded_at?->format('d/m/Y H:i') . ' — ' . $item->reason,
+                    'summary' => strtoupper(str_replace('_', ' ', $item->requested_type)).' · '
+                        .$item->requested_recorded_at?->format('d/m/Y H:i').' — '.$item->reason,
                     'status' => $status,
                     'status_label' => match ($status) {
                         'pending' => 'Menunggu',
@@ -344,6 +343,6 @@ class LeaveRequestController extends Controller
         $value = (string) ($value ?? '');
 
         // CSV can be opened by spreadsheet software; prevent untrusted text becoming a formula.
-        return preg_match('/^[\s\x00-\x1F]*[=+\-@]/u', $value) === 1 ? "'" . $value : $value;
+        return preg_match('/^[\s\x00-\x1F]*[=+\-@]/u', $value) === 1 ? "'".$value : $value;
     }
 }

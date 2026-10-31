@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Enums\UserRole;
-use App\Models\AuditLog;
 use App\Models\Employee;
 use App\Models\Title;
 use App\Models\User;
@@ -73,6 +72,7 @@ class AdminEmployeeController extends Controller
     public function edit(Employee $employee): View
     {
         $employee->load(['user', 'title']);
+
         return view('pages::admin.employees.edit', [
             'employee' => $employee,
             'titles' => Title::query()->where('is_active', true)->orderBy('name')->get(),
