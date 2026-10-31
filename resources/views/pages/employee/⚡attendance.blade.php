@@ -498,7 +498,7 @@ new #[Title('Absensi')] class extends Component {
         {{-- Form absensi --}}
         <form wire:submit="confirm('{{ $mode }}')" class="flex flex-col gap-5 rounded-xl border border-neutral-200 p-5 dark:border-neutral-700 {{ $selectedDate !== now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString() ? 'hidden' : '' }}">
             @if ($mode === 'clock_in_blocked')
-                <flux:callout variant="info" icon="calendar-check">
+                <flux:callout variant="info" icon="lock-closed">
                     <flux:callout.heading>{{ __('Absensi hari ini sudah digunakan') }}</flux:callout.heading>
                     <flux:callout.text>
                         {{ __('Anda sudah melakukan Clock In pada tanggal ini. Sesi kedua tidak dapat dibuat setelah Clock Out.') }}
@@ -563,7 +563,7 @@ new #[Title('Absensi')] class extends Component {
                         {{ __('Absen Lembur') }}
                     </flux:button>
                 @elseif ($mode === 'clock_in_blocked')
-                    <flux:button type="button" variant="primary" class="min-w-0 flex-1" disabled icon="calendar-check">
+                    <flux:button type="button" variant="primary" class="min-w-0 flex-1" disabled icon="lock-closed">
                         {{ __('Sesi hari ini sudah digunakan') }}
                     </flux:button>
                 @else
