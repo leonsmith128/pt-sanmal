@@ -428,6 +428,11 @@ new #[Title('Absensi')] class extends Component {
                 @forelse ($overtimeRequestsForDate as $overtimeItem)
                     <div @class(['border-b border-zinc-200 pb-3 dark:border-zinc-700' => ! $loop->last, 'pt-2' => ! $loop->first])>
                         <p>{{ __('Mulai terjadwal') }}: {{ $overtimeItem->scheduledStartLocal()->format('d M Y, H:i') }}</p>
+                        @if ($overtimeItem->scheduledEndLocal())
+                            <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                                {{ __('Selesai terjadwal (riwayat)') }}: {{ $overtimeItem->scheduledEndLocal()->format('d M Y, H:i') }}
+                            </p>
+                        @endif
                         <flux:badge class="mt-2" :color="$overtimeItem->state->badgeColor()">{{ $overtimeItem->state->label() }}</flux:badge>
                         <flux:badge class="mt-2" :color="$overtimeItem->approval_status->badgeColor()">{{ $overtimeItem->approval_status->label() }}</flux:badge>
                         @if ($overtimeItem->startRecord)
@@ -450,6 +455,9 @@ new #[Title('Absensi')] class extends Component {
                                 <p>{{ $overtimeItem->final_start_at?->copy()->setTimezone($overtimeItem->timezone)->format('d M Y, H:i') ?? '—' }}
                                     – {{ $overtimeItem->final_end_at?->copy()->setTimezone($overtimeItem->timezone)->format('d M Y, H:i') ?? '—' }}</p>
                                 <p class="mt-1 text-zinc-500 dark:text-zinc-400">{{ __('Sumber') }}: {{ $overtimeItem->finalization_source }}</p>
+                                @if ($overtimeItem->finalization_reason)
+                                    <p class="mt-1 text-zinc-500 dark:text-zinc-400">{{ __('Alasan final admin') }}: {{ $overtimeItem->finalization_reason }}</p>
+                                @endif
                             </div>
                         @endif
                         @if ($overtimeItem->start_record_id === null && $overtimeItem->scheduled_start_at->lte(now()) && $overtimeItem->state !== OvertimeState::NeedsReview)
@@ -472,6 +480,7 @@ new #[Title('Absensi')] class extends Component {
                     $selectedDate >= now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString()
                     && ! $overtimeForDate
                     && (! $session || ! $this->overtimeRequest)
+                    && ($session || ! RecordAttendance::hasClockInOnDate($this->employee, $selectedDate))
                 )
                     <flux:modal.trigger name="request-overtime">
                         <button type="button" class="mt-3 inline-flex items-center gap-1 text-sm font-medium text-blue-600 underline underline-offset-4 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
