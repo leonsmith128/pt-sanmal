@@ -332,12 +332,16 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                                 <flux:table.cell class="whitespace-nowrap">
                                     @if ($record->latitude !== null && $record->longitude !== null)
                                         @if ($record->accuracy_m !== null)
-                                            ±{{ round((float) $record->accuracy_m) }} m
+                                            <p>±{{ round((float) $record->accuracy_m) }} m</p>
                                         @endif
-                                        <a href="https://www.google.com/maps?q={{ $record->latitude }},{{ $record->longitude }}" target="_blank" rel="noopener noreferrer" class="ml-1 text-blue-600 underline dark:text-blue-400">{{ __('Peta') }}</a>
+                                        <a href="https://www.google.com/maps?q={{ $record->latitude }},{{ $record->longitude }}" target="_blank" rel="noopener noreferrer" class="text-blue-600 underline dark:text-blue-400">{{ __('Peta') }}</a>
                                     @else
-                                        —
+                                        <span>—</span>
                                     @endif
+                                    <p class="mt-1 max-w-xs whitespace-normal break-words text-xs text-zinc-600 dark:text-zinc-300">
+                                        <span class="font-medium">{{ __('Alamat tersimpan:') }}</span>
+                                        {{ $record->address_snapshot ?: __('Alamat belum tersedia') }}
+                                    </p>
                                     @if ($record->location_status === 'unavailable')
                                         <flux:badge color="amber" size="sm" class="ml-1">{{ __('Perlu ditinjau') }}</flux:badge>
                                     @endif
