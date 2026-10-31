@@ -201,8 +201,20 @@ class DailyAttendanceStatusService
             ];
         }
 
-        $hasIn = $events->contains(fn (AttendanceRecord $event) => $event->type->value === 'clock_in');
-        $hasOut = $events->contains(fn (AttendanceRecord $event) => $event->type->value === 'clock_out');
+        $clockInCount = $events->filter(fn (AttendanceRecord $event) => $event->type->value === 'clock_in')->count();
+        $clockOutCount = $events->filter(fn (AttendanceRecord $event) => $event->type->value === 'clock_out')->count();
+
+        if ($clockInCount > 1 || $clockOutCount > 1) {
+            return $this->reviewResult(
+                $events,
+                $leaveRequests,
+                null,
+                'Ditemukan lebih dari satu event Clock In atau Clock Out pada tanggal sesi ini. Riwayat perlu ditinjau admin.',
+            );
+        }
+
+        $hasIn = $clockInCount === 1;
+        $hasOut = $clockOutCount === 1;
         $status = $hasIn && $hasOut ? DailyAttendanceStatus::Present : DailyAttendanceStatus::Incomplete;
 
         return [
