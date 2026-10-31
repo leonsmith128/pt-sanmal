@@ -32,6 +32,13 @@ class CreateOvertimeRequest
                 $this->fail('scheduled_start_at', 'Waktu mulai lembur tidak boleh di masa lalu.');
             }
 
+            if (
+                ! $openSession
+                && RecordAttendance::hasClockInOnDate($employee, $scheduledStart->toDateString())
+            ) {
+                $this->fail('form', 'Sesi absensi pada tanggal tersebut sudah digunakan dan ditutup. Pengajuan lembur harus dibuat sebelum sesi berakhir.');
+            }
+
             // Jadwal hanya ditautkan ke sesi aktif bila mulai berada dalam jendela sesi teknis.
             if ($openSession && $scheduledStart->utc()->lt($openSession->recorded_at)) {
                 $this->fail('scheduled_start_at', 'Waktu mulai lembur tidak boleh sebelum waktu clock-in.');
