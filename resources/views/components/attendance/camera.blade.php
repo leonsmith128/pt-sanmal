@@ -39,7 +39,8 @@
                             autoplay
                             playsinline
                             muted
-                            class="absolute inset-0 h-full w-full object-cover [transform:scaleX(-1)]"
+                            class="absolute inset-0 h-full w-full object-cover"
+                            :style="facingMode === 'user' ? 'transform:scaleX(-1)' : 'transform:none'"
                         ></video>
 
                         <img
@@ -73,7 +74,8 @@
                             x-show="! capturedUrl"
                             x-cloak
                             x-on:click="switchCamera()"
-                            x-bind:disabled="busy || starting"
+                            x-bind:disabled="busy || starting || ! canSwitchCamera"
+                            x-bind:title="canSwitchCamera ? 'Ganti kamera' : 'Perangkat hanya memiliki satu kamera'"
                             class="absolute right-3 top-3 flex size-10 items-center justify-center rounded-full bg-transparent text-white shadow-sm transition hover:bg-black/20 disabled:opacity-50"
                             aria-label="{{ __('Ganti kamera depan/belakang') }}"
                             title="{{ __('Ganti kamera') }}"
@@ -98,7 +100,7 @@
                                 type="button"
                                 x-show="! capturedUrl"
                                 x-on:click="capture()"
-                                x-bind:disabled="busy || starting || ! gpsReady"
+                                x-bind:disabled="busy || starting || ! videoReady || ! gpsReady"
                                 class="flex size-16 shrink-0 items-center justify-center rounded-full border-[3px] border-white bg-white/15 text-white shadow-lg outline outline-2 outline-offset-2 outline-white/40 transition active:scale-95 disabled:opacity-50 sm:size-[4.5rem]"
                                 aria-label="{{ __('Ambil foto') }}"
                                 title="{{ __('Ambil foto') }}"
@@ -152,6 +154,14 @@
                                 <flux:icon name="x-mark" variant="outline" class="size-5" />
                             </button>
                         </div>
+
+                        <div
+                            x-show="error && active"
+                            x-cloak
+                            x-text="error"
+                            role="alert"
+                            class="absolute left-1/2 top-[18%] z-30 w-[90%] -translate-x-1/2 rounded-lg bg-red-950/90 px-3 py-2 text-center text-sm text-white shadow-lg"
+                        ></div>
 
                         <div x-show="busy" x-cloak class="absolute inset-0 flex items-center justify-center bg-black/35 text-sm font-medium text-white">
                             {{ __('Memproses foto…') }}
