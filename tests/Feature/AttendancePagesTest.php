@@ -59,3 +59,15 @@ test('admins can visit the admin attendance page', function () {
         ->assertOk()
         ->assertSee(__('Kehadiran Pegawai'));
 });
+
+
+test('attendance camera controls reflect camera availability and video readiness', function () {
+    $this->actingAs(userWithRole(UserRole::Employee));
+
+    $this->get(route('attendance'))
+        ->assertOk()
+        ->assertSee('facingMode ===', false)
+        ->assertSee('! canSwitchCamera', false)
+        ->assertSee('! videoReady', false)
+        ->assertSee('error && active', false);
+});

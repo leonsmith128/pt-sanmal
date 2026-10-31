@@ -21,6 +21,8 @@ export default function attendanceCamera(config = {}) {
         facingMode: 'user',
         cameraInputs: [],
         canSwitchCamera: false,
+        activeDeviceId: null,
+        videoReady: false,
         isLandscape: window.matchMedia('(orientation: landscape)').matches,
         orientationQuery: null,
         orientationHandler: null,
@@ -118,14 +120,57 @@ export default function attendanceCamera(config = {}) {
             return video instanceof HTMLVideoElement ? video : null;
         },
 
-        async openCamera() {
-            const constraints = {
-                audio: false,
-                video: {
-                    facingMode: { ideal: this.facingMode },
-                },
-            };
-            return navigator.mediaDevices.getUserMedia(constraints);
+        async openCamera(deviceId = null) {
+            const video = deviceId
+                ? { deviceId: { exact: deviceId } }
+                : { facingMode: { ideal: this.facingMode } };
+
+            return navigator.mediaDevices.getUserMedia({ audio: false, video });
+        },
+
+        async waitForVideoFrame(video, timeoutMs = 10_000) {
+            const hasFrame = () => video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA
+                && video.videoWidth > 0
+                && video.videoHeight > 0;
+
+            if (hasFrame()) {
+                this.videoReady = true;
+                return;
+            }
+
+            this.videoReady = false;
+
+            await new Promise((resolve, reject) => {
+                let timeout;
+
+                const cleanup = () => {
+                    video.removeEventListener('loadeddata', onFrame);
+                    video.removeEventListener('canplay', onFrame);
+                    window.clearTimeout(timeout);
+                };
+
+                const onFrame = () => {
+                    if (!hasFrame()) return;
+                    cleanup();
+                    this.videoReady = true;
+                    resolve();
+                };
+
+                video.addEventListener('loadeddata', onFrame);
+                video.addEventListener('canplay', onFrame);
+                timeout = window.setTimeout(() => {
+                    cleanup();
+                    reject(new Error('video-frame-timeout'));
+                }, timeoutMs);
+
+                onFrame();
+            });
+        },
+
+        updateCameraMetadata(stream) {
+            const settings = stream?.getVideoTracks?.()[0]?.getSettings?.() ?? {};
+            this.activeDeviceId = settings.deviceId || null;
+            this.facingMode = settings.facingMode || this.facingMode;
         },
 
         async refreshCameraList() {
@@ -154,6 +199,7 @@ export default function attendanceCamera(config = {}) {
                 }
 
                 this.stream = await this.openCamera();
+                this.updateCameraMetadata(this.stream);
                 this.active = true;
                 await this.$nextTick();
 
@@ -164,14 +210,16 @@ export default function attendanceCamera(config = {}) {
                 video.playsInline = true;
                 video.srcObject = this.stream;
                 await video.play();
-                await this.refreshCameraList();
-                this.checkFrames(video);
+                await this.waitForVideoFrame(video);
+                await this.refreshCameraList().catch(() => {});
             } catch (error) {
                 console.error('Kamera gagal dibuka:', error);
                 this.stop();
 
                 if (error.message === 'video-element-not-found') {
                     this.error = 'Elemen video tidak ditemukan. Muat ulang halaman dan coba kembali.';
+                } else if (error.message === 'video-frame-timeout') {
+                    this.error = 'Kamera terbuka tetapi belum mengirim gambar. Tutup aplikasi kamera lain lalu coba kembali.';
                 } else if (error.message === 'camera-unavailable' || error.name === 'SecurityError') {
                     this.error = 'Kamera tidak tersedia. Buka halaman melalui HTTPS atau localhost.';
                 } else if (error.name === 'NotAllowedError') {
@@ -191,7 +239,7 @@ export default function attendanceCamera(config = {}) {
         },
 
         async switchCamera() {
-            if (this.busy || this.starting) return;
+            if (this.busy || this.starting || !this.canSwitchCamera) return;
 
             const previousFacingMode = this.facingMode;
             const previousStream = this.stream;
@@ -203,15 +251,21 @@ export default function attendanceCamera(config = {}) {
 
             try {
                 // Keep the current camera running until the replacement is ready.
-                nextStream = await this.openCamera();
+                const alternative = this.activeDeviceId
+                    ? this.cameraInputs.find((device) => device.deviceId && device.deviceId !== this.activeDeviceId)
+                    : null;
+                this.facingMode = previousFacingMode === 'user' ? 'environment' : 'user';
+                nextStream = await this.openCamera(alternative?.deviceId || null);
 
                 const video = this.getVideoElement();
                 if (!video) throw new Error('video-element-not-found');
 
                 video.srcObject = nextStream;
                 await video.play();
+                await this.waitForVideoFrame(video);
 
                 this.stream = nextStream;
+                this.updateCameraMetadata(nextStream);
                 previousStream?.getTracks().forEach((track) => track.stop());
 
                 // Device enumeration is informational; it must not invalidate a
@@ -225,6 +279,7 @@ export default function attendanceCamera(config = {}) {
                 if (video && previousStream && video.srcObject !== previousStream) {
                     video.srcObject = previousStream;
                     await video.play().catch(() => {});
+                    this.videoReady = video.videoWidth > 0 && video.videoHeight > 0;
                 }
 
                 this.error = 'Kamera tidak dapat diganti pada perangkat ini.';
@@ -242,19 +297,12 @@ export default function attendanceCamera(config = {}) {
             }
             this.stream?.getTracks().forEach((track) => track.stop());
             this.stream = null;
+            this.activeDeviceId = null;
+            this.videoReady = false;
             this.active = false;
             this.starting = false;
             this.stopLocationWatch();
             this.clearCapturedPhoto();
-        },
-
-        checkFrames(video) {
-            window.setTimeout(() => {
-                if (this.active && this.stream && video.isConnected && video.videoWidth === 0) {
-                    this.error = 'Kamera terbuka tetapi tidak mengirim gambar. Tutup dan buka kamera kembali.';
-                    this.fallback = true;
-                }
-            }, 3000);
         },
 
         clearCapturedPhoto() {
@@ -401,7 +449,7 @@ export default function attendanceCamera(config = {}) {
 
         async capture() {
             const video = this.getVideoElement();
-            if (!video || !video.videoWidth || !video.videoHeight || this.busy) return;
+            if (!video || !this.videoReady || !video.videoWidth || !video.videoHeight || this.busy) return;
 
             this.error = null;
             this.busy = true;
