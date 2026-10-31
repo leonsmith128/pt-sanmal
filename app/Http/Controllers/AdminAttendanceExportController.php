@@ -6,6 +6,7 @@ use App\Enums\AttendanceType;
 use App\Enums\WorkType;
 use App\Models\AttendanceRecord;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -27,7 +28,7 @@ class AdminAttendanceExportController extends Controller
             ->when(($filters['from'] ?? null) || ($filters['to'] ?? null), function ($query) use ($filters): void {
                 $from = $filters['from'] ?? null;
                 $to = $filters['to'] ?? null;
-                $previousDayBoundary = match (\\Illuminate\\Support\\Facades\\DB::connection()->getDriverName()) {
+                $previousDayBoundary = match (DB::connection()->getDriverName()) {
                     'sqlite' => "datetime(attendance_records.recorded_at, '-24 hours')",
                     default => 'DATE_SUB(attendance_records.recorded_at, INTERVAL 24 HOUR)',
                 };
