@@ -547,3 +547,30 @@ it('shows the used-session state after the employee has clocked out today', func
         ->assertSee('Absensi hari ini sudah digunakan')
         ->assertSee('Sesi hari ini sudah digunakan');
 });
+
+it('flags historical duplicate attendance sessions on one date for admin review', function () {
+    $employee = overtimeEmployee();
+    $date = now('Asia/Makassar')->toDateString();
+
+    foreach ([
+        [AttendanceType::ClockIn, now()->subHours(4)],
+        [AttendanceType::ClockOut, now()->subHours(3)],
+        [AttendanceType::ClockIn, now()->subHours(2)],
+        [AttendanceType::ClockOut, now()->subHour()],
+    ] as [$type, $recordedAt]) {
+        AttendanceRecord::create([
+            'employee_id' => $employee->id,
+            'type' => $type,
+            'work_type' => WorkType::Office,
+            'recorded_at' => $recordedAt,
+            'timezone' => 'Asia/Makassar',
+            'attendance_date' => $date,
+        ]);
+    }
+
+    $result = app(DailyAttendanceStatusService::class)->forEmployeeDate($employee, $date);
+
+    expect($result['status'])->toBe('needs_review')
+        ->and($result['needs_review'])->toBeTrue()
+        ->and($result['events'])->toHaveCount(4);
+});
