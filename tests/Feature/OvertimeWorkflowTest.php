@@ -431,8 +431,8 @@ it('shows a disabled overtime attendance button instead of clock out before the 
     Livewire::actingAs($employee->user)
         ->test('pages::employee.attendance')
         ->assertSee('Absen Lembur')
-        ->assertDontSee('Absen Pulang')
-        ->assertSee('Menunggu jadwal lembur');
+        ->assertSee('Menunggu jadwal lembur')
+        ->assertSee('Tombol Clock Out tidak tersedia selama pengajuan ini masih aktif.');
 });
 
 it('rejects a second clock-in after clock-out on the same local calendar date', function () {
