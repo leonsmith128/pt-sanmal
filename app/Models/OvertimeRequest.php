@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Fillable([
     'employee_id',
+    'session_date',
     'clock_in_record_id',
     'start_record_id',
     'clock_out_record_id',
@@ -43,6 +44,7 @@ class OvertimeRequest extends Model
     protected function casts(): array
     {
         return [
+            'session_date' => 'date',
             'scheduled_start_at' => 'datetime',
             'scheduled_end_at' => 'datetime',
             'final_start_at' => 'datetime',
