@@ -40,6 +40,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
 
     public function updated(string $property): void
     {
+        unset($this->records, $this->notYetPresent);
         $this->resetPage();
     }
 
@@ -65,6 +66,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
         $this->attendanceType = '';
         $this->workType = '';
         $this->employeeId = '';
+        unset($this->records, $this->notYetPresent);
         $this->resetPage();
     }
 
