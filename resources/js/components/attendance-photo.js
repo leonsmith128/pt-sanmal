@@ -139,7 +139,9 @@ export function drawAttendanceWatermark(context, width, height, details, logo = 
     const addressTopBaselineGap = Math.max(4, Math.round(addressSize * 0.45));
     const nameBaseline = addressFirstBaseline - addressTopBaselineGap - addressSize;
     const rowGap = Math.max(3, Math.round(nameSize * 0.18));
-    const topRowHeight = Math.max(logoHeight, timeSize, dateSize * 2.05);
+    const dateWeekdayGap = Math.max(3, Math.round(dateSize * 0.35));
+    const dateWeekdayHeight = dateSize * 2 + dateWeekdayGap;
+    const topRowHeight = Math.max(logoHeight, timeSize, dateWeekdayHeight);
     const topRowY = nameBaseline - nameSize - rowGap - topRowHeight;
 
     if (logo) {
@@ -167,7 +169,7 @@ export function drawAttendanceWatermark(context, width, height, details, logo = 
     context.font = '600 ' + dateSize + 'px "Roboto Condensed", "Arial Narrow", Roboto, sans-serif';
     context.fillText(dateParts, dateX, topRowY + dateSize);
     context.font = '400 ' + dateSize + 'px "Roboto Condensed", "Arial Narrow", Roboto, sans-serif';
-    context.fillText(weekday, dateX, topRowY + dateSize * 2.05);
+    context.fillText(weekday, dateX, topRowY + dateSize * 2 + dateWeekdayGap);
 
     context.font = '600 ' + nameSize + 'px "Roboto Condensed", "Arial Narrow", Roboto, sans-serif';
     context.fillStyle = '#ffffff';
