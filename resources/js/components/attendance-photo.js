@@ -113,13 +113,21 @@ export function drawAttendanceWatermark(context, width, height, details, logo = 
         context.drawImage(logo, marginX, topRowY + Math.max(0, timeSize * 0.12), logoWidth, logoHeight);
     }
 
-    const time = details.timestamp.match(/\d{1,2}:\d{2}/)?.[0] || '';
-    const dateParts = new Intl.DateTimeFormat('id-ID', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-    }).format(new Date());
-    const weekday = new Intl.DateTimeFormat('id-ID', { weekday: 'long' }).format(new Date());
+    const timestamp = details.timestamp;
+    const time = typeof timestamp === 'string'
+        ? timestamp.match(/\\d{1,2}:\\d{2}/)?.[0] || ''
+        : timestamp?.time || '';
+    const capturedDate = timestamp instanceof Date ? timestamp : new Date();
+    const dateParts = typeof timestamp === 'object' && timestamp?.date
+        ? timestamp.date
+        : new Intl.DateTimeFormat('id-ID', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+        }).format(capturedDate);
+    const weekday = typeof timestamp === 'object' && timestamp?.weekday
+        ? timestamp.weekday
+        : new Intl.DateTimeFormat('id-ID', { weekday: 'long' }).format(capturedDate);
 
     context.fillStyle = '#ffffff';
     context.font = '700 ' + timeSize + 'px "Roboto Condensed", "Arial Narrow", Roboto, sans-serif';
