@@ -239,6 +239,13 @@ export function drawAttendanceWatermark(context, width, height, details, logo = 
         Math.max(0, rightEdge - separatorX - separatorGap)
     );
 
+    // Gambar alamat di antara identitas pegawai dan footer agar watermark dan foto final sama.
+    context.font = '500 ' + addressSize + 'px "Roboto Condensed", "Arial Narrow", Roboto, sans-serif';
+    context.fillStyle = '#ffffff';
+    addressLines.forEach((line, index) => {
+        context.fillText(line, textX, addressFirstBaseline + index * lineHeight, addressWidth);
+    });
+
     // Footer rapat di bawah alamat: logo kecil sebagai penanda, diikuti nama perusahaan.
     if (logo) {
         const logoY = footerTop + (footerRowHeight - footerLogoHeight) / 2;
