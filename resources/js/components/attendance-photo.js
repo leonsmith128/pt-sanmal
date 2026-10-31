@@ -94,10 +94,12 @@ export function drawAttendanceWatermark(context, width, height, details, logo = 
     const timeSize = Math.max(18, Math.round(width * 0.058));
     const dateSize = Math.max(11, Math.round(width * 0.021));
     const nameSize = Math.max(12, Math.round(width * 0.022));
-    const addressSize = Math.max(11, Math.round(width * 0.018));
+    // Gunakan sisi terpanjang agar ukuran teks alamat konsisten pada foto portrait dan landscape.
+    const addressSize = Math.max(11, Math.round(Math.max(width, height) * 0.018));
     const lineHeight = Math.ceil(addressSize * 1.18);
     const rightEdge = Math.min(width - marginX, marginX + watermarkWidth);
     const textWidth = rightEdge - marginX;
+    const addressWidth = Math.min(Math.round(width * 0.60), width - marginX * 2);
     const textX = marginX + (logo ? logoWidth + gap : 0);
     const shadow = 'rgba(0, 0, 0, 0.82)';
 
@@ -130,16 +132,16 @@ export function drawAttendanceWatermark(context, width, height, details, logo = 
     // Hitung baris alamat lebih dahulu, lalu susun seluruh watermark dari batas bawah ke atas.
     context.font = '500 ' + addressSize + 'px "Roboto Condensed", "Arial Narrow", Roboto, sans-serif';
     const address = String(details.address || 'Alamat belum tersedia');
-    const addressLines = wrapText(context, address, textWidth).slice(0, 3);
+    const addressLines = wrapText(context, address, addressWidth).slice(0, 3);
     if (addressLines.length === 3) {
         addressLines[2] = addressLines[2].replace(/[.,;:]?$/, '…');
     }
 
     const addressFirstBaseline = height - bottom - (addressLines.length - 1) * lineHeight;
-    const addressTopBaselineGap = Math.max(4, Math.round(addressSize * 0.45));
+    const addressTopBaselineGap = Math.max(8, Math.round(addressSize * 0.7));
     const nameBaseline = addressFirstBaseline - addressTopBaselineGap - addressSize;
     const rowGap = Math.max(3, Math.round(nameSize * 0.18));
-    const dateWeekdayGap = Math.max(3, Math.round(dateSize * 0.35));
+    const dateWeekdayGap = Math.max(6, Math.round(dateSize * 0.5));
     const dateWeekdayHeight = dateSize * 2 + dateWeekdayGap;
     const topRowHeight = Math.max(logoHeight, timeSize, dateWeekdayHeight);
     const topRowY = nameBaseline - nameSize - rowGap - topRowHeight;
@@ -155,15 +157,15 @@ export function drawAttendanceWatermark(context, width, height, details, logo = 
 
     const dividerX = textX + context.measureText(time).width + gap * 0.55;
     context.shadowBlur = 0;
-    context.fillStyle = 'rgba(255,255,255,0.8)';
+    context.fillStyle = '#f4c542';
     context.fillRect(
         dividerX,
         topRowY + Math.max(1, dateSize * 0.12),
-        Math.max(2, width * 0.0025),
+        Math.max(3, width * 0.003),
         timeSize + dateSize * 0.48,
     );
 
-    const dateX = dividerX + gap * 0.7;
+    const dateX = dividerX + gap * 0.85;
     context.shadowBlur = Math.max(2, width * 0.0025);
     context.fillStyle = '#ffffff';
     context.font = '600 ' + dateSize + 'px "Roboto Condensed", "Arial Narrow", Roboto, sans-serif';
@@ -184,7 +186,7 @@ export function drawAttendanceWatermark(context, width, height, details, logo = 
 
     context.font = '500 ' + addressSize + 'px "Roboto Condensed", "Arial Narrow", Roboto, sans-serif';
     addressLines.forEach((line, index) => {
-        context.fillText(line, marginX, addressFirstBaseline + index * lineHeight, textWidth);
+        context.fillText(line, marginX, addressFirstBaseline + index * lineHeight, addressWidth);
     });
 
     context.restore();
