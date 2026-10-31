@@ -44,6 +44,25 @@ class RecordAttendance
         return null;
     }
 
+    /**
+     * Whether this employee already started a session on the given local attendance date.
+     * Approved timestamp corrections are respected without mutating the original event.
+     */
+    public static function hasClockInOnDate(Employee $employee, string $date): bool
+    {
+        return AttendanceRecord::query()
+            ->where('employee_id', $employee->id)
+            ->where('type', AttendanceType::ClockIn)
+            ->where(function (Builder $query) use ($date): void {
+                $query->where(function (Builder $original) use ($date): void {
+                    $original->whereDate('attendance_date', $date)
+                        ->whereDoesntHave('approvedCorrection');
+                })->orWhereHas('approvedCorrection', fn (Builder $correction) => $correction
+                    ->whereDate('attendance_date', $date));
+            })
+            ->exists();
+    }
+
     public static function assignableProjects(Employee $employee): Builder
     {
         $today = now(self::DEFAULT_TIMEZONE)->toDateString();
@@ -108,19 +127,8 @@ class RecordAttendance
                     }
 
                     $today = now(self::DEFAULT_TIMEZONE)->toDateString();
-                    $alreadyClockedInToday = AttendanceRecord::query()
-                        ->where('employee_id', $employee->id)
-                        ->where('type', AttendanceType::ClockIn)
-                        ->where(function (Builder $query) use ($today): void {
-                            $query->where(function (Builder $original) use ($today): void {
-                                $original->whereDate('attendance_date', $today)
-                                    ->whereDoesntHave('approvedCorrection');
-                            })->orWhereHas('approvedCorrection', fn (Builder $correction) => $correction
-                                ->whereDate('attendance_date', $today));
-                        })
-                        ->exists();
 
-                    if ($alreadyClockedInToday) {
+                    if (self::hasClockInOnDate($employee, $today)) {
                         $this->fail('form', 'Anda sudah menggunakan sesi absensi untuk tanggal ini. Setelah Clock Out, Anda tidak dapat Clock In lagi pada tanggal yang sama.');
                     }
 
