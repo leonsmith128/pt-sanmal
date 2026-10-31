@@ -85,7 +85,6 @@ new #[Title('Absensi')] class extends Component {
 
         return $this->employee->overtimeRequests()
             ->where('clock_in_record_id', $session->id)
-            ->whereNotIn('state', [OvertimeState::Completed, OvertimeState::Cancelled])
             ->latest('scheduled_start_at')
             ->first();
     }
@@ -147,7 +146,6 @@ new #[Title('Absensi')] class extends Component {
         return $this->employee->overtimeRequests()
             ->where('scheduled_start_at', '>=', $dayStart)
             ->where('scheduled_start_at', '<', $dayEnd)
-            ->whereNotIn('state', [OvertimeState::Cancelled, OvertimeState::Completed])
             ->latest('scheduled_start_at')
             ->first();
     }
@@ -311,7 +309,15 @@ new #[Title('Absensi')] class extends Component {
 
         @php
             $session = $this->openSession;
-            $mode = $session ? (($this->overtimeRequest && $this->overtimeRequest->start_record_id === null && $this->overtimeRequest->state !== OvertimeState::NeedsReview) ? ($this->overtimeRequest->scheduled_start_at->lte(now()) ? 'overtime_start' : 'overtime_locked') : 'clock_out') : 'clock_in';
+            $sessionOvertime = $this->overtimeRequest;
+            $waitingForOvertimeStart = $sessionOvertime
+                && in_array($sessionOvertime->state, [OvertimeState::Scheduled, OvertimeState::AwaitingPhoto], true)
+                && $sessionOvertime->start_record_id === null;
+            $mode = $session
+                ? ($waitingForOvertimeStart
+                    ? ($sessionOvertime->scheduled_start_at->isFuture() ? 'overtime_locked' : 'overtime_start')
+                    : 'clock_out')
+                : 'clock_in';
         @endphp
 
         {{-- Ringkasan waktu kerja --}}
