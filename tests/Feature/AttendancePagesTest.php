@@ -51,6 +51,37 @@ test('employees can visit their own attendance history', function () {
         ->assertSee(__('Belum ada catatan absensi'));
 });
 
+test('saved address snapshots are visible to employees and admins', function () {
+    $employee = userWithRole(UserRole::Employee);
+    $admin = userWithRole(UserRole::Admin);
+    $address = 'Jl. Contoh No. 10, Makassar, Sulawesi Selatan';
+
+    AttendanceRecord::create([
+        'employee_id' => $employee->employee->id,
+        'type' => AttendanceType::ClockIn,
+        'work_type' => WorkType::Office,
+        'recorded_at' => now(),
+        'timezone' => 'Asia/Makassar',
+        'attendance_date' => now('Asia/Makassar')->toDateString(),
+        'latitude' => -5.1477,
+        'longitude' => 119.4327,
+        'accuracy_m' => 12,
+        'address_snapshot' => $address,
+    ]);
+
+    $this->actingAs($employee)
+        ->get(route('attendance-history.index'))
+        ->assertOk()
+        ->assertSee(__('Alamat tersimpan:'))
+        ->assertSee($address);
+
+    $this->actingAs($admin)
+        ->get(route('admin.kehadiran'))
+        ->assertOk()
+        ->assertSee(__('Alamat tersimpan:'))
+        ->assertSee($address);
+});
+
 test('employees are forbidden from the admin attendance page', function () {
     $this->actingAs(userWithRole(UserRole::Employee));
 
