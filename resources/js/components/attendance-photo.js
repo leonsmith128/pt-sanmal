@@ -137,7 +137,7 @@ export function drawAttendanceWatermark(context, width, height, details, logo = 
     const addressTopBaselineGap = Math.max(1, Math.round(addressSize * 0.18));
     const nameBaseline = addressFirstBaseline - addressTopBaselineGap - addressSize;
     const rowGap = Math.max(3, Math.round(nameSize * 0.18));
-    const topRowHeight = Math.max(logoHeight, timeSize + dateSize * 1.45);
+    const topRowHeight = Math.max(logoHeight, timeSize, dateSize * 2.05);
     const topRowY = nameBaseline - nameSize - rowGap - topRowHeight;
 
     if (logo) {
