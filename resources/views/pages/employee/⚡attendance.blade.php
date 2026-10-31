@@ -631,12 +631,6 @@ new #[Title('Absensi')] class extends Component {
                             @if ($accuracy !== null) &plusmn;{{ round((float) $accuracy) }} m @else — @endif
                         </dd>
                     </div>
-                    <div class="flex justify-between gap-4">
-                        <dt class="text-zinc-500">{{ __('Akurasi GPS') }}</dt>
-                        <dd class="font-medium">
-                            @if ($accuracy !== null) &plusmn;{{ round((float) $accuracy) }} m @else — @endif
-                        </dd>
-                    </div>
                     <div class="grid gap-1 border-t border-zinc-200 pt-2 dark:border-zinc-700">
                         <dt class="text-zinc-500">{{ __('Alamat pada watermark dan bukti yang akan disimpan') }}</dt>
                         <dd class="break-words font-medium">{{ filled($addressSnapshot ?? null) ? $addressSnapshot : __('Alamat belum tersedia untuk koordinat ini.') }}</dd>
