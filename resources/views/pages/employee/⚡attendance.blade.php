@@ -632,6 +632,17 @@ new #[Title('Absensi')] class extends Component {
                         </dd>
                     </div>
                     <div class="flex justify-between gap-4">
+                        <dt class="text-zinc-500">{{ __('Akurasi GPS') }}</dt>
+                        <dd class="font-medium">
+                            @if ($accuracy !== null) &plusmn;{{ round((float) $accuracy) }} m @else — @endif
+                        </dd>
+                    </div>
+                    <div class="grid gap-1 border-t border-zinc-200 pt-2 dark:border-zinc-700">
+                        <dt class="text-zinc-500">{{ __('Alamat pada watermark dan bukti yang akan disimpan') }}</dt>
+                        <dd class="break-words font-medium">{{ filled($addressSnapshot ?? null) ? $addressSnapshot : __('Alamat belum tersedia untuk koordinat ini.') }}</dd>
+                        <p class="text-xs text-zinc-500">{{ __('Alamat yang ditampilkan di sini adalah snapshot yang sama dengan yang dikirim bersama foto.') }}</p>
+                    </div>
+                    <div class="flex justify-between gap-4">
                         <dt class="text-zinc-500">{{ __('Sumber foto') }}</dt>
                         <dd class="font-medium">{{ $selfieSource === 'upload' ? __('Unggah manual') : __('Kamera') }}</dd>
                     </div>
