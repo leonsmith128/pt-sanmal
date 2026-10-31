@@ -87,33 +87,19 @@ function formatCaptureTimestamp(date) {
  */
 export function drawAttendanceWatermark(context, width, height, details, logo = null) {
     const marginX = Math.round(width * 0.03);
-    const bottom = Math.round(height * 0.035);
-    const logoWidth = Math.round(width * 0.12);
+    const bottom = Math.max(8, Math.round(height * 0.025));
+    const logoWidth = Math.round(width * 0.11);
     const logoHeight = logo ? logoWidth * (logo.height / logo.width) : logoWidth * 0.38;
-    const gap = Math.round(width * 0.012);
-    const timeSize = Math.max(19, Math.round(width * 0.06));
-    const dateSize = Math.max(11, Math.round(width * 0.022));
-    const nameSize = Math.max(12, Math.round(width * 0.023));
-    const addressSize = Math.max(11, Math.round(width * 0.019));
-    const lineHeight = Math.round(addressSize * 1.2);
+    const gap = Math.max(5, Math.round(width * 0.012));
+    const timeSize = Math.max(18, Math.round(width * 0.058));
+    const dateSize = Math.max(11, Math.round(width * 0.021));
+    const nameSize = Math.max(12, Math.round(width * 0.022));
+    const addressSize = Math.max(11, Math.round(width * 0.018));
+    const lineHeight = Math.ceil(addressSize * 1.18);
     const rightEdge = width - marginX;
+    const textWidth = rightEdge - marginX;
     const textX = marginX + (logo ? logoWidth + gap : 0);
-    const topRowHeight = Math.max(logoHeight, timeSize + dateSize * 1.55);
-    const nameGap = Math.max(2, Math.round(nameSize * 0.35));
-    const topRowY = height - bottom - topRowHeight - nameGap - nameSize - addressSize * 1.2 - lineHeight * 2.2;
     const shadow = 'rgba(0, 0, 0, 0.82)';
-
-    context.save();
-    context.textBaseline = 'alphabetic';
-    context.lineJoin = 'round';
-    context.shadowColor = shadow;
-    context.shadowBlur = Math.max(2, width * 0.003);
-    context.shadowOffsetX = 1;
-    context.shadowOffsetY = 1;
-
-    if (logo) {
-        context.drawImage(logo, marginX, topRowY + Math.max(0, timeSize * 0.12), logoWidth, logoHeight);
-    }
 
     const timestamp = details.timestamp;
     const time = typeof timestamp === 'string'
@@ -131,6 +117,34 @@ export function drawAttendanceWatermark(context, width, height, details, logo = 
         ? timestamp.weekday
         : new Intl.DateTimeFormat('id-ID', { weekday: 'long' }).format(capturedDate);
 
+    context.save();
+    context.textBaseline = 'alphabetic';
+    context.lineJoin = 'round';
+    context.shadowColor = shadow;
+    context.shadowBlur = Math.max(2, width * 0.0025);
+    context.shadowOffsetX = 1;
+    context.shadowOffsetY = 1;
+
+    // Hitung baris alamat lebih dahulu, lalu susun seluruh watermark dari batas bawah ke atas.
+    context.font = '500 ' + addressSize + 'px "Roboto Condensed", "Arial Narrow", Roboto, sans-serif';
+    const address = String(details.address || 'Alamat belum tersedia');
+    const addressLines = wrapText(context, address, textWidth).slice(0, 3);
+    if (addressLines.length === 3) {
+        addressLines[2] = addressLines[2].replace(/[.,;:]?$/, '…');
+    }
+
+    const addressFirstBaseline = height - bottom - (addressLines.length - 1) * lineHeight;
+    const addressTopBaselineGap = Math.max(1, Math.round(addressSize * 0.18));
+    const nameBaseline = addressFirstBaseline - addressTopBaselineGap - addressSize;
+    const rowGap = Math.max(3, Math.round(nameSize * 0.18));
+    const topRowHeight = Math.max(logoHeight, timeSize + dateSize * 1.45);
+    const topRowY = nameBaseline - nameSize - rowGap - topRowHeight;
+
+    if (logo) {
+        const logoY = topRowY + (topRowHeight - logoHeight) / 2;
+        context.drawImage(logo, marginX, logoY, logoWidth, logoHeight);
+    }
+
     context.fillStyle = '#ffffff';
     context.font = '700 ' + timeSize + 'px "Roboto Condensed", "Arial Narrow", Roboto, sans-serif';
     context.fillText(time, textX, topRowY + timeSize);
@@ -138,42 +152,39 @@ export function drawAttendanceWatermark(context, width, height, details, logo = 
     const dividerX = textX + context.measureText(time).width + gap * 0.55;
     context.shadowBlur = 0;
     context.fillStyle = 'rgba(255,255,255,0.8)';
-    context.fillRect(dividerX, topRowY + 2, Math.max(2, width * 0.0025), timeSize + dateSize * 0.75);
+    context.fillRect(
+        dividerX,
+        topRowY + Math.max(1, dateSize * 0.12),
+        Math.max(2, width * 0.0025),
+        timeSize + dateSize * 0.48,
+    );
 
     const dateX = dividerX + gap * 0.7;
-    context.shadowBlur = Math.max(2, width * 0.003);
+    context.shadowBlur = Math.max(2, width * 0.0025);
     context.fillStyle = '#ffffff';
     context.font = '600 ' + dateSize + 'px "Roboto Condensed", "Arial Narrow", Roboto, sans-serif';
     context.fillText(dateParts, dateX, topRowY + dateSize);
     context.font = '400 ' + dateSize + 'px "Roboto Condensed", "Arial Narrow", Roboto, sans-serif';
     context.fillText(weekday, dateX, topRowY + dateSize * 2.05);
 
-    const nameY = topRowY + topRowHeight + nameGap + nameSize;
     context.font = '600 ' + nameSize + 'px "Roboto Condensed", "Arial Narrow", Roboto, sans-serif';
     context.fillStyle = '#ffffff';
     const name = String(details.name || 'Pegawai SanMal');
-    context.fillText(name, marginX, nameY, width * 0.58);
-    const nameWidth = context.measureText(name).width;
     const event = String(details.eventLabel || 'Absensi');
-    context.font = '600 ' + nameSize + 'px "Roboto Condensed", "Arial Narrow", Roboto, sans-serif';
-    const eventX = marginX + Math.min(nameWidth, width * 0.58) + gap * 0.65;
-    context.fillText('|', eventX, nameY);
-    context.fillText(event, eventX + gap * 0.9, nameY, width - eventX - gap);
+    const nameMaxWidth = Math.min(textWidth * 0.62, textWidth);
+    context.fillText(name, marginX, nameBaseline, nameMaxWidth);
+    const nameWidth = Math.min(context.measureText(name).width, nameMaxWidth);
+    const eventX = marginX + nameWidth + gap * 0.55;
+    context.fillText('|', eventX, nameBaseline);
+    context.fillText(event, eventX + gap * 0.75, nameBaseline, Math.max(0, rightEdge - eventX - gap));
 
-    const address = String(details.address || 'Alamat belum tersedia');
     context.font = '500 ' + addressSize + 'px "Roboto Condensed", "Arial Narrow", Roboto, sans-serif';
-    const addressLines = wrapText(context, address, rightEdge - marginX).slice(0, 3);
-    if (addressLines.length === 3) {
-        addressLines[2] = addressLines[2].replace(/[.,;:]?$/, '…');
-    }
-
     addressLines.forEach((line, index) => {
-        context.fillText(line, marginX, nameY + addressSize * 1.25 + index * lineHeight, rightEdge - marginX);
+        context.fillText(line, marginX, addressFirstBaseline + index * lineHeight, textWidth);
     });
 
     context.restore();
 }
-
 function wrapText(context, text, maxWidth) {
     const words = String(text || '').split(/\s+/);
     const lines = [];
