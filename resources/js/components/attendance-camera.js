@@ -149,23 +149,30 @@ export default function attendanceCamera(config = {}) {
             return this.locationTracker.getFreshPosition();
         },
 
-        getWatermarkSnapshot(timestamp = new Date(), position = this.best) {
+        getWatermarkSnapshot(timestamp = new Date(), position = this.locationSnapshot || this.best) {
             const age = position
                 ? Date.now() - (position.measuredAt ?? position.receivedAt)
                 : Infinity;
-            const positionIsUsable = Boolean(
-                position
-                && age >= 0
-                && age <= 15_000
-                && Number.isFinite(position.accuracy)
-                && position.accuracy >= 0
-                && position.accuracy <= 100
+            const isFrozenSnapshot = Boolean(
+                this.locationSnapshot
+                && position === this.locationSnapshot
             );
-            const snapshot = this.locationSnapshot;
-            const address = snapshot && positionIsUsable
-                && this.locationTracker?.samePosition(snapshot, position)
-                ? snapshot.address
-                : this.locationStatusMessage;
+            const positionIsUsable = Boolean(
+                isFrozenSnapshot
+                || (
+                    position
+                    && age >= 0
+                    && age <= 15_000
+                    && Number.isFinite(position.accuracy)
+                    && position.accuracy >= 0
+                    && position.accuracy <= 100
+                )
+            );
+            const address = isFrozenSnapshot
+                ? this.locationSnapshot.address
+                : positionIsUsable
+                    ? this.locationTracker?.getAddressForPosition(position) || this.locationStatusMessage
+                    : this.locationStatusMessage;
 
             return Object.freeze({
                 name: this.name,
