@@ -66,10 +66,19 @@ function getProportionalDimensions(sourceWidth, sourceHeight, maxDimension) {
 }
 
 function formatCaptureTimestamp(date) {
-    return new Intl.DateTimeFormat('id-ID', {
-        dateStyle: 'medium',
-        timeStyle: 'short',
-    }).format(date);
+    return {
+        time: new Intl.DateTimeFormat('id-ID', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hourCycle: 'h23',
+        }).format(date),
+        date: new Intl.DateTimeFormat('id-ID', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+        }).format(date),
+        weekday: new Intl.DateTimeFormat('id-ID', { weekday: 'long' }).format(date),
+    };
 }
 
 /**
@@ -77,7 +86,6 @@ function formatCaptureTimestamp(date) {
  * Preview dan foto final memakai fungsi renderer yang sama.
  */
 export function drawAttendanceWatermark(context, width, height, details, logo = null) {
-    const scale = width / 1280;
     const marginX = Math.round(width * 0.035);
     const bottom = Math.round(height * 0.045);
     const logoWidth = Math.round(width * 0.145);
