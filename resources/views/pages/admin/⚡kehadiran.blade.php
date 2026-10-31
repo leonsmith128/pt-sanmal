@@ -116,8 +116,8 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
             ->join('employees as sort_employees', 'sort_employees.id', '=', 'attendance_records.employee_id')
             ->join('users as sort_users', 'sort_users.id', '=', 'sort_employees.user_id')
             ->with(['employee.user', 'location', 'project', 'approvedCorrection'])
-            ->when($from !== '' && $to !== '', function ($query) use ($from, $to): void {
-                $query->where(function ($nested) use ($from, $to): void {
+            ->when($from !== '' && $to !== '', function ($query) use ($from, $to, $previousDayBoundary): void {
+                $query->where(function ($nested) use ($from, $to, $previousDayBoundary): void {
                     $nested->whereRaw(
                         "COALESCE((SELECT ac.attendance_date FROM attendance_corrections ac WHERE ac.attendance_record_id = attendance_records.id AND ac.status = 'approved' ORDER BY ac.reviewed_at DESC LIMIT 1), attendance_records.attendance_date) BETWEEN ? AND ?",
                         [$from, $to],
