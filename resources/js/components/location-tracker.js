@@ -25,6 +25,7 @@ export default class LocationTracker {
         this.addressRequestPromise = null;
         this.locationSnapshot = null;
         this.locationStatus = 'searching';
+        this.locationError = null;
         this.snapshotRequestId = 0;
         this.waiters = [];
         this.gpsReady = false;
@@ -43,6 +44,7 @@ export default class LocationTracker {
             addressLoading: this.addressLoading,
             locationSnapshot: this.locationSnapshot,
             locationStatus: this.locationStatus,
+            locationError: this.locationError,
             gpsReady: this.gpsReady,
             gpsStatusText: this.gpsStatusText,
             accessGranted: this.accessGranted,
@@ -230,6 +232,7 @@ export default class LocationTracker {
         const requestId = ++this.snapshotRequestId;
         this.locationSnapshot = null;
         this.locationStatus = 'searching';
+        this.locationError = null;
         this.address = '';
         this.publish();
 
@@ -257,6 +260,7 @@ export default class LocationTracker {
             if (requestId === this.snapshotRequestId) {
                 this.locationSnapshot = null;
                 this.locationStatus = 'failed';
+                this.locationError = error.message;
                 this.publish();
             }
             throw error;
@@ -401,7 +405,13 @@ export default class LocationTracker {
         this.snapshotRequestId += 1;
         this.locationSnapshot = null;
         this.locationStatus = 'searching';
+        this.locationError = null;
         this.addressRequestId += 1;
+        this.address = '';
+        this.lastGeocodedPosition = null;
+        this.pendingGeocodePosition = null;
+        this.addressRequestPromise = null;
+        this.addressLoading = false;
         if (this.watchId !== null && navigator.geolocation) {
             navigator.geolocation.clearWatch(this.watchId);
         }
