@@ -1,5 +1,5 @@
 import LocationTracker from './location-tracker.js';
-import { createAttendancePhoto } from './attendance-photo.js';
+import { createAttendancePhoto, drawAttendanceWatermark } from './attendance-photo.js';
 /**
  * Kamera absensi berbasis Alpine.
  *
@@ -11,6 +11,11 @@ import { createAttendancePhoto } from './attendance-photo.js';
 export default function attendanceCamera(config = {}) {
     return {
         stream: null,
+        cameraSessionId: 0,
+        activeVideoTrack: null,
+        trackEndedHandler: null,
+        visibilityHandler: null,
+        pageHideHandler: null,
         active: false,
         starting: false,
         busy: false,
@@ -39,7 +44,7 @@ export default function attendanceCamera(config = {}) {
         capturedUrl: null,
         capturedPosition: null,
         capturedAddress: '',
-        formattedTimestamp: '',
+        capturedAt: null,
 
         get currentTimestamp() {
             return new Intl.DateTimeFormat('id-ID', {
@@ -72,8 +77,19 @@ export default function attendanceCamera(config = {}) {
                 this.isLandscape = event.matches;
             };
             this.orientationQuery.addEventListener?.('change', this.orientationHandler);
+            this.visibilityHandler = () => {
+                if (!document.hidden || (!this.active && !this.starting)) return;
+
+                this.stopCameraStream();
+                this.error = 'Kamera dihentikan karena halaman tidak aktif. Buka kamera kembali sebelum mengambil foto.';
+                this.fallback = true;
+            };
+            this.pageHideHandler = () => this.stopCameraStream();
+            document.addEventListener('visibilitychange', this.visibilityHandler);
+            window.addEventListener('pagehide', this.pageHideHandler);
 
             this.locationTracker = new LocationTracker({
+                reverseGeocodeUrl: this.$el?.dataset?.reverseGeocodeUrl,
                 onChange: (state) => {
                     this.best = state.best;
                     this.liveAccuracy = state.liveAccuracy;
@@ -81,12 +97,10 @@ export default function attendanceCamera(config = {}) {
                     this.addressLoading = state.addressLoading;
                     this.gpsReady = state.gpsReady;
                     this.gpsStatusText = state.gpsStatusText;
+                    this.updateWatermarkPreview();
                 },
                 onError: (message) => {
-                    if (message) {
-                        this.error = message;
-                        this.gpsStatusText = message;
-                    }
+                    if (message) this.gpsStatusText = message;
                 },
             });
         },
@@ -113,6 +127,28 @@ export default function attendanceCamera(config = {}) {
         getPosition() {
             if (!this.locationTracker) return Promise.reject(new Error('no-geolocation'));
             return this.locationTracker.getFreshPosition();
+        },
+
+        updateWatermarkPreview() {
+            const video = this.getVideoElement();
+            const canvas = this.$refs?.watermarkPreview;
+            if (!video || !canvas || !video.videoWidth || !video.videoHeight) return;
+
+            if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+            }
+
+            const context = canvas.getContext('2d');
+            if (!context) return;
+
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            drawAttendanceWatermark(context, canvas.width, canvas.height, {
+                name: this.name,
+                eventLabel: this.eventLabel,
+                timestamp: this.currentTimestamp,
+                address: this.address,
+            });
         },
 
         getVideoElement() {
@@ -192,16 +228,25 @@ export default function attendanceCamera(config = {}) {
             this.fallback = false;
             this.starting = true;
             this.startLocationWatch();
+            const sessionId = ++this.cameraSessionId;
 
             try {
                 if (!navigator.mediaDevices?.getUserMedia) {
                     throw new Error('camera-unavailable');
                 }
 
-                this.stream = await this.openCamera();
-                this.updateCameraMetadata(this.stream);
+                const stream = await this.openCamera();
+                if (sessionId !== this.cameraSessionId) {
+                    stream.getTracks().forEach((track) => track.stop());
+                    return;
+                }
+
+                this.stream = stream;
+                this.bindCameraTrack(stream);
+                this.updateCameraMetadata(stream);
                 this.active = true;
                 await this.$nextTick();
+                if (sessionId !== this.cameraSessionId) return;
 
                 const video = this.getVideoElement();
                 if (!video) throw new Error('video-element-not-found');
@@ -210,7 +255,10 @@ export default function attendanceCamera(config = {}) {
                 video.playsInline = true;
                 video.srcObject = this.stream;
                 await video.play();
+                if (sessionId !== this.cameraSessionId) return;
                 await this.waitForVideoFrame(video);
+                if (sessionId !== this.cameraSessionId) return;
+                this.updateWatermarkPreview();
                 await this.refreshCameraList().catch(() => {});
             } catch (error) {
                 console.error('Kamera gagal dibuka:', error);
@@ -243,6 +291,7 @@ export default function attendanceCamera(config = {}) {
 
             const previousFacingMode = this.facingMode;
             const previousStream = this.stream;
+            const sessionId = this.cameraSessionId;
             let nextStream = null;
 
             this.facingMode = previousFacingMode === 'user' ? 'environment' : 'user';
@@ -256,6 +305,10 @@ export default function attendanceCamera(config = {}) {
                     : null;
                 this.facingMode = previousFacingMode === 'user' ? 'environment' : 'user';
                 nextStream = await this.openCamera(alternative?.deviceId || null);
+                if (sessionId !== this.cameraSessionId) {
+                    nextStream.getTracks().forEach((track) => track.stop());
+                    return;
+                }
 
                 const video = this.getVideoElement();
                 if (!video) throw new Error('video-element-not-found');
@@ -263,8 +316,13 @@ export default function attendanceCamera(config = {}) {
                 video.srcObject = nextStream;
                 await video.play();
                 await this.waitForVideoFrame(video);
+                if (sessionId !== this.cameraSessionId) {
+                    nextStream.getTracks().forEach((track) => track.stop());
+                    return;
+                }
 
                 this.stream = nextStream;
+                this.bindCameraTrack(nextStream);
                 this.updateCameraMetadata(nextStream);
                 previousStream?.getTracks().forEach((track) => track.stop());
 
@@ -273,6 +331,8 @@ export default function attendanceCamera(config = {}) {
                 await this.refreshCameraList().catch(() => {});
             } catch (error) {
                 nextStream?.getTracks().forEach((track) => track.stop());
+                if (sessionId !== this.cameraSessionId) return;
+
                 this.facingMode = previousFacingMode;
 
                 const video = this.getVideoElement();
@@ -289,12 +349,42 @@ export default function attendanceCamera(config = {}) {
             }
         },
 
-        stop() {
+        bindCameraTrack(stream) {
+            this.unbindCameraTrack();
+
+            const track = stream?.getVideoTracks?.()[0];
+            if (!track) return;
+
+            this.activeVideoTrack = track;
+            this.trackEndedHandler = () => {
+                if (this.stream !== stream) return;
+
+                this.stopCameraStream();
+                this.error = 'Koneksi kamera terputus. Buka kamera kembali sebelum melanjutkan.';
+                this.fallback = true;
+            };
+            track.addEventListener?.('ended', this.trackEndedHandler, { once: true });
+        },
+
+        unbindCameraTrack() {
+            if (this.activeVideoTrack && this.trackEndedHandler) {
+                this.activeVideoTrack.removeEventListener?.('ended', this.trackEndedHandler);
+            }
+
+            this.activeVideoTrack = null;
+            this.trackEndedHandler = null;
+        },
+
+        stopCameraStream() {
+            this.cameraSessionId += 1;
+            this.unbindCameraTrack();
+
             const video = this.getVideoElement();
             if (video) {
                 video.pause();
                 video.srcObject = null;
             }
+
             this.stream?.getTracks().forEach((track) => track.stop());
             this.stream = null;
             this.activeDeviceId = null;
@@ -302,6 +392,10 @@ export default function attendanceCamera(config = {}) {
             this.active = false;
             this.starting = false;
             this.stopLocationWatch();
+        },
+
+        stop() {
+            this.stopCameraStream();
             this.clearCapturedPhoto();
         },
 
@@ -309,7 +403,7 @@ export default function attendanceCamera(config = {}) {
             if (this.capturedUrl) URL.revokeObjectURL(this.capturedUrl);
             this.capturedUrl = null;
             this.capturedBlob = null;
-            this.formattedTimestamp = '';
+            this.capturedAt = null;
             this.capturedPosition = null;
             this.capturedAddress = '';
         },
@@ -322,20 +416,20 @@ export default function attendanceCamera(config = {}) {
             this.busy = true;
             this.clearCapturedPhoto();
             try {
-                let position = await this.getPosition();
-                this.best = position;
-                this.liveAccuracy = Math.round(position.accuracy);
-                await this.locationTracker.resolveAddress(position);
+                let position = null;
 
-                // Reverse geocoding bisa memerlukan waktu. Pastikan posisi yang
-                // dipakai saat foto dibuat tetap segar setelah alamat diperoleh.
-                if (Date.now() - (position.measuredAt ?? position.receivedAt) > 15_000) {
+                // GPS adalah bukti pendukung. Kegagalan setelah tiga percobaan
+                // tidak boleh menghalangi pegawai mengambil foto absensi.
+                try {
                     position = await this.getPosition();
                     this.best = position;
                     this.liveAccuracy = Math.round(position.accuracy);
+                    this.locationTracker.resolveAddress(position).catch(() => {});
+                } catch (locationError) {
+                    this.gpsStatusText = 'GPS tidak tersedia. Foto tetap dapat digunakan tanpa data lokasi.';
                 }
 
-                const addressSnapshot = this.address || '';
+                const addressSnapshot = position ? this.address || '' : '';
                 const photo = await createAttendancePhoto({
                     video,
                     facingMode: this.facingMode,
@@ -343,23 +437,18 @@ export default function attendanceCamera(config = {}) {
                     eventLabel: this.eventLabel,
                     address: addressSnapshot,
                 });
-                this.formattedTimestamp = photo.timestamp;
-                const blob = photo.blob;
+                this.capturedAt = photo.capturedAt;
                 this.capturedPosition = position;
                 this.capturedAddress = addressSnapshot;
-                this.capturedBlob = blob;
-                this.capturedUrl = URL.createObjectURL(blob);
+                this.capturedBlob = photo.blob;
+                this.capturedUrl = URL.createObjectURL(photo.blob);
             } catch (error) {
                 console.error('Gagal mengambil foto:', error);
                 this.error = error.message === 'canvas-context-unavailable'
                     ? 'Foto tidak dapat diproses oleh browser ini.'
                     : error.message === 'photo-size-limit-exceeded'
                         ? 'Ukuran foto tidak dapat diperkecil hingga batas 190 KB. Coba ambil foto kembali.'
-                        : error.message === 'location-not-accurate'
-                        ? 'Akurasi GPS belum memadai. Tunggu hingga GPS siap atau coba refresh lokasi.'
-                        : error.message === 'location-stopped'
-                            ? 'Pemantauan lokasi berhenti. Buka kamera kembali dan coba lagi.'
-                            : 'Foto atau lokasi gagal diproses. Periksa izin lokasi dan coba lagi.';
+                        : 'Foto gagal diproses. Periksa kamera dan coba lagi.';
             } finally {
                 this.busy = false;
             }
@@ -377,10 +466,10 @@ export default function attendanceCamera(config = {}) {
 
             try {
                 const position = this.capturedPosition;
-                if (!position) throw new Error('captured-location-missing');
-                this.$wire.latitude = position.latitude;
-                this.$wire.longitude = position.longitude;
-                this.$wire.accuracy = position.accuracy;
+                this.$wire.latitude = position?.latitude ?? null;
+                this.$wire.longitude = position?.longitude ?? null;
+                this.$wire.accuracy = position?.accuracy ?? null;
+                this.$wire.capturedAt = this.capturedAt;
                 this.$wire.addressSnapshot = this.capturedAddress || '';
                 this.$wire.selfieSource = 'camera';
 
@@ -405,6 +494,8 @@ export default function attendanceCamera(config = {}) {
         destroy() {
             this.stop();
             this.orientationQuery?.removeEventListener?.('change', this.orientationHandler);
+            document.removeEventListener('visibilitychange', this.visibilityHandler);
+            window.removeEventListener('pagehide', this.pageHideHandler);
         },
     };
 }

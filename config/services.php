@@ -28,6 +28,21 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'geoapify' => [
+        'key' => env('GEOAPIFY_API_KEY'),
+    ],
+
+    'nominatim' => [
+        'contact' => env('NOMINATIM_CONTACT_EMAIL'),
+    ],
+
+    'google_drive' => [
+        'client_id' => env('GOOGLE_DRIVE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_DRIVE_CLIENT_SECRET'),
+        'refresh_token' => env('GOOGLE_DRIVE_REFRESH_TOKEN'),
+        'folder_id' => env('GOOGLE_DRIVE_ATTENDANCE_FOLDER_ID'),
+    ],
+
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),

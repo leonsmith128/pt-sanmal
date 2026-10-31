@@ -27,8 +27,9 @@ export async function createAttendancePhoto({ video, facingMode, name, eventLabe
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
     context.setTransform(1, 0, 0, 1, 0, 0);
 
-    const timestamp = formatCaptureTimestamp(new Date());
-    drawWatermark(context, canvas.width, canvas.height, {
+    const capturedAt = new Date();
+    const timestamp = formatCaptureTimestamp(capturedAt);
+    drawAttendanceWatermark(context, canvas.width, canvas.height, {
         name,
         eventLabel,
         timestamp,
@@ -36,7 +37,7 @@ export async function createAttendancePhoto({ video, facingMode, name, eventLabe
     });
 
     const blob = await compressJpeg(canvas);
-    return { blob, timestamp };
+    return { blob, capturedAt: capturedAt.toISOString() };
 }
 
 /** Resize hanya berdasarkan sisi terpanjang agar rasio sumber tidak berubah. */
@@ -61,7 +62,7 @@ function formatCaptureTimestamp(date) {
 }
 
 /** Gambar watermark ke frame foto; konfigurasi geometri akan disatukan pada irisan berikutnya. */
-function drawWatermark(context, width, height, details) {
+export function drawAttendanceWatermark(context, width, height, details) {
     const cardWidth = width * 0.8;
     const cardX = (width - cardWidth) / 2;
     const cardTop = height * 0.03;
@@ -74,7 +75,7 @@ function drawWatermark(context, width, height, details) {
         details.name,
         details.eventLabel + ' · ' + details.timestamp,
         details.address || 'Alamat belum tersedia',
-        '© OpenStreetMap contributors',
+        '© Geoapify · © OpenStreetMap contributors',
     ];
 
     context.font = '600 ' + titleSize + 'px system-ui, sans-serif';

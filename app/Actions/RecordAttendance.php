@@ -13,6 +13,7 @@ use App\Models\OvertimeRequest;
 use App\Models\Project;
 use App\Support\AttendanceEvidence;
 use App\Support\AttendanceSelfie;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -90,19 +91,20 @@ class RecordAttendance
         ?WorkType $workType,
         mixed $locationId,
         mixed $projectId,
-        float $latitude,
-        float $longitude,
+        ?float $latitude,
+        ?float $longitude,
         ?float $accuracy,
         UploadedFile $selfie,
         SelfieSource $selfieSource,
         ?string $addressSnapshot = null,
+        ?CarbonInterface $capturedAt = null,
     ): AttendanceRecord {
         if ($selfieSource !== SelfieSource::Camera) {
             $this->fail('selfieSource', 'Foto absensi harus diambil langsung dari kamera.');
         }
 
-        // Validasi ulang di action agar jalur pemanggilan lain tidak dapat
-        // menyimpan koordinat dengan kualitas GPS yang tidak layak.
+        // Validasi ulang agar koordinat yang dikirim tetap lengkap dan memenuhi
+        // batas akurasi. Seluruh bukti lokasi boleh kosong jika GPS gagal.
         AttendanceEvidence::validate([
             'latitude' => $latitude,
             'longitude' => $longitude,
@@ -114,7 +116,7 @@ class RecordAttendance
         try {
             return DB::transaction(function () use (
                 $employee, $type, $workType, $locationId, $projectId,
-                $latitude, $longitude, $accuracy, $selfie, $selfieSource, $addressSnapshot, &$storedPath
+                $latitude, $longitude, $accuracy, $selfie, $selfieSource, $addressSnapshot, $capturedAt, &$storedPath
             ) {
                 Employee::query()->whereKey($employee->id)->lockForUpdate()->firstOrFail();
 
@@ -176,6 +178,7 @@ class RecordAttendance
                     'location_id' => $location?->id,
                     'project_id' => $project?->id,
                     'recorded_at' => $now,
+                    'captured_at' => $capturedAt,
                     'timezone' => $timezone,
                     'attendance_date' => (
                         $type === AttendanceType::ClockOut
@@ -185,6 +188,7 @@ class RecordAttendance
                     'latitude' => $latitude,
                     'longitude' => $longitude,
                     'accuracy_m' => $accuracy,
+                    'location_status' => $latitude !== null && $longitude !== null && $accuracy !== null ? 'captured' : 'unavailable',
                     'address_snapshot' => $addressSnapshot,
                     'selfie_path' => $storedPath,
                     'selfie_source' => $selfieSource,

@@ -8,6 +8,7 @@
                 x-data="attendanceCamera()"
                 data-attendance-name="{{ $name }}"
                 data-attendance-event="{{ $eventLabel }}"
+                data-reverse-geocode-url="{{ route('attendance.reverse-geocode') }}"
                 x-on:livewire:navigating.window="stop()"
                 x-on:attendance-camera-open.window="start()"
                 class="flex flex-col gap-2"
@@ -39,11 +40,7 @@
                             autoplay
                             playsinline
                             muted
-<<<<<<< HEAD
-                            class="absolute inset-0 h-full w-full object-cover"
-=======
                             class="absolute inset-0 h-full w-full bg-zinc-900 object-contain"
->>>>>>> origin/feature/attendance-camera-p1-readiness
                             :style="facingMode === 'user' ? 'transform:scaleX(-1)' : 'transform:none'"
                         ></video>
 
@@ -55,15 +52,12 @@
                             class="absolute inset-0 h-full w-full bg-zinc-900 object-contain"
                         />
 
-                        <div
+                        <canvas
+                            x-ref="watermarkPreview"
                             x-show="! capturedUrl"
-                            class="pointer-events-none absolute left-1/2 top-[3%] w-4/5 max-h-[30%] -translate-x-1/2 overflow-y-auto rounded-xl border border-white/30 bg-white/60 p-2.5 text-zinc-900 shadow-sm backdrop-blur-md sm:p-3"
-                        >
-                            <p class="truncate text-[13px] font-semibold sm:text-sm" x-text="name"></p>
-                            <p class="text-xs leading-snug sm:text-[13px]" x-text="eventLabel + ' · ' + (formattedTimestamp || currentTimestamp)"></p>
-                            <p class="mt-0.5 line-clamp-2 break-words text-[11px] leading-snug sm:text-xs" x-text="address || (addressLoading ? 'Mencari alamat…' : 'Alamat belum tersedia')"></p>
-                            <p class="mt-0.5 text-[9px] leading-snug sm:text-[10px]">© OpenStreetMap contributors</p>
-                        </div>
+                            aria-hidden="true"
+                            class="pointer-events-none absolute inset-0 z-10 h-full w-full object-contain"
+                        ></canvas>
 
                         <div
                             x-show="! capturedUrl"
@@ -104,7 +98,7 @@
                                 type="button"
                                 x-show="! capturedUrl"
                                 x-on:click="capture()"
-                                x-bind:disabled="busy || starting || ! videoReady || ! gpsReady"
+                                x-bind:disabled="busy || starting || ! videoReady"
                                 class="flex size-16 shrink-0 items-center justify-center rounded-full border-[3px] border-white bg-white/15 text-white shadow-lg outline outline-2 outline-offset-2 outline-white/40 transition active:scale-95 disabled:opacity-50 sm:size-[4.5rem]"
                                 aria-label="{{ __('Ambil foto') }}"
                                 title="{{ __('Ambil foto') }}"

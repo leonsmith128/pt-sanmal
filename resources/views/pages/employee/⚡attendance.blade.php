@@ -32,6 +32,7 @@ new #[Title('Absensi')] class extends Component {
     public $longitude = null;
     public $accuracy = null;
     public $addressSnapshot = null;
+    public $capturedAt = null;
     public $selfie = null;
     public string $selfieSource = 'camera';
     public string $selectedDate = '';
@@ -180,7 +181,7 @@ new #[Title('Absensi')] class extends Component {
 
     public function retakeSelfie(): void
     {
-        $this->reset('selfie', 'selfieSource', 'latitude', 'longitude', 'accuracy', 'addressSnapshot');
+        $this->reset('selfie', 'selfieSource', 'latitude', 'longitude', 'accuracy', 'addressSnapshot', 'capturedAt');
         $this->resetErrorBag();
     }
 
@@ -200,6 +201,7 @@ new #[Title('Absensi')] class extends Component {
                 'address'=>'addressSnapshot','selfie'=>'selfie',
             ]),
             'selfieSource' => ['required', Rule::enum(SelfieSource::class)],
+            'capturedAt' => ['nullable', 'date'],
         ];
 
         if ($type === AttendanceType::ClockIn) {
@@ -207,9 +209,6 @@ new #[Title('Absensi')] class extends Component {
         }
 
         $this->validate($rules, [
-            'latitude.required' => 'Lokasi belum terambil. Ambil ulang foto agar lokasi ikut terambil.',
-            'longitude.required' => 'Lokasi belum terambil. Ambil ulang foto agar lokasi ikut terambil.',
-            'accuracy.required' => 'Akurasi GPS belum tersedia. Tunggu hingga GPS siap lalu ambil foto.',
             ...AttendanceEvidence::messages('accuracy', 'selfie'),
             'selfie.required' => 'Foto belum diambil.',
         ]);
@@ -241,12 +240,13 @@ new #[Title('Absensi')] class extends Component {
                 app(ConfirmOvertimeStart::class)->handle(
                     employee: $this->employee,
                     overtime: $overtime,
-                    latitude: (float) $this->latitude,
-                    longitude: (float) $this->longitude,
+                    latitude: $this->latitude !== null ? (float) $this->latitude : null,
+                    longitude: $this->longitude !== null ? (float) $this->longitude : null,
                     accuracy: $this->accuracy !== null ? (float) $this->accuracy : null,
                     addressSnapshot: $this->addressSnapshot,
                     selfie: $this->selfie,
                     selfieSource: SelfieSource::from($this->selfieSource),
+                    capturedAt: $this->capturedAt ? Carbon::parse($this->capturedAt)->utc() : null,
                 );
             } else {
                 app(RecordAttendance::class)->handle(
@@ -255,12 +255,13 @@ new #[Title('Absensi')] class extends Component {
                     workType: WorkType::tryFrom($this->workType),
                     locationId: $this->locationId,
                     projectId: $this->projectId,
-                    latitude: (float) $this->latitude,
-                    longitude: (float) $this->longitude,
+                    latitude: $this->latitude !== null ? (float) $this->latitude : null,
+                    longitude: $this->longitude !== null ? (float) $this->longitude : null,
                     accuracy: $this->accuracy !== null ? (float) $this->accuracy : null,
                     addressSnapshot: $this->addressSnapshot,
                     selfie: $this->selfie,
                     selfieSource: SelfieSource::from($this->selfieSource),
+                    capturedAt: $this->capturedAt ? Carbon::parse($this->capturedAt)->utc() : null,
                 );
             }
         } catch (ValidationException $e) {
@@ -270,7 +271,7 @@ new #[Title('Absensi')] class extends Component {
             throw $e;
         }
 
-        $this->reset('latitude', 'longitude', 'accuracy', 'addressSnapshot', 'selfie', 'selfieSource');
+        $this->reset('latitude', 'longitude', 'accuracy', 'addressSnapshot', 'capturedAt', 'selfie', 'selfieSource');
         unset($this->openSession, $this->history, $this->overtimeRequest, $this->selectedDateOvertimeRequests, $this->hasClockInToday);
 
         Flux::modal('confirm-attendance')->close();

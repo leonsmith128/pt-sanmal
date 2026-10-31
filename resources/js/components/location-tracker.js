@@ -1,15 +1,17 @@
 const MAX_ACCEPTABLE_ACCURACY_METERS = 100;
 const MAX_READING_AGE_MS = 15_000;
-const LOCATION_WAIT_TIMEOUT_MS = 25_000;
+const LOCATION_RETRY_ATTEMPTS = 3;
+const LOCATION_ATTEMPT_TIMEOUT_MS = 5_000;
 
 /**
  * Mengelola GPS dan reverse geocoding di luar komponen UI kamera.
  * Tidak memeriksa jarak dari kantor; hanya kualitas dan kesegaran pembacaan.
  */
 export default class LocationTracker {
-    constructor({ onChange, onError } = {}) {
+    constructor({ onChange, onError, reverseGeocodeUrl } = {}) {
         this.onChange = onChange;
         this.onError = onError;
+        this.reverseGeocodeUrl = reverseGeocodeUrl;
         this.watchId = null;
         this.freshnessTimer = null;
         this.best = null;
@@ -120,24 +122,19 @@ export default class LocationTracker {
                 waiter.resolve(reading);
             });
 
-            const lastPosition = this.lastGeocodedPosition;
-            const movedFar = !lastPosition || this.distanceMeters(lastPosition, reading) > 75;
+            const addressMatchesPosition = this.samePosition(this.lastGeocodedPosition, reading);
             const addressExpired = Date.now() - this.lastGeocodedAt >= 300_000;
-            if (!this.address || movedFar || addressExpired) this.resolveAddress(reading);
+            if (!this.address || !addressMatchesPosition || addressExpired) this.resolveAddress(reading);
         }
 
         this.publish();
     }
 
-    distanceMeters(a, b) {
-        const radians = (degrees) => degrees * Math.PI / 180;
-        const dLat = radians(b.latitude - a.latitude);
-        const dLon = radians(b.longitude - a.longitude);
-        const lat1 = radians(a.latitude);
-        const lat2 = radians(b.latitude);
-        const value = Math.sin(dLat / 2) ** 2
-            + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
-        return 6371000 * 2 * Math.atan2(Math.sqrt(value), Math.sqrt(1 - value));
+    samePosition(a, b) {
+        if (!a || !b) return false;
+
+        return Number(a.latitude).toFixed(5) === Number(b.latitude).toFixed(5)
+            && Number(a.longitude).toFixed(5) === Number(b.longitude).toFixed(5);
     }
 
     async resolveAddress(position, force = false) {
@@ -153,13 +150,12 @@ export default class LocationTracker {
             if (this.addressLoading) return this.address;
         }
 
-        const previous = this.lastGeocodedPosition;
-        const movedFar = !previous || this.distanceMeters(previous, position) > 75;
-        if (!force && this.address && !movedFar && Date.now() - this.lastGeocodedAt < 300_000) {
+        const addressMatchesPosition = this.samePosition(this.lastGeocodedPosition, position);
+        if (!force && this.address && addressMatchesPosition && Date.now() - this.lastGeocodedAt < 300_000) {
             return this.address;
         }
 
-        if (movedFar) {
+        if (!addressMatchesPosition) {
             this.address = '';
             this.publish();
         }
@@ -168,24 +164,24 @@ export default class LocationTracker {
         this.publish();
 
         try {
-            const url = new URL('https://nominatim.openstreetmap.org/reverse');
+            if (!this.reverseGeocodeUrl) throw new Error('reverse-geocode-url-missing');
+
+            const url = new URL(this.reverseGeocodeUrl, window.location.origin);
             url.search = new URLSearchParams({
-                format: 'jsonv2',
-                lat: String(position.latitude),
-                lon: String(position.longitude),
-                zoom: '18',
-                addressdetails: '1',
+                latitude: String(position.latitude),
+                longitude: String(position.longitude),
             }).toString();
 
             const response = await fetch(url.toString(), {
                 headers: { Accept: 'application/json' },
+                credentials: 'same-origin',
                 signal: AbortSignal.timeout ? AbortSignal.timeout(8000) : undefined,
             });
             if (!response.ok) throw new Error('reverse-geocode-failed');
 
             const result = await response.json();
-            this.address = typeof result.display_name === 'string'
-                ? result.display_name.slice(0, 500)
+            this.address = typeof result.address === 'string'
+                ? result.address.slice(0, 500)
                 : '';
             this.lastGeocodedAt = Date.now();
             this.lastGeocodedPosition = position;
@@ -199,17 +195,33 @@ export default class LocationTracker {
         return this.address;
     }
 
-    getFreshPosition() {
-        if (!navigator.geolocation) return Promise.reject(new Error('no-geolocation'));
+    async getFreshPosition() {
+        if (!navigator.geolocation) throw new Error('no-geolocation');
 
         const age = this.best ? Date.now() - (this.best.measuredAt ?? this.best.receivedAt) : Infinity;
         if (this.best && age >= 0 && age <= MAX_READING_AGE_MS
             && this.best.accuracy <= MAX_ACCEPTABLE_ACCURACY_METERS) {
-            return Promise.resolve(this.best);
+            return this.best;
         }
 
         if (this.watchId === null) this.start();
 
+        for (let attempt = 1; attempt <= LOCATION_RETRY_ATTEMPTS; attempt += 1) {
+            try {
+                return await this.waitForAccuratePosition(LOCATION_ATTEMPT_TIMEOUT_MS);
+            } catch (error) {
+                if (attempt === LOCATION_RETRY_ATTEMPTS) {
+                    this.gpsStatusText = 'GPS tidak tersedia atau belum cukup presisi. Absensi tetap dapat dilanjutkan tanpa lokasi.';
+                    this.publish();
+                    throw error;
+                }
+            }
+        }
+
+        throw new Error('location-not-accurate');
+    }
+
+    waitForAccuratePosition(timeoutMs) {
         return new Promise((resolve, reject) => {
             const waiter = {
                 resolve,
@@ -217,7 +229,7 @@ export default class LocationTracker {
                 timer: window.setTimeout(() => {
                     this.waiters = this.waiters.filter((item) => item !== waiter);
                     reject(new Error('location-not-accurate'));
-                }, LOCATION_WAIT_TIMEOUT_MS),
+                }, timeoutMs),
             };
             this.waiters.push(waiter);
         });

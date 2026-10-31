@@ -55,6 +55,34 @@ function overtimeRequest(Employee $employee, AttendanceRecord $clockIn, string $
     ]);
 }
 
+it('records clock out when GPS is unavailable and flags location for review', function () {
+    Storage::fake('local');
+    $employee = overtimeEmployee();
+    overtimeClockIn($employee);
+
+    $record = app(RecordAttendance::class)->handle(
+        employee: $employee,
+        type: AttendanceType::ClockOut,
+        workType: null,
+        locationId: null,
+        projectId: null,
+        latitude: null,
+        longitude: null,
+        accuracy: null,
+        selfie: UploadedFile::fake()->image('clock-out-without-gps.jpg'),
+        selfieSource: SelfieSource::Camera,
+        capturedAt: now()->subMinute(),
+    );
+
+    expect($record->captured_at)->not->toBeNull()
+        ->and($record->recorded_at->greaterThan($record->captured_at))->toBeTrue()
+        ->and($record->type)->toBe(AttendanceType::ClockOut)
+        ->and($record->latitude)->toBeNull()
+        ->and($record->longitude)->toBeNull()
+        ->and($record->accuracy_m)->toBeNull()
+        ->and($record->location_status)->toBe('unavailable');
+});
+
 it('requires overtime start photo before clock out after the scheduled start', function () {
     Storage::fake('local');
     $employee = overtimeEmployee();
@@ -96,6 +124,29 @@ it('records overtime photo confirmation without closing the work session', funct
         ->and(RecordAttendance::openSession($employee)?->id)->toBe($clockIn->id)
         ->and($overtime->fresh()->state)->toBe(OvertimeState::InProgress)
         ->and($overtime->fresh()->photo_confirmed_at)->not->toBeNull();
+});
+
+it('records overtime photo when GPS is unavailable and flags location for review', function () {
+    Storage::fake('local');
+    $employee = overtimeEmployee();
+    $clockIn = overtimeClockIn($employee);
+    $overtime = overtimeRequest($employee, $clockIn, now()->subMinute());
+
+    $record = app(ConfirmOvertimeStart::class)->handle(
+        employee: $employee,
+        overtime: $overtime,
+        latitude: null,
+        longitude: null,
+        accuracy: null,
+        addressSnapshot: null,
+        selfie: UploadedFile::fake()->image('overtime-without-gps.jpg'),
+    );
+
+    expect($record->latitude)->toBeNull()
+        ->and($record->longitude)->toBeNull()
+        ->and($record->accuracy_m)->toBeNull()
+        ->and($record->address_snapshot)->toBeNull()
+        ->and($record->location_status)->toBe('unavailable');
 });
 
 it('completes a confirmed overtime session when the employee clocks out', function () {

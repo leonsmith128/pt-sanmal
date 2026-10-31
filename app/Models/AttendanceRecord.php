@@ -21,6 +21,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @property string|null $latitude
  * @property string|null $longitude
  * @property string|null $accuracy_m
+ * @property string $location_status
  * @property string|null $address_snapshot
  * @property string|null $selfie_path
  * @property SelfieSource|null $selfie_source
@@ -31,8 +32,10 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  */
 #[Fillable([
     'employee_id', 'type', 'work_type', 'location_id', 'project_id',
-    'recorded_at', 'timezone', 'attendance_date',
-    'latitude', 'longitude', 'accuracy_m', 'address_snapshot',
+    'recorded_at', 'captured_at', 'timezone', 'attendance_date',
+    'latitude', 'longitude', 'accuracy_m', 'location_status', 'address_snapshot',
+    'drive_backup_status', 'drive_file_id', 'drive_md5_checksum', 'drive_size_bytes',
+    'drive_backed_up_at', 'local_deleted_at',
     'selfie_path', 'selfie_source', 'notes',
 ])]
 class AttendanceRecord extends Model
@@ -43,6 +46,10 @@ class AttendanceRecord extends Model
             'type' => AttendanceType::class,
             'work_type' => WorkType::class,
             'recorded_at' => 'datetime',
+            'captured_at' => 'datetime',
+            'drive_backed_up_at' => 'datetime',
+            'local_deleted_at' => 'datetime',
+            'drive_size_bytes' => 'integer',
             'attendance_date' => 'date',
             'latitude' => 'decimal:7',
             'longitude' => 'decimal:7',
