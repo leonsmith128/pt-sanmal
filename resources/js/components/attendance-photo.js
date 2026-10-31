@@ -84,6 +84,24 @@ function formatCaptureTimestamp(date) {
  * Watermark transparan, compact, dan menempel di kiri bawah.
  * Preview dan foto final memakai fungsi renderer yang sama.
  */
+/**
+ * WATERMARK LAYOUT GUIDE
+ *
+ * Renderer ini dipakai bersama oleh preview kamera dan foto hasil capture.
+ * Semua ukuran dihitung relatif terhadap lebar/tinggi foto agar layout mengikuti orientasi.
+ *
+ * Pengaturan yang paling sering perlu disesuaikan:
+ * - marginX / bottom: jarak watermark dari tepi kiri dan bawah.
+ * - watermarkWidth: batas lebar keseluruhan area watermark.
+ * - timeSize: ukuran jam utama (font DIN Condensed jika tersedia).
+ * - dateSize: ukuran tanggal dan hari.
+ * - rowGap: jarak baris jam/tanggal ke nama pegawai.
+ * - dateWeekdayGap: jarak vertikal tanggal ke hari.
+ * - separatorGap: jarak nama dan event dari titik separator (kedua sisi sama).
+ * - addressWidth: lebar maksimum alamat; teks akan wrap ke baris berikutnya.
+ * - addressFooterGap: jarak alamat ke footer logo/nama perusahaan.
+ * Ubah faktor proporsi di deklarasi variabel terkait, bukan koordinat gambar satu per satu.
+ */
 export function drawAttendanceWatermark(context, width, height, details, logo = null) {
     const marginX = Math.round(width * 0.03);
     const watermarkWidth = Math.round(width * 0.72);
@@ -94,7 +112,12 @@ export function drawAttendanceWatermark(context, width, height, details, logo = 
     const footerFontSize = Math.max(8, Math.round(Math.max(width, height) * 0.010));
     const footerGap = Math.max(4, Math.round(width * 0.008));
     const gap = Math.max(5, Math.round(width * 0.012));
-    const timeSize = Math.max(18, Math.round(width * 0.058));
+
+    // TUNING WATERMARK — ukuran tipografi:
+    // - timeSize mengatur ukuran jam utama. Naikkan/turunkan faktor 0.064 untuk mengubahnya.
+    // - dateSize, nameSize, addressSize, dan footerFontSize mengatur teks pendamping.
+    // - Jam memakai DIN Condensed jika font tersedia pada perangkat; fallback dipakai jika tidak.
+    const timeSize = Math.max(18, Math.round(width * 0.064));
     const dateSize = Math.max(11, Math.round(width * 0.021));
     const nameSize = Math.max(12, Math.round(width * 0.022));
     // Gunakan sisi terpanjang agar ukuran teks alamat konsisten pada foto portrait dan landscape.
@@ -161,7 +184,9 @@ export function drawAttendanceWatermark(context, width, height, details, logo = 
     const topRowY = nameBaseline - nameSize - rowGap - topRowHeight;
 
     context.fillStyle = '#ffffff';
-    context.font = '700 ' + timeSize + 'px "Roboto Condensed", "Arial Narrow", Roboto, sans-serif';
+    // DIN Condensed memberi angka yang lebih tinggi dan ramping untuk penanda waktu.
+    // Agar konsisten di semua perangkat, sediakan font DIN berlisensi sebagai webfont bila diperlukan.
+    context.font = '700 ' + timeSize + 'px "DIN Condensed", DIN, "Bahnschrift", "Roboto Condensed", "Arial Narrow", sans-serif';
     const timeWidth = context.measureText(time).width;
     context.fillText(time, textX, topRowY + timeSize);
 
