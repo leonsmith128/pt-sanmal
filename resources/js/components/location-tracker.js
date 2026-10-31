@@ -20,6 +20,9 @@ export default class LocationTracker {
         this.addressLoading = false;
         this.lastGeocodedAt = 0;
         this.lastGeocodedPosition = null;
+        this.addressRequestId = 0;
+        this.pendingGeocodePosition = null;
+        this.addressRequestPromise = null;
         this.waiters = [];
         this.gpsReady = false;
         this.gpsStatusText = 'Memeriksa izin dan layanan lokasi…';
@@ -33,7 +36,7 @@ export default class LocationTracker {
         return {
             best: this.best,
             liveAccuracy: this.liveAccuracy,
-            address: this.address,
+            address: this.getAddressForPosition(this.best),
             addressLoading: this.addressLoading,
             gpsReady: this.gpsReady,
             gpsStatusText: this.gpsStatusText,
@@ -213,8 +216,11 @@ export default class LocationTracker {
             });
 
             const addressMatchesPosition = this.samePosition(this.lastGeocodedPosition, reading);
+            const requestMatchesPosition = this.samePosition(this.pendingGeocodePosition, reading);
             const addressExpired = Date.now() - this.lastGeocodedAt >= 300_000;
-            if (!this.address || !addressMatchesPosition || addressExpired) this.resolveAddress(reading);
+            if (!addressMatchesPosition && !requestMatchesPosition || addressExpired) {
+                this.resolveAddress(reading);
+            }
         }
 
         this.publish();
@@ -227,62 +233,75 @@ export default class LocationTracker {
             && Number(a.longitude).toFixed(5) === Number(b.longitude).toFixed(5);
     }
 
-    async resolveAddress(position, force = false) {
-        if (!position) return this.address;
+    getAddressForPosition(position) {
+        return this.samePosition(this.lastGeocodedPosition, position) ? this.address : '';
+    }
 
-        // Jika reverse geocoding sedang berjalan, tunggu agar alamat yang
-        // dipakai watermark tidak kosong hanya karena request sebelumnya belum selesai.
-        if (this.addressLoading) {
-            const deadline = Date.now() + 8_500;
-            while (this.addressLoading && Date.now() < deadline) {
-                await new Promise((resolve) => window.setTimeout(resolve, 100));
-            }
-            if (this.addressLoading) return this.address;
-        }
+    async resolveAddress(position, force = false) {
+        if (!position) return '';
 
         const addressMatchesPosition = this.samePosition(this.lastGeocodedPosition, position);
-        if (!force && this.address && addressMatchesPosition && Date.now() - this.lastGeocodedAt < 300_000) {
+        if (!force && addressMatchesPosition && this.address && Date.now() - this.lastGeocodedAt < 300_000) {
             return this.address;
         }
 
-        if (!addressMatchesPosition) {
-            this.address = '';
-            this.publish();
+        // Hindari request duplikat untuk koordinat yang sama, tetapi jangan
+        // menahan koordinat baru di belakang request lama.
+        if (this.addressRequestPromise && this.samePosition(this.pendingGeocodePosition, position)) {
+            return this.addressRequestPromise;
         }
 
+        const requestId = ++this.addressRequestId;
+        const positionSnapshot = { ...position };
+        this.pendingGeocodePosition = positionSnapshot;
+        this.address = '';
+        this.lastGeocodedPosition = null;
         this.addressLoading = true;
         this.publish();
 
-        try {
-            if (!this.reverseGeocodeUrl) throw new Error('reverse-geocode-url-missing');
+        this.addressRequestPromise = (async () => {
+            try {
+                if (!this.reverseGeocodeUrl) throw new Error('reverse-geocode-url-missing');
 
-            const url = new URL(this.reverseGeocodeUrl, window.location.origin);
-            url.search = new URLSearchParams({
-                latitude: String(position.latitude),
-                longitude: String(position.longitude),
-            }).toString();
+                const url = new URL(this.reverseGeocodeUrl, window.location.origin);
+                url.search = new URLSearchParams({
+                    latitude: String(positionSnapshot.latitude),
+                    longitude: String(positionSnapshot.longitude),
+                }).toString();
 
-            const response = await fetch(url.toString(), {
-                headers: { Accept: 'application/json' },
-                credentials: 'same-origin',
-                signal: AbortSignal.timeout ? AbortSignal.timeout(8000) : undefined,
-            });
-            if (!response.ok) throw new Error('reverse-geocode-failed');
+                const response = await fetch(url.toString(), {
+                    headers: { Accept: 'application/json' },
+                    credentials: 'same-origin',
+                    signal: AbortSignal.timeout ? AbortSignal.timeout(8000) : undefined,
+                });
+                if (!response.ok) throw new Error('reverse-geocode-failed');
 
-            const result = await response.json();
-            this.address = typeof result.address === 'string'
-                ? result.address.slice(0, 500)
-                : '';
-            this.lastGeocodedAt = Date.now();
-            this.lastGeocodedPosition = position;
-        } catch (error) {
-            console.warn('Reverse geocoding tidak tersedia:', error);
-        } finally {
-            this.addressLoading = false;
-            this.publish();
-        }
+                const result = await response.json();
+                // Respons hanya boleh mengubah state jika masih request terbaru.
+                if (requestId !== this.addressRequestId) return '';
 
-        return this.address;
+                this.address = typeof result.address === 'string'
+                    ? result.address.slice(0, 500)
+                    : '';
+                this.lastGeocodedAt = Date.now();
+                this.lastGeocodedPosition = positionSnapshot;
+                return this.address;
+            } catch (error) {
+                if (requestId === this.addressRequestId) {
+                    console.warn('Reverse geocoding tidak tersedia:', error);
+                }
+                return '';
+            } finally {
+                if (requestId === this.addressRequestId) {
+                    this.addressLoading = false;
+                    this.pendingGeocodePosition = null;
+                    this.addressRequestPromise = null;
+                    this.publish();
+                }
+            }
+        })();
+
+        return this.addressRequestPromise;
     }
 
     async getFreshPosition() {
