@@ -158,6 +158,9 @@ test('attendance camera controls reflect camera availability and video readiness
         ->assertSee('facingMode ===', false)
         ->assertSee('! canSwitchCamera', false)
         ->assertSee('! videoReady', false)
+        ->assertSee('! locationSnapshotReady', false)
+        ->assertSee('locationStatusMessage', false)
+        ->assertSee('Alamat belum berhasil ditemukan. Coba buka kembali kamera.', false)
         ->assertSee('error && active', false);
 });
 test('attendance camera preserves the complete photo frame without cropping', function () {
