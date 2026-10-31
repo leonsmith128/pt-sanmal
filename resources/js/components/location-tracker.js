@@ -23,6 +23,9 @@ export default class LocationTracker {
         this.addressRequestId = 0;
         this.pendingGeocodePosition = null;
         this.addressRequestPromise = null;
+        this.locationSnapshot = null;
+        this.locationStatus = 'searching';
+        this.snapshotRequestId = 0;
         this.waiters = [];
         this.gpsReady = false;
         this.gpsStatusText = 'Memeriksa izin dan layanan lokasi…';
@@ -36,8 +39,10 @@ export default class LocationTracker {
         return {
             best: this.best,
             liveAccuracy: this.liveAccuracy,
-            address: this.getAddressForPosition(this.best),
+            address: this.locationSnapshot?.address || '',
             addressLoading: this.addressLoading,
+            locationSnapshot: this.locationSnapshot,
+            locationStatus: this.locationStatus,
             gpsReady: this.gpsReady,
             gpsStatusText: this.gpsStatusText,
             accessGranted: this.accessGranted,
@@ -214,16 +219,48 @@ export default class LocationTracker {
                 window.clearTimeout(waiter.timer);
                 waiter.resolve(reading);
             });
-
-            const addressMatchesPosition = this.samePosition(this.lastGeocodedPosition, reading);
-            const requestMatchesPosition = this.samePosition(this.pendingGeocodePosition, reading);
-            const addressExpired = Date.now() - this.lastGeocodedAt >= 300_000;
-            if (!addressMatchesPosition && !requestMatchesPosition || addressExpired) {
-                this.resolveAddress(reading);
-            }
         }
 
+        // GPS boleh terus diperbarui, tetapi tidak mengubah snapshot sesi
+        // setelah koordinat dan alamat untuk watermark berhasil dibekukan.
         this.publish();
+    }
+
+    async prepareSnapshot() {
+        const requestId = ++this.snapshotRequestId;
+        this.locationSnapshot = null;
+        this.locationStatus = 'searching';
+        this.address = '';
+        this.publish();
+
+        try {
+            const position = await this.getFreshPosition();
+            if (requestId !== this.snapshotRequestId) throw new Error('location-stopped');
+
+            const positionSnapshot = Object.freeze({ ...position });
+            this.locationStatus = 'geocoding';
+            this.publish();
+
+            const address = await this.resolveAddress(positionSnapshot);
+            if (requestId !== this.snapshotRequestId) throw new Error('location-stopped');
+            if (!address) throw new Error('address-not-found');
+
+            this.locationSnapshot = Object.freeze({
+                ...positionSnapshot,
+                address,
+            });
+            this.locationStatus = 'ready';
+            this.publish();
+
+            return this.locationSnapshot;
+        } catch (error) {
+            if (requestId === this.snapshotRequestId) {
+                this.locationSnapshot = null;
+                this.locationStatus = 'failed';
+                this.publish();
+            }
+            throw error;
+        }
     }
 
     samePosition(a, b) {
@@ -361,6 +398,10 @@ export default class LocationTracker {
     }
 
     stop() {
+        this.snapshotRequestId += 1;
+        this.locationSnapshot = null;
+        this.locationStatus = 'searching';
+        this.addressRequestId += 1;
         if (this.watchId !== null && navigator.geolocation) {
             navigator.geolocation.clearWatch(this.watchId);
         }
