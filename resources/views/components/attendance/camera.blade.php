@@ -73,7 +73,16 @@
                             </div>
                         </div>
 
-                        <div class="relative z-20 flex min-h-[76px] shrink-0 items-center justify-center gap-3 bg-zinc-950 px-4 py-2 text-white sm:min-h-[84px] sm:px-6">
+                        <div class="relative z-20 flex min-h-[112px] shrink-0 flex-col items-center justify-center gap-2 bg-zinc-950 px-4 py-2 text-white sm:min-h-[120px] sm:px-6">
+                            <p
+                                x-show="! capturedUrl && ! locationSnapshotReady"
+                                x-cloak
+                                x-text="locationStatusMessage"
+                                role="status"
+                                aria-live="polite"
+                                class="max-w-full text-center text-xs text-white/80"
+                                :class="locationSnapshotFailed ? 'text-red-300' : 'text-white/80'"
+                            ></p>
                             <div class="flex shrink-0 items-center gap-2 sm:gap-3">
                                 <button
                                     type="button"
