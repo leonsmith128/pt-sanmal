@@ -60,20 +60,6 @@
                                 class="pointer-events-none absolute inset-0 z-10 h-full w-full object-contain"
                             ></canvas>
 
-                            <button
-                                type="button"
-                                x-show="! capturedUrl"
-                                x-cloak
-                                x-on:click="switchCamera()"
-                                x-bind:disabled="busy || starting || ! canSwitchCamera"
-                                x-bind:title="canSwitchCamera ? 'Ganti kamera' : 'Perangkat hanya memiliki satu kamera'"
-                                class="absolute right-3 top-3 z-20 flex size-10 items-center justify-center rounded-full bg-black/35 text-white shadow-sm transition hover:bg-black/55 disabled:opacity-50"
-                                aria-label="{{ __('Ganti kamera depan/belakang') }}"
-                                title="{{ __('Ganti kamera') }}"
-                            >
-                                <flux:icon name="arrow-path" variant="outline" class="size-5" />
-                            </button>
-
                             <div
                                 x-show="error && active"
                                 x-cloak
@@ -93,7 +79,19 @@
                                 <p x-show="capturedUrl" class="text-xs text-zinc-300">{{ __('Pratinjau foto siap') }}</p>
                             </div>
 
-                            <div class="flex shrink-0 items-center gap-3 sm:gap-4">
+                            <div class="flex shrink-0 items-center gap-2 sm:gap-3">
+                                <button
+                                    type="button"
+                                    x-show="! capturedUrl"
+                                    x-on:click="switchCamera()"
+                                    x-bind:disabled="busy || starting || ! canSwitchCamera"
+                                    x-bind:title="canSwitchCamera ? 'Ganti kamera' : 'Perangkat hanya memiliki satu kamera'"
+                                    class="flex size-10 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20 disabled:opacity-50"
+                                    aria-label="{{ __('Ganti kamera depan/belakang') }}"
+                                    title="{{ __('Ganti kamera') }}"
+                                >
+                                    <flux:icon name="arrow-path" variant="outline" class="size-5" />
+                                </button>
                                 <button
                                     type="button"
                                     x-show="! capturedUrl"
