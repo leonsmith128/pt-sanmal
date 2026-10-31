@@ -11,6 +11,7 @@ use App\Models\Employee;
 use App\Models\OvertimeRequest;
 use App\Support\AttendanceEvidence;
 use App\Support\AttendanceSelfie;
+use Carbon\CarbonInterface;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -20,12 +21,13 @@ class ConfirmOvertimeStart
     public function handle(
         Employee $employee,
         OvertimeRequest $overtime,
-        float $latitude,
-        float $longitude,
+        ?float $latitude,
+        ?float $longitude,
         ?float $accuracy,
         ?string $addressSnapshot,
         UploadedFile $selfie,
         SelfieSource $selfieSource = SelfieSource::Camera,
+        ?CarbonInterface $capturedAt = null,
     ): AttendanceRecord {
         if ($selfieSource !== SelfieSource::Camera) {
             $this->fail('selfieSource', 'Foto lembur harus diambil langsung dari kamera.');
@@ -44,7 +46,7 @@ class ConfirmOvertimeStart
         try {
             return DB::transaction(function () use (
                 $employee, $overtime, $latitude, $longitude, $accuracy,
-                $addressSnapshot, $selfie, $selfieSource, &$storedPath
+                $addressSnapshot, $selfie, $selfieSource, $capturedAt, &$storedPath
             ) {
                 Employee::query()->whereKey($employee->id)->lockForUpdate()->firstOrFail();
 
@@ -80,11 +82,13 @@ class ConfirmOvertimeStart
                     'location_id' => $clockIn->location_id,
                     'project_id' => $clockIn->project_id,
                     'recorded_at' => $now,
+                    'captured_at' => $capturedAt,
                     'timezone' => $locked->timezone,
                     'attendance_date' => $clockIn->attendance_date->toDateString(),
                     'latitude' => $latitude,
                     'longitude' => $longitude,
                     'accuracy_m' => $accuracy,
+                    'location_status' => $latitude !== null && $longitude !== null && $accuracy !== null ? 'captured' : 'unavailable',
                     'address_snapshot' => $addressSnapshot,
                     'selfie_path' => $storedPath,
                     'selfie_source' => $selfieSource,

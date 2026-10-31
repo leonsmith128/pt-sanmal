@@ -11,6 +11,8 @@ use App\Http\Controllers\AdminLeaveRequestController;
 use App\Http\Controllers\AdminOvertimeRequestController;
 use App\Http\Controllers\AttendanceHistoryController;
 use App\Http\Controllers\AttendanceSelfieController;
+use App\Http\Controllers\AttendanceSelfieDriveController;
+use App\Http\Controllers\AttendanceReverseGeocodeController;
 use App\Http\Controllers\LeaveRequestController;
 use App\Http\Controllers\OvertimeRequestController;
 use App\Http\Middleware\EnsureUserIsActive;
@@ -24,9 +26,13 @@ Route::middleware(['auth', EnsureUserIsActive::class, 'verified'])->group(functi
     Route::livewire('profil', 'pages::employee.employee-profile')->name('profile.edit');
     Route::redirect('profil-pegawai', '/profil')->name('employee-profile.edit');
     Route::livewire('absensi', 'pages::employee.attendance')->name('attendance');
+    Route::get('absensi/reverse-geocode', AttendanceReverseGeocodeController::class)
+        ->middleware('throttle:30,1')
+        ->name('attendance.reverse-geocode');
     Route::get('riwayat-absensi', [AttendanceHistoryController::class, 'index'])->name('attendance-history.index');
     Route::get('riwayat-absensi/ekspor', [AttendanceHistoryController::class, 'export'])->name('attendance-history.export');
     Route::get('riwayat-absensi/{record}/foto', [AttendanceSelfieController::class, 'showForEmployee'])->name('attendance-history.selfie');
+    Route::get('riwayat-absensi/{record}/foto/download', [AttendanceSelfieController::class, 'downloadForEmployee'])->name('attendance-history.selfie.download');
 
     Route::get('permohonan', [LeaveRequestController::class, 'index'])->name('leave-requests.index');
     Route::get('permohonan/ekspor', [LeaveRequestController::class, 'export'])->name('leave-requests.export');
@@ -47,6 +53,9 @@ Route::middleware(['auth', EnsureUserIsActive::class, 'verified'])->group(functi
             Route::livewire('kehadiran', 'pages::admin.kehadiran')->name('kehadiran');
             Route::get('kehadiran/ekspor', [AdminAttendanceExportController::class, 'export'])->name('kehadiran.export');
             Route::get('kehadiran/{record}/selfie', [AttendanceSelfieController::class, 'show'])->name('attendance.selfie');
+            Route::get('kehadiran/{record}/selfie/download', [AttendanceSelfieController::class, 'download'])->name('attendance.selfie.download');
+            Route::post('kehadiran/{record}/selfie/backup', [AttendanceSelfieDriveController::class, 'store'])->name('attendance.selfie.backup');
+            Route::delete('kehadiran/{record}/selfie/local', [AttendanceSelfieDriveController::class, 'destroyLocal'])->name('attendance.selfie.delete-local');
             Route::post('kehadiran/{record}/koreksi-waktu', [AdminAttendanceCorrectionController::class, 'correctTimestamp'])->name('kehadiran.correct-timestamp');
 
             Route::resource('pegawai', AdminEmployeeController::class)

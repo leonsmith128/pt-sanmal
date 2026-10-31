@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 170" role="img" aria-labelledby="title">
+<title id="title">SanMal Calibration Laboratory</title>
+<g transform="translate(8 8)">
+  <path d="M74 8h36v12H99v40c0 13 8 23 20 31 17 11 27 26 27 43 0 21-18 37-43 37H47c-25 0-43-16-43-37 0-17 10-32 27-43 12-8 20-18 20-31V20H38V8h36V0h-0z" fill="#10476d"/>
+  <path d="M38 106c-14 7-23 18-23 30 0 12 12 21 28 21 21 0 37-17 48-34 8-12 18-20 33-22-9-12-27-16-44-8-16 7-27 8-42 13z" fill="#10476d"/>
+  <path d="M91 121c13-17 27-23 43-22-2 20-12 38-29 49-16 10-35 12-51 4 17-4 28-15 37-31z" fill="#f2c52e"/>
+  <circle cx="83" cy="-1" r="5" fill="#10476d"/><circle cx="96" cy="-9" r="4" fill="#10476d"/>
+</g>
+<text x="174" y="102" fill="#10476d" font-family="Arial, sans-serif" font-size="72" font-weight="600" letter-spacing="-2">SanMal</text>
+<text x="178" y="132" fill="#d3b64e" font-family="Arial, sans-serif" font-size="18" font-weight="600" letter-spacing="2">CALIBRATION LABORATORY</text>
+</svg>

@@ -170,12 +170,22 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
     }
 }; ?>
 
-<section class="w-full">
+<section x-data="{ selfiePreviewOpen: false, selfiePreviewUrl: null, selfieDownloadUrl: null }" x-on:keydown.escape.window="selfiePreviewOpen = false" class="w-full">
     <div class="mx-auto flex w-full max-w-7xl flex-col gap-5">
         <x-admin.page-header
             :title="__('Kehadiran Pegawai')"
             :description="__('Pantau dan telusuri catatan absensi seluruh pegawai.')"
         />
+        @if (session('status'))
+            <div role="status" class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-200">
+                {{ session('status') }}
+            </div>
+        @endif
+        @error('drive_backup')
+            <div role="alert" class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
+                {{ $message }}
+            </div>
+        @enderror
 
         @php
             ($records = $this->records)
@@ -301,6 +311,9 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                                     @if ($record->approvedCorrection)
                                         <p class="text-xs text-zinc-500">{{ __('Bukti asli:') }} {{ $record->recordedAtLocal()->format('d M Y, H:i T') }}</p>
                                     @endif
+                                    @if ($record->captured_at)
+                                        <p class="text-xs text-zinc-500">{{ __('Waktu perangkat (informasi):') }} {{ $record->captured_at->copy()->setTimezone($record->timezone)->format('d M Y, H:i T') }}</p>
+                                    @endif
                                 </flux:table.cell>
                                 <flux:table.cell>{{ $record->employee->user->name }}</flux:table.cell>
                                 <flux:table.cell>
@@ -325,12 +338,41 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                                     @else
                                         —
                                     @endif
+                                    @if ($record->location_status === 'unavailable')
+                                        <flux:badge color="amber" size="sm" class="ml-1">{{ __('Perlu ditinjau') }}</flux:badge>
+                                    @endif
                                 </flux:table.cell>
                                 <flux:table.cell class="whitespace-nowrap">
                                     @if ($record->selfie_path)
-                                        <a href="{{ route('admin.attendance.selfie', $record) }}" target="_blank" rel="noopener" class="text-blue-600 underline dark:text-blue-400">{{ __('Lihat') }}</a>
+                                        <button
+                                            type="button"
+                                            data-preview-url="{{ route('admin.attendance.selfie', $record) }}"
+                                            data-download-url="{{ route('admin.attendance.selfie.download', $record) }}"
+                                            x-on:click="selfiePreviewUrl = $el.dataset.previewUrl; selfieDownloadUrl = $el.dataset.downloadUrl; selfiePreviewOpen = true"
+                                            class="text-blue-600 underline dark:text-blue-400"
+                                        >{{ __('Pratinjau') }}</button>
                                         @if ($record->selfie_source === SelfieSource::Upload)
                                             <flux:badge color="amber" size="sm" class="ml-1">{{ __('Unggahan') }}</flux:badge>
+                                        @endif
+                                        @if ($record->drive_backup_status === 'verified')
+                                            <flux:badge color="green" size="sm" class="ml-1">{{ __('Drive terverifikasi') }}</flux:badge>
+                                            @if ($record->local_deleted_at)
+                                                <flux:badge color="zinc" size="sm" class="ml-1">{{ __('Lokal dihapus') }}</flux:badge>
+                                            @else
+                                                <form method="POST" action="{{ route('admin.attendance.selfie.delete-local', $record) }}" class="mt-2" onsubmit="return confirm('{{ __('Hapus foto lokal setelah backup Drive terverifikasi?') }}')">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="text-xs text-red-600 underline dark:text-red-400">{{ __('Hapus lokal') }}</button>
+                                                </form>
+                                            @endif
+                                        @else
+                                            @if ($record->drive_backup_status === 'failed')
+                                                <flux:badge color="red" size="sm" class="ml-1">{{ __('Backup gagal') }}</flux:badge>
+                                            @endif
+                                            <form method="POST" action="{{ route('admin.attendance.selfie.backup', $record) }}" class="mt-2">
+                                                @csrf
+                                                <button type="submit" class="text-xs text-blue-600 underline dark:text-blue-400">{{ __('Backup ke Drive') }}</button>
+                                            </form>
                                         @endif
                                     @else
                                         —
@@ -386,5 +428,33 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                 </flux:table>
             </div>
         </flux:card>
+        <div
+            x-show="selfiePreviewOpen"
+            x-cloak
+            x-transition.opacity
+            x-on:click.self="selfiePreviewOpen = false"
+            class="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-4"
+            role="dialog"
+            aria-modal="true"
+            aria-label="{{ __('Pratinjau foto absensi') }}"
+        >
+            <div class="flex max-h-full w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-zinc-900">
+                <div class="flex items-center justify-between gap-3 border-b border-zinc-200 px-4 py-3 dark:border-zinc-700">
+                    <h2 class="font-semibold">{{ __('Foto absensi') }}</h2>
+                    <button type="button" x-on:click="selfiePreviewOpen = false" class="rounded-lg p-2 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800" aria-label="{{ __('Tutup pratinjau') }}">
+                        <flux:icon name="x-mark" class="size-5" />
+                    </button>
+                </div>
+                <div class="min-h-0 overflow-auto bg-zinc-950 p-2">
+                    <img :src="selfiePreviewUrl" alt="{{ __('Foto absensi ukuran penuh') }}" class="mx-auto max-h-[75dvh] w-auto max-w-full object-contain">
+                </div>
+                <div class="flex justify-end border-t border-zinc-200 p-3 dark:border-zinc-700">
+                    <a :href="selfieDownloadUrl" class="inline-flex items-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300">
+                        <flux:icon name="arrow-down-tray" class="size-4" />
+                        {{ __('Unduh foto') }}
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
 </section>

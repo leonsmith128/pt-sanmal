@@ -2,16 +2,30 @@ const MAX_PHOTO_DIMENSION = 1280;
 const MAX_PHOTO_BYTES = 190 * 1024;
 const JPEG_QUALITIES = [0.82, 0.72, 0.62, 0.52, 0.42, 0.34];
 
+let watermarkLogoPromise;
+
+/**
+ * Logo sementara SanMal berbentuk SVG transparan agar tetap tajam pada berbagai ukuran foto.
+ */
+export function loadAttendanceWatermarkLogo() {
+    if (!watermarkLogoPromise) {
+        watermarkLogoPromise = new Promise((resolve) => {
+            const image = new Image();
+            image.onload = () => resolve(image);
+            image.onerror = () => resolve(null);
+            image.src = '/images/sanmal-logo-watermark.svg';
+        });
+    }
+
+    return watermarkLogoPromise;
+}
+
 /**
  * Membuat foto absensi dari seluruh frame kamera.
  * Modul ini menangani gambar saja; alur kamera dan upload tetap di attendance-camera.js.
  */
-export async function createAttendancePhoto({ video, facingMode, name, eventLabel, address }) {
-    const dimensions = getProportionalDimensions(
-        video.videoWidth,
-        video.videoHeight,
-        MAX_PHOTO_DIMENSION,
-    );
+export async function createAttendancePhoto({ video, facingMode, watermarkSnapshot }) {
+    const dimensions = getProportionalDimensions(video.videoWidth, video.videoHeight, MAX_PHOTO_DIMENSION);
     const canvas = document.createElement('canvas');
     canvas.width = dimensions.width;
     canvas.height = dimensions.height;
@@ -19,7 +33,6 @@ export async function createAttendancePhoto({ video, facingMode, name, eventLabe
     const context = canvas.getContext('2d');
     if (!context) throw new Error('canvas-context-unavailable');
 
-    // Gunakan seluruh frame sumber. Jangan mengambil source rectangle/crop.
     if (facingMode === 'user') {
         context.translate(canvas.width, 0);
         context.scale(-1, 1);
@@ -27,26 +40,23 @@ export async function createAttendancePhoto({ video, facingMode, name, eventLabe
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
     context.setTransform(1, 0, 0, 1, 0, 0);
 
-    const timestamp = formatCaptureTimestamp(new Date());
-    drawWatermark(context, canvas.width, canvas.height, {
-        name,
-        eventLabel,
-        timestamp,
-        address,
-    });
+    // Gunakan snapshot yang sama persis dengan preview watermark saat shutter ditekan.
+    const details = {
+        ...watermarkSnapshot,
+        timestamp: formatCaptureTimestamp(watermarkSnapshot.timestamp),
+    };
+
+    drawAttendanceWatermark(context, canvas.width, canvas.height, details, await loadAttendanceWatermarkLogo());
 
     const blob = await compressJpeg(canvas);
-    return { blob, timestamp };
+    return { blob, capturedAt: watermarkSnapshot.timestamp.toISOString() };
 }
 
 /** Resize hanya berdasarkan sisi terpanjang agar rasio sumber tidak berubah. */
 function getProportionalDimensions(sourceWidth, sourceHeight, maxDimension) {
-    if (!sourceWidth || !sourceHeight) {
-        throw new Error('photo-source-dimensions-invalid');
-    }
+    if (!sourceWidth || !sourceHeight) throw new Error('photo-source-dimensions-invalid');
 
     const scale = Math.min(1, maxDimension / Math.max(sourceWidth, sourceHeight));
-
     return {
         width: Math.max(1, Math.round(sourceWidth * scale)),
         height: Math.max(1, Math.round(sourceHeight * scale)),
@@ -54,64 +64,202 @@ function getProportionalDimensions(sourceWidth, sourceHeight, maxDimension) {
 }
 
 function formatCaptureTimestamp(date) {
-    return new Intl.DateTimeFormat('id-ID', {
-        dateStyle: 'medium',
-        timeStyle: 'short',
-    }).format(date);
+    return {
+        time: new Intl.DateTimeFormat('id-ID', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hourCycle: 'h23',
+        }).format(date),
+        date: new Intl.DateTimeFormat('id-ID', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+        }).format(date),
+        weekday: new Intl.DateTimeFormat('id-ID', { weekday: 'long' }).format(date),
+    };
 }
 
-/** Gambar watermark ke frame foto; konfigurasi geometri akan disatukan pada irisan berikutnya. */
-function drawWatermark(context, width, height, details) {
-    const cardWidth = width * 0.8;
-    const cardX = (width - cardWidth) / 2;
-    const cardTop = height * 0.03;
-    const padding = Math.max(6, Math.round(width * 0.012));
-    const titleSize = Math.max(10, Math.round(width * 0.016));
-    const bodySize = Math.max(8, Math.round(width * 0.012));
-    const lineHeight = Math.max(10, Math.round(bodySize * 1.3));
-    const textMaxWidth = cardWidth - padding * 2;
-    const watermarkLines = [
-        details.name,
-        details.eventLabel + ' · ' + details.timestamp,
-        details.address || 'Alamat belum tersedia',
-        '© OpenStreetMap contributors',
-    ];
+/**
+ * Watermark transparan, compact, dan menempel di kiri bawah.
+ * Preview dan foto final memakai fungsi renderer yang sama.
+ */
+/**
+ * WATERMARK LAYOUT GUIDE
+ *
+ * Renderer ini dipakai bersama oleh preview kamera dan foto hasil capture.
+ * Semua ukuran dihitung relatif terhadap lebar/tinggi foto agar layout mengikuti orientasi.
+ *
+ * Pengaturan yang paling sering perlu disesuaikan:
+ * - marginX / bottom: jarak watermark dari tepi kiri dan bawah.
+ * - watermarkWidth: batas lebar keseluruhan area watermark.
+ * - timeSize: ukuran jam utama (font DIN Condensed jika tersedia).
+ * - dateSize: ukuran tanggal dan hari.
+ * - rowGap: jarak baris jam/tanggal ke nama pegawai.
+ * - dateWeekdayGap: jarak vertikal tanggal ke hari.
+ * - separatorGap: jarak nama dan event dari titik separator (kedua sisi sama).
+ * - addressWidth: lebar maksimum alamat; teks akan wrap ke baris berikutnya.
+ * - addressFooterGap: jarak alamat ke footer logo/nama perusahaan.
+ * Ubah faktor proporsi di deklarasi variabel terkait, bukan koordinat gambar satu per satu.
+ */
+export function drawAttendanceWatermark(context, width, height, details, logo = null) {
+    const marginX = Math.round(width * 0.03);
+    const watermarkWidth = Math.round(width * 0.72);
+    const bottom = Math.max(8, Math.round(height * 0.025));
+    // Logo ditempatkan pada footer agar tidak bersaing dengan informasi waktu.
+    const footerLogoWidth = Math.max(18, Math.round(width * 0.028));
+    const footerLogoHeight = logo ? footerLogoWidth * (logo.height / logo.width) : footerLogoWidth * 0.30;
+    const footerFontSize = Math.max(8, Math.round(Math.max(width, height) * 0.010));
+    const footerGap = Math.max(4, Math.round(width * 0.008));
+    const gap = Math.max(5, Math.round(width * 0.012));
 
-    context.font = '600 ' + titleSize + 'px system-ui, sans-serif';
-    const titleLines = wrapText(context, watermarkLines[0], textMaxWidth).slice(0, 1);
+    // TUNING WATERMARK — ukuran tipografi:
+    // - timeSize mengatur ukuran jam utama. Naikkan/turunkan faktor 0.064 untuk mengubahnya.
+    // - dateSize, nameSize, addressSize, dan footerFontSize mengatur teks pendamping.
+    // - Jam memakai DIN Condensed jika font tersedia pada perangkat; fallback dipakai jika tidak.
+    const timeSize = Math.max(18, Math.round(width * 0.064));
+    const dateSize = Math.max(11, Math.round(width * 0.021));
+    const nameSize = Math.max(12, Math.round(width * 0.022));
+    // Gunakan sisi terpanjang agar ukuran teks alamat konsisten pada foto portrait dan landscape.
+    const addressSize = Math.max(11, Math.round(Math.max(width, height) * 0.018));
+    const lineHeight = Math.ceil(addressSize * 1.18);
+    const rightEdge = Math.min(width - marginX, marginX + watermarkWidth);
+    const textWidth = rightEdge - marginX;
+    const addressWidth = Math.min(Math.round(width * 0.60), width - marginX * 2);
+    const textX = marginX;
+    const shadow = 'rgba(0, 0, 0, 0.82)';
 
-    context.font = bodySize + 'px system-ui, sans-serif';
-    const eventLines = wrapText(context, watermarkLines[1], textMaxWidth).slice(0, 1);
-    let addressLines = wrapText(context, watermarkLines[2], textMaxWidth);
-    if (addressLines.length > 2) {
-        addressLines = addressLines.slice(0, 2);
-        addressLines[1] = addressLines[1].replace(/[.,;:]?$/, '…');
+    const timestamp = details.timestamp instanceof Date
+        ? formatCaptureTimestamp(details.timestamp)
+        : details.timestamp;
+    const time = typeof timestamp === 'string'
+        ? timestamp.match(/\d{1,2}:\d{2}/)?.[0] || ''
+        : timestamp?.time || '';
+    const capturedDate = new Date();
+    const dateParts = typeof timestamp === 'object' && timestamp?.date
+        ? timestamp.date
+        : new Intl.DateTimeFormat('id-ID', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+        }).format(capturedDate);
+    const weekday = typeof timestamp === 'object' && timestamp?.weekday
+        ? timestamp.weekday
+        : new Intl.DateTimeFormat('id-ID', { weekday: 'long' }).format(capturedDate);
+
+    context.save();
+    context.textBaseline = 'alphabetic';
+    context.lineJoin = 'round';
+    context.shadowColor = shadow;
+    context.shadowBlur = Math.max(2, width * 0.0025);
+    context.shadowOffsetX = 1;
+    context.shadowOffsetY = 1;
+
+    // Hitung baris alamat lebih dahulu, lalu susun seluruh watermark dari batas bawah ke atas.
+    context.font = '500 ' + addressSize + 'px "Roboto Condensed", "Arial Narrow", Roboto, sans-serif';
+    const address = String(details.address || 'Alamat belum tersedia');
+    const addressLines = wrapText(context, address, addressWidth).slice(0, 3);
+    if (addressLines.length === 3) {
+        addressLines[2] = addressLines[2].replace(/[.,;:]?$/, '…');
     }
 
-    const attributionLines = wrapText(context, watermarkLines[3], textMaxWidth).slice(0, 1);
-    const wrappedLines = [...titleLines, ...eventLines, ...addressLines, ...attributionLines];
-    const watermarkHeight = padding * 2 + lineHeight * wrappedLines.length;
-    const radius = Math.max(6, Math.round(width * 0.015));
+    const footerRowHeight = Math.max(footerLogoHeight, footerFontSize);
+    const footerTop = height - bottom - footerRowHeight;
+    const footerBaseline = footerTop + footerFontSize;
+    const addressFooterGap = Math.max(4, Math.round(addressSize * 0.35));
+    const addressFirstBaseline = footerTop - addressFooterGap - (addressLines.length - 1) * lineHeight;
+    const addressTopBaselineGap = Math.max(8, Math.round(addressSize * 0.7));
+    const nameBaseline = addressFirstBaseline - addressTopBaselineGap - addressSize;
 
-    context.fillStyle = 'rgba(255, 255, 255, 0.62)';
+    // TUNING WATERMARK:
+    // - rowGap mengatur jarak vertikal antara baris jam/tanggal dan nama pegawai.
+    //   Naikkan nilainya jika baris waktu masih terlalu dekat dengan nama.
+    const rowGap = Math.max(9, Math.round(nameSize * 0.75));
+
+    // - dateWeekdayGap mengatur jarak tanggal ke hari.
+    //   Nilai lebih besar menurunkan posisi hari; gunakan proporsi dateSize agar responsif.
+    const dateWeekdayGap = Math.max(10, Math.round(dateSize * 1.15));
+    const dateWeekdayHeight = dateSize * 2 + dateWeekdayGap;
+    const topRowHeight = Math.max(timeSize, dateWeekdayHeight);
+    const topRowY = nameBaseline - nameSize - rowGap - topRowHeight;
+
+    context.fillStyle = '#ffffff';
+    // DIN Condensed memberi angka yang lebih tinggi dan ramping untuk penanda waktu.
+    // Agar konsisten di semua perangkat, sediakan font DIN berlisensi sebagai webfont bila diperlukan.
+    context.font = '700 ' + timeSize + 'px "DIN Condensed", DIN, "Bahnschrift", "Roboto Condensed", "Arial Narrow", sans-serif';
+    const timeWidth = context.measureText(time).width;
+    context.fillText(time, textX, topRowY + timeSize);
+
+    const dividerX = textX + timeWidth + gap * 0.75;
+    context.shadowBlur = 0;
+    context.fillStyle = '#f4c542';
+    context.fillRect(
+        dividerX,
+        topRowY + Math.max(1, dateSize * 0.1),
+        Math.max(2, width * 0.003),
+        timeSize + dateSize * 0.48,
+    );
+
+    const dateX = dividerX + gap * 0.9;
+    context.shadowBlur = Math.max(2, width * 0.0025);
+    context.fillStyle = '#ffffff';
+    context.font = '600 ' + dateSize + 'px "Roboto Condensed", "Arial Narrow", Roboto, sans-serif';
+    const dateMaxWidth = Math.max(0, rightEdge - dateX);
+    context.fillText(dateParts, dateX, topRowY + dateSize, dateMaxWidth);
+    context.font = '400 ' + dateSize + 'px "Roboto Condensed", "Arial Narrow", Roboto, sans-serif';
+    context.fillText(weekday, dateX, topRowY + dateSize * 2 + dateWeekdayGap, dateMaxWidth);
+
+    context.font = '600 ' + nameSize + 'px "Roboto Condensed", "Arial Narrow", Roboto, sans-serif';
+    context.fillStyle = '#ffffff';
+
+    const name = String(details.name || 'Pegawai SanMal');
+    const event = String(details.eventLabel || 'Absensi');
+
+    const nameMaxWidth = Math.min(textWidth * 0.62, textWidth);
+    context.fillText(name, marginX, nameBaseline, nameMaxWidth);
+    const nameWidth = Math.min(context.measureText(name).width, nameMaxWidth);
+
+    // Atur jarak nama dan event dari separator di sini.
+    const separatorGap = gap * 0.85;
+    const separatorX = marginX + nameWidth + separatorGap;
+
     context.beginPath();
-    context.roundRect(cardX, cardTop, cardWidth, watermarkHeight, radius);
+    context.arc(
+        separatorX,
+        nameBaseline - nameSize * 0.32,
+        Math.max(1.5, nameSize * 0.09),
+        0,
+        Math.PI * 2
+    );
     context.fill();
-    context.strokeStyle = 'rgba(255, 255, 255, 0.28)';
-    context.lineWidth = Math.max(1, width * 0.0015);
-    context.stroke();
 
-    context.fillStyle = '#18181b';
-    context.textBaseline = 'top';
-    let y = cardTop + padding;
+    context.fillText(
+        event,
+        separatorX + separatorGap,
+        nameBaseline,
+        Math.max(0, rightEdge - separatorX - separatorGap)
+    );
 
-    wrappedLines.forEach((line, index) => {
-        context.font = (index === 0 ? '600 ' + titleSize : bodySize) + 'px system-ui, sans-serif';
-        context.fillText(line, cardX + padding, y, textMaxWidth);
-        y += lineHeight;
-    });
+    // Footer rapat di bawah alamat: logo kecil sebagai penanda, diikuti nama perusahaan.
+    if (logo) {
+        const logoY = footerTop + (footerRowHeight - footerLogoHeight) / 2;
+        context.save();
+        context.globalAlpha = 0.62;
+        context.shadowBlur = 0;
+        context.drawImage(logo, marginX, logoY, footerLogoWidth, footerLogoHeight);
+        context.restore();
+    }
+
+    context.save();
+    context.shadowBlur = 0;
+    context.globalAlpha = 0.72;
+    context.fillStyle = '#ffffff';
+    context.font = '500 ' + footerFontSize + 'px "Roboto Condensed", "Arial Narrow", Roboto, sans-serif';
+    const footerTextX = marginX + (logo ? footerLogoWidth + footerGap : 0);
+    context.fillText('PT SanMal Calibration', footerTextX, footerBaseline, Math.max(0, rightEdge - footerTextX));
+    context.restore();
+
+    context.restore();
 }
-
 function wrapText(context, text, maxWidth) {
     const words = String(text || '').split(/\s+/);
     const lines = [];
@@ -131,35 +279,42 @@ function wrapText(context, text, maxWidth) {
     return lines.length ? lines : [''];
 }
 
-/** Turunkan kualitas lebih dahulu, lalu resolusi; selalu pertahankan rasio aspek. */
+/** Encode sekali per ukuran; turunkan resolusi sebelum mencoba kualitas berulang. */
 async function compressJpeg(sourceCanvas) {
     let canvas = sourceCanvas;
 
-    while (true) {
-        for (const quality of JPEG_QUALITIES) {
-            const blob = await canvasToJpeg(canvas, quality);
-            if (blob && blob.size <= MAX_PHOTO_BYTES) return blob;
-        }
+    for (let attempt = 0; attempt < 4; attempt += 1) {
+        const quality = attempt === 0 ? 0.68 : attempt === 1 ? 0.58 : attempt === 2 ? 0.48 : 0.38;
+        const blob = await canvasToJpeg(canvas, quality);
 
-        const smallestSide = Math.min(canvas.width, canvas.height);
-        if (smallestSide <= 320) break;
+        if (!blob) throw new Error('photo-encode-failed');
+        if (blob.size <= MAX_PHOTO_BYTES) return blob;
 
+        if (attempt === 3) break;
+
+        const scale = Math.min(0.82, Math.sqrt(MAX_PHOTO_BYTES / blob.size) * 0.92);
+        const targetMaxDimension = Math.max(
+            320,
+            Math.round(Math.max(canvas.width, canvas.height) * scale),
+        );
         const dimensions = getProportionalDimensions(
             canvas.width,
             canvas.height,
-            Math.max(320, Math.round(Math.max(canvas.width, canvas.height) * 0.8)),
+            targetMaxDimension,
         );
+        if (dimensions.width >= canvas.width && dimensions.height >= canvas.height) break;
+
         const smallerCanvas = document.createElement('canvas');
         smallerCanvas.width = dimensions.width;
         smallerCanvas.height = dimensions.height;
 
         const context = smallerCanvas.getContext('2d');
         if (!context) throw new Error('canvas-context-unavailable');
-        context.drawImage(canvas, 0, 0, smallerCanvas.width, smallerCanvas.height);
+        context.drawImage(canvas, 0, 0, dimensions.width, dimensions.height);
         canvas = smallerCanvas;
     }
 
-    const finalBlob = await canvasToJpeg(canvas, 0.28);
+    const finalBlob = await canvasToJpeg(canvas, 0.3);
     if (!finalBlob) throw new Error('photo-encode-failed');
     if (finalBlob.size > MAX_PHOTO_BYTES) throw new Error('photo-size-limit-exceeded');
 
