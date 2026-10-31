@@ -529,7 +529,7 @@ new #[Title('Absensi')] class extends Component {
             <div class="space-y-5">
                 <div>
                     <flux:heading size="lg">
-                        {{ match ($mode) { 'clock_in' => __('Konfirmasi Absen Masuk'), 'overtime_start' => __('Konfirmasi Absen Lembur'), default => __('Konfirmasi Absen Pulang') } }}
+                        {{ match ($mode) { 'clock_in' => __('Konfirmasi Absen Masuk'), 'overtime_start' => __('Konfirmasi Absen Lembur'), 'overtime_start', 'overtime_locked' => __('Konfirmasi Absen Lembur'), default => __('Konfirmasi Absen Pulang') } }}
                     </flux:heading>
                     <flux:subheading>{{ __('Periksa data berikut sebelum mengirim absensi.') }}</flux:subheading>
                 </div>
@@ -537,7 +537,7 @@ new #[Title('Absensi')] class extends Component {
                 <dl class="space-y-2 text-sm">
                     <div class="flex justify-between gap-4">
                         <dt class="text-zinc-500">{{ __('Jenis absensi') }}</dt>
-                        <dd class="font-medium">{{ match ($mode) { 'clock_in' => __('Masuk'), 'overtime_start' => __('Mulai lembur'), default => __('Pulang') } }}</dd>
+                        <dd class="font-medium">{{ match ($mode) { 'clock_in' => __('Masuk'), 'overtime_start' => __('Mulai lembur'), 'overtime_start', 'overtime_locked' => __('Mulai lembur'), default => __('Pulang') } }}</dd>
                     </div>
                     <div class="flex justify-between gap-4">
                         <dt class="text-zinc-500">{{ __('Lokasi kerja') }}</dt>
