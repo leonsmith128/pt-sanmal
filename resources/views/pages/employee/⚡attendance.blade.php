@@ -341,15 +341,21 @@ new #[Title('Absensi')] class extends Component {
         @php
             $clockInRecord = $this->history->firstWhere('type', AttendanceType::ClockIn);
             $clockOutRecord = $this->history->where('type', AttendanceType::ClockOut)->last();
+            $multipleDailySessions = $this->history->where('type', AttendanceType::ClockIn)->count() > 1
+                || $this->history->where('type', AttendanceType::ClockOut)->count() > 1;
             $clockInForDisplay = $clockInRecord
                 ?? ($selectedDate === now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString() ? $session : null);
-            $workedMinutes = ($clockInForDisplay && $clockOutRecord)
-                ? max(0, (int) $clockInForDisplay->effectiveRecordedAt()->diffInMinutes($clockOutRecord->effectiveRecordedAt()))
-                : (($selectedDate === now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString() && $session)
-                    ? max(0, (int) $session->recorded_at->diffInMinutes(now(RecordAttendance::DEFAULT_TIMEZONE)))
-                    : null);
-            $attendanceStatus = $clockInForDisplay ? __('Hadir') : __('Belum absen');
-            $attendanceStatusColor = $clockInForDisplay ? 'green' : 'zinc';
+            $workedMinutes = $multipleDailySessions
+                ? null
+                : (($clockInForDisplay && $clockOutRecord)
+                    ? max(0, (int) $clockInForDisplay->effectiveRecordedAt()->diffInMinutes($clockOutRecord->effectiveRecordedAt()))
+                    : (($selectedDate === now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString() && $session)
+                        ? max(0, (int) $session->recorded_at->diffInMinutes(now(RecordAttendance::DEFAULT_TIMEZONE)))
+                        : null));
+            $attendanceStatus = $multipleDailySessions
+                ? __('Perlu ditinjau')
+                : ($clockInForDisplay ? __('Hadir') : __('Belum absen'));
+            $attendanceStatusColor = $multipleDailySessions ? 'amber' : ($clockInForDisplay ? 'green' : 'zinc');
             $attendancePlace = $clockInForDisplay?->project?->name
                 ?? $clockInForDisplay?->location?->name
                 ?? $session?->project?->name
