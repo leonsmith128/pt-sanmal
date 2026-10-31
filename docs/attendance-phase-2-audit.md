@@ -273,6 +273,6 @@ Batasan desain yang masih ada:
 - Batas 24 jam masih dipakai hanya untuk memutuskan apakah jadwal jauh ke depan ditautkan ke sesi aktif atau disimpan sebagai request untuk sesi masa depan.
 
 Validasi:
-- Formatting dan static analysis pada CI terbaru sudah lulus.
-- Pengujian CI terbaru masih berjalan saat dokumen ini diperbarui.
+- GitHub Actions run #365 pada commit de6a5eaad94f9d69e5ad1a3afa5df68f4a4cb328 lulus: formatting, repository-wide static analysis, static analysis kode yang berubah, dan test suite (104 passed, 1 skipped, 307 assertions).
+- Setelah commit yang diuji, hanya dokumen audit yang diperbarui; tidak ada perubahan kode aplikasi.
 - PR #21 tetap Draft dan belum digabung.
