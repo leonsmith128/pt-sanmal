@@ -357,7 +357,7 @@ export default class LocationTracker {
                 return await this.waitForAccuratePosition(LOCATION_ATTEMPT_TIMEOUT_MS);
             } catch (error) {
                 if (attempt === LOCATION_RETRY_ATTEMPTS) {
-                    this.gpsStatusText = 'GPS tidak tersedia atau belum cukup presisi. Absensi tetap dapat dilanjutkan tanpa lokasi.';
+                    this.gpsStatusText = 'GPS tidak tersedia atau belum cukup presisi.';
                     this.publish();
                     throw error;
                 }
