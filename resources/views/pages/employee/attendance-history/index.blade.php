@@ -99,6 +99,10 @@
                                 @else
                                     <p class="text-zinc-400">—</p>
                                 @endif
+                                <p class="break-words text-xs text-zinc-500">
+                                    <span class="font-medium">{{ __('Alamat tersimpan:') }}</span>
+                                    {{ $record->address_snapshot ?: __('Alamat belum tersedia') }}
+                                </p>
                             </div>
                         </div>
                     </article>
@@ -165,6 +169,10 @@
                                         @else
                                             <span class="text-zinc-400">—</span>
                                         @endif
+                                        <p class="mt-1 max-w-xs whitespace-normal break-words text-xs text-zinc-500">
+                                            <span class="font-medium">{{ __('Alamat tersimpan:') }}</span>
+                                            {{ $record->address_snapshot ?: __('Alamat belum tersedia') }}
+                                        </p>
                                     </td>
                                 </tr>
                             @endforeach
