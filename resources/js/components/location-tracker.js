@@ -22,7 +22,11 @@ export default class LocationTracker {
         this.lastGeocodedPosition = null;
         this.waiters = [];
         this.gpsReady = false;
-        this.gpsStatusText = 'Mencari lokasi GPS presisi…';
+        this.gpsStatusText = 'Memeriksa izin dan layanan lokasi…';
+        this.accessGranted = false;
+        this.accessError = null;
+        this.permissionStatus = null;
+        this.permissionChangeHandler = null;
     }
 
     snapshot() {
@@ -33,6 +37,8 @@ export default class LocationTracker {
             addressLoading: this.addressLoading,
             gpsReady: this.gpsReady,
             gpsStatusText: this.gpsStatusText,
+            accessGranted: this.accessGranted,
+            accessError: this.accessError,
         };
     }
 
@@ -68,6 +74,84 @@ export default class LocationTracker {
         };
     }
 
+    async prepareAccess(timeoutMs = 5000) {
+        if (!navigator.geolocation) {
+            this.accessGranted = false;
+            this.accessError = 'no-geolocation';
+            this.publish();
+            throw new Error(this.accessError);
+        }
+
+        // Permissions API lets us distinguish an approved permission from a
+        // still-pending prompt. Geolocation timeout is acceptable only after
+        // the browser explicitly reports that permission is granted.
+        try {
+            if (navigator.permissions?.query) {
+                this.permissionStatus = await navigator.permissions.query({ name: 'geolocation' });
+                if (this.permissionStatus.state === 'denied') {
+                    this.accessGranted = false;
+                    this.accessError = 'permission-denied';
+                    this.publish();
+                    throw new Error(this.accessError);
+                }
+
+                this.permissionChangeHandler = () => {
+                    if (this.permissionStatus?.state !== 'granted') {
+                        this.accessGranted = false;
+                        this.accessError = 'permission-denied';
+                    } else {
+                        this.accessError = null;
+                    }
+                    this.publish();
+                };
+                this.permissionStatus.addEventListener?.('change', this.permissionChangeHandler);
+            }
+        } catch (error) {
+            if (error.message === 'permission-denied') throw error;
+            // Some browsers expose geolocation but do not implement this
+            // Permissions API descriptor. A successful location fix below
+            // remains the fallback proof of access.
+            this.permissionStatus = null;
+        }
+
+        return new Promise((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    this.accessGranted = true;
+                    this.accessError = null;
+                    this.handlePosition(this.toPlain(position));
+                    this.publish();
+                    resolve(true);
+                },
+                (error) => {
+                    if (error.code === 1) {
+                        this.accessGranted = false;
+                        this.accessError = 'permission-denied';
+                    } else if (error.code === 2) {
+                        this.accessGranted = false;
+                        this.accessError = 'location-unavailable';
+                    } else if (error.code === 3 && this.permissionStatus?.state === 'granted') {
+                        // The browser confirms permission and the location
+                        // service did not report itself unavailable. A fix may
+                        // still arrive asynchronously through watchPosition.
+                        this.accessGranted = true;
+                        this.accessError = null;
+                        this.publish();
+                        resolve(true);
+                        return;
+                    } else {
+                        this.accessGranted = false;
+                        this.accessError = 'permission-unconfirmed';
+                    }
+
+                    this.publish();
+                    reject(new Error(this.accessError));
+                },
+                { enableHighAccuracy: true, timeout: timeoutMs, maximumAge: 0 },
+            );
+        });
+    }
+
     start() {
         if (this.watchId !== null) {
             this.publish();
@@ -75,6 +159,8 @@ export default class LocationTracker {
         }
 
         if (!navigator.geolocation) {
+            this.accessGranted = false;
+            this.accessError = 'no-geolocation';
             this.gpsStatusText = 'Browser tidak mendukung GPS';
             this.publish();
             this.onError?.('Browser tidak mendukung pengambilan lokasi.');
@@ -85,9 +171,13 @@ export default class LocationTracker {
             (position) => this.handlePosition(this.toPlain(position)),
             (error) => {
                 if (error.code === 1) {
+                    this.accessGranted = false;
+                    this.accessError = 'permission-denied';
                     this.onError?.('Izin lokasi ditolak. Aktifkan izin lokasi di pengaturan browser.');
                 } else if (error.code === 2) {
-                    this.gpsStatusText = 'Sumber lokasi tidak tersedia';
+                    this.accessGranted = false;
+                    this.accessError = 'location-unavailable';
+                    this.gpsStatusText = 'Layanan lokasi tidak tersedia atau dinonaktifkan';
                 } else if (error.code === 3) {
                     this.gpsStatusText = 'GPS masih mencari lokasi presisi…';
                 }
@@ -256,6 +346,11 @@ export default class LocationTracker {
             navigator.geolocation.clearWatch(this.watchId);
         }
         this.watchId = null;
+
+        this.permissionStatus?.removeEventListener?.('change', this.permissionChangeHandler);
+        this.permissionStatus = null;
+        this.permissionChangeHandler = null;
+        this.accessGranted = false;
 
         if (this.freshnessTimer !== null) {
             window.clearInterval(this.freshnessTimer);
