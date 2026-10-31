@@ -103,7 +103,7 @@
                                     type="button"
                                     x-show="! capturedUrl"
                                     x-on:click="capture()"
-                                    x-bind:disabled="busy || starting || ! videoReady"
+                                    x-bind:disabled="busy || starting || ! videoReady || ! locationAccessReady"
                                     class="flex size-14 items-center justify-center rounded-full border-[3px] border-white bg-white/15 text-white shadow-lg outline outline-2 outline-offset-2 outline-white/40 transition active:scale-95 disabled:opacity-50 sm:size-16"
                                     aria-label="{{ __('Ambil foto') }}"
                                     title="{{ __('Ambil foto') }}"
