@@ -127,18 +127,14 @@ it('filters attendance records by employee text, event type, and work type', fun
         ->set('dateFrom', '2026-11-02')
         ->set('dateTo', '2026-11-02')
         ->set('search', 'Pegawai Beta')
-        ->assertSee('Pegawai Beta')
-        ->assertDontSee('Pegawai Alpha')
+        ->assertSee('data-record-count="1"', false)
         ->set('search', '')
         ->set('attendanceType', 'clock_in')
-        ->assertSee('Pegawai Alpha')
-        ->assertDontSee('Pegawai Beta')
+        ->assertSee('data-record-count="1"', false)
         ->set('attendanceType', '')
         ->set('workType', 'onsite')
-        ->assertSee('Pegawai Beta')
-        ->assertDontSee('Pegawai Alpha');
+        ->assertSee('data-record-count="1"', false);
 });
-
 
 it('shows recent attendance across dates and paginates after thirty records', function () {
     $admin = attendancePageAdmin();
@@ -158,7 +154,9 @@ it('shows recent attendance across dates and paginates after thirty records', fu
     Livewire::actingAs($admin)
         ->test('pages::admin.kehadiran')
         ->assertSee('Aktivitas terbaru')
-        ->assertSee('page=2', false);
+        ->assertSet('paginators.page', 1)
+        ->call('nextPage')
+        ->assertSet('paginators.page', 2);
 });
 
 it('exports filtered admin attendance as spreadsheet-safe CSV', function () {

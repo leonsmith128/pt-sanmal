@@ -4,51 +4,52 @@ namespace App\Models;
 
 use App\Enums\OvertimeApprovalStatus;
 use App\Enums\OvertimeState;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Carbon\CarbonInterface;
-use Illuminate\Support\Carbon;
 
-/**
- * @property int $id
- * @property int $employee_id
- * @property int $clock_in_record_id
- * @property int|null $start_record_id
- * @property int|null $clock_out_record_id
- * @property string $reason
- * @property Carbon $scheduled_start_at Stored in UTC.
- * @property string $timezone
- * @property OvertimeState $state
- * @property OvertimeApprovalStatus $approval_status
- * @property Carbon|null $photo_confirmed_at
- * @property Carbon|null $reminder_sent_at
- * @property Carbon|null $start_due_notified_at
- * @property Carbon|null $completed_at
- * @property Carbon|null $cancelled_at
- * @property int|null $decided_by
- * @property Carbon|null $decided_at
- * @property string|null $decision_note
- * @property string|null $photo_exception_reason
- * @property-read Employee $employee
- * @property-read AttendanceRecord $clockInRecord
- * @property-read AttendanceRecord|null $startRecord
- * @property-read AttendanceRecord|null $clockOutRecord
- * @property-read User|null $decidedBy
- */
 #[Fillable([
-    'employee_id', 'clock_in_record_id', 'start_record_id', 'clock_out_record_id',
-    'reason', 'scheduled_start_at', 'timezone', 'state', 'approval_status',
-    'photo_confirmed_at', 'reminder_sent_at', 'start_due_notified_at', 'completed_at', 'cancelled_at',
-    'decided_by', 'decided_at', 'decision_seen_at', 'decision_note', 'photo_exception_reason',
+    'employee_id',
+    'session_date',
+    'clock_in_record_id',
+    'start_record_id',
+    'clock_out_record_id',
+    'reason',
+    'scheduled_start_at',
+    'scheduled_end_at',
+    'timezone',
+    'state',
+    'approval_status',
+    'photo_confirmed_at',
+    'reminder_sent_at',
+    'start_due_notified_at',
+    'completed_at',
+    'cancelled_at',
+    'decided_by',
+    'decided_at',
+    'decision_seen_at',
+    'decision_note',
+    'photo_exception_reason',
+    'finalization_source',
+    'final_start_at',
+    'final_end_at',
+    'finalization_reason',
+    'finalized_by',
+    'finalized_at',
 ])]
 class OvertimeRequest extends Model
 {
     protected function casts(): array
     {
         return [
+            'session_date' => 'date',
             'scheduled_start_at' => 'datetime',
+            'scheduled_end_at' => 'datetime',
+            'final_start_at' => 'datetime',
+            'final_end_at' => 'datetime',
+            'finalized_at' => 'datetime',
             'photo_confirmed_at' => 'datetime',
             'reminder_sent_at' => 'datetime',
             'start_due_notified_at' => 'datetime',
@@ -86,6 +87,11 @@ class OvertimeRequest extends Model
         return $this->belongsTo(User::class, 'decided_by');
     }
 
+    public function finalizedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'finalized_by');
+    }
+
     public function scopeAwaitingPhoto(Builder $query): Builder
     {
         return $query
@@ -106,7 +112,14 @@ class OvertimeRequest extends Model
     public function scheduledStartLocal(): CarbonInterface
     {
         return $this->scheduled_start_at
-        ->copy()
-        ->setTimezone($this->timezone);
+            ->copy()
+            ->setTimezone($this->timezone);
+    }
+
+    public function scheduledEndLocal(): ?CarbonInterface
+    {
+        return $this->scheduled_end_at
+            ?->copy()
+            ->setTimezone($this->timezone);
     }
 }

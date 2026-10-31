@@ -24,19 +24,15 @@
                     <a href="{{ route('admin.overtime-requests.show', $request) }}" class="flex flex-col gap-3 p-4 transition hover:bg-zinc-50 sm:flex-row sm:items-center sm:justify-between dark:hover:bg-zinc-800/60">
                         <div>
                             <p class="font-medium text-zinc-900 dark:text-zinc-100">{{ $request->employee->user->name }}</p>
-                            <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-300">{{ $request->scheduledStartLocal()->format('d M Y, H:i') }} · {{ Str::limit($request->reason, 110) }}</p>
+                            <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-300">{{ $request->scheduledStartLocal()->format('d M Y, H:i') }} · {{ Str::limit($request->reason ?? 'Alasan tidak dicantumkan', 110) }}</p>
                         </div>
                         <div class="flex flex-wrap gap-2">
                             <flux:badge
-                                :color="match ($request->approval_status->value) {
-                                    'approved' => 'green',
-                                    'rejected' => 'red',
-                                    default => 'amber',
-                                }"
+                                :color="$request->approval_status->badgeColor()"
                             >
                                 {{ $request->approval_status->label() }}
                             </flux:badge>
-                            <flux:badge>{{ $request->state->label() }}</flux:badge>
+                            <flux:badge :color="$request->state->badgeColor()">{{ $request->state->label() }}</flux:badge>
                             <flux:icon name="chevron-right" class="size-4 text-zinc-400" />
                         </div>
                     </a>

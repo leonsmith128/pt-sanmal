@@ -31,7 +31,13 @@ class ConfirmOvertimeStart
             $this->fail('selfieSource', 'Foto lembur harus diambil langsung dari kamera.');
         }
 
-        AttendanceEvidence::validate(['latitude'=>$latitude,'longitude'=>$longitude,'accuracy'=>$accuracy,'address_snapshot'=>$addressSnapshot,'selfie'=>$selfie]);
+        AttendanceEvidence::validate([
+            'latitude' => $latitude,
+            'longitude' => $longitude,
+            'accuracy' => $accuracy,
+            'address_snapshot' => $addressSnapshot,
+            'selfie' => $selfie,
+        ]);
 
         $storedPath = null;
 
@@ -48,7 +54,7 @@ class ConfirmOvertimeStart
                     ->lockForUpdate()
                     ->firstOrFail();
 
-                if (! in_array($locked->state, [OvertimeState::Scheduled, OvertimeState::AwaitingPhoto], true)
+                if (in_array($locked->state, [OvertimeState::Scheduled, OvertimeState::AwaitingPhoto], true) === false
                     || $locked->start_record_id !== null) {
                     $this->fail('form', 'Pengajuan ini tidak lagi menunggu konfirmasi foto lembur.');
                 }
@@ -60,7 +66,7 @@ class ConfirmOvertimeStart
                 $clockIn = $locked->clockInRecord()->with(['location', 'project'])->firstOrFail();
 
                 $open = RecordAttendance::openSession($employee);
-                if (! $open || $open->id !== $clockIn->id) {
+                if ($open === null || $open->id !== $clockIn->id) {
                     $this->fail('form', 'Sesi kerja sudah tidak aktif. Hubungi admin untuk peninjauan.');
                 }
 
@@ -75,7 +81,7 @@ class ConfirmOvertimeStart
                     'project_id' => $clockIn->project_id,
                     'recorded_at' => $now,
                     'timezone' => $locked->timezone,
-                    'attendance_date' => $now->copy()->setTimezone($locked->timezone)->toDateString(),
+                    'attendance_date' => $clockIn->attendance_date->toDateString(),
                     'latitude' => $latitude,
                     'longitude' => $longitude,
                     'accuracy_m' => $accuracy,
@@ -110,8 +116,12 @@ class ConfirmOvertimeStart
                 return $record;
             });
         } catch (\Throwable $exception) {
-            try { AttendanceSelfie::delete($storedPath); }
-            catch (\Throwable $cleanupException) { report($cleanupException); }
+            try {
+                AttendanceSelfie::delete($storedPath);
+            } catch (\Throwable $cleanupException) {
+                report($cleanupException);
+            }
+
             throw $exception;
         }
     }

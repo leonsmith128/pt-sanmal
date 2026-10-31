@@ -20,16 +20,12 @@
         <section class="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900">
             <div class="flex flex-wrap gap-2">
                 <flux:badge
-                    :color="match ($overtimeRequest->approval_status->value) {
-                        'approved' => 'green',
-                        'rejected' => 'red',
-                        default => 'amber',
-                    }"
+                    :color="$overtimeRequest->approval_status->badgeColor()"
                 >
                     {{ $overtimeRequest->approval_status->label() }}
                 </flux:badge>
 
-                <flux:badge>{{ $overtimeRequest->state->label() }}</flux:badge>
+                <flux:badge :color="$overtimeRequest->state->badgeColor()">{{ $overtimeRequest->state->label() }}</flux:badge>
             </div>
 
             <dl class="mt-4 grid gap-4 sm:grid-cols-2">
@@ -37,6 +33,20 @@
                     <dt class="text-sm text-zinc-500">{{ __('Waktu mulai terjadwal') }}</dt>
                     <dd class="mt-1 font-medium">
                         {{ $overtimeRequest->scheduledStartLocal()->format('d M Y, H:i T') }}
+                    </dd>
+                </div>
+
+                <div>
+                    <dt class="text-sm text-zinc-500">{{ __('Waktu selesai terjadwal (data lama)') }}</dt>
+                    <dd class="mt-1 font-medium">
+                        {{ $overtimeRequest->scheduledEndLocal()?->format('d M Y, H:i T') ?? '—' }}
+                    </dd>
+                </div>
+
+                <div>
+                    <dt class="text-sm text-zinc-500">{{ __('Waktu aktual mulai') }}</dt>
+                    <dd class="mt-1 font-medium">
+                        {{ $overtimeRequest->startRecord?->effectiveRecordedAtLocal()->format('d M Y, H:i T') ?? '—' }}
                     </dd>
                 </div>
 
@@ -50,14 +60,14 @@
                 <div>
                     <dt class="text-sm text-zinc-500">{{ __('Clock-in terkait') }}</dt>
                     <dd class="mt-1 font-medium">
-                        {{ $overtimeRequest->clockInRecord->recordedAtLocal()->format('d M Y, H:i') }}
+                        {{ $overtimeRequest->clockInRecord?->effectiveRecordedAtLocal()->format('d M Y, H:i') ?? '—' }}
                     </dd>
                 </div>
 
                 <div>
                     <dt class="text-sm text-zinc-500">{{ __('Clock-out terkait') }}</dt>
                     <dd class="mt-1 font-medium">
-                        {{ $overtimeRequest->clockOutRecord?->recordedAtLocal()->format('d M Y, H:i') ?? '—' }}
+                        {{ $overtimeRequest->clockOutRecord?->effectiveRecordedAtLocal()->format('d M Y, H:i') ?? '—' }}
                     </dd>
                 </div>
             </dl>
@@ -101,6 +111,77 @@
                 </div>
             @endif
         </section>
+
+
+        @if ($overtimeRequest->finalized_at)
+            <section class="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 dark:border-emerald-900 dark:bg-emerald-950/30">
+                <flux:heading size="lg">{{ __('Rentang waktu final') }}</flux:heading>
+                <dl class="mt-3 grid gap-3 sm:grid-cols-2">
+                    <div>
+                        <dt class="text-sm text-zinc-500">{{ __('Sumber') }}</dt>
+                        <dd class="font-medium">{{ ucfirst($overtimeRequest->finalization_source) }}</dd>
+                    </div>
+                    <div>
+                        <dt class="text-sm text-zinc-500">{{ __('Diputuskan pada') }}</dt>
+                        <dd class="font-medium">{{ $overtimeRequest->finalized_at->setTimezone($overtimeRequest->timezone)->format('d M Y, H:i') }}</dd>
+                    </div>
+                    <div>
+                        <dt class="text-sm text-zinc-500">{{ __('Mulai final') }}</dt>
+                        <dd class="font-medium">{{ $overtimeRequest->final_start_at?->setTimezone($overtimeRequest->timezone)->format('d M Y, H:i') ?? '—' }}</dd>
+                    </div>
+                    <div>
+                        <dt class="text-sm text-zinc-500">{{ __('Selesai final') }}</dt>
+                        <dd class="font-medium">{{ $overtimeRequest->final_end_at?->setTimezone($overtimeRequest->timezone)->format('d M Y, H:i') ?? '—' }}</dd>
+                    </div>
+                </dl>
+                <p class="mt-3 whitespace-pre-line text-sm">{{ $overtimeRequest->finalization_reason }}</p>
+            </section>
+        @endif
+
+        @if ($overtimeRequest->clock_out_record_id)
+            <section class="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900">
+                <flux:heading size="lg">{{ __('Finalisasi rentang lembur') }}</flux:heading>
+                <flux:text class="mt-1">{{ $overtimeRequest->scheduled_end_at ? __('Pilih rentang jadwal lama, aktual, atau koreksi manual. Data event asli tidak akan diubah. Alasan wajib dicatat.') : __('Jadwal baru hanya menyimpan waktu mulai. Pilih waktu aktual atau koreksi manual untuk menetapkan rentang final. Data event asli tidak akan diubah.') }}</flux:text>
+
+                <form method="POST" action="{{ route('admin.overtime-requests.finalize', $overtimeRequest) }}" class="mt-4 flex flex-col gap-4">
+                    @csrf
+                    <flux:field>
+                        <flux:label>{{ __('Sumber waktu final') }}</flux:label>
+                        <flux:select name="finalization_source" :value="old('finalization_source', $overtimeRequest->finalization_source)" required>
+                            @if ($overtimeRequest->scheduled_end_at)
+                                <flux:select.option value="scheduled">{{ __('Gunakan rentang jadwal lama') }}</flux:select.option>
+                            @endif
+                            <flux:select.option value="actual">{{ __('Gunakan aktual') }}</flux:select.option>
+                            <flux:select.option value="manual">{{ __('Koreksi manual') }}</flux:select.option>
+                        </flux:select>
+                        <flux:error name="finalization_source" />
+                    </flux:field>
+
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        <flux:field>
+                            <flux:label>{{ __('Mulai manual') }}</flux:label>
+                            <flux:input type="datetime-local" name="final_start_local" :value="old('final_start_local', $overtimeRequest->final_start_at?->setTimezone($overtimeRequest->timezone)->format('Y-m-d\\TH:i'))" />
+                            <flux:error name="final_start_local" />
+                        </flux:field>
+                        <flux:field>
+                            <flux:label>{{ __('Selesai manual') }}</flux:label>
+                            <flux:input type="datetime-local" name="final_end_local" :value="old('final_end_local', $overtimeRequest->final_end_at?->setTimezone($overtimeRequest->timezone)->format('Y-m-d\\TH:i'))" />
+                            <flux:error name="final_end_local" />
+                        </flux:field>
+                    </div>
+
+                    <flux:field>
+                        <flux:label>{{ __('Alasan finalisasi (wajib)') }}</flux:label>
+                        <flux:textarea name="finalization_reason" rows="3" required>{{ old('finalization_reason', $overtimeRequest->finalization_reason) }}</flux:textarea>
+                        <flux:error name="finalization_reason" />
+                    </flux:field>
+
+                    <div>
+                        <flux:button type="submit" variant="primary">{{ __('Simpan rentang final') }}</flux:button>
+                    </div>
+                </form>
+            </section>
+        @endif
 
         @if ($overtimeRequest->approval_status->value === 'pending')
             <section class="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900">

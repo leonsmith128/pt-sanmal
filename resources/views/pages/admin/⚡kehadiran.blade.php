@@ -40,6 +40,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
 
     public function updated(string $property): void
     {
+        unset($this->records, $this->notYetPresent);
         $this->resetPage();
     }
 
@@ -65,6 +66,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
         $this->attendanceType = '';
         $this->workType = '';
         $this->employeeId = '';
+        unset($this->records, $this->notYetPresent);
         $this->resetPage();
     }
 
@@ -97,8 +99,15 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
     {
         [$from, $to] = $this->range();
 
+        // Gunakan ekspresi tanggal yang sesuai dengan driver agar query juga
+        // dapat dijalankan oleh SQLite pada feature tests.
+        $previousDayBoundary = match (\Illuminate\Support\Facades\DB::connection()->getDriverName()) {
+            'sqlite' => "datetime(attendance_records.recorded_at, '-24 hours')",
+            default => 'DATE_SUB(attendance_records.recorded_at, INTERVAL 24 HOUR)',
+        };
+
         $sortColumns = [
-            'recorded_at' => 'attendance_records.recorded_at',
+            'recorded_at' => "COALESCE((SELECT ac.requested_recorded_at FROM attendance_corrections ac WHERE ac.attendance_record_id = attendance_records.id AND ac.status = 'approved' ORDER BY ac.reviewed_at DESC LIMIT 1), attendance_records.recorded_at)",
             'employee' => 'sort_users.name',
             'type' => 'attendance_records.type',
             'work_type' => 'attendance_records.work_type',
@@ -108,8 +117,18 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
             ->select('attendance_records.*')
             ->join('employees as sort_employees', 'sort_employees.id', '=', 'attendance_records.employee_id')
             ->join('users as sort_users', 'sort_users.id', '=', 'sort_employees.user_id')
-            ->with(['employee.user', 'location', 'project'])
-            ->when($from !== '' && $to !== '', fn ($query) => $query->whereBetween('attendance_records.attendance_date', [$from, $to]))
+            ->with(['employee.user', 'location', 'project', 'approvedCorrection'])
+            ->when($from !== '' && $to !== '', function ($query) use ($from, $to, $previousDayBoundary): void {
+                $query->where(function ($nested) use ($from, $to, $previousDayBoundary): void {
+                    $nested->whereRaw(
+                        "COALESCE((SELECT ac.attendance_date FROM attendance_corrections ac WHERE ac.attendance_record_id = attendance_records.id AND ac.status = 'approved' ORDER BY ac.reviewed_at DESC LIMIT 1), attendance_records.attendance_date) BETWEEN ? AND ?",
+                        [$from, $to],
+                    )->orWhereRaw(
+                        "(SELECT COALESCE((SELECT ac2.attendance_date FROM attendance_corrections ac2 WHERE ac2.attendance_record_id = ci.id AND ac2.status = 'approved' ORDER BY ac2.reviewed_at DESC LIMIT 1), ci.attendance_date) FROM attendance_records ci WHERE ci.employee_id = attendance_records.employee_id AND ci.type = 'clock_in' AND ci.recorded_at <= attendance_records.recorded_at AND ci.recorded_at >= {$previousDayBoundary} ORDER BY ci.recorded_at DESC LIMIT 1) BETWEEN ? AND ?",
+                        [$from, $to],
+                    );
+                });
+            })
             ->when($this->employeeId !== '', fn ($query) => $query->where('attendance_records.employee_id', (int) $this->employeeId))
             ->when($this->attendanceType !== '', fn ($query) => $query->where('attendance_records.type', $this->attendanceType))
             ->when($this->workType !== '', fn ($query) => $query->where('attendance_records.work_type', $this->workType))
@@ -121,7 +140,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                         ->orWhere('attendance_records.notes', 'like', '%'.$term.'%');
                 });
             })
-            ->orderBy($sortColumns[$this->sortBy] ?? $sortColumns['recorded_at'], $this->sortDirection === 'asc' ? 'asc' : 'desc')
+            ->orderByRaw(($sortColumns[$this->sortBy] ?? $sortColumns['recorded_at']).' '.($this->sortDirection === 'asc' ? 'asc' : 'desc'))
             ->orderByDesc('attendance_records.id')
             ->paginate(30);
     }
@@ -263,7 +282,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                 </flux:dropdown>
             </div>
 
-            <div id="attendance-records" class="max-h-[70vh] overflow-auto rounded-lg border border-neutral-200 p-2 [--flux-bleed:0.5rem] [&_thead]:sticky [&_thead]:top-0 [&_thead]:z-20 [&_thead]:bg-white dark:border-neutral-700 dark:[&_thead]:bg-zinc-900">
+            <div id="attendance-records" data-record-count="{{ $records->total() }}" class="max-h-[70vh] overflow-auto rounded-lg border border-neutral-200 p-2 [--flux-bleed:0.5rem] [&_thead]:sticky [&_thead]:top-0 [&_thead]:z-20 [&_thead]:bg-white dark:border-neutral-700 dark:[&_thead]:bg-zinc-900">
                 <flux:table bleed :paginate="$records" pagination:scroll-to="#attendance-records">
                     <flux:table.columns>
                         <flux:table.column sortable :sorted="$sortBy === 'recorded_at'" :direction="$sortDirection" wire:click="sort('recorded_at')">{{ __('Waktu') }}</flux:table.column>
@@ -272,11 +291,17 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                         <flux:table.column sortable :sorted="$sortBy === 'work_type'" :direction="$sortDirection" wire:click="sort('work_type')">{{ __('Lokasi kerja') }}</flux:table.column>
                         <flux:table.column>{{ __('GPS') }}</flux:table.column>
                         <flux:table.column>{{ __('Foto') }}</flux:table.column>
+                        <flux:table.column>{{ __('Koreksi waktu') }}</flux:table.column>
                     </flux:table.columns>
                     <flux:table.rows>
                         @forelse ($records as $record)
                             <flux:table.row :key="$record->id">
-                                <flux:table.cell class="whitespace-nowrap">{{ $record->recordedAtLocal()->format('d M Y, H:i T') }}</flux:table.cell>
+                                <flux:table.cell class="whitespace-nowrap">
+                                    {{ $record->effectiveRecordedAtLocal()->format('d M Y, H:i T') }}
+                                    @if ($record->approvedCorrection)
+                                        <p class="text-xs text-zinc-500">{{ __('Bukti asli:') }} {{ $record->recordedAtLocal()->format('d M Y, H:i T') }}</p>
+                                    @endif
+                                </flux:table.cell>
                                 <flux:table.cell>{{ $record->employee->user->name }}</flux:table.cell>
                                 <flux:table.cell>
                                     <flux:badge :color="$record->type === AttendanceType::ClockIn ? 'green' : 'blue'">
@@ -311,11 +336,33 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                                         —
                                     @endif
                                 </flux:table.cell>
+                                <flux:table.cell>
+                                    @if (in_array($record->type, [AttendanceType::ClockIn, AttendanceType::ClockOut], true) && $record->employee->user_id !== auth()->id())
+                                        <details class="min-w-56">
+                                            <summary class="cursor-pointer text-sm font-medium text-blue-600 underline dark:text-blue-400">{{ __('Koreksi timestamp') }}</summary>
+                                            <form method="POST" action="{{ route('admin.kehadiran.correct-timestamp', $record) }}" class="mt-2 grid min-w-64 gap-2 rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-700 dark:bg-zinc-800">
+                                                @csrf
+                                                <label class="grid gap-1 text-xs">
+                                                    <span>{{ __('Waktu efektif') }}</span>
+                                                    <input type="datetime-local" name="recorded_at_local" required value="{{ $record->effectiveRecordedAtLocal()->format('Y-m-d\\TH:i') }}" class="rounded-md border-zinc-300 text-sm dark:border-zinc-600 dark:bg-zinc-900">
+                                                </label>
+                                                <label class="grid gap-1 text-xs">
+                                                    <span>{{ __('Alasan wajib') }}</span>
+                                                    <textarea name="reason" required minlength="5" maxlength="2000" rows="2" class="rounded-md border-zinc-300 text-sm dark:border-zinc-600 dark:bg-zinc-900"></textarea>
+                                                </label>
+                                                <button type="submit" class="rounded-md bg-blue-600 px-3 py-2 text-xs font-semibold text-white hover:bg-blue-700">{{ __('Simpan koreksi') }}</button>
+                                                <p class="text-xs text-zinc-500">{{ __('Timestamp bukti asli tidak diubah; perubahan dicatat di audit log.') }}</p>
+                                            </form>
+                                        </details>
+                                    @else
+                                        —
+                                    @endif
+                                </flux:table.cell>
                             </flux:table.row>
                         @empty
                             @if ($this->notYetPresent->isEmpty())
                                 <flux:table.row>
-                                    <flux:table.cell colspan="6">
+                                    <flux:table.cell colspan="7">
                                         <x-admin.empty-state :message="__('Tidak ada catatan pada filter ini.')" />
                                     </flux:table.cell>
                                 </flux:table.row>
@@ -329,6 +376,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                                 <flux:table.cell>
                                     <flux:badge color="amber">{{ __('Belum ada absensi') }}</flux:badge>
                                 </flux:table.cell>
+                                <flux:table.cell>—</flux:table.cell>
                                 <flux:table.cell>—</flux:table.cell>
                                 <flux:table.cell>—</flux:table.cell>
                                 <flux:table.cell>—</flux:table.cell>

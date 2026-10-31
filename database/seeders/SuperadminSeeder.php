@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Enums\UserRole;
-use App\Models\Employee;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use RuntimeException;
@@ -42,8 +41,7 @@ class SuperadminSeeder extends Seeder
             ])->save();
         }
 
-        // Semua akun, termasuk superadmin, wajib punya profil pegawai untuk absensi.
-        // firstOrCreate: aman dijalankan ulang, tidak membuat profil ganda.
-        Employee::firstOrCreate(['user_id' => $user->id], ['joined_at' => now()->toDateString()]);
+        // Superadmin adalah akun administratif. Profil pegawai hanya dibuat melalui
+        // proses provisioning eksplisit bila kebijakan perusahaan mengharuskannya.
     }
 }

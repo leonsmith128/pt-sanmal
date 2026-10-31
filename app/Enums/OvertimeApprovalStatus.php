@@ -8,6 +8,15 @@ enum OvertimeApprovalStatus: string
     case Approved = 'approved';
     case Rejected = 'rejected';
 
+    public function badgeColor(): string
+    {
+        return match ($this) {
+            self::Pending => 'amber',
+            self::Approved => 'green',
+            self::Rejected => 'red',
+        };
+    }
+
     public function label(): string
     {
         return match ($this) {

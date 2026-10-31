@@ -5,8 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Employee;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AttendanceHistoryController extends Controller
 {
@@ -19,7 +19,7 @@ class AttendanceHistoryController extends Controller
 
         $filters = $this->validatedFilters($request);
         $records = $this->attendanceQuery($employee, $filters)
-            ->orderBy('recorded_at', $filters['direction'])
+            ->orderByRaw("COALESCE((SELECT ac.requested_recorded_at FROM attendance_corrections ac WHERE ac.attendance_record_id = attendance_records.id AND ac.status = 'approved' ORDER BY ac.reviewed_at DESC LIMIT 1), attendance_records.recorded_at) ".$filters['direction'])
             ->orderBy('id', $filters['direction'])
             ->paginate(20)
             ->withQueryString();
@@ -39,11 +39,11 @@ class AttendanceHistoryController extends Controller
 
         $filters = $this->validatedFilters($request);
         $records = $this->attendanceQuery($employee, $filters)
-            ->orderBy('recorded_at', $filters['direction'])
+            ->orderByRaw("COALESCE((SELECT ac.requested_recorded_at FROM attendance_corrections ac WHERE ac.attendance_record_id = attendance_records.id AND ac.status = 'approved' ORDER BY ac.reviewed_at DESC LIMIT 1), attendance_records.recorded_at) ".$filters['direction'])
             ->orderBy('id', $filters['direction'])
             ->get();
 
-        $filename = 'riwayat-absensi-' . now()->format('Ymd-His') . '.csv';
+        $filename = 'riwayat-absensi-'.now()->format('Ymd-His').'.csv';
 
         return response()->streamDownload(function () use ($records): void {
             $stream = fopen('php://output', 'w');
@@ -56,7 +56,7 @@ class AttendanceHistoryController extends Controller
 
             foreach ($records as $record) {
                 fputcsv($stream, array_map($this->spreadsheetSafe(...), [
-                    $record->recordedAtLocal()->format('Y-m-d H:i:s'),
+                    $record->effectiveRecordedAtLocal()->format('Y-m-d H:i:s'),
                     $record->type->label(),
                     $record->work_type->label(),
                     $record->project?->name ?? $record->location?->name ?? '',
@@ -77,9 +77,27 @@ class AttendanceHistoryController extends Controller
     private function attendanceQuery(Employee $employee, array $filters): HasMany
     {
         return $employee->attendanceRecords()
-            ->with(['location', 'project'])
-            ->when($filters['from'] !== '', fn ($query) => $query->whereDate('attendance_date', '>=', $filters['from']))
-            ->when($filters['to'] !== '', fn ($query) => $query->whereDate('attendance_date', '<=', $filters['to']));
+            ->with(['location', 'project', 'approvedCorrection'])
+            ->when($filters['from'] !== '' || $filters['to'] !== '', function ($query) use ($filters): void {
+                $from = $filters['from'] !== '' ? $filters['from'] : null;
+                $to = $filters['to'] !== '' ? $filters['to'] : null;
+                $effectiveDate = "COALESCE((SELECT ac.attendance_date FROM attendance_corrections ac WHERE ac.attendance_record_id = attendance_records.id AND ac.status = 'approved' ORDER BY ac.reviewed_at DESC LIMIT 1), attendance_records.attendance_date)";
+                $sessionDate = "(SELECT COALESCE((SELECT ac2.attendance_date FROM attendance_corrections ac2 WHERE ac2.attendance_record_id = ci.id AND ac2.status = 'approved' ORDER BY ac2.reviewed_at DESC LIMIT 1), ci.attendance_date) FROM attendance_records ci WHERE ci.employee_id = attendance_records.employee_id AND ci.type = 'clock_in' AND ci.recorded_at <= attendance_records.recorded_at AND ci.recorded_at >= DATE_SUB(attendance_records.recorded_at, INTERVAL 24 HOUR) ORDER BY ci.recorded_at DESC LIMIT 1)";
+
+                $query->where(function ($nested) use ($from, $to, $effectiveDate, $sessionDate): void {
+                    foreach ([$effectiveDate, $sessionDate] as $dateExpression) {
+                        $nested->orWhere(function ($range) use ($from, $to, $dateExpression): void {
+                            if ($from) {
+                                $range->whereRaw($dateExpression.' >= ?', [$from]);
+                            }
+
+                            if ($to) {
+                                $range->whereRaw($dateExpression.' <= ?', [$to]);
+                            }
+                        });
+                    }
+                });
+            });
     }
 
     private function validatedFilters(Request $request): array
@@ -104,6 +122,6 @@ class AttendanceHistoryController extends Controller
         $value = (string) ($value ?? '');
 
         // Cegah teks yang tidak tepercaya dieksekusi sebagai formula spreadsheet.
-        return preg_match('/^[\s\x00-\x1F]*[=+\-@]/u', $value) === 1 ? "'" . $value : $value;
+        return preg_match('/^[\s\x00-\x1F]*[=+\-@]/u', $value) === 1 ? "'".$value : $value;
     }
 }

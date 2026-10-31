@@ -55,7 +55,7 @@
                     <article class="space-y-3 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
                         <div class="flex items-start justify-between gap-3">
                             <div class="min-w-0">
-                                <p class="text-xs text-zinc-500">{{ $record->recordedAtLocal()->translatedFormat('d M Y · H:i') }}</p>
+                                <p class="text-xs text-zinc-500">{{ $record->effectiveRecordedAtLocal()->translatedFormat('d M Y · H:i') }}</p>
                                 <h2 class="mt-1 font-semibold text-zinc-900 dark:text-zinc-100">{{ $record->type->label() }}</h2>
                             </div>
                             <flux:badge color="{{ $record->type->value === 'clock_in' ? 'green' : ($record->type->value === 'clock_out' ? 'blue' : 'amber') }}">
@@ -112,7 +112,7 @@
                         <tbody class="divide-y divide-zinc-200 dark:divide-zinc-700">
                             @foreach ($records as $record)
                                 <tr class="align-top">
-                                    <td class="whitespace-nowrap px-4 py-4">{{ $record->recordedAtLocal()->translatedFormat('d M Y · H:i') }}</td>
+                                    <td class="whitespace-nowrap px-4 py-4">{{ $record->effectiveRecordedAtLocal()->translatedFormat('d M Y · H:i') }}</td>
                                     <td class="px-4 py-4">
                                         <flux:badge color="{{ $record->type->value === 'clock_in' ? 'green' : ($record->type->value === 'clock_out' ? 'blue' : 'amber') }}">
                                             {{ $record->type->label() }}

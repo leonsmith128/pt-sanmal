@@ -44,14 +44,68 @@ class DailyAttendanceStatusService
             return [];
         }
 
-        // Query 1: Ambil semua absensi aktual
-        $eventsByEmployeeAndDate = AttendanceRecord::query()
+        // Query 1: Ambil event satu hari sebelum/sesudah rentang untuk memasangkan
+        // clock-in dan clock-out sesi lintas tengah malam (batas sesi teknis 24 jam).
+        $rawEvents = AttendanceRecord::query()
             ->whereIn('employee_id', $employeeIds)
-            ->whereDate('attendance_date', '>=', $start)
-            ->whereDate('attendance_date', '<=', $end)
-            ->orderBy('recorded_at')
+            ->where(function ($query) use ($start, $end): void {
+                $rangeStart = Carbon::parse($start)->subDay()->toDateString();
+                $rangeEnd = Carbon::parse($end)->addDay()->toDateString();
+
+                $query->whereBetween('attendance_date', [$rangeStart, $rangeEnd])
+                    ->orWhereHas('approvedCorrection', fn ($correctionQuery) => $correctionQuery
+                        ->whereBetween('attendance_date', [$rangeStart, $rangeEnd]));
+            })
+            ->with('approvedCorrection')
+            ->orderBy('employee_id')
             ->get()
-            ->groupBy(fn (AttendanceRecord $r) => $r->employee_id.'_'.$r->attendance_date->format('Y-m-d'));
+            ->sortBy(fn (AttendanceRecord $event) => $event->effectiveRecordedAt()->timestamp)
+            ->values();
+
+        $eventsByEmployeeAndDate = collect();
+
+        // Pasangkan event per pegawai, berdasarkan waktu efektif, agar event
+        // Clock Out legacy setelah tengah malam tetap mengikuti Clock In-nya.
+        foreach ($rawEvents->groupBy('employee_id') as $employeeId => $employeeEvents) {
+            $orderedEvents = $employeeEvents
+                ->sortBy(fn (AttendanceRecord $event) => $event->effectiveRecordedAt()->timestamp)
+                ->values();
+            $sessionDate = null;
+            $sessionStartedAt = null;
+
+            foreach ($orderedEvents as $event) {
+                $eventDate = $event->effectiveAttendanceDate();
+
+                if ($event->type->value === 'clock_in') {
+                    $sessionDate = $eventDate;
+                    $sessionStartedAt = $event->effectiveRecordedAt();
+                    $assignedDate = $eventDate;
+                } elseif (in_array($event->type->value, ['overtime_start', 'clock_out'], true)) {
+                    $eventTimestamp = $event->effectiveRecordedAt()->getTimestamp();
+                    $sessionStartTimestamp = $sessionStartedAt?->getTimestamp();
+                    $withinSessionWindow = $sessionStartTimestamp !== null
+                        && $eventTimestamp >= $sessionStartTimestamp
+                        && $eventTimestamp <= ($sessionStartTimestamp + 86400);
+
+                    $assignedDate = $withinSessionWindow && $sessionDate !== null
+                        ? $sessionDate
+                        : $eventDate;
+                } else {
+                    $assignedDate = $eventDate;
+                }
+
+                if ($assignedDate >= $start && $assignedDate <= $end) {
+                    $key = $employeeId.'_'.$assignedDate;
+                    $eventsByEmployeeAndDate[$key] ??= collect();
+                    $eventsByEmployeeAndDate[$key]->push($event);
+                }
+
+                if ($event->type->value === 'clock_out') {
+                    $sessionDate = null;
+                    $sessionStartedAt = null;
+                }
+            }
+        }
 
         // Query 2: Ambil permohonan izin/cuti/sakit yang sudah disetujui
         $leaveRequestsByEmployee = LeaveRequest::query()
@@ -165,8 +219,20 @@ class DailyAttendanceStatusService
             ];
         }
 
-        $hasIn = $events->contains(fn (AttendanceRecord $event) => $event->type->value === 'clock_in');
-        $hasOut = $events->contains(fn (AttendanceRecord $event) => $event->type->value === 'clock_out');
+        $clockInCount = $events->filter(fn (AttendanceRecord $event) => $event->type->value === 'clock_in')->count();
+        $clockOutCount = $events->filter(fn (AttendanceRecord $event) => $event->type->value === 'clock_out')->count();
+
+        if ($clockInCount > 1 || $clockOutCount > 1) {
+            return $this->reviewResult(
+                $events,
+                $leaveRequests,
+                null,
+                'Ditemukan lebih dari satu event Clock In atau Clock Out pada tanggal sesi ini. Riwayat perlu ditinjau admin.',
+            );
+        }
+
+        $hasIn = $clockInCount === 1;
+        $hasOut = $clockOutCount === 1;
         $status = $hasIn && $hasOut ? DailyAttendanceStatus::Present : DailyAttendanceStatus::Incomplete;
 
         return [

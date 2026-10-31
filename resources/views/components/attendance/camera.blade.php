@@ -170,7 +170,4 @@
 
                 <flux:text x-show="error && ! active" x-cloak x-text="error" class="text-sm text-red-500"></flux:text>
                 @error('selfie') <flux:text class="text-red-500">{{ $message }}</flux:text> @enderror
-                @error('latitude') <flux:text class="text-red-500">{{ $message }}</flux:text> @enderror
-                @error('longitude') <flux:text class="text-red-500">{{ $message }}</flux:text> @enderror
-                @error('accuracy') <flux:text class="text-red-500">{{ $message }}</flux:text> @enderror
             </div>

@@ -11,6 +11,17 @@ enum OvertimeState: string
     case Cancelled = 'cancelled';
     case NeedsReview = 'needs_review';
 
+    public function badgeColor(): string
+    {
+        return match ($this) {
+            self::Scheduled, self::AwaitingPhoto => 'amber',
+            self::InProgress => 'blue',
+            self::Completed => 'green',
+            self::Cancelled => 'zinc',
+            self::NeedsReview => 'red',
+        };
+    }
+
     public function label(): string
     {
         return match ($this) {

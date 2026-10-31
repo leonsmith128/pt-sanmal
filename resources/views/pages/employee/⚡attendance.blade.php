@@ -4,9 +4,10 @@ use App\Actions\ConfirmOvertimeStart;
 use App\Actions\CreateOvertimeRequest;
 use App\Actions\RecordAttendance;
 use App\Enums\AttendanceType;
+use App\Enums\OvertimeState;
 use App\Enums\SelfieSource;
 use App\Enums\WorkType;
-use App\Enums\OvertimeState;
+use App\Services\DailyAttendanceStatusService;
 use App\Models\AttendanceRecord;
 use App\Models\OvertimeRequest;
 use App\Support\AttendanceEvidence;
@@ -62,6 +63,15 @@ new #[Title('Absensi')] class extends Component {
     }
 
     #[Computed]
+    public function hasClockInToday(): bool
+    {
+        return RecordAttendance::hasClockInOnDate(
+            $this->employee,
+            now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString(),
+        );
+    }
+
+    #[Computed]
     public function officeLocations()
     {
         return RecordAttendance::officeLocations()->get();
@@ -84,7 +94,6 @@ new #[Title('Absensi')] class extends Component {
 
         return $this->employee->overtimeRequests()
             ->where('clock_in_record_id', $session->id)
-            ->whereNotIn('state', [OvertimeState::Completed, OvertimeState::Cancelled])
             ->latest('scheduled_start_at')
             ->first();
     }
@@ -107,7 +116,7 @@ new #[Title('Absensi')] class extends Component {
     {
         abort_unless(Carbon::hasFormat($date, 'Y-m-d') && (collect($this->weekDays)->contains(fn ($day) => $day['date'] === $date) || $date === now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString()), 422);
         $this->selectedDate = $date;
-        unset($this->history, $this->selectedDateOvertimeRequest);
+        unset($this->history, $this->selectedDateOvertimeRequests);
     }
 
     public function shiftWeek(int $direction): void
@@ -115,48 +124,58 @@ new #[Title('Absensi')] class extends Component {
         abort_unless(in_array($direction, [-1, 1], true), 422);
         $current = Carbon::parse($this->selectedDate ?: now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString());
         $this->selectedDate = $current->addWeeks($direction)->startOfWeek(Carbon::MONDAY)->toDateString();
-        unset($this->weekDays, $this->history, $this->selectedDateOvertimeRequest);
+        unset($this->weekDays, $this->history, $this->selectedDateOvertimeRequests);
     }
 
     public function requestOvertime(): void
     {
         $validated = $this->validate([
-            'overtimeReason' => ['required', 'string', 'min:5', 'max:2000'],
+            'overtimeReason' => ['nullable', 'string', 'max:2000'],
             'overtimeStartAt' => ['required', 'date_format:Y-m-d\\TH:i'],
         ]);
 
         app(CreateOvertimeRequest::class)->handle(
             employee: $this->employee,
-            reason: $validated['overtimeReason'],
+            reason: $validated['overtimeReason'] ?: null,
             scheduledStartLocal: $validated['overtimeStartAt'],
         );
 
         $this->reset('overtimeReason', 'overtimeStartAt');
-        unset($this->overtimeRequest);
+        unset($this->overtimeRequest, $this->selectedDateOvertimeRequests);
         Flux::modal('request-overtime')->close();
         Flux::toast(variant: 'success', text: 'Pengajuan lembur berhasil disimpan.');
     }
 
     #[Computed]
-    public function selectedDateOvertimeRequest(): ?OvertimeRequest
+    public function selectedDateOvertimeRequests()
     {
+        $dayStart = Carbon::createFromFormat('!Y-m-d', $this->selectedDate, RecordAttendance::DEFAULT_TIMEZONE)->utc();
+        $dayEnd = $dayStart->copy()->addDay();
+
         return $this->employee->overtimeRequests()
-            ->whereDate('scheduled_start_at', $this->selectedDate)
-            ->whereNotIn('state', [OvertimeState::Cancelled, OvertimeState::Completed])
-            ->latest('scheduled_start_at')
-            ->first();
+            ->where(function ($query) use ($dayStart, $dayEnd): void {
+                $query->whereDate('session_date', $this->selectedDate)
+                    ->orWhere(function ($legacy) use ($dayStart, $dayEnd): void {
+                        $legacy->whereNull('session_date')
+                            ->where('scheduled_start_at', '>=', $dayStart)
+                            ->where('scheduled_start_at', '<', $dayEnd);
+                    });
+            })
+            ->with(['startRecord.approvedCorrection', 'clockOutRecord.approvedCorrection'])
+            ->orderBy('scheduled_start_at')
+            ->orderBy('id')
+            ->get();
     }
 
     #[Computed]
     public function history()
     {
-        return $this->employee->attendanceRecords()
-            ->with(['location', 'project'])
-            ->whereDate('attendance_date', $this->selectedDate)
-            ->orderByDesc('recorded_at')
-            ->orderByDesc('id')
-            ->limit(50)
-            ->get();
+        $events = app(DailyAttendanceStatusService::class)
+            ->forEmployeeDate($this->employee, $this->selectedDate)['events'];
+
+        $events->each(fn (AttendanceRecord $record) => $record->load(['location', 'project', 'approvedCorrection']));
+
+        return $events->take(50);
     }
 
     public function retakeSelfie(): void
@@ -192,6 +211,7 @@ new #[Title('Absensi')] class extends Component {
             'longitude.required' => 'Lokasi belum terambil. Ambil ulang foto agar lokasi ikut terambil.',
             'accuracy.required' => 'Akurasi GPS belum tersedia. Tunggu hingga GPS siap lalu ambil foto.',
             ...AttendanceEvidence::messages('accuracy', 'selfie'),
+            'selfie.required' => 'Foto belum diambil.',
         ]);
     }
 
@@ -251,7 +271,7 @@ new #[Title('Absensi')] class extends Component {
         }
 
         $this->reset('latitude', 'longitude', 'accuracy', 'addressSnapshot', 'selfie', 'selfieSource');
-        unset($this->openSession, $this->history, $this->overtimeRequest);
+        unset($this->openSession, $this->history, $this->overtimeRequest, $this->selectedDateOvertimeRequests, $this->hasClockInToday);
 
         Flux::modal('confirm-attendance')->close();
 
@@ -307,53 +327,62 @@ new #[Title('Absensi')] class extends Component {
 
         @php
             $session = $this->openSession;
-            $mode = $session ? (($this->overtimeRequest && $this->overtimeRequest->start_record_id === null && $this->overtimeRequest->scheduled_start_at->lte(now()) && $this->overtimeRequest->state !== OvertimeState::NeedsReview) ? 'overtime_start' : 'clock_out') : 'clock_in';
+            $sessionOvertime = $this->overtimeRequest;
+            $waitingForOvertimeStart = $sessionOvertime
+                && in_array($sessionOvertime->state, [OvertimeState::Scheduled, OvertimeState::AwaitingPhoto], true)
+                && $sessionOvertime->start_record_id === null;
+            $mode = $session
+                ? ($waitingForOvertimeStart
+                    ? ($sessionOvertime->scheduled_start_at->isFuture() ? 'overtime_locked' : 'overtime_start')
+                    : 'clock_out')
+                : ($this->hasClockInToday ? 'clock_in_blocked' : 'clock_in');
         @endphp
 
         {{-- Ringkasan waktu kerja --}}
         @php
             $clockInRecord = $this->history->firstWhere('type', AttendanceType::ClockIn);
             $clockOutRecord = $this->history->where('type', AttendanceType::ClockOut)->last();
-            $workedMinutes = ($clockInRecord && $clockOutRecord)
-                ? max(0, (int) $clockInRecord->recorded_at->diffInMinutes($clockOutRecord->recorded_at))
-                : (($selectedDate === now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString() && $session)
-                    ? max(0, (int) $session->recorded_at->diffInMinutes(now(RecordAttendance::DEFAULT_TIMEZONE)))
-                    : null);
-            $attendanceStatus = $clockInRecord ? __('Hadir') : __('Belum absen');
-            $attendanceStatusColor = $clockInRecord ? 'green' : 'zinc';
-            $attendancePlace = $clockInRecord?->project?->name
-                ?? $clockInRecord?->location?->name
+            $multipleDailySessions = $this->history->where('type', AttendanceType::ClockIn)->count() > 1
+                || $this->history->where('type', AttendanceType::ClockOut)->count() > 1;
+            $clockInForDisplay = $clockInRecord
+                ?? ($selectedDate === now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString() ? $session : null);
+            $workedMinutes = $multipleDailySessions
+                ? null
+                : (($clockInForDisplay && $clockOutRecord)
+                    ? max(0, (int) $clockInForDisplay->effectiveRecordedAt()->diffInMinutes($clockOutRecord->effectiveRecordedAt()))
+                    : (($selectedDate === now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString() && $session)
+                        ? max(0, (int) $session->recorded_at->diffInMinutes(now(RecordAttendance::DEFAULT_TIMEZONE)))
+                        : null));
+            $attendanceStatus = $multipleDailySessions
+                ? __('Perlu ditinjau')
+                : ($clockInForDisplay ? __('Hadir') : __('Belum absen'));
+            $attendanceStatusColor = $multipleDailySessions ? 'amber' : ($clockInForDisplay ? 'green' : 'zinc');
+            $attendancePlace = $clockInForDisplay?->project?->name
+                ?? $clockInForDisplay?->location?->name
                 ?? $session?->project?->name
                 ?? $session?->location?->name;
-            $attendanceAddress = $this->history->first()?->address_snapshot
+            $attendanceAddress = $clockInForDisplay?->address_snapshot
+                ?? $this->history->first()?->address_snapshot
                 ?? ($selectedDate === now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString() ? $session?->address_snapshot : null);
-            $overtimeForDate = $this->selectedDateOvertimeRequest;
-            $overtimeStatus = $overtimeForDate
-                ? ($overtimeForDate->state === OvertimeState::InProgress
-                    ? 'Berjalan'
-                    : ($overtimeForDate->state === OvertimeState::Completed
-                        ? 'Selesai'
-                        : $overtimeForDate->approval_status->label()))
-                : __('Tidak mengajukan');
-            $overtimeStatusColor = match (true) {
-                ! $overtimeForDate => 'zinc',
-                $overtimeForDate->approval_status === \App\Enums\OvertimeApprovalStatus::Rejected => 'red',
-                $overtimeForDate->state === OvertimeState::InProgress => 'green',
-                $overtimeForDate->state === OvertimeState::Completed => 'blue',
-                $overtimeForDate->approval_status === \App\Enums\OvertimeApprovalStatus::Approved => 'green',
-                default => 'amber',
-            };
+            $overtimeRequestsForDate = $this->selectedDateOvertimeRequests;
+            $overtimeForDate = $overtimeRequestsForDate->last();
+            $overtimeStatus = $overtimeRequestsForDate->count() > 1
+                ? __('Perlu ditinjau')
+                : ($overtimeForDate?->state->label() ?? __('Tidak mengajukan'));
+            $overtimeStatusColor = $overtimeRequestsForDate->count() > 1
+                ? 'amber'
+                : ($overtimeForDate?->state->badgeColor() ?? 'zinc');
         @endphp
 
         {{-- Ringkasan jam --}}
         <div class="grid grid-cols-3 gap-2">
             <div class="rounded-xl border border-neutral-200 p-3 dark:border-neutral-700">
                 <flux:text class="text-xs">{{ __('Masuk') }}</flux:text>
-                <flux:heading size="lg">{{ $clockInRecord?->recordedAtLocal()->format('H:i') ?? '—' }}</flux:heading>
+                <flux:heading size="lg">{{ $clockInForDisplay?->effectiveRecordedAtLocal()->format('H:i') ?? '—' }}</flux:heading>
             </div>
             <div class="rounded-xl border border-neutral-200 p-3 dark:border-neutral-700">
                 <flux:text class="text-xs">{{ __('Pulang') }}</flux:text>
-                <flux:heading size="lg">{{ $clockOutRecord?->recordedAtLocal()->format('H:i') ?? '—' }}</flux:heading>
+                <flux:heading size="lg">{{ $clockOutRecord?->effectiveRecordedAtLocal()->format('H:i') ?? '—' }}</flux:heading>
             </div>
             <div class="rounded-xl border border-neutral-200 p-3 dark:border-neutral-700">
                 <flux:text class="text-xs">{{ __('Total kerja') }}</flux:text>
@@ -382,11 +411,11 @@ new #[Title('Absensi')] class extends Component {
                 @if ($attendanceAddress)
                     <p class="mt-1 break-words text-sm text-zinc-500 dark:text-zinc-400">{{ $attendanceAddress }}</p>
                 @endif
-                @if ($this->history->isNotEmpty())
+                @if ($clockInForDisplay)
                     <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-                        {{ __('Masuk') }}: {{ $clockInRecord?->recordedAtLocal()->format('H:i') ?? '—' }}
+                        {{ __('Masuk') }}: {{ $clockInForDisplay?->effectiveRecordedAtLocal()->format('H:i') ?? '—' }}
                         <span aria-hidden="true">·</span>
-                        {{ __('Pulang') }}: {{ $clockOutRecord?->recordedAtLocal()->format('H:i') ?? '—' }}
+                        {{ __('Pulang') }}: {{ $clockOutRecord?->effectiveRecordedAtLocal()->format('H:i') ?? '—' }}
                     </p>
                 @endif
             </x-attendance.info-card>
@@ -396,35 +425,96 @@ new #[Title('Absensi')] class extends Component {
                 :status="$overtimeStatus"
                 :status-color="$overtimeStatusColor"
             >
-                @if ($overtimeForDate)
-                    <p>{{ __('Jadwal') }}: {{ $overtimeForDate->scheduledStartLocal()->format('d M Y, H:i') }}</p>
-                    <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{{ $overtimeForDate->approval_status->label() }}</p>
-                    @if ($overtimeForDate->isAwaitingPhoto())
-                        <p class="mt-2 text-sm text-amber-700 dark:text-amber-300">{{ __('Waktu lembur telah tiba. Ambil foto mulai lembur sebelum absen pulang.') }}</p>
-                    @elseif ($overtimeForDate->isInProgress())
-                        <p class="mt-2 text-sm text-zinc-500 dark:text-zinc-400">{{ __('Lembur sedang berjalan.') }}</p>
-                    @endif
-                    <a href="{{ route('overtime-requests.index') }}" class="mt-3 inline-flex items-center gap-1 text-sm font-medium text-blue-600 underline underline-offset-4 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
-                        {{ __('Detail lembur') }} <span aria-hidden="true">↗</span>
-                    </a>
-                @else
+                @if ($overtimeRequestsForDate->count() > 1)
+                    <p class="mb-3 text-sm text-amber-700 dark:text-amber-300">
+                        {{ __('Ditemukan :count pengajuan lembur pada sesi ini. Seluruh riwayat ditampilkan.', ['count' => $overtimeRequestsForDate->count()]) }}
+                    </p>
+                @endif
+                @forelse ($overtimeRequestsForDate as $overtimeItem)
+                    <div @class(['border-b border-zinc-200 pb-3 dark:border-zinc-700' => ! $loop->last, 'pt-2' => ! $loop->first])>
+                        <p>{{ __('Mulai terjadwal') }}: {{ $overtimeItem->scheduledStartLocal()->format('d M Y, H:i') }}</p>
+                        @if ($overtimeItem->scheduledEndLocal())
+                            <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                                {{ __('Selesai terjadwal (riwayat)') }}: {{ $overtimeItem->scheduledEndLocal()->format('d M Y, H:i') }}
+                            </p>
+                        @endif
+                        <flux:badge class="mt-2" :color="$overtimeItem->state->badgeColor()">{{ $overtimeItem->state->label() }}</flux:badge>
+                        <flux:badge class="mt-2" :color="$overtimeItem->approval_status->badgeColor()">{{ $overtimeItem->approval_status->label() }}</flux:badge>
+                        @if ($overtimeItem->startRecord)
+                            <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-300">
+                                {{ __('Mulai aktual') }}: {{ $overtimeItem->startRecord->effectiveRecordedAtLocal()->format('d M Y, H:i') }}
+                            </p>
+                        @else
+                            <p class="mt-2 text-sm text-zinc-500 dark:text-zinc-400">{{ __('Mulai aktual') }}: —</p>
+                        @endif
+                        @if ($overtimeItem->clockOutRecord)
+                            <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-300">
+                                {{ __('Selesai aktual') }}: {{ $overtimeItem->clockOutRecord->effectiveRecordedAtLocal()->format('d M Y, H:i') }}
+                            </p>
+                        @elseif ($overtimeItem->isInProgress())
+                            <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{{ __('Lembur sedang berjalan.') }}</p>
+                        @endif
+                        @if ($overtimeItem->finalized_at)
+                            <div class="mt-3 rounded-lg bg-zinc-50 p-3 text-sm dark:bg-zinc-800">
+                                <p class="font-medium">{{ __('Waktu final admin') }}</p>
+                                <p>{{ $overtimeItem->final_start_at?->copy()->setTimezone($overtimeItem->timezone)->format('d M Y, H:i') ?? '—' }}
+                                    – {{ $overtimeItem->final_end_at?->copy()->setTimezone($overtimeItem->timezone)->format('d M Y, H:i') ?? '—' }}</p>
+                                <p class="mt-1 text-zinc-500 dark:text-zinc-400">{{ __('Sumber') }}: {{ $overtimeItem->finalization_source }}</p>
+                                @if ($overtimeItem->finalization_reason)
+                                    <p class="mt-1 text-zinc-500 dark:text-zinc-400">{{ __('Alasan final admin') }}: {{ $overtimeItem->finalization_reason }}</p>
+                                @endif
+                            </div>
+                        @endif
+                        @if ($overtimeItem->start_record_id === null && $overtimeItem->scheduled_start_at->lte(now()) && $overtimeItem->state !== OvertimeState::NeedsReview)
+                            <p class="mt-2 text-sm text-amber-700 dark:text-amber-300">{{ __('Waktu lembur telah tiba. Ambil foto mulai lembur sebelum absen pulang.') }}</p>
+                        @endif
+                        @if (in_array($overtimeItem->state, [OvertimeState::Scheduled, OvertimeState::AwaitingPhoto], true) && $overtimeItem->start_record_id === null)
+                            <form method="POST" action="{{ route('overtime-requests.cancel', $overtimeItem) }}" class="mt-3" onsubmit="return confirm('Batalkan jadwal lembur ini? Anda harus membatalkannya sebelum dapat absen pulang.')">
+                                @csrf @method('PATCH')
+                                <flux:button type="submit" variant="primary" color="red" size="sm" icon="x-circle">{{ __('Batalkan Lembur') }}</flux:button>
+                            </form>
+                        @endif
+                        <a href="{{ route('overtime-requests.index') }}" class="mt-3 inline-flex items-center gap-1 text-sm font-medium text-blue-600 underline underline-offset-4 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
+                            {{ __('Detail lembur') }} <span aria-hidden="true">↗</span>
+                        </a>
+                    </div>
+                @empty
                     <p class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('Belum ada pengajuan lembur untuk tanggal ini.') }}</p>
-                    @if ($session && $selectedDate === now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString())
-                        <flux:modal.trigger name="request-overtime">
-                            <button type="button" class="mt-3 inline-flex items-center gap-1 text-sm font-medium text-blue-600 underline underline-offset-4 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
-                                {{ __('Ajukan lembur') }} <span aria-hidden="true">↗</span>
-                            </button>
-                        </flux:modal.trigger>
-                    @elseif ($selectedDate === now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString())
-                        <p class="mt-3 text-sm text-zinc-500 dark:text-zinc-400">{{ __('Absen masuk terlebih dahulu untuk mengajukan lembur.') }}</p>
-                    @endif
+                @endforelse
+                @if (
+                    $selectedDate >= now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString()
+                    && ! $overtimeForDate
+                    && (! $session || ! $this->overtimeRequest)
+                    && ($session || ! RecordAttendance::hasClockInOnDate($this->employee, $selectedDate))
+                )
+                    <flux:modal.trigger name="request-overtime">
+                        <button type="button" class="mt-3 inline-flex items-center gap-1 text-sm font-medium text-blue-600 underline underline-offset-4 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
+                            {{ __('Ajukan lembur') }} <span aria-hidden="true">↗</span>
+                        </button>
+                    </flux:modal.trigger>
                 @endif
             </x-attendance.info-card>
         </div>
 
         {{-- Form absensi --}}
         <form wire:submit="confirm('{{ $mode }}')" class="flex flex-col gap-5 rounded-xl border border-neutral-200 p-5 dark:border-neutral-700 {{ $selectedDate !== now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString() ? 'hidden' : '' }}">
-            @if ($mode === 'clock_in')
+            @if ($mode === 'clock_in_blocked')
+                <flux:callout variant="info" icon="lock-closed">
+                    <flux:callout.heading>{{ __('Absensi hari ini sudah digunakan') }}</flux:callout.heading>
+                    <flux:callout.text>
+                        {{ __('Anda sudah melakukan Clock In pada tanggal ini. Sesi kedua tidak dapat dibuat setelah Clock Out.') }}
+                    </flux:callout.text>
+                </flux:callout>
+            @elseif ($mode === 'overtime_locked')
+                <flux:callout variant="warning" icon="lock-closed">
+                    <flux:callout.heading>{{ __('Menunggu jadwal lembur') }}</flux:callout.heading>
+                    <flux:callout.text>
+                        {{ __('Tombol Absen Lembur dikunci sampai jadwal mulai:') }}
+                        <strong>{{ $sessionOvertime->scheduledStartLocal()->format('d M Y, H:i') }}</strong>.
+                        {{ __('Tombol Clock Out tidak tersedia selama pengajuan ini masih aktif. Jika tidak jadi lembur, batalkan pengajuan terlebih dahulu.') }}
+                    </flux:callout.text>
+                </flux:callout>
+            @elseif ($mode === 'clock_in')
                 <flux:select wire:model.live="workType" :label="__('Jenis lokasi kerja')">
                     <flux:select.option value="office">{{ __('Kantor') }}</flux:select.option>
                     <flux:select.option value="onsite">{{ __('Onsite (Proyek)') }}</flux:select.option>
@@ -457,34 +547,46 @@ new #[Title('Absensi')] class extends Component {
                 <flux:text>{{ __('Konfirmasi mulai lembur memerlukan foto dan lokasi terbaru. Sesi kerja utama tetap berjalan.') }}</flux:text>
             @endif
 
-            <x-attendance.camera
-                :name="Auth::user()->name"
-                :event-label="$mode === 'overtime_start' ? 'Lembur' : ($mode === 'clock_in' ? 'Clock In' : 'Clock Out')"
-                :selfie="$selfie"
-            />
+            @if (! in_array($mode, ['overtime_locked', 'clock_in_blocked'], true))
+                <x-attendance.camera
+                    :name="Auth::user()->name"
+                    :event-label="$mode === 'overtime_start' ? 'Lembur' : ($mode === 'clock_in' ? 'Clock In' : 'Clock Out')"
+                    :selfie="$selfie"
+                />
+            @endif
 
                         @error('form') <flux:text class="text-red-500">{{ $message }}</flux:text> @enderror
             @error('workType') <flux:text class="text-red-500">{{ $message }}</flux:text> @enderror
 
             <div class="flex items-center gap-2">
-                <flux:button
-                    type="submit"
-                    variant="primary"
-                    class="min-w-0 flex-1"
-                    wire:loading.attr="disabled"
-                    wire:target="confirm,submit,selfie"
-                >
-                    {{ match ($mode) { 'clock_in' => __('Absen Masuk'), 'overtime_start' => __('Absen Lembur'), default => __('Absen Pulang') } }}
-                </flux:button>
-                <flux:button
-                    type="button"
-                    variant="ghost"
-                    icon="camera"
-                    square
-                    aria-label="{{ __('Buka kamera') }}"
-                    title="{{ __('Buka kamera') }}"
-                    x-on:click="$dispatch('attendance-camera-open')"
-                />
+                @if ($mode === 'overtime_locked')
+                    <flux:button type="button" variant="primary" class="min-w-0 flex-1" disabled icon="lock-closed">
+                        {{ __('Absen Lembur') }}
+                    </flux:button>
+                @elseif ($mode === 'clock_in_blocked')
+                    <flux:button type="button" variant="primary" class="min-w-0 flex-1" disabled icon="lock-closed">
+                        {{ __('Sesi hari ini sudah digunakan') }}
+                    </flux:button>
+                @else
+                    <flux:button
+                        type="submit"
+                        variant="primary"
+                        class="min-w-0 flex-1"
+                        wire:loading.attr="disabled"
+                        wire:target="confirm,submit,selfie"
+                    >
+                        {{ match ($mode) { 'clock_in' => __('Absen Masuk'), 'overtime_start' => __('Absen Lembur'), default => __('Absen Pulang') } }}
+                    </flux:button>
+                    <flux:button
+                        type="button"
+                        variant="ghost"
+                        icon="camera"
+                        square
+                        aria-label="{{ __('Buka kamera') }}"
+                        title="{{ __('Buka kamera') }}"
+                        x-on:click="$dispatch('attendance-camera-open')"
+                    />
+                @endif
             </div>
         </form>
 
@@ -504,7 +606,7 @@ new #[Title('Absensi')] class extends Component {
             <div class="space-y-5">
                 <div>
                     <flux:heading size="lg">
-                        {{ match ($mode) { 'clock_in' => __('Konfirmasi Absen Masuk'), 'overtime_start' => __('Konfirmasi Absen Lembur'), default => __('Konfirmasi Absen Pulang') } }}
+                        {{ match ($mode) { 'clock_in' => __('Konfirmasi Absen Masuk'), 'overtime_start' => __('Konfirmasi Absen Lembur'), 'overtime_start', 'overtime_locked' => __('Konfirmasi Absen Lembur'), default => __('Konfirmasi Absen Pulang') } }}
                     </flux:heading>
                     <flux:subheading>{{ __('Periksa data berikut sebelum mengirim absensi.') }}</flux:subheading>
                 </div>
@@ -512,7 +614,7 @@ new #[Title('Absensi')] class extends Component {
                 <dl class="space-y-2 text-sm">
                     <div class="flex justify-between gap-4">
                         <dt class="text-zinc-500">{{ __('Jenis absensi') }}</dt>
-                        <dd class="font-medium">{{ match ($mode) { 'clock_in' => __('Masuk'), 'overtime_start' => __('Mulai lembur'), default => __('Pulang') } }}</dd>
+                        <dd class="font-medium">{{ match ($mode) { 'clock_in' => __('Masuk'), 'overtime_start' => __('Mulai lembur'), 'overtime_start', 'overtime_locked' => __('Mulai lembur'), default => __('Pulang') } }}</dd>
                     </div>
                     <div class="flex justify-between gap-4">
                         <dt class="text-zinc-500">{{ __('Lokasi kerja') }}</dt>
@@ -562,7 +664,7 @@ new #[Title('Absensi')] class extends Component {
             <form wire:submit="requestOvertime" class="flex flex-col gap-5">
                 <div>
                     <flux:heading size="lg">{{ __('Ajukan lembur') }}</flux:heading>
-                    <flux:subheading>{{ __('Tentukan waktu mulai dan alasan. Jika jadwal tiba sebelum admin menyetujui, Anda tetap harus mengambil foto konfirmasi lembur.') }}</flux:subheading>
+                    <flux:subheading>{{ __('Pengajuan dapat dibuat sebelum clock-in. Tentukan waktu mulai; alasan bersifat opsional. Waktu selesai dicatat dari clock-out aktual. Jika jadwal tiba sebelum admin menyetujui, Anda tetap harus mengambil foto konfirmasi lembur.') }}</flux:subheading>
                 </div>
                 <flux:field>
                     <flux:label>{{ __('Waktu mulai lembur') }}</flux:label>
@@ -570,8 +672,8 @@ new #[Title('Absensi')] class extends Component {
                     <flux:error name="overtimeStartAt" />
                 </flux:field>
                 <flux:field>
-                    <flux:label>{{ __('Alasan lembur') }}</flux:label>
-                    <flux:textarea wire:model="overtimeReason" rows="3" required placeholder="{{ __('Pekerjaan yang perlu diselesaikan...') }}" />
+                    <flux:label>{{ __('Alasan lembur (opsional)') }}</flux:label>
+                    <flux:textarea wire:model="overtimeReason" rows="3" placeholder="{{ __('Jika diperlukan, jelaskan pekerjaan yang perlu diselesaikan...') }}" />
                     <flux:error name="overtimeReason" />
                 </flux:field>
                 @error('form') <flux:text class="text-sm text-red-600 dark:text-red-400">{{ $message }}</flux:text> @enderror
