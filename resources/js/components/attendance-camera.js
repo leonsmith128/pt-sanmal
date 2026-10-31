@@ -46,13 +46,6 @@ export default function attendanceCamera(config = {}) {
         capturedAddress: '',
         capturedAt: null,
 
-        get currentTimestamp() {
-            return new Intl.DateTimeFormat('id-ID', {
-                dateStyle: 'medium',
-                timeStyle: 'short',
-            }).format(new Date());
-        },
-
         get viewportStyle() {
             const isSmallScreen = window.matchMedia('(max-width: 640px)').matches;
 
