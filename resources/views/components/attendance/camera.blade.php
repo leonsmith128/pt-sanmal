@@ -39,7 +39,11 @@
                             autoplay
                             playsinline
                             muted
+<<<<<<< HEAD
                             class="absolute inset-0 h-full w-full object-cover"
+=======
+                            class="absolute inset-0 h-full w-full bg-zinc-900 object-contain"
+>>>>>>> origin/feature/attendance-camera-p1-readiness
                             :style="facingMode === 'user' ? 'transform:scaleX(-1)' : 'transform:none'"
                         ></video>
 
@@ -48,7 +52,7 @@
                             x-cloak
                             :src="capturedUrl"
                             alt="{{ __('Pratinjau akhir foto absensi') }}"
-                            class="absolute inset-0 h-full w-full object-cover"
+                            class="absolute inset-0 h-full w-full bg-zinc-900 object-contain"
                         />
 
                         <div
