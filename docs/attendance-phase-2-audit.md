@@ -252,3 +252,27 @@ Test suite **belum dijalankan** sebagai bagian dari audit ini.
 ## 9. Batas PR audit ini
 
 PR ini menambahkan audit dan spesifikasi implementasi sebagai baseline bersama. Perubahan skema dan alur transaksi lembur yang besar tidak dicampur dengan dokumentasi audit sebelum model sesi, jadwal target, rentang aktual, dan finalisasi dapat diimplementasikan beserta test regresinya. Tidak ada migration destruktif dan tidak ada data produksi yang dihapus.
+
+
+## 5. Tindak lanjut audit — 31 Oktober 2026
+
+Temuan pengulangan sesi dan pengajuan lembur telah ditangani pada branch kerja:
+
+- RecordAttendance::openSession() mempertahankan sesi sampai Clock Out; pergantian tanggal atau lewat 24 jam tidak lagi mengakhiri sesi otomatis.
+- RecordAttendance::hasClockInOnDate() memeriksa Clock In pada tanggal lokal, termasuk tanggal efektif dari koreksi timestamp yang disetujui. Guard dijalankan di dalam transaksi setelah row lock employee, sehingga permintaan bersamaan untuk pegawai yang sama diserialisasi.
+- Clock In kedua pada tanggal lokal yang sama ditolak walaupun sesi pertama sudah Clock Out.
+- overtime_requests.session_date menjadi kunci tanggal sesi target. Migration additive mengisi data lama dari event Clock In yang tertaut; request lama yang belum tertaut menggunakan tanggal lokal jadwal.
+- CreateOvertimeRequest memeriksa semua state untuk mencegah request kedua, termasuk request pra-Clock In, Cancelled, dan Completed. Request untuk tanggal yang sesi absensinya sudah ditutup ditolak.
+- Clock In mengaitkan request pra-absensi yang cocok dengan tanggal sesi, termasuk request yang sudah dibatalkan, agar riwayat tetap menghabiskan jatah sesi.
+- Kartu lembur pegawai menampilkan seluruh request pada tanggal sesi, jadwal, mulai/selesai aktual, nilai final, sumber, dan alasan finalisasi. Konflik historis lebih dari satu request ditandai Perlu ditinjau.
+- DailyAttendanceStatusService menandai tanggal historis yang memiliki lebih dari satu Clock In/Clock Out sebagai needs_review; ringkasan durasi pegawai tidak menggabungkan event-event tersebut menjadi satu interval.
+
+Batasan desain yang masih ada:
+- Belum ditambahkan tabel attendance_sessions khusus. Identitas sesi absensi tetap diturunkan dari Clock In dan tanggal lokalnya; row lock employee menjadi mekanisme serialisasi.
+- Index employee_id, session_date belum unique agar data historis ganda tetap dapat dipertahankan dan ditinjau. Pencegahan duplikasi request baru dilakukan dalam transaksi dengan row lock.
+- Batas 24 jam masih dipakai hanya untuk memutuskan apakah jadwal jauh ke depan ditautkan ke sesi aktif atau disimpan sebagai request untuk sesi masa depan.
+
+Validasi:
+- Formatting dan static analysis pada CI terbaru sudah lulus.
+- Pengujian CI terbaru masih berjalan saat dokumen ini diperbarui.
+- PR #21 tetap Draft dan belum digabung.
