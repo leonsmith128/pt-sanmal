@@ -149,7 +149,11 @@ export default function attendanceCamera(config = {}) {
                 drawAttendanceWatermark(context, canvas.width, canvas.height, {
                     name: this.name,
                     eventLabel: this.eventLabel,
-                    timestamp: this.currentTimestamp,
+                    timestamp: {
+                    time: new Intl.DateTimeFormat('id-ID', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(new Date()),
+                    date: new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date()),
+                    weekday: new Intl.DateTimeFormat('id-ID', { weekday: 'long' }).format(new Date()),
+                },
                     address: this.address,
                 }, logo);
             });
