@@ -220,17 +220,24 @@ async function compressJpeg(sourceCanvas) {
         if (attempt === 3) break;
 
         const scale = Math.min(0.82, Math.sqrt(MAX_PHOTO_BYTES / blob.size) * 0.92);
-        const nextWidth = Math.max(320, Math.round(canvas.width * scale));
-        const nextHeight = Math.max(320, Math.round(canvas.height * scale));
-        if (nextWidth >= canvas.width && nextHeight >= canvas.height) break;
+        const targetMaxDimension = Math.max(
+            320,
+            Math.round(Math.max(canvas.width, canvas.height) * scale),
+        );
+        const dimensions = getProportionalDimensions(
+            canvas.width,
+            canvas.height,
+            targetMaxDimension,
+        );
+        if (dimensions.width >= canvas.width && dimensions.height >= canvas.height) break;
 
         const smallerCanvas = document.createElement('canvas');
-        smallerCanvas.width = nextWidth;
-        smallerCanvas.height = nextHeight;
+        smallerCanvas.width = dimensions.width;
+        smallerCanvas.height = dimensions.height;
 
         const context = smallerCanvas.getContext('2d');
         if (!context) throw new Error('canvas-context-unavailable');
-        context.drawImage(canvas, 0, 0, nextWidth, nextHeight);
+        context.drawImage(canvas, 0, 0, dimensions.width, dimensions.height);
         canvas = smallerCanvas;
     }
 
