@@ -24,7 +24,7 @@ export function loadAttendanceWatermarkLogo() {
  * Membuat foto absensi dari seluruh frame kamera.
  * Modul ini menangani gambar saja; alur kamera dan upload tetap di attendance-camera.js.
  */
-export async function createAttendancePhoto({ video, facingMode, name, eventLabel, address, capturedAt = new Date() }) {
+export async function createAttendancePhoto({ video, facingMode, watermarkSnapshot }) {
     const dimensions = getProportionalDimensions(video.videoWidth, video.videoHeight, MAX_PHOTO_DIMENSION);
     const canvas = document.createElement('canvas');
     canvas.width = dimensions.width;
@@ -40,17 +40,16 @@ export async function createAttendancePhoto({ video, facingMode, name, eventLabe
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
     context.setTransform(1, 0, 0, 1, 0, 0);
 
+    // Gunakan snapshot yang sama persis dengan preview watermark saat shutter ditekan.
     const details = {
-        name,
-        eventLabel,
-        timestamp: formatCaptureTimestamp(capturedAt),
-        address,
+        ...watermarkSnapshot,
+        timestamp: formatCaptureTimestamp(watermarkSnapshot.timestamp),
     };
 
     drawAttendanceWatermark(context, canvas.width, canvas.height, details, await loadAttendanceWatermarkLogo());
 
     const blob = await compressJpeg(canvas);
-    return { blob, capturedAt: capturedAt.toISOString() };
+    return { blob, capturedAt: watermarkSnapshot.timestamp.toISOString() };
 }
 
 /** Resize hanya berdasarkan sisi terpanjang agar rasio sumber tidak berubah. */
