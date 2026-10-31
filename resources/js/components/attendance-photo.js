@@ -88,9 +88,11 @@ export function drawAttendanceWatermark(context, width, height, details, logo = 
     const marginX = Math.round(width * 0.03);
     const watermarkWidth = Math.round(width * 0.72);
     const bottom = Math.max(8, Math.round(height * 0.025));
-    // Logo hanya menjadi identitas sekunder: kecil dan berada di ujung kanan baris waktu.
-    const logoWidth = Math.max(28, Math.round(width * 0.055));
-    const logoHeight = logo ? logoWidth * (logo.height / logo.width) : logoWidth * 0.38;
+    // Logo ditempatkan pada footer agar tidak bersaing dengan informasi waktu.
+    const footerLogoWidth = Math.max(18, Math.round(width * 0.028));
+    const footerLogoHeight = logo ? footerLogoWidth * (logo.height / logo.width) : footerLogoWidth * 0.30;
+    const footerFontSize = Math.max(8, Math.round(Math.max(width, height) * 0.010));
+    const footerGap = Math.max(4, Math.round(width * 0.008));
     const gap = Math.max(5, Math.round(width * 0.012));
     const timeSize = Math.max(18, Math.round(width * 0.058));
     const dateSize = Math.max(11, Math.round(width * 0.021));
@@ -138,23 +140,18 @@ export function drawAttendanceWatermark(context, width, height, details, logo = 
         addressLines[2] = addressLines[2].replace(/[.,;:]?$/, '…');
     }
 
-    const addressFirstBaseline = height - bottom - (addressLines.length - 1) * lineHeight;
+    const footerRowHeight = Math.max(footerLogoHeight, footerFontSize);
+    const footerTop = height - bottom - footerRowHeight;
+    const footerBaseline = footerTop + footerFontSize;
+    const addressFooterGap = Math.max(4, Math.round(addressSize * 0.35));
+    const addressFirstBaseline = footerTop - addressFooterGap - (addressLines.length - 1) * lineHeight;
     const addressTopBaselineGap = Math.max(8, Math.round(addressSize * 0.7));
     const nameBaseline = addressFirstBaseline - addressTopBaselineGap - addressSize;
     const rowGap = Math.max(3, Math.round(nameSize * 0.18));
     const dateWeekdayGap = Math.max(6, Math.round(dateSize * 0.5));
     const dateWeekdayHeight = dateSize * 2 + dateWeekdayGap;
-    const topRowHeight = Math.max(logoHeight, timeSize, dateWeekdayHeight);
+    const topRowHeight = Math.max(timeSize, dateWeekdayHeight);
     const topRowY = nameBaseline - nameSize - rowGap - topRowHeight;
-
-    if (logo) {
-        const logoX = rightEdge - logoWidth;
-        const logoY = topRowY + (topRowHeight - logoHeight) / 2;
-        context.save();
-        context.globalAlpha = 0.68;
-        context.drawImage(logo, logoX, logoY, logoWidth, logoHeight);
-        context.restore();
-    }
 
     context.fillStyle = '#ffffff';
     context.font = '700 ' + timeSize + 'px "Roboto Condensed", "Arial Narrow", Roboto, sans-serif';
@@ -175,7 +172,7 @@ export function drawAttendanceWatermark(context, width, height, details, logo = 
     context.shadowBlur = Math.max(2, width * 0.0025);
     context.fillStyle = '#ffffff';
     context.font = '600 ' + dateSize + 'px "Roboto Condensed", "Arial Narrow", Roboto, sans-serif';
-    const dateMaxWidth = Math.max(0, (logo ? rightEdge - logoWidth - gap : rightEdge) - dateX);
+    const dateMaxWidth = Math.max(0, rightEdge - dateX);
     context.fillText(dateParts, dateX, topRowY + dateSize, dateMaxWidth);
     context.font = '400 ' + dateSize + 'px "Roboto Condensed", "Arial Narrow", Roboto, sans-serif';
     context.fillText(weekday, dateX, topRowY + dateSize * 2 + dateWeekdayGap, dateMaxWidth);
@@ -195,6 +192,25 @@ export function drawAttendanceWatermark(context, width, height, details, logo = 
     addressLines.forEach((line, index) => {
         context.fillText(line, marginX, addressFirstBaseline + index * lineHeight, addressWidth);
     });
+
+    // Footer rapat di bawah alamat: logo kecil sebagai penanda, diikuti nama perusahaan.
+    if (logo) {
+        const logoY = footerTop + (footerRowHeight - footerLogoHeight) / 2;
+        context.save();
+        context.globalAlpha = 0.62;
+        context.shadowBlur = 0;
+        context.drawImage(logo, marginX, logoY, footerLogoWidth, footerLogoHeight);
+        context.restore();
+    }
+
+    context.save();
+    context.shadowBlur = 0;
+    context.globalAlpha = 0.72;
+    context.fillStyle = '#ffffff';
+    context.font = '500 ' + footerFontSize + 'px "Roboto Condensed", "Arial Narrow", Roboto, sans-serif';
+    const footerTextX = marginX + (logo ? footerLogoWidth + footerGap : 0);
+    context.fillText('PT SanMal Calibration', footerTextX, footerBaseline, Math.max(0, rightEdge - footerTextX));
+    context.restore();
 
     context.restore();
 }
