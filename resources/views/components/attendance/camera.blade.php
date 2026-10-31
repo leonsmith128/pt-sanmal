@@ -99,18 +99,6 @@
                                 <button
                                     type="button"
                                     x-show="! capturedUrl"
-                                    x-on:click="remeasureLocation()"
-                                    x-bind:disabled="busy || starting"
-                                    class="flex size-10 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20 disabled:opacity-50"
-                                    aria-label="{{ __('Refresh lokasi') }}"
-                                    title="{{ __('Refresh lokasi') }}"
-                                >
-                                    <flux:icon name="map-pin" variant="outline" class="size-5" />
-                                </button>
-
-                                <button
-                                    type="button"
-                                    x-show="! capturedUrl"
                                     x-on:click="capture()"
                                     x-bind:disabled="busy || starting || ! videoReady || ! locationAccessReady"
                                     class="flex size-14 items-center justify-center rounded-full border-[3px] border-white bg-white/15 text-white shadow-lg outline outline-2 outline-offset-2 outline-white/40 transition active:scale-95 disabled:opacity-50 sm:size-16"
