@@ -63,29 +63,45 @@ class DailyAttendanceStatusService
             ->values();
 
         $eventsByEmployeeAndDate = collect();
-        $sessionDateByEmployee = [];
 
-        foreach ($rawEvents as $event) {
-            $employeeId = $event->employee_id;
-            $eventDate = $event->effectiveAttendanceDate();
+        // Pasangkan event per pegawai, berdasarkan waktu efektif, agar event
+        // Clock Out legacy setelah tengah malam tetap mengikuti Clock In-nya.
+        foreach ($rawEvents->groupBy('employee_id') as $employeeId => $employeeEvents) {
+            $orderedEvents = $employeeEvents
+                ->sortBy(fn (AttendanceRecord $event) => $event->effectiveRecordedAt()->timestamp)
+                ->values();
+            $sessionDate = null;
+            $sessionStartedAt = null;
 
-            if ($event->type->value === 'clock_in') {
-                $sessionDateByEmployee[$employeeId] = $eventDate;
-                $assignedDate = $eventDate;
-            } elseif (in_array($event->type->value, ['overtime_start', 'clock_out'], true)) {
-                $assignedDate = $sessionDateByEmployee[$employeeId] ?? $eventDate;
-            } else {
-                $assignedDate = $eventDate;
-            }
+            foreach ($orderedEvents as $event) {
+                $eventDate = $event->effectiveAttendanceDate();
 
-            if ($assignedDate >= $start && $assignedDate <= $end) {
-                $key = $employeeId.'_'.$assignedDate;
-                $eventsByEmployeeAndDate[$key] ??= collect();
-                $eventsByEmployeeAndDate[$key]->push($event);
-            }
+                if ($event->type->value === 'clock_in') {
+                    $sessionDate = $eventDate;
+                    $sessionStartedAt = $event->effectiveRecordedAt();
+                    $assignedDate = $eventDate;
+                } elseif (in_array($event->type->value, ['overtime_start', 'clock_out'], true)) {
+                    $withinSessionWindow = $sessionStartedAt !== null
+                        && $event->effectiveRecordedAt()->greaterThanOrEqualTo($sessionStartedAt)
+                        && $event->effectiveRecordedAt()->lessThanOrEqualTo($sessionStartedAt->copy()->addHours(24));
 
-            if ($event->type->value === 'clock_out') {
-                unset($sessionDateByEmployee[$employeeId]);
+                    $assignedDate = $withinSessionWindow && $sessionDate !== null
+                        ? $sessionDate
+                        : $eventDate;
+                } else {
+                    $assignedDate = $eventDate;
+                }
+
+                if ($assignedDate >= $start && $assignedDate <= $end) {
+                    $key = $employeeId.'_'.$assignedDate;
+                    $eventsByEmployeeAndDate[$key] ??= collect();
+                    $eventsByEmployeeAndDate[$key]->push($event);
+                }
+
+                if ($event->type->value === 'clock_out') {
+                    $sessionDate = null;
+                    $sessionStartedAt = null;
+                }
             }
         }
 
