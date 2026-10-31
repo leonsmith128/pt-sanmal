@@ -70,3 +70,12 @@ test('attendance camera controls reflect camera availability and video readiness
         ->assertSee('! videoReady', false)
         ->assertSee('error && active', false);
 });
+
+
+test('attendance camera preserves the complete photo frame without cropping', function () {
+    $this->actingAs(userWithRole(UserRole::Employee));
+
+    $this->get(route('attendance'))
+        ->assertOk()
+        ->assertSee('object-contain', false);
+});

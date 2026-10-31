@@ -1,12 +1,12 @@
 import LocationTracker from './location-tracker.js';
+import { createAttendancePhoto } from './attendance-photo.js';
 /**
  * Kamera absensi berbasis Alpine.
  *
  * Tanggung jawab:
  * - membuka/menutup kamera dan beralih kamera depan/belakang bila tersedia;
  * - mengambil GPS dan reverse geocoding alamat;
- * - memotong gambar sesuai rasio viewport, memberi watermark, lalu menampilkan
- *   hasil final sebelum file diunggah ke Livewire.
+ * - mengirim frame kamera ke pemroses foto dan mengunggah hasilnya ke Livewire.
  */
 export default function attendanceCamera(config = {}) {
     return {
@@ -52,7 +52,7 @@ export default function attendanceCamera(config = {}) {
             const isSmallScreen = window.matchMedia('(max-width: 640px)').matches;
 
             // HP memakai seluruh layar. Laptop memakai maksimal 80% layar.
-            // Rasio viewport menentukan crop yang juga dipakai pada foto final.
+            // Rasio viewport hanya mengatur tampilan; foto final memakai rasio asli kamera.
             if (isSmallScreen) {
                 return this.isLandscape
                     ? 'width:100vw; height:100dvh; max-width:100vw; max-height:100dvh; aspect-ratio:16 / 9;'
@@ -314,139 +314,6 @@ export default function attendanceCamera(config = {}) {
             this.capturedAddress = '';
         },
 
-        async makeFinalPhoto(video, position, addressSnapshot) {
-            const viewport = video.getBoundingClientRect();
-            const targetRatio = viewport.width / viewport.height;
-            const sourceRatio = video.videoWidth / video.videoHeight;
-            let sourceWidth = video.videoWidth;
-            let sourceHeight = video.videoHeight;
-
-            if (sourceRatio > targetRatio) {
-                sourceWidth = video.videoHeight * targetRatio;
-            } else {
-                sourceHeight = video.videoWidth / targetRatio;
-            }
-
-            const sourceX = (video.videoWidth - sourceWidth) / 2;
-            const sourceY = (video.videoHeight - sourceHeight) / 2;
-            const maxDimension = 1200;
-            const scale = Math.min(1, maxDimension / Math.max(sourceWidth, sourceHeight));
-            const width = Math.max(1, Math.round(sourceWidth * scale));
-            const height = Math.max(1, Math.round(sourceHeight * scale));
-            const canvas = document.createElement('canvas');
-            canvas.width = width;
-            canvas.height = height;
-
-            const context = canvas.getContext('2d');
-            if (!context) throw new Error('canvas-context-unavailable');
-
-            // Samakan orientasi foto dengan preview: preview kamera depan di-mirror.
-            // Balik hanya gambar video; watermark digambar setelah transformasi direset
-            // agar teks tetap terbaca normal.
-            if (this.facingMode === 'user') {
-                context.translate(width, 0);
-                context.scale(-1, 1);
-            }
-            context.drawImage(video, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, width, height);
-            context.setTransform(1, 0, 0, 1, 0, 0);
-
-            const timestamp = new Intl.DateTimeFormat('id-ID', {
-                dateStyle: 'medium',
-                timeStyle: 'short',
-            }).format(new Date());
-            this.formattedTimestamp = timestamp;
-
-            const cardWidth = width * 0.8;
-            const cardX = (width - cardWidth) / 2;
-            const cardTop = height * 0.03;
-            // Keep the saved watermark compact so it does not dominate the photo.
-            const padding = Math.max(6, Math.round(width * 0.012));
-            const titleSize = Math.max(10, Math.round(width * 0.016));
-            const bodySize = Math.max(8, Math.round(width * 0.012));
-            const lineHeight = Math.max(10, Math.round(bodySize * 1.3));
-            const textMaxWidth = cardWidth - padding * 2;
-            const watermarkLines = [
-                this.name,
-                this.eventLabel + ' · ' + timestamp,
-                addressSnapshot || 'Alamat belum tersedia',
-                '© OpenStreetMap contributors',
-            ];
-
-            context.font = '600 ' + titleSize + 'px system-ui, sans-serif';
-            const titleLines = this.wrapText(context, watermarkLines[0], textMaxWidth).slice(0, 1);
-            context.font = bodySize + 'px system-ui, sans-serif';
-            const eventLines = this.wrapText(context, watermarkLines[1], textMaxWidth).slice(0, 1);
-            let addressLines = this.wrapText(context, watermarkLines[2], textMaxWidth);
-            if (addressLines.length > 2) {
-                addressLines = addressLines.slice(0, 2);
-                addressLines[1] = addressLines[1].replace(/[.,;:]?$/, '…');
-            }
-            const attributionLines = this.wrapText(context, watermarkLines[3], textMaxWidth).slice(0, 1);
-            const wrappedLines = [...titleLines, ...eventLines, ...addressLines, ...attributionLines];
-            const watermarkHeight = padding * 2 + lineHeight * wrappedLines.length;
-            const radius = Math.max(6, Math.round(width * 0.015));
-
-            // Rounded translucent card matching the live watermark overlay.
-            context.fillStyle = 'rgba(255, 255, 255, 0.62)';
-            context.beginPath();
-            context.roundRect(cardX, cardTop, cardWidth, watermarkHeight, radius);
-            context.fill();
-            context.strokeStyle = 'rgba(255, 255, 255, 0.28)';
-            context.lineWidth = Math.max(1, width * 0.0015);
-            context.stroke();
-
-            context.fillStyle = '#18181b';
-            context.textBaseline = 'top';
-            let y = cardTop + padding;
-            wrappedLines.forEach((line, index) => {
-                context.font = (index === 0 ? '600 ' + titleSize : bodySize) + 'px system-ui, sans-serif';
-                context.fillText(line, cardX + padding, y, textMaxWidth);
-                y += lineHeight;
-            });
-
-            const maxBytes = 190 * 1024;
-            let outputCanvas = canvas;
-
-            // Kompresi bertahap; bila foto tetap besar, kecilkan resolusi tanpa
-            // mengubah komposisi crop maupun watermark yang sudah digambar.
-            for (let resizeRound = 0; resizeRound < 5; resizeRound++) {
-                for (const quality of [0.82, 0.72, 0.62, 0.52, 0.42, 0.34]) {
-                    const blob = await new Promise((resolve) => outputCanvas.toBlob(resolve, 'image/jpeg', quality));
-                    if (blob && blob.size <= maxBytes) return blob;
-                }
-
-                if (outputCanvas.width <= 480 || outputCanvas.height <= 480) break;
-                const smaller = document.createElement('canvas');
-                smaller.width = Math.max(1, Math.round(outputCanvas.width * 0.8));
-                smaller.height = Math.max(1, Math.round(outputCanvas.height * 0.8));
-                const smallerContext = smaller.getContext('2d');
-                if (!smallerContext) throw new Error('canvas-context-unavailable');
-                smallerContext.drawImage(outputCanvas, 0, 0, smaller.width, smaller.height);
-                outputCanvas = smaller;
-            }
-
-            const finalBlob = await new Promise((resolve) => outputCanvas.toBlob(resolve, 'image/jpeg', 0.3));
-            if (!finalBlob) throw new Error('photo-encode-failed');
-            return finalBlob;
-        },
-
-        wrapText(context, text, maxWidth) {
-            const words = String(text || '').split(/\s+/);
-            const lines = [];
-            let line = '';
-            for (const word of words) {
-                const candidate = line ? line + ' ' + word : word;
-                if (line && context.measureText(candidate).width > maxWidth) {
-                    lines.push(line);
-                    line = word;
-                } else {
-                    line = candidate;
-                }
-            }
-            if (line) lines.push(line);
-            return lines.length ? lines : [''];
-        },
-
         async capture() {
             const video = this.getVideoElement();
             if (!video || !this.videoReady || !video.videoWidth || !video.videoHeight || this.busy) return;
@@ -469,7 +336,15 @@ export default function attendanceCamera(config = {}) {
                 }
 
                 const addressSnapshot = this.address || '';
-                const blob = await this.makeFinalPhoto(video, position, addressSnapshot);
+                const photo = await createAttendancePhoto({
+                    video,
+                    facingMode: this.facingMode,
+                    name: this.name,
+                    eventLabel: this.eventLabel,
+                    address: addressSnapshot,
+                });
+                this.formattedTimestamp = photo.timestamp;
+                const blob = photo.blob;
                 this.capturedPosition = position;
                 this.capturedAddress = addressSnapshot;
                 this.capturedBlob = blob;
@@ -478,7 +353,9 @@ export default function attendanceCamera(config = {}) {
                 console.error('Gagal mengambil foto:', error);
                 this.error = error.message === 'canvas-context-unavailable'
                     ? 'Foto tidak dapat diproses oleh browser ini.'
-                    : error.message === 'location-not-accurate'
+                    : error.message === 'photo-size-limit-exceeded'
+                        ? 'Ukuran foto tidak dapat diperkecil hingga batas 190 KB. Coba ambil foto kembali.'
+                        : error.message === 'location-not-accurate'
                         ? 'Akurasi GPS belum memadai. Tunggu hingga GPS siap atau coba refresh lokasi.'
                         : error.message === 'location-stopped'
                             ? 'Pemantauan lokasi berhenti. Buka kamera kembali dan coba lagi.'
