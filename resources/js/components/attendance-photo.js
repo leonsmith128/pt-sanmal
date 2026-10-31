@@ -206,35 +206,35 @@ function wrapText(context, text, maxWidth) {
     return lines.length ? lines : [''];
 }
 
-/** Turunkan kualitas lebih dahulu, lalu resolusi; selalu pertahankan rasio aspek. */
+/** Encode sekali per ukuran; turunkan resolusi sebelum mencoba kualitas berulang. */
 async function compressJpeg(sourceCanvas) {
     let canvas = sourceCanvas;
 
-    while (true) {
-        for (const quality of JPEG_QUALITIES) {
-            const blob = await canvasToJpeg(canvas, quality);
-            if (blob && blob.size <= MAX_PHOTO_BYTES) return blob;
-        }
+    for (let attempt = 0; attempt < 4; attempt += 1) {
+        const quality = attempt === 0 ? 0.68 : attempt === 1 ? 0.58 : attempt === 2 ? 0.48 : 0.38;
+        const blob = await canvasToJpeg(canvas, quality);
 
-        const smallestSide = Math.min(canvas.width, canvas.height);
-        if (smallestSide <= 320) break;
+        if (!blob) throw new Error('photo-encode-failed');
+        if (blob.size <= MAX_PHOTO_BYTES) return blob;
 
-        const dimensions = getProportionalDimensions(
-            canvas.width,
-            canvas.height,
-            Math.max(320, Math.round(Math.max(canvas.width, canvas.height) * 0.8)),
-        );
+        if (attempt === 3) break;
+
+        const scale = Math.min(0.82, Math.sqrt(MAX_PHOTO_BYTES / blob.size) * 0.92);
+        const nextWidth = Math.max(320, Math.round(canvas.width * scale));
+        const nextHeight = Math.max(320, Math.round(canvas.height * scale));
+        if (nextWidth >= canvas.width && nextHeight >= canvas.height) break;
+
         const smallerCanvas = document.createElement('canvas');
-        smallerCanvas.width = dimensions.width;
-        smallerCanvas.height = dimensions.height;
+        smallerCanvas.width = nextWidth;
+        smallerCanvas.height = nextHeight;
 
         const context = smallerCanvas.getContext('2d');
         if (!context) throw new Error('canvas-context-unavailable');
-        context.drawImage(canvas, 0, 0, smallerCanvas.width, smallerCanvas.height);
+        context.drawImage(canvas, 0, 0, nextWidth, nextHeight);
         canvas = smallerCanvas;
     }
 
-    const finalBlob = await canvasToJpeg(canvas, 0.28);
+    const finalBlob = await canvasToJpeg(canvas, 0.3);
     if (!finalBlob) throw new Error('photo-encode-failed');
     if (finalBlob.size > MAX_PHOTO_BYTES) throw new Error('photo-size-limit-exceeded');
 
