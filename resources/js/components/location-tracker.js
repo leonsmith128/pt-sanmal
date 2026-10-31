@@ -406,6 +406,10 @@ export default class LocationTracker {
         this.locationSnapshot = null;
         this.locationStatus = 'searching';
         this.locationError = null;
+        this.best = null;
+        this.liveAccuracy = null;
+        this.gpsReady = false;
+        this.gpsStatusText = 'Mencari lokasi GPS presisi…';
         this.addressRequestId += 1;
         this.address = '';
         this.lastGeocodedPosition = null;
