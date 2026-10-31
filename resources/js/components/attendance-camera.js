@@ -300,8 +300,9 @@ export default function attendanceCamera(config = {}) {
                 }
 
                 // GPS permission and the device location service are mandatory.
-                // A fresh coordinate is not: after at most five seconds, a
-                // granted permission plus no POSITION_UNAVAILABLE error is enough.
+                // Permission and device location service are checked first.
+                // A fresh, accurate coordinate and its resolved address are
+                // prepared asynchronously before the shutter becomes available.
                 await this.locationTracker.prepareAccess(5000);
                 if (sessionId !== this.cameraSessionId) return;
                 this.locationAccessReady = true;
