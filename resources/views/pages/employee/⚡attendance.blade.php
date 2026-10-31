@@ -270,7 +270,7 @@ new #[Title('Absensi')] class extends Component {
         }
 
         $this->reset('latitude', 'longitude', 'accuracy', 'addressSnapshot', 'selfie', 'selfieSource');
-        unset($this->openSession, $this->history, $this->overtimeRequest, $this->hasClockInToday);
+        unset($this->openSession, $this->history, $this->overtimeRequest, $this->selectedDateOvertimeRequests, $this->hasClockInToday);
 
         Flux::modal('confirm-attendance')->close();
 
@@ -365,8 +365,12 @@ new #[Title('Absensi')] class extends Component {
                 ?? ($selectedDate === now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString() ? $session?->address_snapshot : null);
             $overtimeRequestsForDate = $this->selectedDateOvertimeRequests;
             $overtimeForDate = $overtimeRequestsForDate->last();
-            $overtimeStatus = $overtimeForDate?->state->label() ?? __('Tidak mengajukan');
-            $overtimeStatusColor = $overtimeForDate?->state->badgeColor() ?? 'zinc';
+            $overtimeStatus = $overtimeRequestsForDate->count() > 1
+                ? __('Perlu ditinjau')
+                : ($overtimeForDate?->state->label() ?? __('Tidak mengajukan'));
+            $overtimeStatusColor = $overtimeRequestsForDate->count() > 1
+                ? 'amber'
+                : ($overtimeForDate?->state->badgeColor() ?? 'zinc');
         @endphp
 
         {{-- Ringkasan jam --}}
