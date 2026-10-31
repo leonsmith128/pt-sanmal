@@ -151,11 +151,11 @@ export function drawAttendanceWatermark(context, width, height, details, logo = 
     // TUNING WATERMARK:
     // - rowGap mengatur jarak vertikal antara baris jam/tanggal dan nama pegawai.
     //   Naikkan nilainya jika baris waktu masih terlalu dekat dengan nama.
-    const rowGap = Math.max(8, Math.round(nameSize * 0.42));
+    const rowGap = Math.max(9, Math.round(nameSize * 0.75));
 
     // - dateWeekdayGap mengatur jarak tanggal ke hari.
     //   Nilai lebih besar menurunkan posisi hari; gunakan proporsi dateSize agar responsif.
-    const dateWeekdayGap = Math.max(10, Math.round(dateSize * 0.85));
+    const dateWeekdayGap = Math.max(10, Math.round(dateSize * 1.15));
     const dateWeekdayHeight = dateSize * 2 + dateWeekdayGap;
     const topRowHeight = Math.max(timeSize, dateWeekdayHeight);
     const topRowY = nameBaseline - nameSize - rowGap - topRowHeight;
@@ -165,17 +165,17 @@ export function drawAttendanceWatermark(context, width, height, details, logo = 
     const timeWidth = context.measureText(time).width;
     context.fillText(time, textX, topRowY + timeSize);
 
-    const dividerX = textX + timeWidth + gap * 0.55;
+    const dividerX = textX + timeWidth + gap * 0.75;
     context.shadowBlur = 0;
     context.fillStyle = '#f4c542';
     context.fillRect(
         dividerX,
-        topRowY + Math.max(1, dateSize * 0.12),
-        Math.max(3, width * 0.003),
+        topRowY + Math.max(1, dateSize * 0.1),
+        Math.max(2, width * 0.003),
         timeSize + dateSize * 0.48,
     );
 
-    const dateX = dividerX + gap * 0.85;
+    const dateX = dividerX + gap * 0.9;
     context.shadowBlur = Math.max(2, width * 0.0025);
     context.fillStyle = '#ffffff';
     context.font = '600 ' + dateSize + 'px "Roboto Condensed", "Arial Narrow", Roboto, sans-serif';
@@ -186,19 +186,34 @@ export function drawAttendanceWatermark(context, width, height, details, logo = 
 
     context.font = '600 ' + nameSize + 'px "Roboto Condensed", "Arial Narrow", Roboto, sans-serif';
     context.fillStyle = '#ffffff';
+
     const name = String(details.name || 'Pegawai SanMal');
     const event = String(details.eventLabel || 'Absensi');
+
     const nameMaxWidth = Math.min(textWidth * 0.62, textWidth);
     context.fillText(name, marginX, nameBaseline, nameMaxWidth);
     const nameWidth = Math.min(context.measureText(name).width, nameMaxWidth);
-    const eventX = marginX + nameWidth + gap * 0.55;
-    context.fillText('|', eventX, nameBaseline);
-    context.fillText(event, eventX + gap * 0.75, nameBaseline, Math.max(0, rightEdge - eventX - gap));
 
-    context.font = '500 ' + addressSize + 'px "Roboto Condensed", "Arial Narrow", Roboto, sans-serif';
-    addressLines.forEach((line, index) => {
-        context.fillText(line, marginX, addressFirstBaseline + index * lineHeight, addressWidth);
-    });
+    // Atur jarak nama dan event dari separator di sini.
+    const separatorGap = gap * 0.85;
+    const separatorX = marginX + nameWidth + separatorGap;
+
+    context.beginPath();
+    context.arc(
+        separatorX,
+        nameBaseline - nameSize * 0.32,
+        Math.max(1.5, nameSize * 0.09),
+        0,
+        Math.PI * 2
+    );
+    context.fill();
+
+    context.fillText(
+        event,
+        separatorX + separatorGap,
+        nameBaseline,
+        Math.max(0, rightEdge - separatorX - separatorGap)
+    );
 
     // Footer rapat di bawah alamat: logo kecil sebagai penanda, diikuti nama perusahaan.
     if (logo) {
