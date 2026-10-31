@@ -147,8 +147,15 @@ export function drawAttendanceWatermark(context, width, height, details, logo = 
     const addressFirstBaseline = footerTop - addressFooterGap - (addressLines.length - 1) * lineHeight;
     const addressTopBaselineGap = Math.max(8, Math.round(addressSize * 0.7));
     const nameBaseline = addressFirstBaseline - addressTopBaselineGap - addressSize;
-    const rowGap = Math.max(3, Math.round(nameSize * 0.18));
-    const dateWeekdayGap = Math.max(6, Math.round(dateSize * 0.5));
+
+    // TUNING WATERMARK:
+    // - rowGap mengatur jarak vertikal antara baris jam/tanggal dan nama pegawai.
+    //   Naikkan nilainya jika baris waktu masih terlalu dekat dengan nama.
+    const rowGap = Math.max(8, Math.round(nameSize * 0.42));
+
+    // - dateWeekdayGap mengatur jarak tanggal ke hari.
+    //   Nilai lebih besar menurunkan posisi hari; gunakan proporsi dateSize agar responsif.
+    const dateWeekdayGap = Math.max(10, Math.round(dateSize * 0.85));
     const dateWeekdayHeight = dateSize * 2 + dateWeekdayGap;
     const topRowHeight = Math.max(timeSize, dateWeekdayHeight);
     const topRowY = nameBaseline - nameSize - rowGap - topRowHeight;
