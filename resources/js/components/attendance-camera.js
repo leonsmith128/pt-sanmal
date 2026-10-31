@@ -425,13 +425,23 @@ export default function attendanceCamera(config = {}) {
 
                 // GPS adalah bukti pendukung. Kegagalan setelah tiga percobaan
                 // tidak boleh menghalangi pegawai mengambil foto absensi.
-                try {
-                    position = await this.getPosition();
-                    this.best = position;
-                    this.liveAccuracy = Math.round(position.accuracy);
-                    this.locationTracker.resolveAddress(position).catch(() => {});
-                } catch (locationError) {
-                    this.gpsStatusText = 'GPS tidak tersedia. Foto tetap dapat digunakan tanpa data lokasi.';
+                // Jangan menahan shutter menunggu GPS hingga 15 detik.
+                // Gunakan pembacaan akurat yang masih segar; jika belum tersedia,
+                // foto tetap diproses dan GPS terus diperbarui di latar belakang.
+                const latestPosition = this.best;
+                const positionAge = latestPosition
+                    ? Date.now() - (latestPosition.measuredAt ?? latestPosition.receivedAt)
+                    : Infinity;
+                if (
+                    latestPosition
+                    && positionAge >= 0
+                    && positionAge <= 15_000
+                    && Number.isFinite(latestPosition.accuracy)
+                    && latestPosition.accuracy <= 100
+                ) {
+                    position = latestPosition;
+                } else {
+                    this.gpsStatusText = 'GPS belum siap. Foto tetap dapat diambil tanpa lokasi.';
                 }
 
                 const addressSnapshot = position ? this.address || '' : '';
