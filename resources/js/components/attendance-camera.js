@@ -37,7 +37,8 @@ export default function attendanceCamera(config = {}) {
         best: null,
         liveAccuracy: null,
         gpsReady: false,
-        gpsStatusText: 'Mencari lokasi GPS presisi…',
+        locationAccessReady: false,
+        gpsStatusText: 'Memeriksa izin dan layanan lokasi…',
         address: '',
         addressLoading: false,
 
@@ -90,6 +91,7 @@ export default function attendanceCamera(config = {}) {
                     this.address = state.address;
                     this.addressLoading = state.addressLoading;
                     this.gpsReady = state.gpsReady;
+                    this.locationAccessReady = state.accessGranted;
                     this.gpsStatusText = state.gpsStatusText;
                     this.updateWatermarkPreview();
                 },
@@ -232,13 +234,22 @@ export default function attendanceCamera(config = {}) {
             this.error = null;
             this.fallback = false;
             this.starting = true;
-            this.startLocationWatch();
+            this.locationAccessReady = false;
+            this.startingLocation = true;
             const sessionId = ++this.cameraSessionId;
 
             try {
                 if (!navigator.mediaDevices?.getUserMedia) {
                     throw new Error('camera-unavailable');
                 }
+
+                // GPS permission and the device location service are mandatory.
+                // A fresh coordinate is not: after at most five seconds, a
+                // granted permission plus no POSITION_UNAVAILABLE error is enough.
+                await this.locationTracker.prepareAccess(5000);
+                if (sessionId !== this.cameraSessionId) return;
+                this.locationAccessReady = true;
+                this.startLocationWatch();
 
                 const stream = await this.openCamera();
                 if (sessionId !== this.cameraSessionId) {
@@ -269,7 +280,14 @@ export default function attendanceCamera(config = {}) {
                 console.error('Kamera gagal dibuka:', error);
                 this.stop();
 
-                if (error.message === 'video-element-not-found') {
+                this.locationAccessReady = false;
+                if (error.message === 'permission-denied') {
+                    this.error = 'Izin lokasi wajib diberikan. Aktifkan izin lokasi untuk situs ini, lalu buka kamera kembali.';
+                } else if (error.message === 'location-unavailable') {
+                    this.error = 'Layanan lokasi perangkat tidak tersedia atau dinonaktifkan. Aktifkan Lokasi/GPS, lalu coba kembali.';
+                } else if (error.message === 'permission-unconfirmed' || error.message === 'no-geolocation') {
+                    this.error = 'Status izin atau layanan lokasi tidak dapat diverifikasi oleh browser. Periksa pengaturan lokasi dan coba browser lain.';
+                } else if (error.message === 'video-element-not-found') {
                     this.error = 'Elemen video tidak ditemukan. Muat ulang halaman dan coba kembali.';
                 } else if (error.message === 'video-frame-timeout') {
                     this.error = 'Kamera terbuka tetapi belum mengirim gambar. Tutup aplikasi kamera lain lalu coba kembali.';
@@ -401,6 +419,7 @@ export default function attendanceCamera(config = {}) {
 
         stop() {
             this.stopCameraStream();
+            this.locationAccessReady = false;
             this.clearCapturedPhoto();
         },
 
@@ -416,6 +435,10 @@ export default function attendanceCamera(config = {}) {
         async capture() {
             const video = this.getVideoElement();
             if (!video || !this.videoReady || !video.videoWidth || !video.videoHeight || this.busy) return;
+            if (!this.locationAccessReady || !this.locationTracker?.accessGranted) {
+                this.error = 'Izin lokasi dan layanan lokasi perangkat harus aktif sebelum mengambil foto.';
+                return;
+            }
 
             this.error = null;
             this.busy = true;
