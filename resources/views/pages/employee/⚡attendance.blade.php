@@ -141,7 +141,7 @@ new #[Title('Absensi')] class extends Component {
         );
 
         $this->reset('overtimeReason', 'overtimeStartAt');
-        unset($this->overtimeRequest);
+        unset($this->overtimeRequest, $this->selectedDateOvertimeRequests);
         Flux::modal('request-overtime')->close();
         Flux::toast(variant: 'success', text: 'Pengajuan lembur berhasil disimpan.');
     }
