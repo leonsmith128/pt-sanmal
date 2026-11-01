@@ -8,6 +8,13 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
+/**
+ * @property int $id
+ * @property int $employee_id
+ * @property-read Employee|null $employee
+ * @property-read LeaveType|null $leaveType
+ * @property-read User|null $decidedBy
+ */
 class LeaveRequest extends Model
 {
     public const STATUS_PENDING = 'pending';
