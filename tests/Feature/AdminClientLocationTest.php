@@ -251,3 +251,38 @@ it('enforces location ownership and requires every project to have a location', 
         'location_id' => $otherSite->id,
     ]))->toThrow(ValidationException::class);
 });
+
+it('enforces location ownership and project status constraints in the database', function () {
+    if (in_array(DB::getDriverName(), ['mysql', 'mariadb'], true) === false) {
+        $this->markTestSkipped('Database CHECK constraints are verified on the production MySQL/MariaDB driver.');
+    }
+
+    $client = Client::query()->create([
+        'code' => 'CL-DB-CHECK',
+        'name' => 'Client Database Check',
+    ]);
+
+    expect(fn () => DB::table('locations')->insert([
+        'client_id' => $client->id,
+        'name' => 'Office with Client',
+        'type' => 'office',
+        'timezone' => 'Asia/Makassar',
+        'is_active' => true,
+    ]))->toThrow(QueryException::class);
+
+    $site = Location::query()->create([
+        'client_id' => $client->id,
+        'name' => 'Valid Site for Project Check',
+        'type' => 'site',
+        'timezone' => 'Asia/Makassar',
+        'is_active' => true,
+    ]);
+
+    expect(fn () => DB::table('projects')->insert([
+        'code' => 'PRJ-INVALID-STATUS',
+        'name' => 'Project with invalid status',
+        'location_id' => $site->id,
+        'status' => 'archived',
+    ]))->toThrow(QueryException::class);
+});
+
