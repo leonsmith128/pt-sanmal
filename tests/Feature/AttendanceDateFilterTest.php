@@ -76,8 +76,8 @@ it('filters sessions longer than 24 hours by their clock-in anchor date', functi
         ->streamedContent();
 
     expect($csv)
-        ->toContain('Masuk')
-        ->toContain('Pulang')
+        ->toContain('Clock In Efektif')
+        ->toContain('Clock Out Efektif')
         ->toContain('2026-11-02 12:00:00');
 });
 
@@ -166,4 +166,39 @@ it('orders daily recap events by their effective timestamps after a correction',
 
     expect($daily['events']->pluck('type')->map(fn (AttendanceType $type) => $type->value)->all())
         ->toBe([AttendanceType::ClockIn->value, AttendanceType::ClockOut->value]);
+});
+
+
+it('exports one employee row per date including dates without attendance when no date filter is supplied', function () {
+    $employee = dateFilterEmployee('Pegawai Ekspor Harian');
+    createDateFilterSession($employee, '2026-10-30 01:00:00', '2026-10-30 09:00:00');
+
+    $csv = $this->actingAs($employee->user)
+        ->get(route('attendance-history.export'))
+        ->streamedContent();
+
+    expect($csv)
+        ->toContain('Pegawai Ekspor Harian')
+        ->toContain('2026-10-30')
+        ->toContain('2026-10-31')
+        ->toContain('Belum ada data');
+});
+
+it('exports admin daily rows for every employee including dates without attendance', function () {
+    $attending = dateFilterEmployee('Pegawai Hadir Ekspor');
+    $withoutAttendance = dateFilterEmployee('Pegawai Kosong Ekspor');
+    createDateFilterSession($attending, '2026-10-30 01:00:00', '2026-10-30 09:00:00');
+    $admin = dateFilterAdmin();
+
+    $response = $this->actingAs($admin)->get(route('admin.kehadiran.export', [
+        'from' => '2026-10-30',
+        'to' => '2026-10-31',
+    ]));
+    $csv = $response->streamedContent();
+
+    expect($response->getStatusCode())->toBe(200)
+        ->and($csv)->toContain('Pegawai Hadir Ekspor')
+        ->and($csv)->toContain('Pegawai Kosong Ekspor')
+        ->and($csv)->toContain('2026-10-31')
+        ->and($csv)->toContain('Belum ada data');
 });
