@@ -58,12 +58,14 @@ return new class extends Migration
             foreach ($events as $event) {
                 if ($event->type === 'clock_in') {
                     if ($activeAnchor !== null) {
-                        $ambiguous = true;
+                        DB::table('attendance_records')->where('id', $activeAnchor)
+                            ->update(['session_anchor_id' => null]);
                         $activeAnchor = null;
+                        $ambiguous = true;
                     }
 
                     DB::table('attendance_records')->where('id', $event->id)
-                        ->update(['session_anchor_id' => $event->id]);
+                        ->update(['session_anchor_id' => $ambiguous ? null : $event->id]);
 
                     if (! $ambiguous) {
                         $activeAnchor = $event->id;
