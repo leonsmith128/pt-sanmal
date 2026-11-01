@@ -4,7 +4,7 @@ namespace App\Support;
 
 use App\Enums\AttendanceType;
 use App\Models\AttendanceRecord;
-use Illuminate\Support\Carbon;
+use Carbon\CarbonInterface;
 
 class AttendanceSessionTimeline
 {
@@ -12,7 +12,7 @@ class AttendanceSessionTimeline
      * Ensure the corrected Clock In stays between the previous session's
      * Clock Out and this session's Clock Out / next session's Clock In.
      */
-    public function assertClockIn(AttendanceRecord $anchor, Carbon $correctedAt): void
+    public function assertClockIn(AttendanceRecord $anchor, CarbonInterface $correctedAt): void
     {
         $sessions = $this->sessionsFor($anchor);
         $nextSession = null;
@@ -103,7 +103,7 @@ class AttendanceSessionTimeline
     }
 
     /**
-     * @return array<int, array{id: int, start: Carbon, clock_out: ?Carbon}>
+     * @return array<int, array{id: int, start: CarbonInterface, clock_out: ?CarbonInterface}>
      */
     private function sessionsFor(AttendanceRecord $anchor): array
     {
@@ -129,7 +129,7 @@ class AttendanceSessionTimeline
             ->all();
     }
 
-    private function firstClockOut(AttendanceRecord $anchor): ?Carbon
+    private function firstClockOut(AttendanceRecord $anchor): ?CarbonInterface
     {
         $event = $anchor->sessionEvents()
             ->where('type', AttendanceType::ClockOut)
@@ -141,9 +141,9 @@ class AttendanceSessionTimeline
         return $event ? $this->effectiveTimestamp($event) : null;
     }
 
-    private function effectiveTimestamp(AttendanceRecord $record): Carbon
+    private function effectiveTimestamp(AttendanceRecord $record): CarbonInterface
     {
-        /** @var Carbon $timestamp */
+        /** @var CarbonInterface $timestamp */
         $timestamp = $record->effectiveRecordedAt();
 
         return $timestamp;
