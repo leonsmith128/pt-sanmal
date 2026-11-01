@@ -168,7 +168,6 @@ it('orders daily recap events by their effective timestamps after a correction',
         ->toBe([AttendanceType::ClockIn->value, AttendanceType::ClockOut->value]);
 });
 
-
 it('exports one employee row per date including dates without attendance when no date filter is supplied', function () {
     $employee = dateFilterEmployee('Pegawai Ekspor Harian');
     createDateFilterSession($employee, '2026-10-30 01:00:00', '2026-10-30 09:00:00');
