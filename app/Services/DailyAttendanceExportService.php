@@ -21,7 +21,7 @@ class DailyAttendanceExportService
 
         fwrite($stream, "\xEF\xBB\xBF");
         fputcsv($stream, [
-            'ID Pegawai', 'Nama Pegawai', 'Tanggal', 'Status Akhir',
+            'ID Pegawai', 'Nomor Pegawai', 'Nama Pegawai', 'Tanggal', 'Status Akhir',
             'Clock In Efektif', 'Clock Out Efektif', 'Total Durasi',
             'Waktu Asli Clock In', 'Waktu Asli Clock Out',
             'Detail Sesi', 'Jenis Kerja', 'Lokasi / Proyek',
@@ -43,6 +43,10 @@ class DailyAttendanceExportService
 
                 foreach ($employees as $employee) {
                     for ($day = $rangeStart->copy(); $day->lte($rangeEnd); $day->addDay()) {
+                        if ($employee->joined_at && $day->lt($employee->joined_at->copy()->startOfDay())) {
+                            continue;
+                        }
+
                         $date = $day->toDateString();
                         $daily = $statuses[$employee->id][$date] ?? null;
 
@@ -144,7 +148,8 @@ class DailyAttendanceExportService
                             ->merge($correctionNotes)->filter()->unique()->implode(' | ');
 
                         $values = [
-                            $employee->employee_number ?? $employee->id,
+                            $employee->id,
+                            $employee->employee_number ?? '',
                             $employee->user?->name ?? '',
                             $date,
                             $daily['label'],
