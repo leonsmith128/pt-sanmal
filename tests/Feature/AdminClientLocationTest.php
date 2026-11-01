@@ -285,4 +285,3 @@ it('enforces location ownership and project status constraints in the database',
         'status' => 'archived',
     ]))->toThrow(QueryException::class);
 });
-
