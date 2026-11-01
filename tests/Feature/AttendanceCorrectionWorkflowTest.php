@@ -61,6 +61,7 @@ it('lets an employee submit a correction for their own clock-in and audits the s
         ->and($correction->session_anchor_id)->toBe($record->id)
         ->and($correction->requested_type)->toBe('clock_in')
         ->and($correction->status)->toBe('pending')
+        ->and($correction->attachment_path)->toBeNull()
         ->and($correction->requested_recorded_at->equalTo($requestedLocal->copy()->utc()))->toBeTrue();
 
     $this->assertDatabaseHas('audit_logs', [
