@@ -8,6 +8,7 @@
             <div class="grid grid-cols-2 gap-2 sm:flex">
                 <flux:button href="{{ route('overtime-requests.index') }}" variant="ghost" icon="clock">{{ __('Lembur') }}</flux:button>
                 <flux:button href="{{ route('leave-requests.create') }}" variant="primary" icon="plus">{{ __('Buat permohonan') }}</flux:button>
+                <flux:button href="{{ route('attendance-corrections.create') }}" variant="outline" icon="clock">{{ __('Ajukan koreksi absensi') }}</flux:button>
             </div>
         </div>
 
