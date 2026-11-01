@@ -13,7 +13,7 @@ class AdminClientController extends Controller
     public function index(Request $request): View
     {
         $clients = Client::query()
-            ->withCount('locations')
+            ->withCount(['locations', 'projects'])
             ->when($request->filled('q'), fn ($query) => $query->where(function ($q) use ($request): void {
                 $term = $request->string('q')->toString();
                 $q->where('code', 'like', "%{$term}%")

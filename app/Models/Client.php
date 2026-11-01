@@ -20,4 +20,9 @@ class Client extends Model
     {
         return $this->hasMany(Location::class);
     }
+
+    public function projects(): HasMany
+    {
+        return $this->hasMany(Project::class);
+    }
 }

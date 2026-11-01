@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Enums\ProjectStatus;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -41,12 +40,6 @@ class Location extends Model
         });
 
         static::updating(function (self $location): void {
-            if (! $location->is_active && $location->projects()->where('status', ProjectStatus::Active)->exists()) {
-                throw ValidationException::withMessages([
-                    'is_active' => 'Lokasi tidak dapat dinonaktifkan selama masih memiliki Project aktif.',
-                ]);
-            }
-
             if ($location->projects()->exists() && ($location->isDirty('type') || $location->isDirty('client_id'))) {
                 throw ValidationException::withMessages([
                     'type' => 'Jenis dan pemilik lokasi tidak dapat diubah setelah lokasi digunakan oleh Project.',

@@ -10,6 +10,7 @@ use App\Http\Controllers\AdminEmployeeController;
 use App\Http\Controllers\AdminLeaveRequestController;
 use App\Http\Controllers\AdminClientController;
 use App\Http\Controllers\AdminLocationController;
+use App\Http\Controllers\AdminProjectController;
 use App\Http\Controllers\AdminOvertimeRequestController;
 use App\Http\Controllers\AttendanceHistoryController;
 use App\Http\Controllers\AttendanceCorrectionController;
@@ -67,6 +68,7 @@ Route::middleware(['auth', EnsureUserIsActive::class, 'verified'])->group(functi
 
             Route::resource('clients', AdminClientController::class)->except(['destroy']);
             Route::resource('locations', AdminLocationController::class)->except(['destroy']);
+            Route::resource('projects', AdminProjectController::class)->except(['destroy']);
 
             Route::resource('pegawai', AdminEmployeeController::class)
                 ->parameters(['pegawai' => 'employee'])

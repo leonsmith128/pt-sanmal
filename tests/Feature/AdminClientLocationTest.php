@@ -1,5 +1,6 @@
 <?php
 
+use App\Actions\RecordAttendance;
 use App\Enums\AttendanceType;
 use App\Enums\ProjectStatus;
 use App\Enums\UserRole;
@@ -176,6 +177,7 @@ it('enforces location ownership and requires every project to have a location', 
     ]);
 
     expect(fn () => DB::table('projects')->insert([
+        'client_id' => $client->id,
         'code' => 'PRJ-NOLOC',
         'name' => 'Project tanpa Location',
         'status' => 'pending',
@@ -192,6 +194,7 @@ it('enforces location ownership and requires every project to have a location', 
     ]);
 
     expect(fn () => Project::query()->create([
+        'client_id' => $client->id,
         'code' => 'PRJ-OFFICE',
         'name' => 'Project dengan Office',
         'location_id' => $office->id,
@@ -206,12 +209,14 @@ it('enforces location ownership and requires every project to have a location', 
     ]);
 
     expect(fn () => Project::query()->create([
+        'client_id' => $client->id,
         'code' => 'PRJ-INACTIVE',
         'name' => 'Project dengan Site Nonaktif',
         'location_id' => $inactiveSite->id,
     ]))->toThrow(ValidationException::class);
 
     $project = Project::query()->create([
+        'client_id' => $client->id,
         'code' => 'PRJ-RULE',
         'name' => 'Project Valid',
         'location_id' => $site->id,
@@ -221,8 +226,11 @@ it('enforces location ownership and requires every project to have a location', 
 
     $project->update(['status' => ProjectStatus::Active]);
 
-    expect(fn () => $site->update(['is_active' => false]))
-        ->toThrow(ValidationException::class);
+    $site->update(['is_active' => false]);
+
+    expect(RecordAttendance::availableForAttendance()->whereKey($project->id)->exists())->toBeFalse();
+
+    $site->update(['is_active' => true]);
 
     $employee = Employee::query()->create([
         'user_id' => User::factory()->create()->id,
@@ -279,6 +287,7 @@ it('enforces location ownership and project status constraints in the database',
     ]);
 
     expect(fn () => DB::table('projects')->insert([
+        'client_id' => $client->id,
         'code' => 'PRJ-INVALID-STATUS',
         'name' => 'Project with invalid status',
         'location_id' => $site->id,

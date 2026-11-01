@@ -62,10 +62,11 @@ class RecordAttendance
     {
         return Project::query()
             ->active()
+            ->whereHas('client')
             ->whereHas('location', fn (Builder $location) => $location
                 ->where('type', 'site')
                 ->where('is_active', true))
-            ->with('location')
+            ->with(['client', 'location'])
             ->orderBy('name');
     }
 

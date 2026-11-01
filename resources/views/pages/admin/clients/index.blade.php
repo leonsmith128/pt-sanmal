@@ -23,6 +23,7 @@
                         <th class="p-3">{{ __('Client') }}</th>
                         <th class="p-3">{{ __('Kontak') }}</th>
                         <th class="p-3">{{ __('Lokasi') }}</th>
+                        <th class="p-3">{{ __('Proyek') }}</th>
                         <th class="p-3"></th>
                     </tr>
                 </thead>
@@ -33,12 +34,13 @@
                             <td class="p-3 font-medium">{{ $client->name }}</td>
                             <td class="p-3">{{ $client->phone ?: '—' }}</td>
                             <td class="p-3">{{ $client->locations_count }}</td>
+                            <td class="p-3">{{ $client->projects_count }}</td>
                             <td class="p-3 text-right">
                                 <flux:button size="sm" variant="ghost" href="{{ route('admin.clients.edit', $client) }}">{{ __('Ubah') }}</flux:button>
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="5" class="p-8 text-center text-zinc-500">{{ __('Belum ada data client.') }}</td></tr>
+                        <tr><td colspan="6" class="p-8 text-center text-zinc-500">{{ __('Belum ada data client.') }}</td></tr>
                     @endforelse
                 </tbody>
             </table>

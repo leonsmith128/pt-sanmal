@@ -67,6 +67,9 @@
                         <flux:sidebar.item icon="map-pin" :href="route('admin.locations.index')" :current="request()->routeIs('admin.locations.*')" wire:navigate>
                             {{ __('Master Lokasi') }}
                         </flux:sidebar.item>
+                        <flux:sidebar.item icon="briefcase" :href="route('admin.projects.index')" :current="request()->routeIs('admin.projects.*')" wire:navigate>
+                            {{ __('Master Proyek') }}
+                        </flux:sidebar.item>
                         <flux:sidebar.item icon="calendar" :href="route('admin.leave-requests.index')" :current="request()->routeIs('admin.leave-requests.*')" wire:navigate>
                             {{ __('Persetujuan Permohonan') }}
                         </flux:sidebar.item>
