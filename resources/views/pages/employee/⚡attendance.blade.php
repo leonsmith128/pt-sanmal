@@ -81,7 +81,7 @@ new #[Title('Absensi')] class extends Component {
     #[Computed]
     public function projects()
     {
-        return RecordAttendance::assignableProjects($this->employee)->get();
+        return RecordAttendance::availableForAttendance()->get();
     }
 
     #[Computed]
@@ -534,7 +534,7 @@ new #[Title('Absensi')] class extends Component {
                     @error('locationId') <flux:text class="text-red-500">{{ $message }}</flux:text> @enderror
                 @else
                     @if ($this->projects->isEmpty())
-                        <flux:text class="text-red-500">{{ __('Belum ada proyek aktif yang ditugaskan kepada Anda. Hubungi admin.') }}</flux:text>
+                        <flux:text class="text-red-500">{{ __('Belum ada proyek aktif yang tersedia untuk absensi. Hubungi admin.') }}</flux:text>
                     @else
                         <flux:select wire:model="projectId" :label="__('Proyek')">
                             @foreach ($this->projects as $project)
