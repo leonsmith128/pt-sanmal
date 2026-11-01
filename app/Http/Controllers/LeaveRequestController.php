@@ -213,7 +213,7 @@ class LeaveRequestController extends Controller
         DB::transaction(function () use ($leaveRequest): void {
             $locked = LeaveRequest::query()->whereKey($leaveRequest->id)->lockForUpdate()->firstOrFail();
 
-            if (! $locked->isPending()) {
+            if ($locked->isPending() === false) {
                 abort(422, 'Hanya permohonan yang masih menunggu yang dapat dibatalkan.');
             }
 
@@ -348,7 +348,7 @@ class LeaveRequestController extends Controller
                     $haystack = mb_strtolower(implode(' ', [
                         $row->reference, $row->type_label, $row->summary, $row->status_label,
                     ]));
-                    if (! str_contains($haystack, mb_strtolower($filters['q']))) {
+                    if (str_contains($haystack, mb_strtolower($filters['q'])) === false) {
                         return false;
                     }
                 }
