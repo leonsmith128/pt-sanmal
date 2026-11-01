@@ -7,6 +7,7 @@ use App\Models\Location;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Schema;
 
 function clientLocationAdminUser(): User
 {
@@ -15,6 +16,10 @@ function clientLocationAdminUser(): User
 
     return $user;
 }
+
+it('keeps client as a persistent identity without an activation column', function () {
+    expect(Schema::hasColumn('clients', 'is_active'))->toBeFalse();
+});
 
 it('allows administrators to manage client master data', function () {
     $admin = clientLocationAdminUser();
