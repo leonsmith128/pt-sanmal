@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\ProjectStatus;
 use App\Models\Client;
 use App\Models\Location;
 use DateTimeZone;
@@ -11,7 +10,6 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 use Illuminate\View\View;
-use Illuminate\Validation\ValidationException;
 
 class AdminLocationController extends Controller
 {
@@ -66,21 +64,6 @@ class AdminLocationController extends Controller
     public function update(Request $request, Location $location): RedirectResponse
     {
         $data = $this->validatedData($request);
-
-        if (! $data['is_active'] && $location->projects()->where('status', ProjectStatus::Active)->exists()) {
-            throw ValidationException::withMessages([
-                'is_active' => 'Lokasi tidak dapat dinonaktifkan selama masih memiliki Project aktif.',
-            ]);
-        }
-
-        if ($location->projects()->exists() && (
-            $data['type'] !== $location->type
-            || $data['client_id'] !== $location->client_id
-        )) {
-            throw ValidationException::withMessages([
-                'type' => 'Jenis dan pemilik lokasi tidak dapat diubah setelah lokasi digunakan oleh Project.',
-            ]);
-        }
 
         $location->update($data);
 
