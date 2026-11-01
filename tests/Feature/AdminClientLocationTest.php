@@ -2,11 +2,15 @@
 
 use App\Enums\ProjectStatus;
 use App\Enums\UserRole;
+use App\Models\AttendanceRecord;
 use App\Models\Client;
+use App\Models\Employee;
 use App\Models\Location;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Schema;
 
 function clientLocationAdminUser(): User
@@ -169,10 +173,41 @@ it('enforces location ownership and requires every project to have a location', 
         'is_active' => true,
     ]);
 
-    expect(fn () => Project::query()->create([
+    expect(fn () => DB::table('projects')->insert([
         'code' => 'PRJ-NOLOC',
         'name' => 'Project tanpa Location',
+        'status' => 'pending',
+        'created_at' => now(),
+        'updated_at' => now(),
     ]))->toThrow(QueryException::class);
+
+    $office = Location::query()->create([
+        'client_id' => null,
+        'name' => 'Office Valid',
+        'type' => 'office',
+        'timezone' => 'Asia/Makassar',
+        'is_active' => true,
+    ]);
+
+    expect(fn () => Project::query()->create([
+        'code' => 'PRJ-OFFICE',
+        'name' => 'Project dengan Office',
+        'location_id' => $office->id,
+    ]))->toThrow(ValidationException::class);
+
+    $inactiveSite = Location::query()->create([
+        'client_id' => $client->id,
+        'name' => 'Site Nonaktif',
+        'type' => 'site',
+        'timezone' => 'Asia/Makassar',
+        'is_active' => false,
+    ]);
+
+    expect(fn () => Project::query()->create([
+        'code' => 'PRJ-INACTIVE',
+        'name' => 'Project dengan Site Nonaktif',
+        'location_id' => $inactiveSite->id,
+    ]))->toThrow(ValidationException::class);
 
     $project = Project::query()->create([
         'code' => 'PRJ-RULE',
