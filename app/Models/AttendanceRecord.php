@@ -108,6 +108,11 @@ class AttendanceRecord extends Model
         return $this->belongsTo(AttendanceCorrection::class, 'attendance_correction_id');
     }
 
+    public function corrections(): HasMany
+    {
+        return $this->hasMany(AttendanceCorrection::class);
+    }
+
     public function employee(): BelongsTo
     {
         return $this->belongsTo(Employee::class);
