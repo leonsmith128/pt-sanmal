@@ -321,8 +321,8 @@ class LeaveRequestController extends Controller
                     'reviewer' => $item->reviewedBy?->name,
                     'decided_at' => $item->reviewed_at,
                     'decision_note' => $item->review_note,
-                    'cancelable' => false,
-                    'cancel_route' => null,
+                    'cancelable' => $item->status === 'pending',
+                    'cancel_route' => route('attendance-corrections.cancel', $item),
                 ]);
             });
 
