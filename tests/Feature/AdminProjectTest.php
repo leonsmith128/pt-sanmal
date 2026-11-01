@@ -89,47 +89,48 @@ it('requires a project site to belong to its selected client', function () {
     ]))->toThrow(ValidationException::class);
 });
 
-it('allows project ownership and site changes before attendance but protects their history afterwards', function () {
+it('keeps project client ownership fixed but allows site changes without rewriting attendance history', function () {
     $client = projectClient('CL-MOVE-A');
     $otherClient = projectClient('CL-MOVE-B');
     $site = projectSite($client, 'Site Asal');
-    $otherSite = projectSite($otherClient, 'Site Tujuan');
+    $otherSite = projectSite($client, 'Site Tujuan');
+    $foreignSite = projectSite($otherClient, 'Site Client Lain');
 
     $project = Project::query()->create([
         'client_id' => $client->id,
         'code' => 'PRJ-MOVE',
-        'name' => 'Project Pindah',
+        'name' => 'Project Pindah Lokasi',
         'project_type' => ProjectType::Training,
         'location_id' => $site->id,
         'status' => ProjectStatus::Pending,
     ]);
 
-    $project->update([
-        'client_id' => $otherClient->id,
-        'location_id' => $otherSite->id,
-    ]);
-
-    expect($project->fresh()->client_id)->toBe($otherClient->id)
-        ->and($project->fresh()->location_id)->toBe($otherSite->id);
-
     $employee = Employee::query()->create([
         'user_id' => User::factory()->create()->id,
     ]);
 
-    AttendanceRecord::query()->create([
+    $attendance = AttendanceRecord::query()->create([
         'employee_id' => $employee->id,
         'type' => AttendanceType::ClockIn,
         'work_type' => WorkType::Onsite,
-        'location_id' => $otherSite->id,
+        'location_id' => $site->id,
         'project_id' => $project->id,
         'recorded_at' => now(),
         'timezone' => 'Asia/Makassar',
         'attendance_date' => now('Asia/Makassar')->toDateString(),
     ]);
 
+    $project->update(['location_id' => $otherSite->id]);
+
+    expect($project->fresh()->location_id)->toBe($otherSite->id)
+        ->and($attendance->fresh()->location_id)->toBe($site->id);
+
     expect(fn () => $project->update([
-        'client_id' => $client->id,
-        'location_id' => $site->id,
+        'client_id' => $otherClient->id,
+    ]))->toThrow(ValidationException::class);
+
+    expect(fn () => $project->update([
+        'location_id' => $foreignSite->id,
     ]))->toThrow(ValidationException::class);
 });
 

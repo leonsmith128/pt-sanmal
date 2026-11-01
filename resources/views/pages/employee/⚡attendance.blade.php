@@ -524,6 +524,11 @@ new #[Title('Absensi')] class extends Component {
                 @if ($workType === 'office')
                     @if ($this->officeLocations->isEmpty())
                         <flux:text class="text-red-500">{{ __('Belum ada lokasi kantor aktif. Hubungi admin.') }}</flux:text>
+                    @elseif ($this->officeLocations->count() === 1)
+                        <div class="rounded-lg border border-zinc-200 bg-zinc-50 p-3 text-sm dark:border-zinc-700 dark:bg-zinc-900">
+                            <span class="font-medium">{{ __('Lokasi kantor') }}:</span>
+                            {{ $this->officeLocations->first()->name }}
+                        </div>
                     @else
                         <flux:select wire:model="locationId" :label="__('Kantor')">
                             @foreach ($this->officeLocations as $office)
@@ -536,11 +541,20 @@ new #[Title('Absensi')] class extends Component {
                     @if ($this->projects->isEmpty())
                         <flux:text class="text-red-500">{{ __('Belum ada proyek aktif yang tersedia untuk absensi. Hubungi admin.') }}</flux:text>
                     @else
-                        <flux:select wire:model="projectId" :label="__('Proyek')">
+                        <flux:select wire:model.live="projectId" :label="__('Proyek')">
                             @foreach ($this->projects as $project)
-                                <flux:select.option value="{{ $project->id }}">{{ $project->code }} &ndash; {{ $project->name }}</flux:select.option>
+                                <flux:select.option value="{{ $project->id }}">
+                                    {{ $project->code }} — {{ $project->name }} ({{ $project->client->name }})
+                                </flux:select.option>
                             @endforeach
                         </flux:select>
+                        @if ($selectedProject = $this->projects->firstWhere('id', (int) $projectId))
+                            <div class="rounded-lg border border-zinc-200 bg-zinc-50 p-3 text-sm dark:border-zinc-700 dark:bg-zinc-900">
+                                <p><span class="font-medium">{{ __('Client') }}:</span> {{ $selectedProject->client->name }}</p>
+                                <p><span class="font-medium">{{ __('Lokasi Site') }}:</span> {{ $selectedProject->location->name }}</p>
+                                <p><span class="font-medium">{{ __('Jenis layanan') }}:</span> {{ $selectedProject->project_type->label() }}</p>
+                            </div>
+                        @endif
                     @endif
                     @error('projectId') <flux:text class="text-red-500">{{ $message }}</flux:text> @enderror
                 @endif

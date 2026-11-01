@@ -17,12 +17,19 @@
 
     <div class="grid gap-4 sm:grid-cols-2">
         <flux:field>
-            <flux:select name="client_id" :label="__('Client')" required>
-                <flux:select.option value="">{{ __('Pilih Client') }}</flux:select.option>
-                @foreach ($clients as $client)
-                    <flux:select.option value="{{ $client->id }}" :selected="(string) old('client_id', $project?->client_id) === (string) $client->id">{{ $client->name }} ({{ $client->code }})</flux:select.option>
-                @endforeach
-            </flux:select>
+            @if ($project !== null)
+                <flux:select :label="__('Client')" disabled>
+                    <flux:select.option value="{{ $project->client_id }}">{{ $project->client->name }} ({{ $project->client->code }})</flux:select.option>
+                </flux:select>
+                <input type="hidden" name="client_id" value="{{ $project->client_id }}">
+            @else
+                <flux:select name="client_id" :label="__('Client')" required>
+                    <flux:select.option value="">{{ __('Pilih Client') }}</flux:select.option>
+                    @foreach ($clients as $client)
+                        <flux:select.option value="{{ $client->id }}" :selected="(string) old('client_id') === (string) $client->id">{{ $client->name }} ({{ $client->code }})</flux:select.option>
+                    @endforeach
+                </flux:select>
+            @endif
             <flux:error name="client_id" />
         </flux:field>
         <flux:field>
@@ -44,7 +51,7 @@
                 </flux:select.option>
             @endforeach
         </flux:select>
-        <flux:description>{{ __('Lokasi wajib merupakan Site milik Client yang dipilih. Lokasi nonaktif hanya ditampilkan untuk mempertahankan data proyek lama.') }}</flux:description>
+        <flux:description>{{ __('Lokasi wajib merupakan Site milik Client proyek. Lokasi dapat diperbarui; riwayat absensi tetap menyimpan lokasi saat absensi dilakukan. Lokasi nonaktif hanya ditampilkan untuk mempertahankan data proyek lama.') }}</flux:description>
         <flux:error name="location_id" />
     </flux:field>
 

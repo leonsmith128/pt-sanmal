@@ -79,6 +79,7 @@ class AdminProjectController extends Controller
         $locations = Location::query()
             ->with('client')
             ->where('type', 'site')
+            ->when($project !== null, fn ($query) => $query->where('client_id', $project->client_id))
             ->where(function ($query) use ($project): void {
                 $query->where('is_active', true);
 
@@ -140,12 +141,8 @@ class AdminProjectController extends Controller
                 $validator->errors()->add('status', 'Proyek hanya dapat diaktifkan jika lokasi Site aktif.');
             }
 
-            if (
-                $project !== null
-                && $project->attendanceRecords()->exists()
-                && ($project->client_id !== $clientId || $project->location_id !== $location->id)
-            ) {
-                $validator->errors()->add('location_id', 'Client dan lokasi tidak dapat diubah setelah proyek memiliki riwayat absensi.');
+            if ($project !== null && $project->client_id !== $clientId) {
+                $validator->errors()->add('client_id', 'Client proyek tidak dapat diganti setelah proyek dibuat.');
             }
         });
 

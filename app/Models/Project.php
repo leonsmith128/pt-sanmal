@@ -32,17 +32,14 @@ class Project extends Model
     protected static function booted(): void
     {
         static::saving(function (self $project): void {
-            $relationshipChanged = $project->exists
-                && ($project->isDirty('client_id') || $project->isDirty('location_id'));
-
-            if ($relationshipChanged && $project->attendanceRecords()->exists()) {
+            if ($project->exists && $project->isDirty('client_id')) {
                 throw ValidationException::withMessages([
-                    'location_id' => 'Client dan lokasi Project tidak dapat diubah setelah memiliki riwayat absensi.',
+                    'client_id' => 'Client proyek tidak dapat diganti setelah proyek dibuat.',
                 ]);
             }
 
             $mustValidateLocation = ! $project->exists
-                || $relationshipChanged
+                || $project->isDirty('location_id')
                 || ($project->isDirty('status') && $project->status === ProjectStatus::Active);
 
             if (! $mustValidateLocation) {
@@ -53,10 +50,7 @@ class Project extends Model
                 ->whereKey($project->location_id)
                 ->where('client_id', $project->client_id)
                 ->where('type', 'site')
-                ->when(
-                    ! $project->exists || $relationshipChanged || $project->status === ProjectStatus::Active,
-                    fn (Builder $query) => $query->where('is_active', true),
-                )
+                ->where('is_active', true)
                 ->first();
 
             if ($location === null) {

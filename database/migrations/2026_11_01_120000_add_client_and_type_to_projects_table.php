@@ -10,6 +10,17 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (
+            DB::table('projects')
+                ->leftJoin('locations', 'locations.id', '=', 'projects.location_id')
+                ->whereNull('locations.client_id')
+                ->exists()
+        ) {
+            throw new RuntimeException(
+                'Migrasi project dihentikan: ditemukan project yang belum terhubung ke Client melalui lokasi Site.'
+            );
+        }
+
         Schema::table('projects', function (Blueprint $table): void {
             $table->unsignedBigInteger('client_id')->nullable()->after('id');
             $table->string('project_type', 30)->default('calibration')->after('name');
@@ -20,11 +31,6 @@ return new class extends Migration
             'client_id' => DB::raw('(SELECT locations.client_id FROM locations WHERE locations.id = projects.location_id)'),
         ]);
 
-        if (DB::table('projects')->whereNull('client_id')->exists()) {
-            throw new RuntimeException(
-                'Migrasi project dihentikan: ditemukan project yang belum terhubung ke Client melalui lokasi Site.'
-            );
-        }
 
         Schema::table('projects', function (Blueprint $table): void {
             $table->unsignedBigInteger('client_id')->nullable(false)->change();

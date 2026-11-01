@@ -236,7 +236,7 @@ it('enforces location ownership and requires every project to have a location', 
         'user_id' => User::factory()->create()->id,
     ]);
 
-    AttendanceRecord::query()->create([
+    $attendance = AttendanceRecord::query()->create([
         'employee_id' => $employee->id,
         'type' => AttendanceType::ClockIn,
         'work_type' => WorkType::Onsite,
@@ -255,9 +255,10 @@ it('enforces location ownership and requires every project to have a location', 
         'is_active' => true,
     ]);
 
-    expect(fn () => $project->update([
-        'location_id' => $otherSite->id,
-    ]))->toThrow(ValidationException::class);
+    $project->update(['location_id' => $otherSite->id]);
+
+    expect($project->fresh()->location_id)->toBe($otherSite->id)
+        ->and($attendance->fresh()->location_id)->toBe($site->id);
 });
 
 it('enforces location ownership and project status constraints in the database', function () {
