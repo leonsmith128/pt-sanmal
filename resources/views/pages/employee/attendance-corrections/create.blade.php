@@ -61,7 +61,7 @@
             <flux:field>
                 <flux:label>{{ __('Lampiran (opsional)') }}</flux:label>
                 <flux:input type="file" name="attachment" accept=".jpg,.jpeg,.png,.pdf" />
-                <flux:description>{{ __('JPG, PNG, atau PDF maksimal 5 MB.') }}</flux:description>
+                <flux:description>{{ __('JPG, PNG, atau PDF maksimal 1 MB.') }}</flux:description>
                 <flux:error name="attachment" />
             </flux:field>
 
