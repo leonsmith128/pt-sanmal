@@ -158,7 +158,7 @@ it('enforces location ownership and requires every project to have a location', 
         'type' => 'office',
         'timezone' => 'Asia/Makassar',
         'is_active' => true,
-    ]))->toThrow(QueryException::class);
+    ]))->toThrow(ValidationException::class);
 
     expect(fn () => Location::query()->create([
         'client_id' => null,
@@ -166,7 +166,7 @@ it('enforces location ownership and requires every project to have a location', 
         'type' => 'site',
         'timezone' => 'Asia/Makassar',
         'is_active' => true,
-    ]))->toThrow(QueryException::class);
+    ]))->toThrow(ValidationException::class);
 
     $site = Location::query()->create([
         'client_id' => $client->id,
