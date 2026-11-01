@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Models;
+namespace App\\Models;
 
-use App\Enums\ProjectStatus;
-use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Validation\ValidationException;
+use App\\Enums\\ProjectStatus;
+use Illuminate\\Database\\Eloquent\\Attributes\\Fillable;
+use Illuminate\\Database\\Eloquent\\Model;
+use Illuminate\\Database\\Eloquent\\Relations\\BelongsTo;
+use Illuminate\\Database\\Eloquent\\Relations\\HasMany;
+use Illuminate\\Validation\\ValidationException;
 
 /**
  * @property int $id
@@ -26,6 +26,20 @@ class Location extends Model
 {
     protected static function booted(): void
     {
+        static::saving(function (self $location): void {
+            $validOwnership = match ($location->type) {
+                'office' => $location->client_id === null,
+                'site' => $location->client_id !== null,
+                default => false,
+            };
+
+            if (! $validOwnership) {
+                throw ValidationException::withMessages([
+                    'client_id' => 'Office tidak boleh memiliki Client, sedangkan Site wajib memiliki Client.',
+                ]);
+            }
+        });
+
         static::updating(function (self $location): void {
             if (! $location->is_active && $location->projects()->where('status', ProjectStatus::Active)->exists()) {
                 throw ValidationException::withMessages([
