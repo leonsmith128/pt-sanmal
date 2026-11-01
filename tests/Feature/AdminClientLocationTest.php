@@ -164,6 +164,11 @@ it('enforces location ownership and requires every project to have a location', 
         'is_active' => true,
     ]);
 
+    expect(fn () => Project::query()->create([
+        'code' => 'PRJ-NOLOC',
+        'name' => 'Project tanpa Location',
+    ]))->toThrow(QueryException::class);
+
     $project = Project::query()->create([
         'code' => 'PRJ-RULE',
         'name' => 'Project Valid',
