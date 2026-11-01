@@ -43,7 +43,7 @@ function correctionClockIn(Employee $employee): AttendanceRecord
 it('lets an employee submit a correction for their own clock-in and audits the submission', function () {
     [$user, $employee] = correctionEmployeeUser();
     $record = correctionClockIn($employee);
-    $requestedLocal = $record->recorded_at->copy()->setTimezone('Asia/Makassar')->subMinutes(15);
+    $requestedLocal = $record->recorded_at->copy()->setTimezone('Asia/Makassar')->subMinutes(15)->startOfMinute();
 
     $response = $this->actingAs($user)->post(route('attendance-corrections.store'), [
         'requested_type' => 'clock_in',
