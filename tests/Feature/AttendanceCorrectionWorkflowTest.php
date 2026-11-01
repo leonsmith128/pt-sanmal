@@ -289,3 +289,26 @@ it('does not allow an administrator to approve a correction after the employee c
     expect($correction->fresh()->status)->toBe('cancelled')
         ->and($record->fresh()->approvedCorrection)->toBeNull();
 });
+
+it('shows cancelled corrections with a localized status in the administrator queue', function () {
+    [, $employee] = correctionEmployeeUser();
+    $record = correctionClockIn($employee);
+    $requestedAt = $record->recorded_at->copy()->subMinutes(10);
+
+    AttendanceCorrection::create([
+        'employee_id' => $employee->id,
+        'attendance_record_id' => $record->id,
+        'session_anchor_id' => $record->id,
+        'requested_type' => 'clock_in',
+        'requested_recorded_at' => $requestedAt,
+        'attendance_date' => $requestedAt->copy()->setTimezone('Asia/Makassar')->toDateString(),
+        'reason' => 'Permohonan telah dibatalkan.',
+        'status' => 'cancelled',
+    ]);
+
+    $this->actingAs(correctionAdminUser())
+        ->get(route('admin.attendance-corrections.index', ['status' => 'cancelled']))
+        ->assertOk()
+        ->assertSee('Dibatalkan')
+        ->assertDontSee('Cancelled');
+});
