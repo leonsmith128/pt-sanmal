@@ -130,7 +130,7 @@ class AttendanceCorrectionController extends Controller
                     userId: $request->user()->id,
                 );
             });
-        } catch (\\Throwable $exception) {
+        } catch (\Throwable $exception) {
             if ($attachmentPath) {
                 Storage::disk('local')->delete($attachmentPath);
             }
