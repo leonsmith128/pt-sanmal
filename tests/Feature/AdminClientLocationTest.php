@@ -1,9 +1,13 @@
 <?php
 
+use App\Enums\AttendanceType;
 use App\Enums\ProjectStatus;
+use App\Enums\WorkType;
 use App\Enums\UserRole;
 use App\Models\AttendanceRecord;
+use App\Models\AttendanceRecord;
 use App\Models\Client;
+use App\Models\Employee;
 use App\Models\Employee;
 use App\Models\Location;
 use App\Models\Project;
@@ -216,4 +220,31 @@ it('enforces location ownership and requires every project to have a location', 
     ]);
 
     expect($project->fresh()->status)->toBe(ProjectStatus::Pending);
+
+    $employee = Employee::query()->create([
+        'user_id' => User::factory()->create()->id,
+    ]);
+
+    AttendanceRecord::query()->create([
+        'employee_id' => $employee->id,
+        'type' => AttendanceType::ClockIn,
+        'work_type' => WorkType::Onsite,
+        'location_id' => $site->id,
+        'project_id' => $project->id,
+        'recorded_at' => now(),
+        'timezone' => 'Asia/Makassar',
+        'attendance_date' => now('Asia/Makassar')->toDateString(),
+    ]);
+
+    $otherSite = Location::query()->create([
+        'client_id' => $client->id,
+        'name' => 'Site Kedua',
+        'type' => 'site',
+        'timezone' => 'Asia/Makassar',
+        'is_active' => true,
+    ]);
+
+    expect(fn () => $project->update([
+        'location_id' => $otherSite->id,
+    ]))->toThrow(ValidationException::class);
 });
