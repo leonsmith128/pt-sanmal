@@ -10,16 +10,18 @@ return new class extends Migration
     {
         Schema::create('locations', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('client_id')->nullable()->constrained('clients')->restrictOnDelete();
             $table->string('name');
             $table->string('type', 20)->default('site'); // office / site
             $table->text('address')->nullable();
             $table->decimal('latitude', 10, 7)->nullable();
             $table->decimal('longitude', 10, 7)->nullable();
-            // Nullable: kebijakan geofence belum diputuskan
-            $table->unsignedInteger('geofence_radius_m')->nullable();
-            $table->string('timezone', 50)->default('Asia/Makassar'); // identifier IANA
+            // Disimpan sebagai identifier IANA, mis. Asia/Makassar.
+            $table->string('timezone', 50)->default('Asia/Makassar');
             $table->boolean('is_active')->default(true);
             $table->timestamps();
+
+            $table->index(['client_id', 'is_active']);
         });
     }
 
