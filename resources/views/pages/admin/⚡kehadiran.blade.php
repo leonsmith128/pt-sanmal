@@ -245,6 +245,23 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                     $weekEnd = $today->copy()->endOfWeek(Carbon::SUNDAY);
                     $monthStart = $today->copy()->startOfMonth();
                     $monthEnd = $today->copy()->endOfMonth();
+                    $activeExportFilters = [];
+                    if ($employeeId !== '') {
+                        $selectedEmployee = $this->employees->firstWhere('id', (int) $employeeId);
+                        $activeExportFilters[] = 'Pegawai: '.($selectedEmployee?->user?->name ?? 'ID '.$employeeId);
+                    }
+                    if (trim($search) !== '') {
+                        $activeExportFilters[] = 'Pencarian: '.trim($search);
+                    }
+                    if ($attendanceType !== '') {
+                        $activeExportFilters[] = 'Jenis absensi: '.(AttendanceType::tryFrom($attendanceType)?->label() ?? $attendanceType);
+                    }
+                    if ($workType !== '') {
+                        $activeExportFilters[] = 'Jenis kerja: '.(WorkType::tryFrom($workType)?->label() ?? $workType);
+                    }
+                    $exportFilterSummary = $activeExportFilters
+                        ? 'Filter tambahan aktif: '.implode(' · ', $activeExportFilters)
+                        : 'Filter tambahan: tidak ada; seluruh pegawai masuk dalam cakupan laporan.';
                 @endphp
                 <flux:dropdown position="bottom" align="end">
                     <flux:button size="sm" variant="outline" icon="arrow-down-tray">
@@ -254,7 +271,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                     <flux:menu>
                         <flux:menu.item
                             :href="route('admin.kehadiran.export', [...$exportFilters, 'from' => $today->toDateString(), 'to' => $today->toDateString()])"
-                            x-on:click.prevent="exportUrl = $el.href; exportDescription = 'Laporan seluruh pegawai untuk tanggal hari ini. Filter pegawai, pencarian, jenis absensi, dan jenis kerja yang aktif tetap diterapkan.'; exportConfirmOpen = true"
+                            x-on:click.prevent="exportUrl = $el.href; exportDescription = 'Laporan seluruh pegawai untuk {{ $today->translatedFormat('d M Y') }}.'; exportConfirmOpen = true"
                             icon="calendar-days"
                         >
                             {{ __('Hari ini') }}
@@ -476,6 +493,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                     </button>
                 </div>
                 <p class="text-sm text-zinc-600 dark:text-zinc-300" x-text="exportDescription"></p>
+                <p class="text-sm text-zinc-600 dark:text-zinc-300">{{ $exportFilterSummary }}</p>
                 <p class="text-sm text-amber-700 dark:text-amber-300">{{ __('Ekspor menggunakan satu baris per pegawai per tanggal. Tanggal tanpa event absensi tetap disertakan. Periksa kembali cakupan sebelum melanjutkan.') }}</p>
                 <div class="flex justify-end gap-2">
                     <flux:button type="button" variant="ghost" x-on:click="exportConfirmOpen = false">{{ __('Batal') }}</flux:button>
