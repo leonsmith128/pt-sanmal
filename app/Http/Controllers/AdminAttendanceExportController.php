@@ -1,21 +1,21 @@
 <?php
 
-namespace App\\Http\\Controllers;
+namespace App\Http\Controllers;
 
-use App\\Enums\\AttendanceType;
-use App\\Enums\\WorkType;
-use App\\Models\\AttendanceRecord;
-use App\\Models\\DailyStatusCorrection;
-use App\\Models\\Employee;
-use App\\Models\\LeaveRequest;
-use App\\Services\\DailyAttendanceExportService;
-use App\\Services\\DailyAttendanceStatusService;
-use Illuminate\\Database\\Eloquent\\Builder;
-use Illuminate\\Http\\Request;
-use Illuminate\\Support\\Carbon;
-use Illuminate\\Support\\Collection;
-use Illuminate\\Validation\\Rule;
-use Symfony\\Component\\HttpFoundation\\StreamedResponse;
+use App\Enums\AttendanceType;
+use App\Enums\WorkType;
+use App\Models\AttendanceRecord;
+use App\Models\DailyStatusCorrection;
+use App\Models\Employee;
+use App\Models\LeaveRequest;
+use App\Services\DailyAttendanceExportService;
+use App\Services\DailyAttendanceStatusService;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
+use Illuminate\Validation\Rule;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AdminAttendanceExportController extends Controller
 {
