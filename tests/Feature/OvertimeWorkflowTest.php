@@ -647,3 +647,27 @@ it('rejects an overtime request created after the target date session has alread
 
     expect(OvertimeRequest::query()->where('employee_id', $employee->id)->count())->toBe(0);
 });
+
+
+it('does not allow an overtime request rejected by admin to start', function () {
+    Storage::fake('local');
+    $employee = overtimeEmployee();
+    $clockIn = overtimeClockIn($employee);
+    $overtime = overtimeRequest($employee, $clockIn, now()->subMinute());
+    $overtime->update(['approval_status' => OvertimeApprovalStatus::Rejected]);
+
+    expect(fn () => app(ConfirmOvertimeStart::class)->handle(
+        employee: $employee,
+        overtime: $overtime,
+        latitude: -5.14,
+        longitude: 119.41,
+        accuracy: 25,
+        addressSnapshot: 'Makassar',
+        selfie: UploadedFile::fake()->image('rejected-overtime.jpg'),
+    ))->toThrow(ValidationException::class);
+
+    expect(AttendanceRecord::query()
+        ->where('employee_id', $employee->id)
+        ->where('type', AttendanceType::OvertimeStart)
+        ->exists())->toBeFalse();
+});

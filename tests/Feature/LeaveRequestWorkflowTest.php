@@ -191,3 +191,43 @@ it('excludes employees with approved leave requests from notYetPresent on admin 
         ->assertOk()
         ->assertSet('notYetPresent', fn ($list) => ! $list->contains('id', $emp->id));
 });
+
+
+it('rejects overlapping leave requests while a previous request is pending or approved', function () {
+    $user = createUserWithRole(UserRole::Employee);
+    $employee = createEmployeeFor($user);
+    $type = LeaveType::create(['code' => 'izin', 'name' => 'Izin', 'is_active' => true]);
+
+    $pending = $employee->leaveRequests()->create([
+        'leave_type_id' => $type->id,
+        'start_date' => '2026-11-12',
+        'end_date' => '2026-11-14',
+        'reason' => 'Permohonan pertama yang menunggu.',
+        'status' => LeaveRequestStatus::Pending,
+    ]);
+
+    $this->actingAs($user)->post(route('leave-requests.store'), [
+        'leave_type_id' => $type->id,
+        'start_date' => '2026-11-14',
+        'end_date' => '2026-11-15',
+        'reason' => 'Permohonan yang bertumpang tindih.',
+    ])->assertSessionHasErrors('start_date');
+
+    $pending->update(['status' => LeaveRequestStatus::Cancelled]);
+    $approved = $employee->leaveRequests()->create([
+        'leave_type_id' => $type->id,
+        'start_date' => '2026-11-12',
+        'end_date' => '2026-11-14',
+        'reason' => 'Permohonan yang sudah disetujui.',
+        'status' => LeaveRequestStatus::Approved,
+    ]);
+
+    $this->actingAs($user)->post(route('leave-requests.store'), [
+        'leave_type_id' => $type->id,
+        'start_date' => '2026-11-13',
+        'end_date' => '2026-11-15',
+        'reason' => 'Permohonan setelah persetujuan sebelumnya.',
+    ])->assertSessionHasErrors('start_date');
+
+    expect($approved->fresh()->status)->toBe(LeaveRequestStatus::Approved);
+});

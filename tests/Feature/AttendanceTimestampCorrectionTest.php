@@ -135,3 +135,46 @@ it('corrects a clock-out timestamp without changing its original event time', fu
     expect($freshRecord->recorded_at->format('Y-m-d H:i:s'))->toBe($clockOutTime->format('Y-m-d H:i:s'))
         ->and($freshRecord->effectiveRecordedAt()->format('Y-m-d H:i:s'))->toBe($correctedLocal->copy()->utc()->format('Y-m-d H:i:s'));
 });
+
+
+it('creates a new clock-out event linked to the original session when a forgotten clock-out correction is approved', function () {
+    $employeeUser = User::factory()->create();
+    $employee = Employee::create(['user_id' => $employeeUser->id]);
+    $clockInAt = now()->subHours(5);
+    $clockIn = AttendanceRecord::create([
+        'employee_id' => $employee->id,
+        'type' => AttendanceType::ClockIn,
+        'work_type' => WorkType::Office,
+        'recorded_at' => $clockInAt,
+        'timezone' => 'Asia/Makassar',
+        'attendance_date' => $clockInAt->copy()->setTimezone('Asia/Makassar')->toDateString(),
+    ]);
+
+    $requestedAt = now()->subMinutes(20);
+    $correction = AttendanceCorrection::create([
+        'employee_id' => $employee->id,
+        'attendance_record_id' => null,
+        'session_anchor_id' => $clockIn->id,
+        'requested_type' => AttendanceType::ClockOut->value,
+        'requested_recorded_at' => $requestedAt,
+        'attendance_date' => $requestedAt->copy()->setTimezone('Asia/Makassar')->toDateString(),
+        'reason' => 'Lupa melakukan Clock Out setelah menyelesaikan pekerjaan.',
+        'status' => 'pending',
+    ]);
+
+    $admin = User::factory()->create();
+    $admin->forceFill(['role' => UserRole::Admin, 'is_active' => true])->save();
+
+    $this->actingAs($admin)->post(route('admin.attendance-corrections.decide', $correction), [
+        'decision' => 'approved',
+        'review_note' => 'Waktu diperiksa dan disetujui.',
+    ])->assertRedirect(route('admin.attendance-corrections.show', $correction));
+
+    $generated = AttendanceRecord::query()->where('attendance_correction_id', $correction->id)->firstOrFail();
+
+    expect($generated->type)->toBe(AttendanceType::ClockOut)
+        ->and($generated->source)->toBe('correction')
+        ->and($generated->session_anchor_id)->toBe($clockIn->id)
+        ->and($generated->recorded_at->format('Y-m-d H:i:s'))->toBe($requestedAt->format('Y-m-d H:i:s'))
+        ->and($correction->fresh()->status)->toBe('approved');
+});
