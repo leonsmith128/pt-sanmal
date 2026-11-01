@@ -56,41 +56,48 @@ class AdminAttendanceCorrectionController extends Controller
             abort_if($correctedAt->isFuture(), 422, 'Timestamp koreksi tidak boleh berada di masa depan.');
 
             $previousEffectiveAt = $locked->effectiveRecordedAt();
+            $anchorId = $locked->session_anchor_id ?? ($locked->type === AttendanceType::ClockIn ? $locked->id : null);
+            abort_if($anchorId === null, 422, 'Event belum memiliki relasi sesi yang dapat diverifikasi.');
+
+            $anchor = AttendanceRecord::query()
+                ->whereKey($anchorId)
+                ->where('employee_id', $locked->employee_id)
+                ->where('type', AttendanceType::ClockIn)
+                ->whereColumn('session_anchor_id', 'id')
+                ->with('approvedCorrection')
+                ->lockForUpdate()
+                ->firstOrFail();
 
             if ($locked->type === AttendanceType::ClockIn) {
-                $nextClockOut = AttendanceRecord::query()
-                    ->with('approvedCorrection')
-                    ->where('employee_id', $locked->employee_id)
-                    ->where('type', AttendanceType::ClockOut)
-                    ->where('recorded_at', '>', $locked->recorded_at)
-                    ->orderBy('recorded_at')
-                    ->first();
-
-                abort_if(
-                    $nextClockOut && $correctedAt->gte($nextClockOut->effectiveRecordedAt()),
-                    422,
-                    'Waktu masuk harus lebih awal daripada waktu pulang pada sesi yang sama.'
-                );
-            } else {
-                $previousClockIn = AttendanceRecord::query()
-                    ->with('approvedCorrection')
+                $conflict = AttendanceRecord::query()
                     ->where('employee_id', $locked->employee_id)
                     ->where('type', AttendanceType::ClockIn)
-                    ->where('recorded_at', '<', $locked->recorded_at)
-                    ->orderByDesc('recorded_at')
+                    ->where('id', '!=', $locked->id)
+                    ->with('approvedCorrection')
+                    ->get()
+                    ->contains(fn (AttendanceRecord $other) => $other->effectiveAttendanceDate() === $correctedAt->toDateString());
+
+                abort_if($conflict, 422, 'Koreksi ditolak karena tanggal lokal tersebut sudah memiliki sesi absensi lain.');
+
+                $nextClockOut = $anchor->sessionEvents()
+                    ->where('type', AttendanceType::ClockOut)
+                    ->with('approvedCorrection')
+                    ->get()
+                    ->sortBy(fn (AttendanceRecord $event) => $event->effectiveRecordedAt()->timestamp)
                     ->first();
 
-                abort_if(
-                    $previousClockIn && $correctedAt->lte($previousClockIn->effectiveRecordedAt()),
-                    422,
-                    'Waktu pulang harus lebih akhir daripada waktu masuk pada sesi yang sama.'
-                );
+                abort_if($nextClockOut && $correctedAt->gte($nextClockOut->effectiveRecordedAt()), 422,
+                    'Waktu masuk harus lebih awal daripada waktu pulang pada sesi yang sama.');
+            } else {
+                abort_if($correctedAt->lte($anchor->effectiveRecordedAt()), 422,
+                    'Waktu pulang harus lebih akhir daripada waktu masuk pada sesi yang sama.');
             }
 
             $correctedAtUtc = $correctedAt->copy()->utc();
             $correction = AttendanceCorrection::create([
                 'employee_id' => $locked->employee_id,
                 'attendance_record_id' => $locked->id,
+                'session_anchor_id' => $anchor->id,
                 'requested_type' => $locked->type->value,
                 'requested_recorded_at' => $correctedAtUtc,
                 'attendance_date' => $correctedAt->toDateString(),
