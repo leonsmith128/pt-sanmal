@@ -3,6 +3,7 @@
 use App\Enums\AttendanceType;
 use App\Enums\UserRole;
 use App\Enums\WorkType;
+use App\Models\AuditLog;
 use App\Models\AttendanceCorrection;
 use App\Models\AttendanceRecord;
 use App\Models\Employee;
