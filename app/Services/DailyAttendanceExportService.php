@@ -97,13 +97,13 @@ class DailyAttendanceExportService
                             }
 
                             if ($in && $out) {
-                                $minutes = $in->effectiveRecordedAt()->diffInMinutes($out->effectiveRecordedAt(), true);
+                                $minutes = (int) $in->effectiveRecordedAt()->diffInMinutes($out->effectiveRecordedAt(), true);
                                 $durations += $minutes;
-                                $sessionDetails[] = $effectiveIn->format('H:i').'–'.$effectiveOut->format('H:i');
+                                $sessionDetails[] = $effectiveIn->format('Y-m-d H:i').'–'.$effectiveOut->format('Y-m-d H:i');
                             } elseif ($in) {
-                                $sessionDetails[] = $in->effectiveRecordedAtLocal()->format('H:i').'–belum Clock Out';
+                                $sessionDetails[] = $in->effectiveRecordedAtLocal()->format('Y-m-d H:i').'–belum Clock Out';
                             } elseif ($out) {
-                                $sessionDetails[] = 'Clock Out '.$out->effectiveRecordedAtLocal()->format('H:i').' (tanpa Clock In)';
+                                $sessionDetails[] = 'Clock Out '.$out->effectiveRecordedAtLocal()->format('Y-m-d H:i').' (tanpa Clock In)';
                             }
                         }
 
