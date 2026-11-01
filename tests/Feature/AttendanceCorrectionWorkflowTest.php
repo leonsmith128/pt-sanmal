@@ -264,3 +264,29 @@ it('allows a new correction request after the previous pending request was cance
     expect(AttendanceCorrection::query()->count())->toBe(2)
         ->and(AttendanceCorrection::query()->latest('id')->first()->status)->toBe('pending');
 });
+
+it('does not allow an administrator to approve a correction after the employee cancelled it', function () {
+    [$user, $employee] = correctionEmployeeUser();
+    $record = correctionClockIn($employee);
+    $requestedAt = $record->recorded_at->copy()->subMinutes(10);
+    $correction = AttendanceCorrection::create([
+        'employee_id' => $employee->id,
+        'attendance_record_id' => $record->id,
+        'session_anchor_id' => $record->id,
+        'requested_type' => 'clock_in',
+        'requested_recorded_at' => $requestedAt,
+        'attendance_date' => $requestedAt->copy()->setTimezone('Asia/Makassar')->toDateString(),
+        'reason' => 'Permohonan yang dibatalkan pegawai.',
+        'status' => 'cancelled',
+    ]);
+
+    $admin = correctionAdminUser();
+
+    $this->actingAs($admin)->post(route('admin.attendance-corrections.decide', $correction), [
+        'decision' => 'approved',
+        'review_note' => 'Tidak boleh diproses setelah pembatalan.',
+    ])->assertUnprocessable();
+
+    expect($correction->fresh()->status)->toBe('cancelled')
+        ->and($record->fresh()->approvedCorrection)->toBeNull();
+});
