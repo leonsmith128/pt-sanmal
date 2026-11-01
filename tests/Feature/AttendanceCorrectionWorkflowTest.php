@@ -312,3 +312,44 @@ it('shows cancelled corrections with a localized status in the administrator que
         ->assertSee('Dibatalkan')
         ->assertDontSee('Cancelled');
 });
+
+
+it('accepts a correction attachment up to 1 MB', function () {
+    [$user, $employee] = correctionEmployeeUser();
+    $record = correctionClockIn($employee);
+    $requestedLocal = $record->recorded_at->copy()->setTimezone('Asia/Makassar')->subMinutes(10);
+
+    Storage::fake('local');
+
+    $this->actingAs($user)->post(route('attendance-corrections.store'), [
+        'requested_type' => 'clock_in',
+        'attendance_record_id' => $record->id,
+        'requested_recorded_at_local' => $requestedLocal->format('Y-m-d\\\\TH:i'),
+        'reason' => 'Waktu masuk sesuai dokumen pendukung.',
+        'attachment' => UploadedFile::fake()->create('bukti.pdf', 1024, 'application/pdf'),
+    ])->assertRedirect(route('leave-requests.index'));
+
+    $correction = AttendanceCorrection::query()->firstOrFail();
+
+    expect($correction->attachment_path)->not->toBeNull();
+    Storage::disk('local')->assertExists($correction->attachment_path);
+});
+
+it('rejects correction attachments larger than 1 MB', function () {
+    [$user, $employee] = correctionEmployeeUser();
+    $record = correctionClockIn($employee);
+    $requestedLocal = $record->recorded_at->copy()->setTimezone('Asia/Makassar')->subMinutes(10);
+
+    Storage::fake('local');
+
+    $this->actingAs($user)->from(route('attendance-corrections.create'))->post(route('attendance-corrections.store'), [
+        'requested_type' => 'clock_in',
+        'attendance_record_id' => $record->id,
+        'requested_recorded_at_local' => $requestedLocal->format('Y-m-d\\\\TH:i'),
+        'reason' => 'Waktu masuk sesuai dokumen pendukung.',
+        'attachment' => UploadedFile::fake()->create('bukti.pdf', 1025, 'application/pdf'),
+    ])->assertRedirect(route('attendance-corrections.create'))
+        ->assertSessionHasErrors('attachment');
+
+    expect(AttendanceCorrection::query()->count())->toBe(0);
+});
