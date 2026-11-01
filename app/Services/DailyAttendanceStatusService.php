@@ -189,11 +189,11 @@ class DailyAttendanceStatusService
             ];
         }
 
-        $unanchoredEvents = $events->contains(fn (AttendanceRecord $event) =>
-            in_array($event->type->value, ['clock_in', 'clock_out', 'overtime_start'], true)
-            && $event->exists
-            && $event->session_anchor_id === null
-        );
+        $unanchoredEvents = $events->contains(function (AttendanceRecord $event): bool {
+            return in_array($event->type->value, ['clock_in', 'clock_out', 'overtime_start'], true)
+                && $event->exists
+                && $event->session_anchor_id === null;
+        });
 
         if ($unanchoredEvents) {
             return $this->reviewResult($events, $leaveRequests, null, 'Terdapat event sesi lama yang belum dapat dipasangkan dengan Clock In secara pasti.');
