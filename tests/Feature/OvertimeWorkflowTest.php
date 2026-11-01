@@ -648,7 +648,6 @@ it('rejects an overtime request created after the target date session has alread
     expect(OvertimeRequest::query()->where('employee_id', $employee->id)->count())->toBe(0);
 });
 
-
 it('does not allow an overtime request rejected by admin to start', function () {
     Storage::fake('local');
     $employee = overtimeEmployee();
