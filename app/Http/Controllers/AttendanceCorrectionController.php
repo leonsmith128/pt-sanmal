@@ -43,7 +43,7 @@ class AttendanceCorrectionController extends Controller
             'requested_type' => ['required', 'in:clock_in,clock_out'],
             'attendance_record_id' => ['nullable', 'integer', 'exists:attendance_records,id'],
             'session_anchor_id' => ['nullable', 'integer', 'exists:attendance_records,id'],
-            'requested_recorded_at_local' => ['required', 'date_format:Y-m-d\TH:i'],
+            'requested_recorded_at_local' => ['required', 'date_format:Y-m-d\\TH:i'],
             'reason' => ['required', 'string', 'min:5', 'max:2000'],
             'attachment' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
         ]);
@@ -54,7 +54,7 @@ class AttendanceCorrectionController extends Controller
             ]);
         }
 
-        $attachmentPath = $request->file('attachment')?->store('attendance-corrections');
+        $attachmentPath = $request->file('attachment')?->store('attendance-corrections', 'local');
 
         try {
             DB::transaction(function () use ($request, $employee, $data, $attachmentPath): void {
@@ -88,7 +88,7 @@ class AttendanceCorrectionController extends Controller
                     abort_if(RecordAttendance::openSession($employee)?->id !== $anchor->id, 422, 'Sesi ini tidak lagi menjadi sesi absensi yang terbuka.');
                 }
 
-                $requestedAt = Carbon::createFromFormat('!Y-m-d\TH:i', $data['requested_recorded_at_local'], $anchor->timezone);
+                $requestedAt = Carbon::createFromFormat('!Y-m-d\\TH:i', $data['requested_recorded_at_local'], $anchor->timezone);
                 abort_if($requestedAt->isFuture(), 422, 'Waktu koreksi tidak boleh berada di masa depan.');
                 if ($data['requested_type'] === 'clock_out') {
                     abort_if($requestedAt->lte($anchor->effectiveRecordedAt()), 422, 'Waktu Clock Out harus setelah Clock In.');
@@ -130,7 +130,7 @@ class AttendanceCorrectionController extends Controller
                     userId: $request->user()->id,
                 );
             });
-        } catch (\Throwable $exception) {
+        } catch (\\Throwable $exception) {
             if ($attachmentPath) {
                 Storage::disk('local')->delete($attachmentPath);
             }
