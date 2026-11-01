@@ -247,14 +247,6 @@ it('enforces location ownership and requires every project to have a location', 
         'attendance_date' => now('Asia/Makassar')->toDateString(),
     ]);
 
-    $otherClient = Client::query()->create([
-        'code' => 'CL-HISTORY-OWNER',
-        'name' => 'Client untuk uji riwayat',
-    ]);
-
-    expect(fn () => $site->update(['client_id' => $otherClient->id]))
-        ->toThrow(ValidationException::class);
-
     $otherSite = Location::query()->create([
         'client_id' => $client->id,
         'name' => 'Site Kedua',
@@ -264,6 +256,14 @@ it('enforces location ownership and requires every project to have a location', 
     ]);
 
     $project->update(['location_id' => $otherSite->id]);
+
+    $otherClient = Client::query()->create([
+        'code' => 'CL-HISTORY-OWNER',
+        'name' => 'Client untuk uji riwayat',
+    ]);
+
+    expect(fn () => $site->update(['client_id' => $otherClient->id]))
+        ->toThrow(ValidationException::class);
 
     expect($project->fresh()->location_id)->toBe($otherSite->id)
         ->and($attendance->fresh()->location_id)->toBe($site->id);
