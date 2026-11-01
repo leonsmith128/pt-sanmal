@@ -1,9 +1,9 @@
 <?php
 
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
+use Illuminate\\Database\\Migrations\\Migration;
+use Illuminate\\Database\\Schema\\Blueprint;
+use Illuminate\\Support\\Facades\\DB;
+use Illuminate\\Support\\Facades\\Schema;
 
 return new class extends Migration
 {
@@ -25,14 +25,18 @@ return new class extends Migration
             $table->index(['client_id', 'is_active']);
         });
 
-        DB::statement(<<<'SQL'
-            ALTER TABLE locations
-            ADD CONSTRAINT locations_type_client_consistency_check
-            CHECK (
-                (type = 'office' AND client_id IS NULL)
-                OR (type = 'site' AND client_id IS NOT NULL)
-            )
-        SQL);
+        // SQLite tidak mendukung ALTER TABLE ... ADD CONSTRAINT.
+        // Constraint DB dipasang pada MySQL/MariaDB; validasi model tetap berlaku lintas driver.
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement(<<<'SQL'
+                ALTER TABLE locations
+                ADD CONSTRAINT locations_type_client_consistency_check
+                CHECK (
+                    (type = 'office' AND client_id IS NULL)
+                    OR (type = 'site' AND client_id IS NOT NULL)
+                )
+            SQL);
+        }
     }
 
     public function down(): void
