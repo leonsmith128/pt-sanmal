@@ -192,7 +192,6 @@ it('excludes employees with approved leave requests from notYetPresent on admin 
         ->assertSet('notYetPresent', fn ($list) => $list->doesntContain('id', $emp->id));
 });
 
-
 it('rejects overlapping leave requests while a previous request is pending or approved', function () {
     $user = createUserWithRole(UserRole::Employee);
     $employee = createEmployeeFor($user);
