@@ -201,3 +201,34 @@ it('exports admin daily rows for every employee including dates without attendan
         ->and($csv)->toContain('2026-10-31')
         ->and($csv)->toContain('Belum ada data');
 });
+
+it('includes forgotten clock-out correction status and note in the daily export', function () {
+    $employee = dateFilterEmployee('Pegawai Koreksi Lupa Pulang');
+    $clockIn = AttendanceRecord::query()->create([
+        'employee_id' => $employee->id,
+        'type' => AttendanceType::ClockIn,
+        'work_type' => WorkType::Office,
+        'recorded_at' => '2026-10-30 01:00:00',
+        'timezone' => 'Asia/Makassar',
+        'attendance_date' => '2026-10-30',
+    ]);
+
+    AttendanceCorrection::query()->create([
+        'employee_id' => $employee->id,
+        'attendance_record_id' => null,
+        'session_anchor_id' => $clockIn->id,
+        'requested_type' => AttendanceType::ClockOut->value,
+        'requested_recorded_at' => '2026-10-30 09:00:00',
+        'attendance_date' => '2026-10-30',
+        'reason' => 'Lupa melakukan Clock Out karena pekerjaan lapangan.',
+        'status' => 'pending',
+    ]);
+
+    $csv = $this->actingAs($employee->user)
+        ->get(route('attendance-history.export', ['from' => '2026-10-30', 'to' => '2026-10-30']))
+        ->streamedContent();
+
+    expect($csv)
+        ->toContain('Menunggu')
+        ->toContain('Lupa melakukan Clock Out karena pekerjaan lapangan.');
+});
