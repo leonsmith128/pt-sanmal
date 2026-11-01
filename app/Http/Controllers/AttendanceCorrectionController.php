@@ -45,7 +45,7 @@ class AttendanceCorrectionController extends Controller
             'session_anchor_id' => ['nullable', 'integer', 'exists:attendance_records,id'],
             'requested_recorded_at_local' => ['required', 'date_format:Y-m-d\\TH:i'],
             'reason' => ['required', 'string', 'min:5', 'max:2000'],
-            'attachment' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
+            'attachment' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:1024'],
         ]);
 
         if (empty($data['attendance_record_id']) && ($data['requested_type'] !== 'clock_out' || empty($data['session_anchor_id']))) {
