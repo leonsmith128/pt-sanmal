@@ -30,8 +30,8 @@
                             {{ $correction->requested_recorded_at->format('H:i') }}
                         </p>
                     </div>
-                    <flux:badge :color="$correction->status === 'pending' ? 'amber' : ($correction->status === 'approved' ? 'green' : 'red')">
-                        {{ ucfirst($correction->status) }}
+                    <flux:badge :color="match($correction->status) { 'pending' => 'amber', 'approved' => 'green', 'rejected' => 'red', 'cancelled' => 'zinc', default => 'zinc' }">
+                        {{ match($correction->status) { 'pending' => 'Menunggu', 'approved' => 'Disetujui', 'rejected' => 'Ditolak', 'cancelled' => 'Dibatalkan', default => ucfirst($correction->status) } }}
                     </flux:badge>
                 </a>
             @empty
