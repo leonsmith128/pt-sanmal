@@ -90,7 +90,7 @@ class ConfirmOvertimeStart
                     'recorded_at' => $now,
                     'captured_at' => $capturedAt,
                     'timezone' => $locked->timezone,
-                    'attendance_date' => $clockIn->attendance_date->toDateString(),
+                    'attendance_date' => $clockIn->effectiveAttendanceDate(),
                     'latitude' => $latitude,
                     'longitude' => $longitude,
                     'accuracy_m' => $accuracy,

@@ -50,10 +50,6 @@ class DailyAttendanceStatusService
             ->whereIn('employee_id', $employeeIds)
             ->where(function ($query) use ($start, $end): void {
                 $query->whereBetween('attendance_date', [$start, $end])
-                    ->orWhereBetween('attendance_date', [
-                        Carbon::parse($start)->subDay()->toDateString(),
-                        Carbon::parse($end)->addDay()->toDateString(),
-                    ])
                     ->orWhereHas('approvedCorrection', fn ($correctionQuery) => $correctionQuery
                         ->whereBetween('attendance_date', [$start, $end]))
                     ->orWhereHas('sessionAnchor', fn ($anchorQuery) => $anchorQuery
@@ -193,8 +189,21 @@ class DailyAttendanceStatusService
             ];
         }
 
+        $unanchoredEvents = $events->contains(fn (AttendanceRecord $event) =>
+            in_array($event->type->value, ['clock_out', 'overtime_start'], true)
+            && $event->session_anchor_id === null
+        );
+
+        if ($unanchoredEvents) {
+            return $this->reviewResult($events, $leaveRequests, null, 'Terdapat event sesi lama yang belum dapat dipasangkan dengan Clock In secara pasti.');
+        }
+
         $clockInCount = $events->filter(fn (AttendanceRecord $event) => $event->type->value === 'clock_in')->count();
         $clockOutCount = $events->filter(fn (AttendanceRecord $event) => $event->type->value === 'clock_out')->count();
+
+        if ($clockInCount === 0 && ($clockOutCount > 0 || $events->contains(fn (AttendanceRecord $event) => $event->type->value === 'overtime_start'))) {
+            return $this->reviewResult($events, $leaveRequests, null, 'Ditemukan event tanpa Clock In anchor yang dapat diverifikasi.');
+        }
 
         if ($clockInCount > 1 || $clockOutCount > 1) {
             return $this->reviewResult(
