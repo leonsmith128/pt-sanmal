@@ -170,11 +170,9 @@ class RecordAttendance
                     'recorded_at' => $now,
                     'captured_at' => $capturedAt,
                     'timezone' => $timezone,
-                    'attendance_date' => (
-                        $type === AttendanceType::ClockOut
-                            ? $open->effectiveAttendanceDate()
-                            : $now->copy()->setTimezone($timezone)
-                    )->toDateString(),
+                    'attendance_date' => $type === AttendanceType::ClockOut
+                        ? $open->effectiveAttendanceDate()
+                        : $now->copy()->setTimezone($timezone)->toDateString(),
                     'latitude' => $latitude,
                     'longitude' => $longitude,
                     'accuracy_m' => $accuracy,
