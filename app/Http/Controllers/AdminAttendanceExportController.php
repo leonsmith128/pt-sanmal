@@ -1,19 +1,29 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\\Http\\Controllers;
 
-use App\Enums\AttendanceType;
-use App\Enums\WorkType;
-use App\Models\AttendanceRecord;
-use App\Support\AttendanceDateFilter;
-use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
-use Symfony\Component\HttpFoundation\StreamedResponse;
+use App\\Enums\\AttendanceType;
+use App\\Enums\\WorkType;
+use App\\Models\\AttendanceRecord;
+use App\\Models\\DailyStatusCorrection;
+use App\\Models\\Employee;
+use App\\Models\\LeaveRequest;
+use App\\Services\\DailyAttendanceExportService;
+use App\\Services\\DailyAttendanceStatusService;
+use Illuminate\\Database\\Eloquent\\Builder;
+use Illuminate\\Http\\Request;
+use Illuminate\\Support\\Carbon;
+use Illuminate\\Support\\Collection;
+use Illuminate\\Validation\\Rule;
+use Symfony\\Component\\HttpFoundation\\StreamedResponse;
 
 class AdminAttendanceExportController extends Controller
 {
-    public function export(Request $request): StreamedResponse
-    {
+    public function export(
+        Request $request,
+        DailyAttendanceStatusService $statusService,
+        DailyAttendanceExportService $exportService,
+    ): StreamedResponse {
         $filters = $request->validate([
             'from' => ['nullable', 'date_format:Y-m-d'],
             'to' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:from'],
@@ -23,68 +33,44 @@ class AdminAttendanceExportController extends Controller
             'work_type' => ['nullable', Rule::enum(WorkType::class)],
         ]);
 
-        $records = AttendanceRecord::query()
-            ->with(['employee.user', 'location', 'project', 'approvedCorrection', 'sessionAnchor.approvedCorrection']);
+        $today = Carbon::now('Asia/Makassar')->startOfDay();
+        $from = $filters['from'] ?? $this->earliestAvailableDate();
+        $to = $filters['to'] ?? $today->toDateString();
+        $start = Carbon::parse($from, 'Asia/Makassar')->startOfDay();
+        $end = Carbon::parse($to, 'Asia/Makassar')->startOfDay();
 
-        AttendanceDateFilter::apply($records, $filters['from'] ?? null, $filters['to'] ?? null);
-
-        $records = $records
-            ->when($filters['employee_id'] ?? null, fn ($query, $employeeId) => $query->where('employee_id', $employeeId))
-            ->when($filters['attendance_type'] ?? null, fn ($query, $type) => $query->where('type', $type))
-            ->when($filters['work_type'] ?? null, fn ($query, $type) => $query->where('work_type', $type))
-            ->when(trim($filters['search'] ?? '') !== '', function ($query) use ($filters): void {
+        $employees = Employee::query()
+            ->when($filters['employee_id'] ?? null, fn (Builder $query, $id) => $query->whereKey($id))
+            ->when(trim($filters['search'] ?? '') !== '', function (Builder $query) use ($filters): void {
                 $term = trim($filters['search']);
-                $query->where(function ($nested) use ($term): void {
-                    $nested->whereHas('employee.user', fn ($userQuery) => $userQuery->where('name', 'like', '%'.$term.'%'))
-                        ->orWhereHas('employee', fn ($employeeQuery) => $employeeQuery->where('employee_number', 'like', '%'.$term.'%'))
-                        ->orWhere('notes', 'like', '%'.$term.'%');
+                $query->where(function (Builder $nested) use ($term): void {
+                    $nested->whereHas('user', fn (Builder $user) => $user->where('name', 'like', '%'.$term.'%'))
+                        ->orWhere('employee_number', 'like', '%'.$term.'%')
+                        ->orWhereHas('attendanceRecords', fn (Builder $records) => $records->where('notes', 'like', '%'.$term.'%'));
                 });
-            })
-            ->orderByRaw("COALESCE((SELECT ac.requested_recorded_at FROM attendance_corrections ac WHERE ac.attendance_record_id = attendance_records.id AND ac.status = 'approved' ORDER BY ac.reviewed_at DESC LIMIT 1), attendance_records.recorded_at) DESC")
-            ->orderByDesc('id');
-
-        $filename = 'aktivitas-absensi-'.now()->format('Ymd-His').'.csv';
-
-        return response()->streamDownload(function () use ($records): void {
-            $stream = fopen('php://output', 'w');
-            if ($stream === false) {
-                return;
-            }
-
-            fwrite($stream, "\xEF\xBB\xBF");
-            fputcsv($stream, ['Waktu', 'Nomor Pegawai', 'Nama', 'Jenis Absensi', 'Jenis Kerja', 'Lokasi / Proyek', 'Latitude', 'Longitude', 'Catatan']);
-
-            $records->chunk(500, function ($chunk) use ($stream): void {
-                foreach ($chunk as $record) {
-                    fputcsv($stream, array_map($this->spreadsheetSafe(...), [
-                        $record->effectiveRecordedAtLocal()->format('Y-m-d H:i:s'),
-                        $record->employee->employee_number,
-                        $record->employee->user->name,
-                        $record->type->label(),
-                        $record->work_type->label(),
-                        $record->project?->name && $record->location?->name
-                            ? $record->project->name.' — '.$record->location->name
-                            : ($record->project?->name ?? $record->location?->name ?? ''),
-                        $record->latitude,
-                        $record->longitude,
-                        $record->notes,
-                    ]));
-                }
             });
 
-            fclose($stream);
+        $filename = 'rekap-absensi-admin-'.$start->format('Ymd').'-'.$end->format('Ymd').'.csv';
+
+        return response()->streamDownload(function () use ($employees, $start, $end, $filters, $statusService, $exportService): void {
+            $exportService->stream($employees, $start, $end, $statusService, $filters);
         }, $filename, [
             'Content-Type' => 'text/csv; charset=UTF-8',
             'Cache-Control' => 'private, no-store, no-cache, must-revalidate',
         ]);
     }
 
-    private function spreadsheetSafe(mixed $value): string
+    private function earliestAvailableDate(): string
     {
-        $value = (string) ($value ?? '');
+        $attendance = AttendanceRecord::query()
+            ->where(fn (Builder $query) => $query->whereNull('session_anchor_id')->orWhereColumn('session_anchor_id', 'id'))
+            ->selectRaw("MIN(COALESCE((SELECT ac.attendance_date FROM attendance_corrections ac WHERE ac.attendance_record_id = attendance_records.id AND ac.status = 'approved' ORDER BY ac.reviewed_at DESC LIMIT 1), attendance_records.attendance_date)) AS earliest_date")
+            ->value('earliest_date');
 
-        return preg_match('/^[\s\x00-\x1F]*[=+\-@]/u', $value) === 1
-            ? "'".$value
-            : $value;
+        $leave = LeaveRequest::query()->where('status', 'approved')->min('start_date');
+        $correction = DailyStatusCorrection::query()->min('attendance_date');
+
+        return collect([$attendance, $leave, $correction])->filter()->sort()->first()
+            ?? Carbon::now('Asia/Makassar')->toDateString();
     }
 }
