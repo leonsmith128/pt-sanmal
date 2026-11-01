@@ -14,10 +14,9 @@ return new class extends Migration
             $table->string('name');
             $table->text('address')->nullable();
             $table->string('phone', 30)->nullable();
-            $table->boolean('is_active')->default(true);
             $table->timestamps();
 
-            $table->index(['is_active', 'name']);
+            $table->index('name');
         });
     }
 
