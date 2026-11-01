@@ -8,6 +8,7 @@ use App\Models\AttendanceRecord;
 use App\Models\AuditLog;
 use App\Models\Employee;
 use App\Models\User;
+use App\Support\AttendanceSessionTimeline;
 use Illuminate\Support\Facades\DB;
 
 class ApproveAttendanceCorrection
@@ -52,7 +53,7 @@ class ApproveAttendanceCorrection
                     ->firstOrFail();
 
                 $requestedAt = $locked->requested_recorded_at;
-                $timeline = new AttendanceSessionTimeline();
+                $timeline = new AttendanceSessionTimeline;
                 $requestedLocal = $requestedAt->copy()->setTimezone($anchor->timezone);
                 abort_if($requestedAt->isFuture(), 422, 'Waktu koreksi tidak boleh berada di masa depan.');
 
