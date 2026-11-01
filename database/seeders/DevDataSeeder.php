@@ -56,7 +56,7 @@ class DevDataSeeder extends Seeder
                 'is_active' => true,
             ]);
 
-            $project = Project::firstOrCreate(['code' => 'PRJ-001'], [
+            Project::firstOrCreate(['code' => 'PRJ-001'], [
                 'name' => 'Proyek Kalibrasi Contoh',
                 'location_id' => $site->id,
                 'status' => ProjectStatus::Active->value,
