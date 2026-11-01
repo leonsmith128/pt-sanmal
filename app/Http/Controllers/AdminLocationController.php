@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\ProjectStatus;
 use App\Models\Client;
 use App\Models\Location;
 use DateTimeZone;
@@ -10,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 use Illuminate\View\View;
+use Illuminate\Validation\ValidationException;
 
 class AdminLocationController extends Controller
 {
@@ -42,14 +44,13 @@ class AdminLocationController extends Controller
     public function create(): View
     {
         return view('pages::admin.locations.create', [
-            'clients' => Client::query()->where('is_active', true)->orderBy('name')->get(),
+            'clients' => Client::query()->orderBy('name')->get(),
         ]);
     }
 
     public function store(Request $request): RedirectResponse
     {
-        $data = $this->validatedData($request);
-        Location::create($data);
+        Location::create($this->validatedData($request));
 
         return redirect()->route('admin.locations.index')->with('status', 'Lokasi berhasil ditambahkan.');
     }
@@ -58,15 +59,30 @@ class AdminLocationController extends Controller
     {
         return view('pages::admin.locations.edit', [
             'location' => $location,
-            'clients' => Client::query()->where('is_active', true)
-                ->orWhereKey($location->client_id)
-                ->orderBy('name')->get(),
+            'clients' => Client::query()->orderBy('name')->get(),
         ]);
     }
 
     public function update(Request $request, Location $location): RedirectResponse
     {
-        $location->update($this->validatedData($request));
+        $data = $this->validatedData($request);
+
+        if (! $data['is_active'] && $location->projects()->where('status', ProjectStatus::Active)->exists()) {
+            throw ValidationException::withMessages([
+                'is_active' => 'Lokasi tidak dapat dinonaktifkan selama masih memiliki Project aktif.',
+            ]);
+        }
+
+        if ($location->projects()->exists() && (
+            $data['type'] !== $location->type
+            || $data['client_id'] !== $location->client_id
+        )) {
+            throw ValidationException::withMessages([
+                'type' => 'Jenis dan pemilik lokasi tidak dapat diubah setelah lokasi digunakan oleh Project.',
+            ]);
+        }
+
+        $location->update($data);
 
         return redirect()->route('admin.locations.index')->with('status', 'Data lokasi berhasil diperbarui.');
     }
@@ -90,6 +106,17 @@ class AdminLocationController extends Controller
         $validator->after(function (Validator $validator) use ($request): void {
             if ($request->filled('latitude') xor $request->filled('longitude')) {
                 $validator->errors()->add('latitude', 'Koordinat latitude dan longitude harus diisi berpasangan.');
+            }
+
+            $type = $request->input('type');
+            $clientId = $request->input('client_id');
+
+            if ($type === 'office' && filled($clientId)) {
+                $validator->errors()->add('client_id', 'Lokasi Office internal tidak boleh memiliki Client.');
+            }
+
+            if ($type === 'site' && blank($clientId)) {
+                $validator->errors()->add('client_id', 'Lokasi Site wajib dimiliki oleh Client.');
             }
         });
 
