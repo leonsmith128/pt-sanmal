@@ -4,20 +4,22 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * @property int $id
+ * @property int|null $client_id
  * @property string $name
  * @property string $type
  * @property string|null $address
  * @property string|null $latitude
  * @property string|null $longitude
- * @property int|null $geofence_radius_m
  * @property string $timezone
  * @property bool $is_active
+ * @property-read Client|null $client
  */
-#[Fillable(['name', 'type', 'address', 'latitude', 'longitude', 'geofence_radius_m', 'timezone', 'is_active'])]
+#[Fillable(['client_id', 'name', 'type', 'address', 'latitude', 'longitude', 'timezone', 'is_active'])]
 class Location extends Model
 {
     protected function casts(): array
@@ -25,9 +27,13 @@ class Location extends Model
         return [
             'latitude' => 'decimal:7',
             'longitude' => 'decimal:7',
-            'geofence_radius_m' => 'integer',
             'is_active' => 'boolean',
         ];
+    }
+
+    public function client(): BelongsTo
+    {
+        return $this->belongsTo(Client::class);
     }
 
     public function projects(): HasMany

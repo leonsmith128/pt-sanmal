@@ -8,6 +8,8 @@ use App\Http\Controllers\AdminDailyAttendanceController;
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AdminEmployeeController;
 use App\Http\Controllers\AdminLeaveRequestController;
+use App\Http\Controllers\AdminClientController;
+use App\Http\Controllers\AdminLocationController;
 use App\Http\Controllers\AdminOvertimeRequestController;
 use App\Http\Controllers\AttendanceHistoryController;
 use App\Http\Controllers\AttendanceCorrectionController;
@@ -62,6 +64,9 @@ Route::middleware(['auth', EnsureUserIsActive::class, 'verified'])->group(functi
             Route::post('kehadiran/{record}/selfie/backup', [AttendanceSelfieDriveController::class, 'store'])->name('attendance.selfie.backup');
             Route::delete('kehadiran/{record}/selfie/local', [AttendanceSelfieDriveController::class, 'destroyLocal'])->name('attendance.selfie.delete-local');
             Route::post('kehadiran/{record}/koreksi-waktu', [AdminAttendanceCorrectionController::class, 'correctTimestamp'])->name('kehadiran.correct-timestamp');
+
+            Route::resource('clients', AdminClientController::class)->except(['destroy']);
+            Route::resource('locations', AdminLocationController::class)->except(['destroy']);
 
             Route::resource('pegawai', AdminEmployeeController::class)
                 ->parameters(['pegawai' => 'employee'])
