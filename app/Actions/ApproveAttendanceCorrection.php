@@ -29,8 +29,21 @@ class ApproveAttendanceCorrection
             ];
 
             if ($decision === 'approved') {
+                $anchorId = $locked->session_anchor_id;
+
+                if ($anchorId === null && $locked->attendance_record_id !== null) {
+                    $targetRecord = AttendanceRecord::query()
+                        ->whereKey($locked->attendance_record_id)
+                        ->where('employee_id', $locked->employee_id)
+                        ->firstOrFail();
+                    $anchorId = $targetRecord->session_anchor_id
+                        ?? ($targetRecord->type === AttendanceType::ClockIn ? $targetRecord->id : null);
+                }
+
+                abort_if($anchorId === null, 422, 'Permohonan tidak memiliki anchor sesi yang dapat diverifikasi.');
+
                 $anchor = AttendanceRecord::query()
-                    ->whereKey($locked->session_anchor_id)
+                    ->whereKey($anchorId)
                     ->where('employee_id', $locked->employee_id)
                     ->where('type', AttendanceType::ClockIn)
                     ->whereColumn('session_anchor_id', 'id')
@@ -102,6 +115,7 @@ class ApproveAttendanceCorrection
             }
 
             $locked->update([
+                'session_anchor_id' => $locked->session_anchor_id ?? ($anchorId ?? null),
                 'status' => $decision,
                 'review_note' => $reviewNote,
                 'reviewed_by' => $reviewer->id,
