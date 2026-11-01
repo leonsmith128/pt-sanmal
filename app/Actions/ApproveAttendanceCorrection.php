@@ -28,9 +28,9 @@ class ApproveAttendanceCorrection
                 'attendance_record_id' => $locked->attendance_record_id,
             ];
 
-            if ($decision === 'approved') {
-                $anchorId = $locked->session_anchor_id;
+            $anchorId = $locked->session_anchor_id;
 
+            if ($decision === 'approved') {
                 if ($anchorId === null && $locked->attendance_record_id !== null) {
                     $targetRecord = AttendanceRecord::query()
                         ->whereKey($locked->attendance_record_id)
@@ -115,7 +115,7 @@ class ApproveAttendanceCorrection
             }
 
             $locked->update([
-                'session_anchor_id' => $locked->session_anchor_id ?? ($anchorId ?? null),
+                'session_anchor_id' => $anchorId,
                 'status' => $decision,
                 'review_note' => $reviewNote,
                 'reviewed_by' => $reviewer->id,
