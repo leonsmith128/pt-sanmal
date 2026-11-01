@@ -452,3 +452,59 @@ it('rejects a direct clock-in correction that overlaps the previous session', fu
 
     expect($targetClockIn->fresh()->approvedCorrection)->toBeNull();
 });
+
+
+it('shows the current effective timestamp when an older approved correction detail is opened', function () {
+    $employeeUser = User::factory()->create();
+    $employee = Employee::create(['user_id' => $employeeUser->id]);
+    $originalTime = now()->subHours(4);
+    $record = AttendanceRecord::create([
+        'employee_id' => $employee->id,
+        'type' => AttendanceType::ClockIn,
+        'work_type' => WorkType::Office,
+        'recorded_at' => $originalTime,
+        'timezone' => 'Asia/Makassar',
+        'attendance_date' => $originalTime->copy()->setTimezone('Asia/Makassar')->toDateString(),
+    ]);
+
+    $firstRequestedAt = now()->subHours(3);
+    $firstCorrection = AttendanceCorrection::create([
+        'employee_id' => $employee->id,
+        'attendance_record_id' => $record->id,
+        'session_anchor_id' => $record->id,
+        'requested_type' => AttendanceType::ClockIn->value,
+        'requested_recorded_at' => $firstRequestedAt,
+        'attendance_date' => $firstRequestedAt->copy()->setTimezone('Asia/Makassar')->toDateString(),
+        'reason' => 'Koreksi pertama berdasarkan bukti pendukung.',
+        'status' => 'approved',
+        'reviewed_at' => now()->subMinutes(2),
+    ]);
+
+    $secondRequestedAt = now()->subHours(2);
+    AttendanceCorrection::create([
+        'employee_id' => $employee->id,
+        'attendance_record_id' => $record->id,
+        'session_anchor_id' => $record->id,
+        'requested_type' => AttendanceType::ClockIn->value,
+        'requested_recorded_at' => $secondRequestedAt,
+        'attendance_date' => $secondRequestedAt->copy()->setTimezone('Asia/Makassar')->toDateString(),
+        'reason' => 'Koreksi lanjutan berdasarkan bukti yang lebih lengkap.',
+        'status' => 'approved',
+        'reviewed_at' => now()->subMinute(),
+    ]);
+
+    $admin = User::factory()->create();
+    $admin->forceFill(['role' => UserRole::Admin, 'is_active' => true])->save();
+
+    $requestedLocal = $firstRequestedAt->copy()->setTimezone('Asia/Makassar');
+    $effectiveLocal = $secondRequestedAt->copy()->setTimezone('Asia/Makassar');
+
+    $this->actingAs($admin)
+        ->get(route('admin.attendance-corrections.show', $firstCorrection))
+        ->assertOk()
+        ->assertSee(__('Waktu yang diminta'))
+        ->assertSee($requestedLocal->format('d M Y H:i T'))
+        ->assertSee(__('Waktu efektif saat ini'))
+        ->assertSee($effectiveLocal->format('d M Y H:i T'))
+        ->assertSee('koreksi yang lebih baru');
+});
