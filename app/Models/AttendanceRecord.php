@@ -113,6 +113,11 @@ class AttendanceRecord extends Model
         return $this->hasMany(AttendanceCorrection::class);
     }
 
+    public function sessionCorrections(): HasMany
+    {
+        return $this->hasMany(AttendanceCorrection::class, 'session_anchor_id');
+    }
+
     public function employee(): BelongsTo
     {
         return $this->belongsTo(Employee::class);
