@@ -7,7 +7,7 @@
             </div>
             <div class="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
                 <flux:button href="{{ route('attendance-history.export', request()->query()) }}" variant="outline" icon="arrow-down-tray" class="w-full sm:w-auto">
-                    {{ __('Ekspor Excel (CSV)') }}
+                    {{ __('Ekspor rekap harian (CSV)') }}
                 </flux:button>
                 <flux:button href="{{ route('attendance') }}" variant="primary" icon="clock" class="w-full sm:w-auto">
                     {{ __('Buka halaman absensi') }}
