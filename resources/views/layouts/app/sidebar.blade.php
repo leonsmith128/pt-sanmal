@@ -61,7 +61,7 @@
                         <flux:sidebar.item icon="users" :href="route('admin.employees.index')" :current="request()->routeIs('admin.employees.*')" wire:navigate>
                             {{ __('Manajemen Pegawai') }}
                         </flux:sidebar.item>
-                        <flux:sidebar.item icon="building-2" :href="route('admin.clients.index')" :current="request()->routeIs('admin.clients.*')" wire:navigate>
+                        <flux:sidebar.item icon="building-office-2" :href="route('admin.clients.index')" :current="request()->routeIs('admin.clients.*')" wire:navigate>
                             {{ __('Master Client') }}
                         </flux:sidebar.item>
                         <flux:sidebar.item icon="map-pin" :href="route('admin.locations.index')" :current="request()->routeIs('admin.locations.*')" wire:navigate>
