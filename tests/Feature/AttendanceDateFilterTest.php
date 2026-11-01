@@ -76,9 +76,9 @@ it('filters sessions longer than 24 hours by their clock-in anchor date', functi
         ->streamedContent();
 
     expect($csv)
-        ->toContain('Clock In')
-        ->toContain('Clock Out')
-        ->toContain('2026-11-02 11:00:00');
+        ->toContain('Masuk')
+        ->toContain('Pulang')
+        ->toContain('2026-11-02 12:00:00');
 });
 
 it('uses the latest approved clock-in date correction as the session filter date', function () {
@@ -124,7 +124,7 @@ it('uses the latest approved clock-in date correction as the session filter date
 
     $csv = $response->streamedContent();
 
-    expect($response->status())->toBe(200)
+    expect($response->getStatusCode())->toBe(200)
         ->and($csv)->toContain('Pegawai Tanggal Koreksi')
         ->and($csv)->not->toContain('2026-10-30 01:00:00');
 });
