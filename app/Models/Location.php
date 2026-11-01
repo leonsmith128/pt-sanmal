@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Enums\ProjectStatus;
+use Illuminate\Validation\ValidationException;
 
 /**
  * @property int $id
@@ -22,6 +24,23 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 #[Fillable(['client_id', 'name', 'type', 'address', 'latitude', 'longitude', 'timezone', 'is_active'])]
 class Location extends Model
 {
+    protected static function booted(): void
+    {
+        static::updating(function (self $location): void {
+            if (! $location->is_active && $location->projects()->where('status', ProjectStatus::Active)->exists()) {
+                throw ValidationException::withMessages([
+                    'is_active' => 'Lokasi tidak dapat dinonaktifkan selama masih memiliki Project aktif.',
+                ]);
+            }
+
+            if ($location->projects()->exists() && ($location->isDirty('type') || $location->isDirty('client_id'))) {
+                throw ValidationException::withMessages([
+                    'type' => 'Jenis dan pemilik lokasi tidak dapat diubah setelah lokasi digunakan oleh Project.',
+                ]);
+            }
+        });
+    }
+
     protected function casts(): array
     {
         return [
