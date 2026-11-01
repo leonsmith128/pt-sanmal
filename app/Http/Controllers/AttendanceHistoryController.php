@@ -1,13 +1,19 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\\Http\\Controllers;
 
-use App\Models\Employee;
-use App\Support\AttendanceDateFilter;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Http\Request;
-use Illuminate\View\View;
-use Symfony\Component\HttpFoundation\StreamedResponse;
+use App\\Models\\AttendanceRecord;
+use App\\Models\\DailyStatusCorrection;
+use App\\Models\\Employee;
+use App\\Models\\LeaveRequest;
+use App\\Services\\DailyAttendanceExportService;
+use App\\Services\\DailyAttendanceStatusService;
+use App\\Support\\AttendanceDateFilter;
+use Illuminate\\Database\\Eloquent\\Builder;
+use Illuminate\\Http\\Request;
+use Illuminate\\Support\\Carbon;
+use Illuminate\\View\\View;
+use Symfony\\Component\\HttpFoundation\\StreamedResponse;
 
 class AttendanceHistoryController extends Controller
 {
@@ -31,49 +37,27 @@ class AttendanceHistoryController extends Controller
         ]);
     }
 
-    public function export(Request $request): StreamedResponse
-    {
+    public function export(
+        Request $request,
+        DailyAttendanceStatusService $statusService,
+        DailyAttendanceExportService $exportService,
+    ): StreamedResponse {
         $user = $request->user();
         $employee = $user->employee;
 
         abort_unless($user->is_active && $employee, 403, 'Akun ini belum terhubung dengan data pegawai aktif.');
 
         $filters = $this->validatedFilters($request);
-        $records = $this->attendanceQuery($employee, $filters)
-            ->orderByRaw("COALESCE((SELECT ac.requested_recorded_at FROM attendance_corrections ac WHERE ac.attendance_record_id = attendance_records.id AND ac.status = 'approved' ORDER BY ac.reviewed_at DESC LIMIT 1), attendance_records.recorded_at) ".$filters['direction'])
-            ->orderBy('id', $filters['direction'])
-            ->get();
+        $start = Carbon::parse($filters['from'] !== '' ? $filters['from'] : $this->earliestAvailableDate($employee), 'Asia/Makassar')->startOfDay();
+        $end = Carbon::parse($filters['to'] !== '' ? $filters['to'] : Carbon::now('Asia/Makassar')->toDateString(), 'Asia/Makassar')->startOfDay();
+        $employees = Employee::query()->whereKey($employee->id);
+        $filename = 'rekap-absensi-pegawai-'.$start->format('Ymd').'-'.$end->format('Ymd').'.csv';
 
-        $filename = 'riwayat-absensi-'.now()->format('Ymd-His').'.csv';
-
-        return response()->streamDownload(function () use ($records): void {
-            $stream = fopen('php://output', 'w');
-            // BOM membuat Excel lebih konsisten membaca karakter UTF-8.
-            fwrite($stream, "\xEF\xBB\xBF");
-            fputcsv($stream, [
-                'Waktu', 'Aktivitas', 'Jenis Kerja', 'Lokasi / Proyek',
-                'Alamat', 'Latitude', 'Longitude', 'Foto Tersedia',
-            ]);
-
-            foreach ($records as $record) {
-                fputcsv($stream, array_map($this->spreadsheetSafe(...), [
-                    $record->effectiveRecordedAtLocal()->format('Y-m-d H:i:s'),
-                    $record->type->label(),
-                    $record->work_type->label(),
-                    $record->project?->name && $record->location?->name
-                        ? $record->project->name.' — '.$record->location->name
-                        : ($record->project?->name ?? $record->location?->name ?? ''),
-                    $record->address_snapshot,
-                    $record->latitude,
-                    $record->longitude,
-                    $record->selfie_path ? 'Ya' : 'Tidak',
-                ]));
-            }
-
-            fclose($stream);
+        return response()->streamDownload(function () use ($employees, $start, $end, $statusService, $exportService): void {
+            $exportService->stream($employees, $start, $end, $statusService);
         }, $filename, [
             'Content-Type' => 'text/csv; charset=UTF-8',
-            'Cache-Control' => 'no-store, no-cache, must-revalidate',
+            'Cache-Control' => 'private, no-store, no-cache, must-revalidate',
         ]);
     }
 
@@ -92,28 +76,35 @@ class AttendanceHistoryController extends Controller
         return $query;
     }
 
+    private function earliestAvailableDate(Employee $employee): string
+    {
+        $attendance = AttendanceRecord::query()
+            ->where('employee_id', $employee->id)
+            ->where(fn (Builder $query) => $query->whereNull('session_anchor_id')->orWhereColumn('session_anchor_id', 'id'))
+            ->selectRaw("MIN(COALESCE((SELECT ac.attendance_date FROM attendance_corrections ac WHERE ac.attendance_record_id = attendance_records.id AND ac.status = 'approved' ORDER BY ac.reviewed_at DESC LIMIT 1), attendance_records.attendance_date)) AS earliest_date")
+            ->value('earliest_date');
+
+        $leave = LeaveRequest::query()->where('employee_id', $employee->id)->where('status', 'approved')->min('start_date');
+        $correction = DailyStatusCorrection::query()->where('employee_id', $employee->id)->min('attendance_date');
+
+        return collect([$attendance, $leave, $correction, $employee->joined_at?->toDateString()])
+            ->filter()->sort()->first() ?? Carbon::now('Asia/Makassar')->toDateString();
+    }
+
     private function validatedFilters(Request $request): array
     {
         $validated = $request->validate([
-            'from' => ['nullable', 'date'],
-            'to' => ['nullable', 'date', 'after_or_equal:from'],
+            'from' => ['nullable', 'date_format:Y-m-d'],
+            'to' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:from'],
             'direction' => ['nullable', 'string', 'in:asc,desc'],
         ], [
             'to.after_or_equal' => 'Tanggal akhir tidak boleh sebelum tanggal awal.',
         ]);
 
         return [
-            'from' => isset($validated['from']) ? date('Y-m-d', strtotime($validated['from'])) : '',
-            'to' => isset($validated['to']) ? date('Y-m-d', strtotime($validated['to'])) : '',
+            'from' => $validated['from'] ?? '',
+            'to' => $validated['to'] ?? '',
             'direction' => $validated['direction'] ?? 'desc',
         ];
-    }
-
-    private function spreadsheetSafe(mixed $value): string
-    {
-        $value = (string) ($value ?? '');
-
-        // Cegah teks yang tidak tepercaya dieksekusi sebagai formula spreadsheet.
-        return preg_match('/^[\s\x00-\x1F]*[=+\-@]/u', $value) === 1 ? "'".$value : $value;
     }
 }
