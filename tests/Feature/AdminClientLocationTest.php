@@ -2,10 +2,18 @@
 
 use App\Enums\UserRole;
 use App\Models\Client;
-use App\Models\Location;
+use App\Models\User;
+
+function clientLocationAdminUser(): User
+{
+    $user = User::factory()->create();
+    $user->forceFill(['role' => UserRole::Admin, 'is_active' => true])->save();
+
+    return $user;
+}
 
 it('allows administrators to manage client master data', function () {
-    $admin = adminAccessUser(UserRole::Admin);
+    $admin = clientLocationAdminUser();
 
     $this->actingAs($admin)
         ->get(route('admin.clients.index'))
@@ -47,7 +55,7 @@ it('allows administrators to manage client master data', function () {
 });
 
 it('allows administrators to manage client and internal locations with valid timezone coordinates', function () {
-    $admin = adminAccessUser(UserRole::Admin);
+    $admin = clientLocationAdminUser();
     $client = Client::query()->create([
         'code' => 'CL-LOC',
         'name' => 'Client Lokasi',
@@ -96,7 +104,7 @@ it('allows administrators to manage client and internal locations with valid tim
 });
 
 it('requires location coordinates to be provided as a pair and validates IANA timezones', function () {
-    $admin = adminAccessUser(UserRole::Admin);
+    $admin = clientLocationAdminUser();
 
     $this->actingAs($admin)
         ->from(route('admin.locations.create'))
@@ -116,7 +124,7 @@ it('requires location coordinates to be provided as a pair and validates IANA ti
 });
 
 it('denies employees access to client and location master data', function () {
-    $employee = adminAccessUser(UserRole::Employee);
+    $employee = tap(User::factory()->create(), fn (User $user) => $user->forceFill(['role' => UserRole::Employee, 'is_active' => true])->save());
 
     $this->actingAs($employee)
         ->get(route('admin.clients.index'))
