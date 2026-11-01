@@ -43,6 +43,37 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 ])]
 class AttendanceRecord extends Model
 {
+    protected static function booted(): void
+    {
+        static::created(function (self $record): void {
+            if ($record->type === AttendanceType::ClockIn && $record->session_anchor_id === null) {
+                $record->forceFill(['session_anchor_id' => $record->id])->saveQuietly();
+
+                return;
+            }
+
+            // Compatibility for trusted internal creation paths: attach a new Clock Out
+            // only when exactly one open anchor exists. Ambiguous events remain unlinked.
+            if ($record->type === AttendanceType::ClockOut && $record->session_anchor_id === null) {
+                $openAnchors = self::query()
+                    ->where('employee_id', $record->employee_id)
+                    ->where('type', AttendanceType::ClockIn)
+                    ->whereColumn('session_anchor_id', 'id')
+                    ->whereDoesntHave('sessionEvents', fn ($query) => $query
+                        ->where('type', AttendanceType::ClockOut))
+                    ->get();
+
+                if ($openAnchors->count() === 1) {
+                    $anchor = $openAnchors->first();
+
+                    if ($record->recorded_at->gt($anchor->effectiveRecordedAt())) {
+                        $record->forceFill(['session_anchor_id' => $anchor->id])->saveQuietly();
+                    }
+                }
+            }
+        });
+    }
+
     protected function casts(): array
     {
         return [
