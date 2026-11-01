@@ -64,15 +64,21 @@ return new class extends Migration
 
                     DB::table('attendance_records')->where('id', $event->id)
                         ->update(['session_anchor_id' => $event->id]);
-                    $activeAnchor = $event->id;
-                    $ambiguous = false;
+
+                    if (! $ambiguous) {
+                        $activeAnchor = $event->id;
+                    }
                     continue;
                 }
 
-                if ($event->type === 'clock_out' && $activeAnchor !== null && ! $ambiguous) {
-                    DB::table('attendance_records')->where('id', $event->id)
-                        ->update(['session_anchor_id' => $activeAnchor]);
+                if ($event->type === 'clock_out') {
+                    if ($activeAnchor !== null && ! $ambiguous) {
+                        DB::table('attendance_records')->where('id', $event->id)
+                            ->update(['session_anchor_id' => $activeAnchor]);
+                    }
+
                     $activeAnchor = null;
+                    $ambiguous = false;
                 }
             }
         }
