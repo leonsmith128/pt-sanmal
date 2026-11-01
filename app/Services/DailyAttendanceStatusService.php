@@ -8,6 +8,7 @@ use App\Models\AttendanceRecord;
 use App\Models\DailyStatusCorrection;
 use App\Models\Employee;
 use App\Models\LeaveRequest;
+use App\Support\AttendanceDateFilter;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
@@ -44,26 +45,13 @@ class DailyAttendanceStatusService
             return [];
         }
 
-        // Query 1: Ambil event berdasarkan tanggal anchor sesi, bukan jendela 24 jam.
-        // Dengan demikian sesi lintas tengah malam maupun lebih dari 24 jam tetap utuh.
+        // Query 1: Filter event berdasarkan tanggal efektif anchor sesi.
+        // Event lama tanpa anchor memakai tanggal efektif event itu sendiri.
         $rawEvents = AttendanceRecord::query()
-            ->whereIn('employee_id', $employeeIds)
-            ->where(function ($query) use ($start, $end): void {
-                $query->where(function ($dateQuery) use ($start, $end): void {
-                    $dateQuery->whereDate('attendance_date', '>=', $start)
-                        ->whereDate('attendance_date', '<=', $end);
-                })->orWhereHas('approvedCorrection', fn ($correctionQuery) => $correctionQuery
-                    ->whereDate('attendance_date', '>=', $start)
-                    ->whereDate('attendance_date', '<=', $end))
-                    ->orWhereHas('sessionAnchor', function ($anchorQuery) use ($start, $end): void {
-                        $anchorQuery->where(function ($dateQuery) use ($start, $end): void {
-                            $dateQuery->whereDate('attendance_date', '>=', $start)
-                                ->whereDate('attendance_date', '<=', $end);
-                        })->orWhereHas('approvedCorrection', fn ($correctionQuery) => $correctionQuery
-                            ->whereDate('attendance_date', '>=', $start)
-                            ->whereDate('attendance_date', '<=', $end));
-                    });
-            })
+            ->whereIn('employee_id', $employeeIds);
+        AttendanceDateFilter::apply($rawEvents, $start, $end);
+
+        $rawEvents = $rawEvents
             ->with(['approvedCorrection', 'sessionAnchor.approvedCorrection'])
             ->orderBy('employee_id')
             ->orderBy('recorded_at')
