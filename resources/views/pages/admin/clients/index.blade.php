@@ -12,11 +12,6 @@
 
         <form method="GET" class="flex flex-wrap items-end gap-3">
             <flux:input name="q" value="{{ request('q') }}" :label="__('Cari client')" placeholder="Kode, nama, atau telepon" />
-            <flux:select name="status" :label="__('Status')" :value="request('status')">
-                <flux:select.option value="">{{ __('Semua status') }}</flux:select.option>
-                <flux:select.option value="active">{{ __('Aktif') }}</flux:select.option>
-                <flux:select.option value="inactive">{{ __('Nonaktif') }}</flux:select.option>
-            </flux:select>
             <flux:button type="submit">{{ __('Filter') }}</flux:button>
         </form>
 
@@ -28,7 +23,6 @@
                         <th class="p-3">{{ __('Client') }}</th>
                         <th class="p-3">{{ __('Kontak') }}</th>
                         <th class="p-3">{{ __('Lokasi') }}</th>
-                        <th class="p-3">{{ __('Status') }}</th>
                         <th class="p-3"></th>
                     </tr>
                 </thead>
@@ -39,15 +33,12 @@
                             <td class="p-3 font-medium">{{ $client->name }}</td>
                             <td class="p-3">{{ $client->phone ?: '—' }}</td>
                             <td class="p-3">{{ $client->locations_count }}</td>
-                            <td class="p-3">
-                                <flux:badge :color="$client->is_active ? 'green' : 'zinc'">{{ $client->is_active ? __('Aktif') : __('Nonaktif') }}</flux:badge>
-                            </td>
                             <td class="p-3 text-right">
                                 <flux:button size="sm" variant="ghost" href="{{ route('admin.clients.edit', $client) }}">{{ __('Ubah') }}</flux:button>
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="6" class="p-8 text-center text-zinc-500">{{ __('Belum ada data client.') }}</td></tr>
+                        <tr><td colspan="5" class="p-8 text-center text-zinc-500">{{ __('Belum ada data client.') }}</td></tr>
                     @endforelse
                 </tbody>
             </table>
