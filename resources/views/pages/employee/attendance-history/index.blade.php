@@ -84,7 +84,7 @@
                                 </button>
                             @else
                                 <div class="flex size-20 shrink-0 items-center justify-center rounded-lg bg-zinc-100 text-zinc-400 dark:bg-zinc-800">
-                                    <flux:icon name="image-off" class="size-6" />
+                                    <flux:icon name="photo" class="size-6" />
                                 </div>
                             @endif
 
