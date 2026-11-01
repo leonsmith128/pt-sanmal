@@ -129,58 +129,19 @@ class AdminAttendanceCorrectionController extends Controller
         return Storage::disk('local')->download($attendanceCorrection->attachment_path);
     }
 
-    public function decide(Request $request, AttendanceCorrection $attendanceCorrection): RedirectResponse
+    public function decide(Request $request, AttendanceCorrection $attendanceCorrection, ApproveAttendanceCorrection $approveCorrection): RedirectResponse
     {
         $data = $request->validate([
             'decision' => ['required', 'in:approved,rejected'],
             'review_note' => ['nullable', 'string', 'max:2000'],
         ]);
 
-        DB::transaction(function () use ($request, $attendanceCorrection, $data): void {
-            $locked = AttendanceCorrection::query()
-                ->with(['employee.user', 'attendanceRecord'])
-                ->whereKey($attendanceCorrection->id)
-                ->lockForUpdate()
-                ->firstOrFail();
-
-            abort_if($locked->employee?->user_id === $request->user()->id, 403, 'Anda tidak dapat memproses koreksi absensi milik sendiri.');
-
-            abort_unless($locked->status === 'pending', 422, 'Permohonan koreksi sudah diproses.');
-
-            if ($data['decision'] === 'approved' && $locked->attendance_record_id !== null) {
-                abort_unless(
-                    $locked->attendanceRecord
-                        && $locked->attendanceRecord->employee_id === $locked->employee_id
-                        && $locked->attendanceRecord->type->value === $locked->requested_type,
-                    422,
-                    'Koreksi harus merujuk ke event absensi pegawai dan jenis event yang sama.'
-                );
-            }
-
-            $old = [
-                'status' => $locked->status,
-                'review_note' => $locked->review_note,
-                'original_recorded_at' => $locked->attendanceRecord?->recorded_at?->toISOString(),
-            ];
-
-            $locked->update([
-                'status' => $data['decision'],
-                'review_note' => $data['review_note'] ?? null,
-                'reviewed_by' => $request->user()->id,
-                'reviewed_at' => now(),
-                'decision_seen_at' => null,
-            ]);
-
-            AuditLog::record($locked, 'attendance_correction.'.$data['decision'], $old, [
-                'status' => $locked->status,
-                'review_note' => $locked->review_note,
-                'reviewed_by' => $locked->reviewed_by,
-                'original_recorded_at' => $locked->attendanceRecord?->recorded_at?->toISOString(),
-                'effective_recorded_at' => $data['decision'] === 'approved'
-                    ? $locked->requested_recorded_at?->toISOString()
-                    : $locked->attendanceRecord?->recorded_at?->toISOString(),
-            ], $request->user()->id);
-        });
+        $approveCorrection->handle(
+            correction: $attendanceCorrection,
+            reviewer: $request->user(),
+            decision: $data['decision'],
+            reviewNote: $data['review_note'] ?? null,
+        );
 
         return redirect()->route('admin.attendance-corrections.show', $attendanceCorrection)
             ->with('status', 'Keputusan koreksi absensi berhasil disimpan.');
