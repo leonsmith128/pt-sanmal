@@ -43,7 +43,7 @@ class DailyAttendanceExportService
 
                 foreach ($employees as $employee) {
                     for ($day = $rangeStart->copy(); $day->lte($rangeEnd); $day->addDay()) {
-                        if ($employee->joined_at && $day->lt($employee->joined_at->copy()->startOfDay())) {
+                        if ($employee->joined_at && $day->toDateString() < $employee->joined_at->toDateString()) {
                             continue;
                         }
 
