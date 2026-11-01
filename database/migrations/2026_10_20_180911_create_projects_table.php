@@ -12,11 +12,11 @@ return new class extends Migration
             $table->id();
             $table->string('code', 50)->unique();
             $table->string('name');
-            $table->foreignId('location_id')->nullable()->constrained('locations')->restrictOnDelete();
+            $table->foreignId('location_id')->constrained('locations')->restrictOnDelete();
             $table->text('description')->nullable();
             $table->date('start_date')->nullable();
             $table->date('end_date')->nullable();
-            $table->string('status', 20)->default('planned')->index();
+            $table->string('status', 20)->default('pending')->index();
             $table->timestamps();
         });
     }
