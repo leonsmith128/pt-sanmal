@@ -189,7 +189,7 @@ it('excludes employees with approved leave requests from notYetPresent on admin 
     Livewire::actingAs($admin)
         ->test('pages::admin.kehadiran')
         ->assertOk()
-        ->assertSet('notYetPresent', fn ($list) => ! $list->contains('id', $emp->id));
+        ->assertSet('notYetPresent', fn ($list) => $list->doesntContain('id', $emp->id));
 });
 
 
