@@ -86,7 +86,7 @@ it('uses the latest approved clock-in date correction as the session filter date
     [$clockIn, $clockOut] = createDateFilterSession(
         $employee,
         '2026-10-30 01:00:00',
-        '2026-10-30 09:00:00',
+        '2026-11-03 04:00:00',
     );
 
     AttendanceCorrection::query()->create([
