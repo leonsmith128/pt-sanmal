@@ -4,7 +4,7 @@ namespace App\Enums;
 
 enum ProjectStatus: string
 {
-    case Planned = 'planned';
+    case Pending = 'pending';
     case Active = 'active';
     case Completed = 'completed';
     case Cancelled = 'cancelled';
@@ -12,8 +12,8 @@ enum ProjectStatus: string
     public function label(): string
     {
         return match ($this) {
-            self::Planned => 'Direncanakan',
-            self::Active => 'Aktif',
+            self::Pending => 'Pending',
+            self::Active => 'Sedang Dikerjakan',
             self::Completed => 'Selesai',
             self::Cancelled => 'Dibatalkan',
         };
