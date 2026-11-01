@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Employee;
 use App\Support\AttendanceDateFilter;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -77,9 +77,10 @@ class AttendanceHistoryController extends Controller
         ]);
     }
 
-    private function attendanceQuery(Employee $employee, array $filters): HasMany
+    private function attendanceQuery(Employee $employee, array $filters): Builder
     {
         $query = $employee->attendanceRecords()
+            ->getQuery()
             ->with(['location', 'project', 'approvedCorrection', 'sessionAnchor.approvedCorrection']);
 
         AttendanceDateFilter::apply(
