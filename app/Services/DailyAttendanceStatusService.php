@@ -52,7 +52,7 @@ class DailyAttendanceStatusService
         AttendanceDateFilter::apply($rawEvents, $start, $end);
 
         $rawEvents = $rawEvents
-            ->with(['approvedCorrection', 'sessionAnchor.approvedCorrection', 'location', 'project'])
+            ->with(['approvedCorrection', 'corrections', 'sessionAnchor.approvedCorrection', 'location', 'project'])
             ->orderBy('employee_id')
             ->orderBy('recorded_at')
             ->get();
