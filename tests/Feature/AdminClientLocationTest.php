@@ -247,6 +247,14 @@ it('enforces location ownership and requires every project to have a location', 
         'attendance_date' => now('Asia/Makassar')->toDateString(),
     ]);
 
+    $otherClient = Client::query()->create([
+        'code' => 'CL-HISTORY-OWNER',
+        'name' => 'Client untuk uji riwayat',
+    ]);
+
+    expect(fn () => $site->update(['client_id' => $otherClient->id]))
+        ->toThrow(ValidationException::class);
+
     $otherSite = Location::query()->create([
         'client_id' => $client->id,
         'name' => 'Site Kedua',

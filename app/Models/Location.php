@@ -40,7 +40,9 @@ class Location extends Model
         });
 
         static::updating(function (self $location): void {
-            if ($location->projects()->exists() && ($location->isDirty('type') || $location->isDirty('client_id'))) {
+            $hasHistory = $location->projects()->exists() || $location->attendanceRecords()->exists();
+
+            if ($hasHistory && ($location->isDirty('type') || $location->isDirty('client_id'))) {
                 throw ValidationException::withMessages([
                     'type' => 'Jenis dan pemilik lokasi tidak dapat diubah setelah lokasi digunakan oleh Project.',
                 ]);
