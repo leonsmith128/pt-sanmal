@@ -324,7 +324,7 @@ it('accepts a correction attachment up to 1 MB', function () {
     $this->actingAs($user)->post(route('attendance-corrections.store'), [
         'requested_type' => 'clock_in',
         'attendance_record_id' => $record->id,
-        'requested_recorded_at_local' => $requestedLocal->format('Y-m-d\\\\TH:i'),
+        'requested_recorded_at_local' => $requestedLocal->format('Y-m-d\\TH:i'),
         'reason' => 'Waktu masuk sesuai dokumen pendukung.',
         'attachment' => UploadedFile::fake()->create('bukti.pdf', 1024, 'application/pdf'),
     ])->assertRedirect(route('leave-requests.index'));
@@ -345,7 +345,7 @@ it('rejects correction attachments larger than 1 MB', function () {
     $this->actingAs($user)->from(route('attendance-corrections.create'))->post(route('attendance-corrections.store'), [
         'requested_type' => 'clock_in',
         'attendance_record_id' => $record->id,
-        'requested_recorded_at_local' => $requestedLocal->format('Y-m-d\\\\TH:i'),
+        'requested_recorded_at_local' => $requestedLocal->format('Y-m-d\\TH:i'),
         'reason' => 'Waktu masuk sesuai dokumen pendukung.',
         'attachment' => UploadedFile::fake()->create('bukti.pdf', 1025, 'application/pdf'),
     ])->assertRedirect(route('attendance-corrections.create'))
