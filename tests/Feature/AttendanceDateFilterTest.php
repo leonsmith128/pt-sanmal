@@ -71,10 +71,6 @@ it('filters sessions longer than 24 hours by their clock-in anchor date', functi
     expect($service->forEmployeeDate($employee, '2026-10-30')['events'])->toHaveCount(2)
         ->and($service->forEmployeeDate($employee, '2026-11-02')['events'])->toBeEmpty();
 
-    $this->actingAs($employee->user)
-        ->get(route('attendance-history.export', ['from' => '2026-10-30', 'to' => '2026-10-30']))
-        ->assertOk();
-
     $csv = $this->actingAs($employee->user)
         ->get(route('attendance-history.export', ['from' => '2026-10-30', 'to' => '2026-10-30']))
         ->streamedContent();
