@@ -261,6 +261,35 @@ it('enforces location ownership and requires every project to have a location', 
         ->and($attendance->fresh()->location_id)->toBe($site->id);
 });
 
+it('enforces project client and site ownership at database level', function () {
+    $client = Client::query()->create([
+        'code' => 'CL-DB-OWNER-A',
+        'name' => 'Client Database A',
+    ]);
+    $otherClient = Client::query()->create([
+        'code' => 'CL-DB-OWNER-B',
+        'name' => 'Client Database B',
+    ]);
+    $site = Location::query()->create([
+        'client_id' => $otherClient->id,
+        'name' => 'Site Database B',
+        'type' => 'site',
+        'timezone' => 'Asia/Makassar',
+        'is_active' => true,
+    ]);
+
+    expect(fn () => DB::table('projects')->insert([
+        'client_id' => $client->id,
+        'code' => 'PRJ-DB-WRONG-OWNER',
+        'name' => 'Project dengan Client tidak sesuai',
+        'project_type' => 'calibration',
+        'location_id' => $site->id,
+        'status' => 'pending',
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]))->toThrow(QueryException::class);
+});
+
 it('enforces location ownership and project status constraints in the database', function () {
     if (in_array(DB::getDriverName(), ['mysql', 'mariadb'], true) === false) {
         $this->markTestSkipped('Database CHECK constraints are verified on the production MySQL/MariaDB driver.');

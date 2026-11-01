@@ -38,6 +38,17 @@ return new class extends Migration
             $table->index(['client_id', 'status']);
         });
 
+        Schema::table('locations', function (Blueprint $table): void {
+            $table->unique(['id', 'client_id'], 'locations_id_client_id_unique');
+        });
+
+        Schema::table('projects', function (Blueprint $table): void {
+            $table->foreign(['location_id', 'client_id'], 'projects_location_client_foreign')
+                ->references(['id', 'client_id'])
+                ->on('locations')
+                ->restrictOnDelete();
+        });
+
         if (in_array(DB::getDriverName(), ['mysql', 'mariadb'], true)) {
             DB::statement(<<<'SQL'
                 ALTER TABLE projects
@@ -54,9 +65,14 @@ return new class extends Migration
         }
 
         Schema::table('projects', function (Blueprint $table): void {
+            $table->dropForeign('projects_location_client_foreign');
             $table->dropForeign(['client_id']);
             $table->dropIndex(['client_id', 'status']);
             $table->dropColumn(['client_id', 'project_type']);
+        });
+
+        Schema::table('locations', function (Blueprint $table): void {
+            $table->dropUnique('locations_id_client_id_unique');
         });
     }
 };

@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Enums\ProjectStatus;
+use App\Enums\ProjectType;
 use App\Enums\UserRole;
 use App\Models\Client;
 use App\Models\Employee;
@@ -57,7 +58,9 @@ class DevDataSeeder extends Seeder
             ]);
 
             Project::firstOrCreate(['code' => 'PRJ-001'], [
+                'client_id' => $client->id,
                 'name' => 'Proyek Kalibrasi Contoh',
+                'project_type' => ProjectType::Calibration,
                 'location_id' => $site->id,
                 'status' => ProjectStatus::Active->value,
                 'start_date' => now()->toDateString(),
