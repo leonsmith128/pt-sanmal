@@ -1,9 +1,9 @@
 <?php
 
-use Illuminate\\Database\\Migrations\\Migration;
-use Illuminate\\Database\\Schema\\Blueprint;
-use Illuminate\\Support\\Facades\\DB;
-use Illuminate\\Support\\Facades\\Schema;
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -22,7 +22,8 @@ return new class extends Migration
         });
 
         // SQLite tidak mendukung ALTER TABLE ... ADD CONSTRAINT.
-        if (DB::getDriverName() === 'mysql') {
+        // Validasi model tetap berjalan lintas driver; constraint DB dipasang di MySQL/MariaDB.
+        if (in_array(DB::getDriverName(), ['mysql', 'mariadb'], true)) {
             DB::statement(<<<'SQL'
                 ALTER TABLE projects
                 ADD CONSTRAINT projects_status_check
