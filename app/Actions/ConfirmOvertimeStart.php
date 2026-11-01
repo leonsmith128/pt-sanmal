@@ -3,6 +3,7 @@
 namespace App\Actions;
 
 use App\Enums\AttendanceType;
+use App\Enums\OvertimeApprovalStatus;
 use App\Enums\OvertimeState;
 use App\Enums\SelfieSource;
 use App\Models\AttendanceRecord;
@@ -55,6 +56,10 @@ class ConfirmOvertimeStart
                     ->where('employee_id', $employee->id)
                     ->lockForUpdate()
                     ->firstOrFail();
+
+                if ($locked->approval_status === OvertimeApprovalStatus::Rejected) {
+                    $this->fail('form', 'Pengajuan lembur ditolak admin dan tidak dapat dimulai. Hubungi admin jika ada event yang perlu ditinjau.');
+                }
 
                 if (in_array($locked->state, [OvertimeState::Scheduled, OvertimeState::AwaitingPhoto], true) === false
                     || $locked->start_record_id !== null) {

@@ -288,7 +288,7 @@ class LeaveRequestController extends Controller
                     'decided_at' => $item->decided_at,
                     'decision_note' => $item->decision_note,
                     'cancelable' => in_array($item->state->value, ['scheduled', 'awaiting_photo'], true)
-                        && $item->start_record_id === null && $item->scheduled_start_at->isFuture(),
+                        && $item->start_record_id === null,
                     'cancel_route' => route('overtime-requests.cancel', $item),
                 ]);
             });
