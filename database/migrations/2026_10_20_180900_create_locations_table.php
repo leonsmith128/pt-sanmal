@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -22,11 +23,16 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index(['client_id', 'is_active']);
-            $table->check(
-                "(type = 'office' AND client_id IS NULL) OR (type = 'site' AND client_id IS NOT NULL)",
-                'locations_type_client_consistency_check',
-            );
         });
+
+        DB::statement(<<<'SQL'
+            ALTER TABLE locations
+            ADD CONSTRAINT locations_type_client_consistency_check
+            CHECK (
+                (type = 'office' AND client_id IS NULL)
+                OR (type = 'site' AND client_id IS NOT NULL)
+            )
+        SQL);
     }
 
     public function down(): void
