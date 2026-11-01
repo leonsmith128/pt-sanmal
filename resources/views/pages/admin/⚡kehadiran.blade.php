@@ -107,16 +107,19 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
             'work_type' => 'attendance_records.work_type',
         ];
 
-        return AttendanceRecord::query()
+        $query = AttendanceRecord::query()
             ->select('attendance_records.*')
             ->join('employees as sort_employees', 'sort_employees.id', '=', 'attendance_records.employee_id')
             ->join('users as sort_users', 'sort_users.id', '=', 'sort_employees.user_id')
-            ->with(['employee.user', 'location', 'project', 'approvedCorrection', 'sessionAnchor.approvedCorrection'])
-            ->tap(fn ($query) => AttendanceDateFilter::apply(
-                $query,
-                $from !== '' ? $from : null,
-                $to !== '' ? $to : null,
-            ))
+            ->with(['employee.user', 'location', 'project', 'approvedCorrection', 'sessionAnchor.approvedCorrection']);
+
+        AttendanceDateFilter::apply(
+            $query,
+            $from !== '' ? $from : null,
+            $to !== '' ? $to : null,
+        );
+
+        return $query
             ->when($this->employeeId !== '', fn ($query) => $query->where('attendance_records.employee_id', (int) $this->employeeId))
             ->when($this->attendanceType !== '', fn ($query) => $query->where('attendance_records.type', $this->attendanceType))
             ->when($this->workType !== '', fn ($query) => $query->where('attendance_records.work_type', $this->workType))
