@@ -69,7 +69,6 @@ class DevDataSeeder extends Seeder
                 ['Pegawai Dua', 'pegawai2@sanmal.test', UserRole::Employee, 'Teknisi Kalibrasi', 'EMP-003'],
             ];
 
-            $employees = [];
             foreach ($people as [$name, $email, $role, $title, $number]) {
                 $user = User::firstOrNew(['email' => $email]);
 
@@ -84,7 +83,7 @@ class DevDataSeeder extends Seeder
                     ])->save();
                 }
 
-                $employees[$email] = Employee::firstOrCreate(['user_id' => $user->id], [
+                Employee::firstOrCreate(['user_id' => $user->id], [
                     'title_id' => $titles[$title]->id,
                     'employee_number' => $number,
                     'joined_at' => now()->toDateString(),
