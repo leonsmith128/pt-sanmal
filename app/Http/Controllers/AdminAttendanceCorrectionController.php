@@ -6,6 +6,7 @@ use App\Actions\ApproveAttendanceCorrection;
 use App\Enums\AttendanceType;
 use App\Models\AttendanceCorrection;
 use App\Models\AttendanceRecord;
+use App\Models\Employee;
 use App\Models\AuditLog;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -44,7 +45,7 @@ class AdminAttendanceCorrectionController extends Controller
         abort_unless(in_array($record->type, [AttendanceType::ClockIn, AttendanceType::ClockOut], true), 422);
 
         DB::transaction(function () use ($request, $record, $validated): void {
-            \App\Models\Employee::query()->whereKey($record->employee_id)->lockForUpdate()->firstOrFail();
+            Employee::query()->whereKey($record->employee_id)->lockForUpdate()->firstOrFail();
 
             $locked = AttendanceRecord::query()
                 ->with(['employee.user', 'approvedCorrection'])
