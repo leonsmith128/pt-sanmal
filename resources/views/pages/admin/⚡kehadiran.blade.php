@@ -161,7 +161,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
     }
 }; ?>
 
-<section x-data="{ selfiePreviewOpen: false, selfiePreviewUrl: null, selfieDownloadUrl: null }" x-on:keydown.escape.window="selfiePreviewOpen = false" class="w-full">
+<section x-data="{ selfiePreviewOpen: false, selfiePreviewUrl: null, selfieDownloadUrl: null, exportConfirmOpen: false, exportUrl: '', exportDescription: '' }" x-on:keydown.escape.window="selfiePreviewOpen = false; exportConfirmOpen = false" class="w-full">
     <div class="mx-auto flex w-full max-w-7xl flex-col gap-5">
         <x-admin.page-header
             :title="__('Kehadiran Pegawai')"
@@ -254,18 +254,21 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                     <flux:menu>
                         <flux:menu.item
                             :href="route('admin.kehadiran.export', [...$exportFilters, 'from' => $today->toDateString(), 'to' => $today->toDateString()])"
+                            x-on:click.prevent="exportUrl = $el.href; exportDescription = 'Laporan seluruh pegawai untuk tanggal hari ini. Filter pegawai, pencarian, jenis absensi, dan jenis kerja yang aktif tetap diterapkan.'; exportConfirmOpen = true"
                             icon="calendar-days"
                         >
                             {{ __('Hari ini') }}
                         </flux:menu.item>
                         <flux:menu.item
                             :href="route('admin.kehadiran.export', [...$exportFilters, 'from' => $weekStart->toDateString(), 'to' => $weekEnd->toDateString()])"
+                            x-on:click.prevent="exportUrl = $el.href; exportDescription = 'Laporan seluruh pegawai dari {{ $weekStart->translatedFormat('d M Y') }} sampai {{ $weekEnd->translatedFormat('d M Y') }}. Filter aktif tetap diterapkan.'; exportConfirmOpen = true"
                             icon="calendar-days"
                         >
                             {{ __('Minggu ini') }}
                         </flux:menu.item>
                         <flux:menu.item
                             :href="route('admin.kehadiran.export', [...$exportFilters, 'from' => $monthStart->toDateString(), 'to' => $monthEnd->toDateString()])"
+                            x-on:click.prevent="exportUrl = $el.href; exportDescription = 'Laporan seluruh pegawai dari {{ $monthStart->translatedFormat('d M Y') }} sampai {{ $monthEnd->translatedFormat('d M Y') }}. Filter aktif tetap diterapkan.'; exportConfirmOpen = true"
                             icon="calendar"
                         >
                             {{ __('Bulan ini') }}
@@ -277,6 +280,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                                 'from' => $dateFrom,
                                 'to' => $dateTo,
                             ], fn ($value) => $value !== ''))"
+                            x-on:click.prevent="exportUrl = $el.href; exportDescription = '{{ $dateFrom || $dateTo ? 'Rentang tanggal mengikuti filter aktif: '.($dateFrom ? Carbon::parse($dateFrom)->translatedFormat('d M Y') : 'riwayat paling awal').' sampai '.($dateTo ? Carbon::parse($dateTo)->translatedFormat('d M Y') : 'hari ini').'.' : 'Tidak ada filter tanggal. Ekspor mencakup seluruh riwayat yang tersedia sampai hari ini.' }} Filter pegawai, pencarian, jenis absensi, dan jenis kerja yang aktif tetap diterapkan.'; exportConfirmOpen = true"
                             icon="arrow-down-tray"
                         >
                             {{ __('Sesuai filter tanggal') }}
@@ -450,6 +454,33 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                     <a :href="selfieDownloadUrl" class="inline-flex items-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300">
                         <flux:icon name="arrow-down-tray" class="size-4" />
                         {{ __('Unduh foto') }}
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div
+            x-show="exportConfirmOpen"
+            x-cloak
+            x-transition.opacity
+            x-on:click.self="exportConfirmOpen = false"
+            class="fixed inset-0 z-[110] flex items-center justify-center bg-black/60 p-4"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="attendance-export-confirm-title"
+        >
+            <div class="w-full max-w-lg space-y-4 rounded-2xl bg-white p-5 shadow-xl dark:bg-zinc-900">
+                <div class="flex items-start justify-between gap-3">
+                    <h2 id="attendance-export-confirm-title" class="text-lg font-semibold">{{ __('Konfirmasi ekspor rekap absensi') }}</h2>
+                    <button type="button" x-on:click="exportConfirmOpen = false" class="rounded-lg p-1 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800" aria-label="{{ __('Tutup') }}">
+                        <flux:icon name="x-mark" class="size-5" />
+                    </button>
+                </div>
+                <p class="text-sm text-zinc-600 dark:text-zinc-300" x-text="exportDescription"></p>
+                <p class="text-sm text-amber-700 dark:text-amber-300">{{ __('Ekspor menggunakan satu baris per pegawai per tanggal. Tanggal tanpa event absensi tetap disertakan. Periksa kembali cakupan sebelum melanjutkan.') }}</p>
+                <div class="flex justify-end gap-2">
+                    <flux:button type="button" variant="ghost" x-on:click="exportConfirmOpen = false">{{ __('Batal') }}</flux:button>
+                    <a :href="exportUrl" class="inline-flex items-center justify-center rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300" x-on:click="exportConfirmOpen = false">
+                        {{ __('Konfirmasi dan ekspor') }}
                     </a>
                 </div>
             </div>
