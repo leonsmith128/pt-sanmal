@@ -61,7 +61,7 @@ class AttendanceSessionTimeline
     /**
      * Ensure a corrected Clock Out follows its Clock In and precedes the next session.
      */
-    public function assertClockOut(AttendanceRecord $anchor, Carbon $correctedAt): void
+    public function assertClockOut(AttendanceRecord $anchor, CarbonInterface $correctedAt): void
     {
         $anchorStart = $this->effectiveTimestamp($anchor);
 
