@@ -1,30 +1,57 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\\Http\\Controllers;
 
-use App\Models\Client;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
-use Illuminate\View\View;
+use App\\Models\\Client;
+use App\\Models\\Location;
+use Illuminate\\Http\\RedirectResponse;
+use Illuminate\\Http\\Request;
+use Illuminate\\Validation\\Rule;
+use Illuminate\\View\\View;
 
 class AdminClientController extends Controller
 {
     public function index(Request $request): View
     {
+        $term = trim($request->string('q')->toString());
+
         $clients = Client::query()
+            ->with(['locations' => fn ($query) => $query
+                ->withCount(['projects', 'attendanceRecords'])
+                ->orderBy('name')])
             ->withCount(['locations', 'projects'])
-            ->when($request->filled('q'), fn ($query) => $query->where(function ($q) use ($request): void {
-                $term = $request->string('q')->toString();
-                $q->where('code', 'like', "%{$term}%")
+            ->when($term !== '', fn ($query) => $query->where(function ($nested) use ($term): void {
+                $nested->where('code', 'like', "%{$term}%")
                     ->orWhere('name', 'like', "%{$term}%")
-                    ->orWhere('phone', 'like', "%{$term}%");
+                    ->orWhere('phone', 'like', "%{$term}%")
+                    ->orWhereHas('locations', fn ($locations) => $locations
+                        ->where('name', 'like', "%{$term}%")
+                        ->orWhere('address', 'like', "%{$term}%"));
             }))
             ->orderBy('name')
             ->paginate(20)
             ->withQueryString();
 
-        return view('pages::admin.clients.index', compact('clients'));
+        $offices = Location::query()
+            ->where('type', 'office')
+            ->withCount(['projects', 'attendanceRecords'])
+            ->when($term !== '', fn ($query) => $query->where(function ($nested) use ($term): void {
+                $nested->where('name', 'like', "%{$term}%")
+                    ->orWhere('address', 'like', "%{$term}%");
+            }))
+            ->orderBy('name')
+            ->get();
+
+        return view('pages::admin.clients.index', compact('clients', 'offices', 'term'));
+    }
+
+    public function show(Client $client): View
+    {
+        $client->load(['locations' => fn ($query) => $query
+            ->withCount(['projects', 'attendanceRecords'])
+            ->orderBy('name')])->loadCount('projects');
+
+        return view('pages::admin.clients.show', compact('client'));
     }
 
     public function create(): View
@@ -41,9 +68,9 @@ class AdminClientController extends Controller
             'phone' => ['nullable', 'string', 'max:30'],
         ]);
 
-        Client::create($data);
+        $client = Client::create($data);
 
-        return redirect()->route('admin.clients.index')->with('status', 'Client berhasil ditambahkan.');
+        return redirect()->route('admin.clients.show', $client)->with('status', 'Client berhasil ditambahkan.');
     }
 
     public function edit(Client $client): View
@@ -62,6 +89,6 @@ class AdminClientController extends Controller
 
         $client->update($data);
 
-        return redirect()->route('admin.clients.index')->with('status', 'Data client berhasil diperbarui.');
+        return redirect()->route('admin.clients.show', $client)->with('status', 'Data client berhasil diperbarui.');
     }
 }
