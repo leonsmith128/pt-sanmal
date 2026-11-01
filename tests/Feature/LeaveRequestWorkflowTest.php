@@ -9,6 +9,8 @@ use App\Models\LeaveRequest;
 use App\Models\LeaveType;
 use App\Models\User;
 use App\Services\DailyAttendanceStatusService;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 
 function createUserWithRole(UserRole $role): User
@@ -229,4 +231,48 @@ it('rejects overlapping leave requests while a previous request is pending or ap
     ])->assertSessionHasErrors('start_date');
 
     expect($approved->fresh()->status)->toBe(LeaveRequestStatus::Approved);
+});
+
+
+it('accepts an optional leave attachment up to 1 MB and stores it on the local disk', function () {
+    $user = createUserWithRole(UserRole::Employee);
+    createEmployeeFor($user);
+    $type = LeaveType::create(['code' => 'izin-bukti', 'name' => 'Izin', 'is_active' => true]);
+
+    Storage::fake('local');
+    Storage::fake('s3');
+    config(['filesystems.default' => 's3']);
+
+    $this->actingAs($user)->post(route('leave-requests.store'), [
+        'leave_type_id' => $type->id,
+        'start_date' => '2026-11-20',
+        'end_date' => '2026-11-20',
+        'reason' => 'Keperluan keluarga dengan bukti pendukung.',
+        'attachment' => UploadedFile::fake()->create('bukti.pdf', 1024, 'application/pdf'),
+    ])->assertRedirect(route('leave-requests.index'));
+
+    $leaveRequest = LeaveRequest::query()->firstOrFail();
+
+    expect($leaveRequest->attachment_path)->not->toBeNull();
+    Storage::disk('local')->assertExists($leaveRequest->attachment_path);
+    Storage::disk('s3')->assertMissing($leaveRequest->attachment_path);
+});
+
+it('rejects leave attachments larger than 1 MB', function () {
+    $user = createUserWithRole(UserRole::Employee);
+    createEmployeeFor($user);
+    $type = LeaveType::create(['code' => 'izin-besar', 'name' => 'Izin', 'is_active' => true]);
+
+    Storage::fake('local');
+
+    $this->actingAs($user)->from(route('leave-requests.create'))->post(route('leave-requests.store'), [
+        'leave_type_id' => $type->id,
+        'start_date' => '2026-11-21',
+        'end_date' => '2026-11-21',
+        'reason' => 'Keperluan keluarga dengan bukti pendukung.',
+        'attachment' => UploadedFile::fake()->create('bukti.pdf', 1025, 'application/pdf'),
+    ])->assertRedirect(route('leave-requests.create'))
+        ->assertSessionHasErrors('attachment');
+
+    expect(LeaveRequest::query()->count())->toBe(0);
 });
