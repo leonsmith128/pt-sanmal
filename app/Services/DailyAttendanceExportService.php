@@ -114,10 +114,25 @@ class DailyAttendanceExportService
                                 : ($event->project?->name ?? $event->location?->name ?? '');
                         })->filter()->unique()->implode('; ');
 
+                        $correctionStatuses = [];
                         foreach ($allEvents as $event) {
-                            if ($event->approvedCorrection && $event->approvedCorrection->reason) {
-                                $correctionNotes[] = $event->type->label().': '.$event->approvedCorrection->reason;
+                            foreach ($event->corrections as $correction) {
+                                $correctionStatuses[] = match ($correction->status) {
+                                    'pending' => 'Menunggu',
+                                    'approved' => 'Disetujui',
+                                    'rejected' => 'Ditolak',
+                                    'cancelled' => 'Dibatalkan',
+                                    default => (string) $correction->status,
+                                };
+                                $correctionNotes[] = $event->type->label().': '.$correction->reason;
+                                if ($correction->review_note) {
+                                    $correctionNotes[] = 'Catatan peninjau: '.$correction->review_note;
+                                }
                             }
+                        }
+                        if ($daily['correction']) {
+                            $correctionStatuses[] = 'Koreksi status harian';
+                            $correctionNotes[] = $daily['correction']->reason;
                         }
 
                         $leaveLabels = $daily['leaveRequests']
@@ -141,7 +156,7 @@ class DailyAttendanceExportService
                             implode('; ', $sessionDetails),
                             $workTypes,
                             $places,
-                            $correctionNotes ? 'Disetujui' : '',
+                            collect($correctionStatuses)->unique()->implode('; '),
                             $notes,
                         ];
 
