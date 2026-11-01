@@ -12,16 +12,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $name
  * @property string|null $address
  * @property string|null $phone
- * @property bool $is_active
  */
-#[Fillable(['code', 'name', 'address', 'phone', 'is_active'])]
+#[Fillable(['code', 'name', 'address', 'phone'])]
 class Client extends Model
 {
-    protected function casts(): array
-    {
-        return ['is_active' => 'boolean'];
-    }
-
     public function locations(): HasMany
     {
         return $this->hasMany(Location::class);
