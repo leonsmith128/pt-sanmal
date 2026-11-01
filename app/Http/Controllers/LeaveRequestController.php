@@ -133,11 +133,11 @@ class LeaveRequestController extends Controller
             'start_date' => ['required', 'date'],
             'end_date' => ['required', 'date', 'after_or_equal:start_date'],
             'reason' => ['required', 'string', 'min:5', 'max:5000'],
-            'attachment' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
+            'attachment' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:1024'],
         ], [
             'end_date.after_or_equal' => 'Tanggal selesai tidak boleh sebelum tanggal mulai.',
             'attachment.mimes' => 'Lampiran harus berupa JPG, PNG, atau PDF.',
-            'attachment.max' => 'Ukuran lampiran maksimal 5 MB.',
+            'attachment.max' => 'Ukuran lampiran maksimal 1 MB.',
         ]);
 
         $leaveType = LeaveType::query()
@@ -145,7 +145,7 @@ class LeaveRequestController extends Controller
             ->where('is_active', true)
             ->firstOrFail();
 
-        $attachmentPath = $request->file('attachment')?->store('leave-attachments');
+        $attachmentPath = $request->file('attachment')?->store('leave-attachments', 'local');
 
         try {
             DB::transaction(function () use ($request, $employee, $leaveType, $validated, $attachmentPath): void {
