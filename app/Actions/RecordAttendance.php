@@ -3,6 +3,7 @@
 namespace App\Actions;
 
 use App\Enums\AttendanceType;
+use App\Enums\OvertimeApprovalStatus;
 use App\Enums\OvertimeState;
 use App\Enums\SelfieSource;
 use App\Enums\WorkType;
@@ -232,7 +233,9 @@ class RecordAttendance
                     && ($overtime->start_record_id !== null || $overtime->state === OvertimeState::NeedsReview)
                 ) {
                     $overtime->update([
-                        'state' => OvertimeState::Completed,
+                        'state' => $overtime->approval_status === OvertimeApprovalStatus::Rejected
+                            ? OvertimeState::NeedsReview
+                            : OvertimeState::Completed,
                         'clock_out_record_id' => $record->id,
                         'completed_at' => $now,
                     ]);
