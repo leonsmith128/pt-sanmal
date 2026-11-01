@@ -31,7 +31,7 @@ class AdminAttendanceCorrectionController extends Controller
 
     public function show(AttendanceCorrection $attendanceCorrection): View
     {
-        $attendanceCorrection->load(['employee.user', 'attendanceRecord', 'sessionAnchor', 'generatedAttendanceRecord', 'reviewedBy']);
+        $attendanceCorrection->load(['employee.user', 'attendanceRecord.approvedCorrection', 'sessionAnchor', 'generatedAttendanceRecord', 'reviewedBy']);
 
         return view('pages::admin.attendance-corrections.show', ['correction' => $attendanceCorrection]);
     }
