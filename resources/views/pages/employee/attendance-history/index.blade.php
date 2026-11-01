@@ -90,7 +90,10 @@
 
                             <div class="min-w-0 space-y-1 text-sm text-zinc-600 dark:text-zinc-300">
                                 <p><span class="font-medium">{{ __('Jenis kerja') }}:</span> {{ $record->work_type->label() }}</p>
-                                <p><span class="font-medium">{{ __('Lokasi') }}:</span> {{ $record->project?->name ?? $record->location?->name ?? '—' }}</p>
+                                @if ($record->project)
+                                    <p><span class="font-medium">{{ __('Proyek') }}:</span> {{ $record->project->name }}</p>
+                                @endif
+                                <p><span class="font-medium">{{ __('Lokasi') }}:</span> {{ $record->location?->name ?? '—' }}</p>
                                 @if (($record->latitude !== null && $record->longitude !== null) || $record->address_snapshot)
                                     <a href="https://www.google.com/maps/search/?api=1&amp;query={{ urlencode($record->latitude !== null && $record->longitude !== null ? $record->latitude . ',' . $record->longitude : $record->address_snapshot) }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 font-medium text-blue-600 hover:underline dark:text-blue-400" title="{{ $record->address_snapshot }}">
                                         <flux:icon name="map-pin" class="size-4" />
@@ -137,7 +140,12 @@
                                         </flux:badge>
                                     </td>
                                     <td class="px-4 py-4">{{ $record->work_type->label() }}</td>
-                                    <td class="px-4 py-4">{{ $record->project?->name ?? $record->location?->name ?? '—' }}</td>
+                                    <td class="px-4 py-4">
+                                        @if ($record->project)
+                                            <p>{{ $record->project->name }}</p>
+                                        @endif
+                                        <p class="text-xs text-zinc-500">{{ $record->location?->name ?? '—' }}</p>
+                                    </td>
                                     <td class="px-4 py-4">
                                         @if ($record->selfie_path)
                                             <button

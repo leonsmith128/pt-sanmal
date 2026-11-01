@@ -60,7 +60,9 @@ class AttendanceHistoryController extends Controller
                     $record->effectiveRecordedAtLocal()->format('Y-m-d H:i:s'),
                     $record->type->label(),
                     $record->work_type->label(),
-                    $record->project?->name ?? $record->location?->name ?? '',
+                    $record->project?->name && $record->location?->name
+                        ? $record->project->name.' — '.$record->location->name
+                        : ($record->project?->name ?? $record->location?->name ?? ''),
                     $record->address_snapshot,
                     $record->latitude,
                     $record->longitude,

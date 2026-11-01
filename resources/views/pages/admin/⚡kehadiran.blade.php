@@ -325,8 +325,9 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                                     {{ $record->work_type->label() }}
                                     @if ($record->project)
                                         <span class="text-zinc-500">· {{ $record->project->code }}</span>
-                                    @elseif ($record->location)
-                                        <span class="text-zinc-500">· {{ $record->location->name }}</span>
+                                    @endif
+                                    @if ($record->location)
+                                        <span class="block text-xs text-zinc-500">{{ $record->location->name }}</span>
                                     @endif
                                 </flux:table.cell>
                                 <flux:table.cell class="whitespace-nowrap">

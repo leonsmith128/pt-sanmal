@@ -82,7 +82,9 @@ class AdminAttendanceExportController extends Controller
                         $record->employee->user->name,
                         $record->type->label(),
                         $record->work_type->label(),
-                        $record->project?->name ?? $record->location?->name ?? '',
+                        $record->project?->name && $record->location?->name
+                            ? $record->project->name.' — '.$record->location->name
+                            : ($record->project?->name ?? $record->location?->name ?? ''),
                         $record->latitude,
                         $record->longitude,
                         $record->notes,
