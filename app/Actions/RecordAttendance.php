@@ -60,17 +60,13 @@ class RecordAttendance
 
     public static function assignableProjects(Employee $employee): Builder
     {
-        $today = now(self::DEFAULT_TIMEZONE)->toDateString();
-
+        // Semua pegawai dapat memilih Project Active; tidak ada relasi assignment.
         return Project::query()
             ->active()
-            ->whereHas('employees', function ($query) use ($employee, $today) {
-                $query->where('employees.id', $employee->id)
-                    ->where(fn ($w) => $w->whereNull('project_assignments.starts_on')
-                        ->orWhere('project_assignments.starts_on', '<=', $today))
-                    ->where(fn ($w) => $w->whereNull('project_assignments.ends_on')
-                        ->orWhere('project_assignments.ends_on', '>=', $today));
-            })
+            ->whereHas('location', fn (Builder $location) => $location
+                ->where('type', 'site')
+                ->where('is_active', true))
+            ->with('location')
             ->orderBy('name');
     }
 
@@ -271,7 +267,7 @@ class RecordAttendance
             $project = self::assignableProjects($employee)->with('location')->find($projectId);
 
             if ($project === null) {
-                $this->fail('projectId', 'Proyek tidak valid atau tidak ditugaskan kepada Anda.');
+                $this->fail('projectId', 'Proyek tidak valid atau tidak tersedia untuk absensi.');
             }
 
             return [WorkType::Onsite, $project->location, $project];
