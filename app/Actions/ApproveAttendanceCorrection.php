@@ -52,6 +52,7 @@ class ApproveAttendanceCorrection
                     ->firstOrFail();
 
                 $requestedAt = $locked->requested_recorded_at;
+                $timeline = new AttendanceSessionTimeline();
                 $requestedLocal = $requestedAt->copy()->setTimezone($anchor->timezone);
                 abort_if($requestedAt->isFuture(), 422, 'Waktu koreksi tidak boleh berada di masa depan.');
 
@@ -66,15 +67,9 @@ class ApproveAttendanceCorrection
                         ->contains(fn (AttendanceRecord $other) => $other->effectiveAttendanceDate() === $requestedLocal->toDateString());
                     abort_if($conflict, 422, 'Koreksi ditolak karena tanggal lokal tersebut sudah memiliki sesi absensi lain.');
 
-                    $firstOut = $anchor->sessionEvents()
-                        ->where('type', AttendanceType::ClockOut)
-                        ->with('approvedCorrection')
-                        ->get()
-                        ->sortBy(fn (AttendanceRecord $event) => $event->effectiveRecordedAt()->timestamp)
-                        ->first();
-                    abort_if($firstOut && $requestedAt->gte($firstOut->effectiveRecordedAt()), 422, 'Waktu Clock In harus lebih awal daripada Clock Out sesi.');
+                    $timeline->assertClockIn($anchor, $requestedAt);
                 } elseif ($locked->requested_type === AttendanceType::ClockOut->value) {
-                    abort_if($requestedAt->lte($anchor->effectiveRecordedAt()), 422, 'Waktu Clock Out harus setelah Clock In.');
+                    $timeline->assertClockOut($anchor, $requestedAt);
 
                     if ($locked->attendance_record_id !== null) {
                         $record = AttendanceRecord::query()
