@@ -79,32 +79,16 @@ class AttendanceHistoryController extends Controller
 
     private function attendanceQuery(Employee $employee, array $filters): HasMany
     {
-        return $employee->attendanceRecords()
-            ->with(['location', 'project', 'approvedCorrection'])
-            ->when($filters['from'] !== '' || $filters['to'] !== '', function ($query) use ($filters): void {
-                $from = $filters['from'] !== '' ? $filters['from'] : null;
-                $to = $filters['to'] !== '' ? $filters['to'] : null;
-                $previousDayBoundary = match (DB::connection()->getDriverName()) {
-                    'sqlite' => "datetime(attendance_records.recorded_at, '-24 hours')",
-                    default => 'DATE_SUB(attendance_records.recorded_at, INTERVAL 24 HOUR)',
-                };
-                $effectiveDate = "DATE(COALESCE((SELECT ac.attendance_date FROM attendance_corrections ac WHERE ac.attendance_record_id = attendance_records.id AND ac.status = 'approved' ORDER BY ac.reviewed_at DESC LIMIT 1), attendance_records.attendance_date))";
-                $sessionDate = "(SELECT DATE(COALESCE((SELECT ac2.attendance_date FROM attendance_corrections ac2 WHERE ac2.attendance_record_id = ci.id AND ac2.status = 'approved' ORDER BY ac2.reviewed_at DESC LIMIT 1), ci.attendance_date)) FROM attendance_records ci WHERE ci.employee_id = attendance_records.employee_id AND ci.type = 'clock_in' AND ci.recorded_at <= attendance_records.recorded_at AND ci.recorded_at >= {$previousDayBoundary} ORDER BY ci.recorded_at DESC LIMIT 1)";
+        $query = $employee->attendanceRecords()
+            ->with(['location', 'project', 'approvedCorrection', 'sessionAnchor.approvedCorrection']);
 
-                $query->where(function ($nested) use ($from, $to, $effectiveDate, $sessionDate): void {
-                    foreach ([$effectiveDate, $sessionDate] as $dateExpression) {
-                        $nested->orWhere(function ($range) use ($from, $to, $dateExpression): void {
-                            if ($from) {
-                                $range->whereRaw($dateExpression.' >= ?', [$from]);
-                            }
+        AttendanceDateFilter::apply(
+            $query,
+            $filters['from'] !== '' ? $filters['from'] : null,
+            $filters['to'] !== '' ? $filters['to'] : null,
+        );
 
-                            if ($to) {
-                                $range->whereRaw($dateExpression.' <= ?', [$to]);
-                            }
-                        });
-                    }
-                });
-            });
+        return $query;
     }
 
     private function validatedFilters(Request $request): array
