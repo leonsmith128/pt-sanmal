@@ -23,7 +23,6 @@
                 <flux:input name="phone" :label="__('Nomor telepon')" value="{{ old('phone') }}" />
                 <flux:error name="phone" />
             </flux:field>
-            <input type="hidden" name="is_active" value="1">
             <div class="flex justify-end gap-2">
                 <flux:button href="{{ route('admin.clients.index') }}" variant="ghost">{{ __('Batal') }}</flux:button>
                 <flux:button type="submit" variant="primary">{{ __('Simpan client') }}</flux:button>
