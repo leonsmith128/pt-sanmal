@@ -22,7 +22,7 @@ return new class extends Migration
 
         Schema::table('projects', function (Blueprint $table): void {
             $table->unsignedBigInteger('client_id')->nullable()->after('id');
-            $table->string('project_type', 30)->default('calibration')->after('name');
+            $table->string('project_type', 30)->default('service')->after('name');
         });
 
         // Existing projects inherit their Client from the Site they already use.
@@ -52,7 +52,7 @@ return new class extends Migration
             DB::statement(<<<'SQL'
                 ALTER TABLE projects
                 ADD CONSTRAINT projects_project_type_check
-                CHECK (project_type IN ('calibration', 'training'))
+                CHECK (project_type IN ('service', 'training'))
             SQL);
         }
     }

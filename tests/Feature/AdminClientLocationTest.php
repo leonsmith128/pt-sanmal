@@ -290,7 +290,7 @@ it('enforces project client and site ownership at database level', function () {
         'client_id' => $client->id,
         'code' => 'PRJ-DB-WRONG-OWNER',
         'name' => 'Project dengan Client tidak sesuai',
-        'project_type' => 'calibration',
+        'project_type' => 'service',
         'location_id' => $site->id,
         'status' => 'pending',
         'created_at' => now(),

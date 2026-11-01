@@ -57,7 +57,7 @@ it('allows admins and superadmins to manage project master data', function () {
                 'client_id' => $client->id,
                 'code' => 'PRJ-'.$role->value,
                 'name' => 'Kalibrasi Timbangan',
-                'project_type' => ProjectType::Calibration->value,
+                'project_type' => ProjectType::Service->value,
                 'location_id' => $site->id,
                 'description' => 'Jasa kalibrasi tahunan.',
                 'start_date' => '2026-11-01',
@@ -70,7 +70,7 @@ it('allows admins and superadmins to manage project master data', function () {
             'code' => 'PRJ-'.$role->value,
             'client_id' => $client->id,
             'location_id' => $site->id,
-            'project_type' => ProjectType::Calibration->value,
+            'project_type' => ProjectType::Service->value,
         ]);
 
         $project = Project::query()->where('code', 'PRJ-'.$role->value)->firstOrFail();
@@ -168,7 +168,7 @@ it('keeps completed projects in history but excludes them from attendance choice
         'client_id' => $client->id,
         'code' => 'PRJ-COMPLETE',
         'name' => 'Project Selesai',
-        'project_type' => ProjectType::Calibration,
+        'project_type' => ProjectType::Service,
         'location_id' => $site->id,
         'status' => ProjectStatus::Active,
     ]);

@@ -60,7 +60,7 @@ class DevDataSeeder extends Seeder
             Project::firstOrCreate(['code' => 'PRJ-001'], [
                 'client_id' => $client->id,
                 'name' => 'Proyek Kalibrasi Contoh',
-                'project_type' => ProjectType::Calibration,
+                'project_type' => ProjectType::Service,
                 'location_id' => $site->id,
                 'status' => ProjectStatus::Active->value,
                 'start_date' => now()->toDateString(),

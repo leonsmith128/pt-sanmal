@@ -4,13 +4,13 @@ namespace App\Enums;
 
 enum ProjectType: string
 {
-    case Calibration = 'calibration';
+    case Service = 'service';
     case Training = 'training';
 
     public function label(): string
     {
         return match ($this) {
-            self::Calibration => 'Jasa Kalibrasi',
+            self::Service => 'Jasa',
             self::Training => 'Pelatihan',
         };
     }
