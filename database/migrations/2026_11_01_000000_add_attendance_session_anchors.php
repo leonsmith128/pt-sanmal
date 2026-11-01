@@ -11,11 +11,12 @@ return new class extends Migration
     {
         Schema::table('attendance_records', function (Blueprint $table) {
             $table->foreignId('session_anchor_id')->nullable()->after('employee_id')
-                ->constrained('attendance_records')->nullOnDelete();
+                ->constrained('attendance_records')->restrictOnDelete();
             $table->string('source', 30)->default('attendance')->after('session_anchor_id');
             $table->foreignId('attendance_correction_id')->nullable()->after('source')
-                ->constrained('attendance_corrections')->nullOnDelete();
+                ->constrained('attendance_corrections')->restrictOnDelete();
             $table->index(['employee_id', 'session_anchor_id', 'type'], 'attendance_session_events_idx');
+            $table->index('attendance_correction_id', 'attendance_correction_event_idx');
         });
 
         Schema::table('attendance_corrections', function (Blueprint $table) {
@@ -121,6 +122,7 @@ return new class extends Migration
 
         Schema::table('attendance_records', function (Blueprint $table) {
             $table->dropIndex('attendance_session_events_idx');
+            $table->dropIndex('attendance_correction_event_idx');
             $table->dropConstrainedForeignId('attendance_correction_id');
             $table->dropColumn('source');
             $table->dropConstrainedForeignId('session_anchor_id');
