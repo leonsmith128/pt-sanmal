@@ -54,33 +54,42 @@
                 </flux:sidebar.group>
 
                 @if (auth()->user()->isManager())
-                    <flux:sidebar.group :heading="__('Administrasi')" class="grid">
+                    <flux:sidebar.group :heading="__('Rekap Absensi')" class="grid">
                         <flux:sidebar.item icon="clipboard-document-list" :href="route('admin.kehadiran')" :current="request()->routeIs('admin.kehadiran')" wire:navigate>
-                            {{ __('Kehadiran') }}
-                        </flux:sidebar.item>
-                        <flux:sidebar.item icon="users" :href="route('admin.employees.index')" :current="request()->routeIs('admin.employees.*')" wire:navigate>
-                            {{ __('Manajemen Pegawai') }}
-                        </flux:sidebar.item>
-                        <flux:sidebar.item icon="building-office-2" :href="route('admin.clients.index')" :current="request()->routeIs('admin.clients.*')" wire:navigate>
-                            {{ __('Master Client') }}
-                        </flux:sidebar.item>
-                        <flux:sidebar.item icon="map-pin" :href="route('admin.locations.index')" :current="request()->routeIs('admin.locations.*')" wire:navigate>
-                            {{ __('Master Lokasi') }}
-                        </flux:sidebar.item>
-                        <flux:sidebar.item icon="briefcase" :href="route('admin.projects.index')" :current="request()->routeIs('admin.projects.*')" wire:navigate>
-                            {{ __('Master Proyek') }}
-                        </flux:sidebar.item>
-                        <flux:sidebar.item icon="calendar" :href="route('admin.leave-requests.index')" :current="request()->routeIs('admin.leave-requests.*')" wire:navigate>
-                            {{ __('Persetujuan Permohonan') }}
-                        </flux:sidebar.item>
-                        <flux:sidebar.item icon="clock" :href="route('admin.overtime-requests.index')" :current="request()->routeIs('admin.overtime-requests.*')" wire:navigate>
-                            {{ __('Persetujuan Lembur') }}
-                        </flux:sidebar.item>
-                        <flux:sidebar.item icon="document-check" :href="route('admin.attendance-corrections.index')" :current="request()->routeIs('admin.attendance-corrections.*')" wire:navigate>
-                            {{ __('Koreksi Absensi') }}
+                            {{ __('Kehadiran & Aktivitas Pegawai') }}
                         </flux:sidebar.item>
                         <flux:sidebar.item icon="calendar-days" :href="route('admin.daily-attendance')" :current="request()->routeIs('admin.daily-attendance*')" wire:navigate>
-                            {{ __('Rekap Absensi Harian') }}
+                            {{ __('Rekap Harian') }}
+                        </flux:sidebar.item>
+                    </flux:sidebar.group>
+
+                    <flux:sidebar.group :heading="__('Proyek')" class="grid">
+                        <flux:sidebar.item icon="briefcase-business" :href="route('admin.projects.index')" :current="request()->routeIs('admin.projects.*')" wire:navigate>
+                            {{ __('Pengelolaan Proyek') }}
+                        </flux:sidebar.item>
+                    </flux:sidebar.group>
+
+                    <flux:sidebar.group :heading="__('Client')" class="grid">
+                        <flux:sidebar.item icon="building-office-2" :href="route('admin.clients.index')" :current="request()->routeIs('admin.clients.*', 'admin.locations.*')" wire:navigate>
+                            {{ __('Master Data Client') }}
+                        </flux:sidebar.item>
+                    </flux:sidebar.group>
+
+                    <flux:sidebar.group :heading="__('Pusat Permohonan')" class="grid">
+                        <flux:sidebar.item icon="calendar" :href="route('admin.leave-requests.index')" :current="request()->routeIs('admin.leave-requests.*')" wire:navigate>
+                            {{ __('Izin, Sakit & Cuti') }}
+                        </flux:sidebar.item>
+                        <flux:sidebar.item icon="clock" :href="route('admin.overtime-requests.index')" :current="request()->routeIs('admin.overtime-requests.*')" wire:navigate>
+                            {{ __('Permohonan Lembur') }}
+                        </flux:sidebar.item>
+                        <flux:sidebar.item icon="document-check" :href="route('admin.attendance-corrections.index')" :current="request()->routeIs('admin.attendance-corrections.*')" wire:navigate>
+                            {{ __('Permohonan Koreksi Absensi') }}
+                        </flux:sidebar.item>
+                    </flux:sidebar.group>
+
+                    <flux:sidebar.group :heading="__('Pegawai')" class="grid">
+                        <flux:sidebar.item icon="users" :href="route('admin.employees.index')" :current="request()->routeIs('admin.employees.*')" wire:navigate>
+                            {{ __('Daftar & Akun Pegawai') }}
                         </flux:sidebar.item>
                     </flux:sidebar.group>
                 @endif                
