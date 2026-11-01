@@ -49,13 +49,20 @@ class DailyAttendanceStatusService
         $rawEvents = AttendanceRecord::query()
             ->whereIn('employee_id', $employeeIds)
             ->where(function ($query) use ($start, $end): void {
-                $query->whereBetween('attendance_date', [$start, $end])
-                    ->orWhereHas('approvedCorrection', fn ($correctionQuery) => $correctionQuery
-                        ->whereBetween('attendance_date', [$start, $end]))
-                    ->orWhereHas('sessionAnchor', fn ($anchorQuery) => $anchorQuery
-                        ->whereBetween('attendance_date', [$start, $end])
-                        ->orWhereHas('approvedCorrection', fn ($correctionQuery) => $correctionQuery
-                            ->whereBetween('attendance_date', [$start, $end])));
+                $query->where(function ($dateQuery) use ($start, $end): void {
+                    $dateQuery->whereDate('attendance_date', '>=', $start)
+                        ->whereDate('attendance_date', '<=', $end);
+                })->orWhereHas('approvedCorrection', fn ($correctionQuery) => $correctionQuery
+                    ->whereDate('attendance_date', '>=', $start)
+                    ->whereDate('attendance_date', '<=', $end))
+                    ->orWhereHas('sessionAnchor', function ($anchorQuery) use ($start, $end): void {
+                        $anchorQuery->where(function ($dateQuery) use ($start, $end): void {
+                            $dateQuery->whereDate('attendance_date', '>=', $start)
+                                ->whereDate('attendance_date', '<=', $end);
+                        })->orWhereHas('approvedCorrection', fn ($correctionQuery) => $correctionQuery
+                            ->whereDate('attendance_date', '>=', $start)
+                            ->whereDate('attendance_date', '<=', $end));
+                    });
             })
             ->with(['approvedCorrection', 'sessionAnchor.approvedCorrection'])
             ->orderBy('employee_id')
