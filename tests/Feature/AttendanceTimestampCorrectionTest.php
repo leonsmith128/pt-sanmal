@@ -179,7 +179,6 @@ it('creates a new clock-out event linked to the original session when a forgotte
         ->and($correction->fresh()->status)->toBe('approved');
 });
 
-
 it('rejects an approved clock-out correction that overlaps the next session', function () {
     $employeeUser = User::factory()->create();
     $employee = Employee::create(['user_id' => $employeeUser->id]);
@@ -410,7 +409,6 @@ it('cancels a forgotten clock-out request when an administrator directly correct
     expect($pending->fresh()->status)->toBe('cancelled')
         ->and($pending->fresh()->reviewed_by)->toBe($admin->id);
 });
-
 
 it('rejects a direct clock-in correction that overlaps the previous session', function () {
     $employeeUser = User::factory()->create();
