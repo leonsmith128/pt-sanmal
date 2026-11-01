@@ -233,7 +233,6 @@ it('rejects overlapping leave requests while a previous request is pending or ap
     expect($approved->fresh()->status)->toBe(LeaveRequestStatus::Approved);
 });
 
-
 it('accepts an optional leave attachment up to 1 MB and stores it on the local disk', function () {
     $user = createUserWithRole(UserRole::Employee);
     createEmployeeFor($user);
