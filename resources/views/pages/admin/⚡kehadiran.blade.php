@@ -7,6 +7,7 @@ use App\Enums\SelfieSource;
 use App\Enums\WorkType;
 use App\Models\AttendanceRecord;
 use App\Models\Employee;
+use App\Support\AttendanceDateFilter;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
@@ -99,13 +100,6 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
     {
         [$from, $to] = $this->range();
 
-        // Gunakan ekspresi tanggal yang sesuai dengan driver agar query juga
-        // dapat dijalankan oleh SQLite pada feature tests.
-        $previousDayBoundary = match (\Illuminate\Support\Facades\DB::connection()->getDriverName()) {
-            'sqlite' => "datetime(attendance_records.recorded_at, '-24 hours')",
-            default => 'DATE_SUB(attendance_records.recorded_at, INTERVAL 24 HOUR)',
-        };
-
         $sortColumns = [
             'recorded_at' => "COALESCE((SELECT ac.requested_recorded_at FROM attendance_corrections ac WHERE ac.attendance_record_id = attendance_records.id AND ac.status = 'approved' ORDER BY ac.reviewed_at DESC LIMIT 1), attendance_records.recorded_at)",
             'employee' => 'sort_users.name',
@@ -117,18 +111,12 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
             ->select('attendance_records.*')
             ->join('employees as sort_employees', 'sort_employees.id', '=', 'attendance_records.employee_id')
             ->join('users as sort_users', 'sort_users.id', '=', 'sort_employees.user_id')
-            ->with(['employee.user', 'location', 'project', 'approvedCorrection'])
-            ->when($from !== '' && $to !== '', function ($query) use ($from, $to, $previousDayBoundary): void {
-                $query->where(function ($nested) use ($from, $to, $previousDayBoundary): void {
-                    $nested->whereRaw(
-                        "DATE(COALESCE((SELECT ac.attendance_date FROM attendance_corrections ac WHERE ac.attendance_record_id = attendance_records.id AND ac.status = 'approved' ORDER BY ac.reviewed_at DESC LIMIT 1), attendance_records.attendance_date)) BETWEEN ? AND ?",
-                        [$from, $to],
-                    )->orWhereRaw(
-                        "(SELECT DATE(COALESCE((SELECT ac2.attendance_date FROM attendance_corrections ac2 WHERE ac2.attendance_record_id = ci.id AND ac2.status = 'approved' ORDER BY ac2.reviewed_at DESC LIMIT 1), ci.attendance_date)) FROM attendance_records ci WHERE ci.employee_id = attendance_records.employee_id AND ci.type = 'clock_in' AND ci.recorded_at <= attendance_records.recorded_at AND ci.recorded_at >= {$previousDayBoundary} ORDER BY ci.recorded_at DESC LIMIT 1) BETWEEN ? AND ?",
-                        [$from, $to],
-                    );
-                });
-            })
+            ->with(['employee.user', 'location', 'project', 'approvedCorrection', 'sessionAnchor.approvedCorrection'])
+            ->tap(fn ($query) => AttendanceDateFilter::apply(
+                $query,
+                $from !== '' ? $from : null,
+                $to !== '' ? $to : null,
+            ))
             ->when($this->employeeId !== '', fn ($query) => $query->where('attendance_records.employee_id', (int) $this->employeeId))
             ->when($this->attendanceType !== '', fn ($query) => $query->where('attendance_records.type', $this->attendanceType))
             ->when($this->workType !== '', fn ($query) => $query->where('attendance_records.work_type', $this->workType))
@@ -157,7 +145,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
         return Employee::query()
             ->with('user:id,name')
             ->whereHas('user', fn ($query) => $query->where('is_active', true))
-            ->whereDoesntHave('attendanceRecords', fn ($query) => $query->whereDate('attendance_date', $from))
+            ->whereDoesntHave('attendanceRecords', fn ($query) => AttendanceDateFilter::apply($query, $from, $from))
             ->whereDoesntHave('leaveRequests', fn ($query) => $query
                 ->where('status', LeaveRequestStatus::Approved)
                 ->whereDate('start_date', '<=', $from)
@@ -249,9 +237,11 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                         'attendance_type' => $attendanceType,
                         'work_type' => $workType,
                     ], fn ($value) => $value !== '');
-                    $today = Carbon::today();
-                    $weekStart = Carbon::today()->startOfWeek();
-                    $monthStart = Carbon::today()->startOfMonth();
+                    $today = Carbon::now('Asia/Makassar')->startOfDay();
+                    $weekStart = $today->copy()->startOfWeek(Carbon::MONDAY);
+                    $weekEnd = $today->copy()->endOfWeek(Carbon::SUNDAY);
+                    $monthStart = $today->copy()->startOfMonth();
+                    $monthEnd = $today->copy()->endOfMonth();
                 @endphp
                 <flux:dropdown position="bottom" align="end">
                     <flux:button size="sm" variant="outline" icon="arrow-down-tray">
@@ -266,13 +256,13 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                             {{ __('Hari ini') }}
                         </flux:menu.item>
                         <flux:menu.item
-                            :href="route('admin.kehadiran.export', [...$exportFilters, 'from' => $weekStart->toDateString(), 'to' => $today->toDateString()])"
+                            :href="route('admin.kehadiran.export', [...$exportFilters, 'from' => $weekStart->toDateString(), 'to' => $weekEnd->toDateString()])"
                             icon="calendar-days"
                         >
                             {{ __('Minggu ini') }}
                         </flux:menu.item>
                         <flux:menu.item
-                            :href="route('admin.kehadiran.export', [...$exportFilters, 'from' => $monthStart->toDateString(), 'to' => $today->toDateString()])"
+                            :href="route('admin.kehadiran.export', [...$exportFilters, 'from' => $monthStart->toDateString(), 'to' => $monthEnd->toDateString()])"
                             icon="calendar"
                         >
                             {{ __('Bulan ini') }}
