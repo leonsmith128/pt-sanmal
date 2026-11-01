@@ -453,7 +453,6 @@ it('rejects a direct clock-in correction that overlaps the previous session', fu
     expect($targetClockIn->fresh()->approvedCorrection)->toBeNull();
 });
 
-
 it('shows the current effective timestamp when an older approved correction detail is opened', function () {
     $employeeUser = User::factory()->create();
     $employee = Employee::create(['user_id' => $employeeUser->id]);
