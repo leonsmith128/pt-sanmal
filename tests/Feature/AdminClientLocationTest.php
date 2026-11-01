@@ -1,12 +1,12 @@
 <?php
 
+use App\Enums\ProjectStatus;
 use App\Enums\UserRole;
 use App\Models\Client;
 use App\Models\Location;
 use App\Models\Project;
-use App\Enums\ProjectStatus;
-use Illuminate\Database\QueryException;
 use App\Models\User;
+use Illuminate\Database\QueryException;
 
 function clientLocationAdminUser(): User
 {
