@@ -20,7 +20,6 @@ class AdminClientController extends Controller
                     ->orWhere('name', 'like', "%{$term}%")
                     ->orWhere('phone', 'like', "%{$term}%");
             }))
-            ->when($request->filled('status'), fn ($query) => $query->where('is_active', $request->status === 'active'))
             ->orderBy('name')
             ->paginate(20)
             ->withQueryString();
@@ -40,7 +39,6 @@ class AdminClientController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'address' => ['nullable', 'string', 'max:2000'],
             'phone' => ['nullable', 'string', 'max:30'],
-            'is_active' => ['required', 'boolean'],
         ]);
 
         Client::create($data);
@@ -60,7 +58,6 @@ class AdminClientController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'address' => ['nullable', 'string', 'max:2000'],
             'phone' => ['nullable', 'string', 'max:30'],
-            'is_active' => ['required', 'boolean'],
         ]);
 
         $client->update($data);
