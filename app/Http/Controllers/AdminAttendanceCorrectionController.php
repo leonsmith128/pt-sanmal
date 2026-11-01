@@ -72,7 +72,7 @@ class AdminAttendanceCorrectionController extends Controller
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            $timeline = new AttendanceSessionTimeline();
+            $timeline = new AttendanceSessionTimeline;
 
             if ($locked->type === AttendanceType::ClockIn) {
                 $conflict = AttendanceRecord::query()
