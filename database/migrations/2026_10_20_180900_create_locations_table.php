@@ -22,6 +22,10 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index(['client_id', 'is_active']);
+            $table->check(
+                "(type = 'office' AND client_id IS NULL) OR (type = 'site' AND client_id IS NOT NULL)",
+                'locations_type_client_consistency_check',
+            );
         });
     }
 
