@@ -220,6 +220,11 @@ it('enforces location ownership and requires every project to have a location', 
 
     expect($project->fresh()->status)->toBe(ProjectStatus::Pending);
 
+    $project->update(['status' => ProjectStatus::Active]);
+
+    expect(fn () => $site->update(['is_active' => false]))
+        ->toThrow(ValidationException::class);
+
     $employee = Employee::query()->create([
         'user_id' => User::factory()->create()->id,
     ]);
