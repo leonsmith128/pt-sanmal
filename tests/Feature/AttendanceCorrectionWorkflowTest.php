@@ -314,7 +314,6 @@ it('shows cancelled corrections with a localized status in the administrator que
         ->assertDontSee('Cancelled');
 });
 
-
 it('accepts a correction attachment up to 1 MB', function () {
     [$user, $employee] = correctionEmployeeUser();
     $record = correctionClockIn($employee);
