@@ -72,6 +72,32 @@ it('allows admins and superadmins to manage project master data', function () {
             'location_id' => $site->id,
             'project_type' => ProjectType::Calibration->value,
         ]);
+
+        $project = Project::query()->where('code', 'PRJ-'.$role->value)->firstOrFail();
+
+        $this->actingAs($user)
+            ->get(route('admin.projects.edit', $project))
+            ->assertOk();
+
+        $this->actingAs($user)
+            ->put(route('admin.projects.update', $project), [
+                'client_id' => $client->id,
+                'code' => $project->code,
+                'name' => 'Layanan Pelatihan Kalibrasi',
+                'project_type' => ProjectType::Training->value,
+                'location_id' => $site->id,
+                'description' => 'Pembaruan layanan.',
+                'start_date' => '2026-11-01',
+                'end_date' => '2026-12-01',
+                'status' => ProjectStatus::Active->value,
+            ])
+            ->assertRedirect(route('admin.projects.index'));
+
+        $this->assertDatabaseHas('projects', [
+            'id' => $project->id,
+            'name' => 'Layanan Pelatihan Kalibrasi',
+            'project_type' => ProjectType::Training->value,
+        ]);
     }
 });
 
