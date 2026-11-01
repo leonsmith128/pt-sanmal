@@ -7,6 +7,7 @@ use App\Enums\ProjectType;
 use App\Models\Client;
 use App\Models\Location;
 use App\Models\Project;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -68,8 +69,8 @@ class AdminProjectController extends Controller
 
     /**
      * @return array{
-     *     clients: \Illuminate\Database\Eloquent\Collection<int, Client>,
-     *     locations: \Illuminate\Database\Eloquent\Collection<int, Location>,
+     *     clients: Collection<int, Client>,
+     *     locations: Collection<int, Location>,
      *     statuses: list<ProjectStatus>,
      *     projectTypes: list<ProjectType>
      * }

@@ -1,5 +1,6 @@
 <?php
 
+use App\Actions\RecordAttendance;
 use App\Enums\AttendanceType;
 use App\Enums\ProjectStatus;
 use App\Enums\ProjectType;
@@ -146,11 +147,11 @@ it('keeps completed projects in history but excludes them from attendance choice
         'status' => ProjectStatus::Active,
     ]);
 
-    expect(\App\Actions\RecordAttendance::availableForAttendance()->whereKey($project->id)->exists())->toBeTrue();
+    expect(RecordAttendance::availableForAttendance()->whereKey($project->id)->exists())->toBeTrue();
 
     $project->update(['status' => ProjectStatus::Completed]);
 
-    expect(\App\Actions\RecordAttendance::availableForAttendance()->whereKey($project->id)->exists())->toBeFalse()
+    expect(RecordAttendance::availableForAttendance()->whereKey($project->id)->exists())->toBeFalse()
         ->and($project->fresh()->attendanceRecords)->toBeEmpty();
 });
 
