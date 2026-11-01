@@ -25,7 +25,6 @@ it('allows administrators to manage client master data', function () {
             'name' => 'PT Contoh Client',
             'address' => 'Makassar',
             'phone' => '0411000000',
-            'is_active' => '1',
         ])
         ->assertRedirect(route('admin.clients.index'));
 
@@ -34,7 +33,6 @@ it('allows administrators to manage client master data', function () {
     $this->assertDatabaseHas('clients', [
         'id' => $client->id,
         'name' => 'PT Contoh Client',
-        'is_active' => true,
     ]);
 
     $this->actingAs($admin)
@@ -43,14 +41,12 @@ it('allows administrators to manage client master data', function () {
             'name' => 'PT Contoh Client Updated',
             'address' => 'Gowa',
             'phone' => '0411222222',
-            'is_active' => '0',
         ])
         ->assertRedirect(route('admin.clients.index'));
 
     $this->assertDatabaseHas('clients', [
         'id' => $client->id,
         'name' => 'PT Contoh Client Updated',
-        'is_active' => false,
     ]);
 });
 
@@ -59,7 +55,6 @@ it('allows administrators to manage client and internal locations with valid tim
     $client = Client::query()->create([
         'code' => 'CL-LOC',
         'name' => 'Client Lokasi',
-        'is_active' => true,
     ]);
 
     $this->actingAs($admin)
