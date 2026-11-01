@@ -8,6 +8,7 @@ use App\Enums\WorkType;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
@@ -97,7 +98,7 @@ class AttendanceRecord extends Model
         return $this->belongsTo(self::class, 'session_anchor_id');
     }
 
-    public function sessionEvents(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function sessionEvents(): HasMany
     {
         return $this->hasMany(self::class, 'session_anchor_id');
     }
