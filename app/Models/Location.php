@@ -1,13 +1,13 @@
 <?php
 
-namespace App\\Models;
+namespace App\Models;
 
-use App\\Enums\\ProjectStatus;
-use Illuminate\\Database\\Eloquent\\Attributes\\Fillable;
-use Illuminate\\Database\\Eloquent\\Model;
-use Illuminate\\Database\\Eloquent\\Relations\\BelongsTo;
-use Illuminate\\Database\\Eloquent\\Relations\\HasMany;
-use Illuminate\\Validation\\ValidationException;
+use App\Enums\ProjectStatus;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Validation\ValidationException;
 
 /**
  * @property int $id
