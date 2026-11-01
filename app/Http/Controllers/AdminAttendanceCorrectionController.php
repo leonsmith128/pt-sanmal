@@ -1,20 +1,20 @@
 <?php
 
-namespace App\\Http\\Controllers;
+namespace App\Http\Controllers;
 
-use App\\Actions\\ApproveAttendanceCorrection;
-use App\\Enums\\AttendanceType;
-use App\\Models\\AttendanceCorrection;
-use App\\Models\\AttendanceRecord;
-use App\\Models\\AuditLog;
-use App\\Models\\Employee;
-use App\\Support\\AttendanceSessionTimeline;
-use Illuminate\\Http\\RedirectResponse;
-use Illuminate\\Http\\Request;
-use Illuminate\\Support\\Carbon;
-use Illuminate\\Support\\Facades\\DB;
-use Illuminate\\Support\\Facades\\Storage;
-use Illuminate\\View\\View;
+use App\Actions\ApproveAttendanceCorrection;
+use App\Enums\AttendanceType;
+use App\Models\AttendanceCorrection;
+use App\Models\AttendanceRecord;
+use App\Models\AuditLog;
+use App\Models\Employee;
+use App\Support\AttendanceSessionTimeline;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\View\View;
 
 class AdminAttendanceCorrectionController extends Controller
 {
