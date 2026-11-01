@@ -129,7 +129,6 @@ it('uses the latest approved clock-in date correction as the session filter date
         ->and($csv)->not->toContain('2026-10-30 01:00:00');
 });
 
-
 it('orders daily recap events by their effective timestamps after a correction', function () {
     $employee = dateFilterEmployee('Pegawai Urutan Efektif');
     $clockInAt = now()->subHours(4)->startOfMinute();
