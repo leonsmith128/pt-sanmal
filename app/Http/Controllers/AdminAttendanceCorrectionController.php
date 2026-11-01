@@ -39,7 +39,7 @@ class AdminAttendanceCorrectionController extends Controller
     public function correctTimestamp(Request $request, AttendanceRecord $record): RedirectResponse
     {
         $validated = $request->validate([
-            'recorded_at_local' => ['required', 'date_format:Y-m-d\\\\TH:i'],
+            'recorded_at_local' => ['required', 'date_format:Y-m-d\\TH:i'],
             'reason' => ['required', 'string', 'min:5', 'max:2000'],
         ]);
 
@@ -56,7 +56,7 @@ class AdminAttendanceCorrectionController extends Controller
 
             abort_if($locked->employee?->user_id === $request->user()->id, 403, 'Anda tidak dapat mengoreksi timestamp absensi milik sendiri.');
 
-            $correctedAt = Carbon::createFromFormat('!Y-m-d\\\\TH:i', $validated['recorded_at_local'], $locked->timezone);
+            $correctedAt = Carbon::createFromFormat('!Y-m-d\\TH:i', $validated['recorded_at_local'], $locked->timezone);
             abort_if($correctedAt->isFuture(), 422, 'Timestamp koreksi tidak boleh berada di masa depan.');
 
             $previousEffectiveAt = $locked->effectiveRecordedAt();
