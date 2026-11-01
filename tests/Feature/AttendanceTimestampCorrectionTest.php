@@ -409,3 +409,47 @@ it('cancels a forgotten clock-out request when an administrator directly correct
     expect($pending->fresh()->status)->toBe('cancelled')
         ->and($pending->fresh()->reviewed_by)->toBe($admin->id);
 });
+
+
+it('rejects a direct clock-in correction that overlaps the previous session', function () {
+    $employeeUser = User::factory()->create();
+    $employee = Employee::create(['user_id' => $employeeUser->id]);
+    $previousClockInAt = now()->subDays(5);
+    $previousClockIn = AttendanceRecord::create([
+        'employee_id' => $employee->id,
+        'type' => AttendanceType::ClockIn,
+        'work_type' => WorkType::Office,
+        'recorded_at' => $previousClockInAt,
+        'timezone' => 'Asia/Makassar',
+        'attendance_date' => $previousClockInAt->copy()->setTimezone('Asia/Makassar')->toDateString(),
+    ]);
+    $previousClockOutAt = now()->subDays(2);
+    AttendanceRecord::create([
+        'employee_id' => $employee->id,
+        'session_anchor_id' => $previousClockIn->id,
+        'type' => AttendanceType::ClockOut,
+        'work_type' => WorkType::Office,
+        'recorded_at' => $previousClockOutAt,
+        'timezone' => 'Asia/Makassar',
+        'attendance_date' => $previousClockIn->attendance_date,
+    ]);
+    $targetClockInAt = now()->subDay();
+    $targetClockIn = AttendanceRecord::create([
+        'employee_id' => $employee->id,
+        'type' => AttendanceType::ClockIn,
+        'work_type' => WorkType::Office,
+        'recorded_at' => $targetClockInAt,
+        'timezone' => 'Asia/Makassar',
+        'attendance_date' => $targetClockInAt->copy()->setTimezone('Asia/Makassar')->toDateString(),
+    ]);
+    $admin = User::factory()->create();
+    $admin->forceFill(['role' => UserRole::Admin, 'is_active' => true])->save();
+    $correctedLocal = now()->subDays(3)->setTimezone('Asia/Makassar')->startOfMinute();
+
+    $this->actingAs($admin)->post(route('admin.kehadiran.correct-timestamp', $targetClockIn), [
+        'recorded_at_local' => $correctedLocal->format('Y-m-d\\TH:i'),
+        'reason' => 'Koreksi waktu masuk berdasarkan bukti yang diverifikasi.',
+    ])->assertStatus(422);
+
+    expect($targetClockIn->fresh()->approvedCorrection)->toBeNull();
+});
