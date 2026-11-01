@@ -46,6 +46,12 @@ class AttendanceSessionTimeline
         );
 
         abort_if(
+            $nextSession && $ownClockOut === null,
+            422,
+            'Sesi ini belum memiliki Clock Out sehingga tidak boleh mendahului sesi berikutnya.'
+        );
+
+        abort_if(
             $nextSession && $ownClockOut && $ownClockOut->gte($nextSession['start']),
             422,
             'Clock Out sesi ini harus terjadi sebelum Clock In sesi berikutnya.'
@@ -57,15 +63,17 @@ class AttendanceSessionTimeline
      */
     public function assertClockOut(AttendanceRecord $anchor, Carbon $correctedAt): void
     {
+        $anchorStart = $this->effectiveTimestamp($anchor);
+
         abort_if(
-            $correctedAt->lte($anchor->effectiveRecordedAt()),
+            $correctedAt->lte($anchorStart),
             422,
             'Waktu Clock Out harus lebih akhir daripada Clock In pada sesi yang sama.'
         );
 
         $nextSession = collect($this->sessionsFor($anchor))
             ->filter(fn (array $session): bool => $session['id'] !== $anchor->id
-                && $session['start']->gt($anchor->effectiveRecordedAt()))
+                && $session['start']->gt($anchorStart))
             ->sortBy(fn (array $session): int => $session['start']->getTimestamp())
             ->first();
 
@@ -89,13 +97,17 @@ class AttendanceSessionTimeline
                 ->where('type', AttendanceType::ClockOut)
                 ->with('approvedCorrection')])
             ->get()
-            ->map(fn (AttendanceRecord $session): array => [
-                'id' => $session->id,
-                'start' => $session->effectiveRecordedAt(),
-                'clock_out' => $session->sessionEvents
-                    ->sortBy(fn (AttendanceRecord $event): int => $event->effectiveRecordedAt()->getTimestamp())
-                    ->first()?->effectiveRecordedAt(),
-            ])
+            ->map(function (AttendanceRecord $session): array {
+                $clockOutEvent = $session->sessionEvents
+                    ->sortBy(fn (AttendanceRecord $event): int => $this->effectiveTimestamp($event)->getTimestamp())
+                    ->first();
+
+                return [
+                    'id' => $session->id,
+                    'start' => $this->effectiveTimestamp($session),
+                    'clock_out' => $clockOutEvent ? $this->effectiveTimestamp($clockOutEvent) : null,
+                ];
+            })
             ->all();
     }
 
@@ -108,6 +120,14 @@ class AttendanceSessionTimeline
             ->sortBy(fn (AttendanceRecord $record): int => $record->effectiveRecordedAt()->getTimestamp())
             ->first();
 
-        return $event?->effectiveRecordedAt();
+        return $event ? $this->effectiveTimestamp($event) : null;
+    }
+
+    private function effectiveTimestamp(AttendanceRecord $record): Carbon
+    {
+        /** @var Carbon $timestamp */
+        $timestamp = $record->effectiveRecordedAt();
+
+        return $timestamp;
     }
 }
