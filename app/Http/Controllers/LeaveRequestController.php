@@ -145,14 +145,58 @@ class LeaveRequestController extends Controller
 
         $attachmentPath = $request->file('attachment')?->store('leave-attachments');
 
-        $employee->leaveRequests()->create([
-            'leave_type_id' => $leaveType->id,
-            'start_date' => $validated['start_date'],
-            'end_date' => $validated['end_date'],
-            'reason' => $validated['reason'],
-            'attachment_path' => $attachmentPath,
-            'status' => LeaveRequestStatus::Pending,
-        ]);
+        try {
+            DB::transaction(function () use ($request, $employee, $leaveType, $validated, $attachmentPath): void {
+                Employee::query()->whereKey($employee->id)->lockForUpdate()->firstOrFail();
+
+                $overlaps = LeaveRequest::query()
+                    ->where('employee_id', $employee->id)
+                    ->whereIn('status', [LeaveRequestStatus::Pending, LeaveRequestStatus::Approved])
+                    ->whereDate('start_date', '<=', $validated['end_date'])
+                    ->whereDate('end_date', '>=', $validated['start_date'])
+                    ->lockForUpdate()
+                    ->get();
+
+                if ($overlaps->contains(fn (LeaveRequest $item) => $item->status === LeaveRequestStatus::Approved)) {
+                    throw ValidationException::withMessages([
+                        'start_date' => 'Periode ini bertumpang tindih dengan permohonan yang sudah disetujui. Hubungi admin untuk meminta koreksi.',
+                    ]);
+                }
+
+                if ($overlaps->contains(fn (LeaveRequest $item) => $item->status === LeaveRequestStatus::Pending)) {
+                    throw ValidationException::withMessages([
+                        'start_date' => 'Periode ini bertumpang tindih dengan permohonan yang masih menunggu. Batalkan permohonan sebelumnya terlebih dahulu jika ingin mengubah pengajuan.',
+                    ]);
+                }
+
+                $leaveRequest = $employee->leaveRequests()->create([
+                    'leave_type_id' => $leaveType->id,
+                    'start_date' => $validated['start_date'],
+                    'end_date' => $validated['end_date'],
+                    'reason' => $validated['reason'],
+                    'attachment_path' => $attachmentPath,
+                    'status' => LeaveRequestStatus::Pending,
+                ]);
+
+                AuditLog::record(
+                    auditable: $leaveRequest,
+                    action: 'leave.submitted',
+                    oldValues: [],
+                    newValues: [
+                        'leave_type_id' => $leaveRequest->leave_type_id,
+                        'start_date' => $leaveRequest->start_date->toDateString(),
+                        'end_date' => $leaveRequest->end_date->toDateString(),
+                        'status' => $leaveRequest->status->value,
+                    ],
+                    userId: $request->user()->id,
+                );
+            });
+        } catch (\Throwable $exception) {
+            if ($attachmentPath) {
+                Storage::disk('local')->delete($attachmentPath);
+            }
+            throw $exception;
+        }
 
         return redirect()->route('leave-requests.index')
             ->with('status', 'Permohonan berhasil dikirim dan menunggu persetujuan admin.');
