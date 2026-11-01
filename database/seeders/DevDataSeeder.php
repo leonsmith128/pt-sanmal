@@ -4,10 +4,10 @@ namespace Database\Seeders;
 
 use App\Enums\ProjectStatus;
 use App\Enums\UserRole;
+use App\Models\Client;
 use App\Models\Employee;
 use App\Models\Location;
 use App\Models\Project;
-use App\Models\ProjectAssignment;
 use App\Models\Title;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -31,6 +31,11 @@ class DevDataSeeder extends Seeder
                 $titles[$name] = Title::firstOrCreate(['name' => $name]);
             }
 
+            $client = Client::firstOrCreate(['code' => 'CL-DEV'], [
+                'name' => 'Client Contoh Development',
+                'address' => 'Alamat client contoh',
+            ]);
+
             // Koordinat di bawah hanya placeholder (pusat Kota Makassar). Ganti dengan koordinat asli nanti.
             Location::firstOrCreate(['name' => 'Kantor PT SanMal Calibration'], [
                 'type' => 'office',
@@ -42,6 +47,7 @@ class DevDataSeeder extends Seeder
             ]);
 
             $site = Location::firstOrCreate(['name' => 'Lokasi Proyek Contoh'], [
+                'client_id' => $client->id,
                 'type' => 'site',
                 'address' => 'Alamat lokasi proyek contoh',
                 'latitude' => -5.1400000,
@@ -85,11 +91,6 @@ class DevDataSeeder extends Seeder
                 ]);
             }
 
-            // Hanya Pegawai Satu yang ditugaskan, supaya pembatasan proyek bisa diuji.
-            ProjectAssignment::firstOrCreate(
-                ['project_id' => $project->id, 'employee_id' => $employees['pegawai1@sanmal.test']->id],
-                ['starts_on' => now()->toDateString()],
-            );
         });
     }
 }
