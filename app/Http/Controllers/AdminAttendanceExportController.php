@@ -69,8 +69,9 @@ class AdminAttendanceExportController extends Controller
 
         $leave = LeaveRequest::query()->where('status', 'approved')->min('start_date');
         $correction = DailyStatusCorrection::query()->min('attendance_date');
+        $joined = Employee::query()->min('joined_at');
 
-        return collect([$attendance, $leave, $correction])->filter()->sort()->first()
+        return collect([$attendance, $leave, $correction, $joined])->filter()->sort()->first()
             ?? Carbon::now('Asia/Makassar')->toDateString();
     }
 }
