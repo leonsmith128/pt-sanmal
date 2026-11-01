@@ -21,28 +21,21 @@ use Illuminate\Validation\ValidationException;
 
 class RecordAttendance
 {
-    public const OPEN_SESSION_HOURS = 24;
-
     public const DEFAULT_TIMEZONE = 'Asia/Makassar';
 
     /** Sesi kerja terakhir yang belum ditutup clock-out. Event mulai lembur tidak menutup sesi. */
     public static function openSession(Employee $employee): ?AttendanceRecord
     {
-        $latest = $employee->attendanceRecords()
-            ->whereIn('type', [AttendanceType::ClockIn->value, AttendanceType::ClockOut->value])
-            ->with(['location', 'project'])
+        return AttendanceRecord::query()
+            ->where('employee_id', $employee->id)
+            ->where('type', AttendanceType::ClockIn)
+            ->whereColumn('session_anchor_id', 'id')
+            ->whereDoesntHave('sessionEvents', fn (Builder $query) => $query
+                ->where('type', AttendanceType::ClockOut))
+            ->with(['location', 'project', 'approvedCorrection'])
             ->orderByDesc('recorded_at')
             ->orderByDesc('id')
             ->first();
-
-        if ($latest && $latest->type === AttendanceType::ClockIn) {
-            // Sesi tetap terbuka sampai ada Clock Out, termasuk bila melewati tengah malam.
-            // Batas 24 jam hanya dipakai untuk mengelompokkan jadwal lembur masa depan,
-            // bukan untuk mengakhiri sesi secara otomatis.
-            return $latest;
-        }
-
-        return null;
     }
 
     /**
@@ -173,6 +166,7 @@ class RecordAttendance
 
                 $record = AttendanceRecord::create([
                     'employee_id' => $employee->id,
+                    'session_anchor_id' => $type === AttendanceType::ClockOut ? ($open->session_anchor_id ?? $open->id) : null,
                     'type' => $type,
                     'work_type' => $workType,
                     'location_id' => $location?->id,
@@ -182,7 +176,7 @@ class RecordAttendance
                     'timezone' => $timezone,
                     'attendance_date' => (
                         $type === AttendanceType::ClockOut
-                            ? $open->attendance_date
+                            ? $open->effectiveAttendanceDate()
                             : $now->copy()->setTimezone($timezone)
                     )->toDateString(),
                     'latitude' => $latitude,
@@ -195,6 +189,8 @@ class RecordAttendance
                 ]);
 
                 if ($type === AttendanceType::ClockIn) {
+                    $record->forceFill(['session_anchor_id' => $record->id])->save();
+
                     // Kaitkan pengajuan yang dibuat sebelum clock-in ke sesi pada tanggal target.
                     // Kaitkan jadwal yang mulai dalam jendela sesi teknis (maks. 24 jam),
                     // termasuk jadwal setelah tengah malam pada sesi yang sama.

@@ -13,6 +13,9 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 /**
  * @property int $id
  * @property int $employee_id
+ * @property int|null $session_anchor_id
+ * @property string $source
+ * @property int|null $attendance_correction_id
  * @property AttendanceType $type
  * @property WorkType $work_type
  * @property int|null $location_id
@@ -31,7 +34,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @property-read Project|null $project
  */
 #[Fillable([
-    'employee_id', 'type', 'work_type', 'location_id', 'project_id',
+    'employee_id', 'session_anchor_id', 'attendance_correction_id', 'source', 'type', 'work_type', 'location_id', 'project_id',
     'recorded_at', 'captured_at', 'timezone', 'attendance_date',
     'latitude', 'longitude', 'accuracy_m', 'location_status', 'address_snapshot',
     'drive_backup_status', 'drive_file_id', 'drive_md5_checksum', 'drive_size_bytes',
@@ -56,6 +59,21 @@ class AttendanceRecord extends Model
             'accuracy_m' => 'decimal:2',
             'selfie_source' => SelfieSource::class,
         ];
+    }
+
+    public function sessionAnchor(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'session_anchor_id');
+    }
+
+    public function sessionEvents(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(self::class, 'session_anchor_id');
+    }
+
+    public function attendanceCorrection(): BelongsTo
+    {
+        return $this->belongsTo(AttendanceCorrection::class, 'attendance_correction_id');
     }
 
     public function employee(): BelongsTo

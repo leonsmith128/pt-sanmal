@@ -44,66 +44,40 @@ class DailyAttendanceStatusService
             return [];
         }
 
-        // Query 1: Ambil event satu hari sebelum/sesudah rentang untuk memasangkan
-        // clock-in dan clock-out sesi lintas tengah malam (batas sesi teknis 24 jam).
+        // Query 1: Ambil event berdasarkan tanggal anchor sesi, bukan jendela 24 jam.
+        // Dengan demikian sesi lintas tengah malam maupun lebih dari 24 jam tetap utuh.
         $rawEvents = AttendanceRecord::query()
             ->whereIn('employee_id', $employeeIds)
             ->where(function ($query) use ($start, $end): void {
-                $rangeStart = Carbon::parse($start)->subDay()->toDateString();
-                $rangeEnd = Carbon::parse($end)->addDay()->toDateString();
-
-                $query->whereBetween('attendance_date', [$rangeStart, $rangeEnd])
+                $query->whereBetween('attendance_date', [$start, $end])
+                    ->orWhereBetween('attendance_date', [
+                        Carbon::parse($start)->subDay()->toDateString(),
+                        Carbon::parse($end)->addDay()->toDateString(),
+                    ])
                     ->orWhereHas('approvedCorrection', fn ($correctionQuery) => $correctionQuery
-                        ->whereBetween('attendance_date', [$rangeStart, $rangeEnd]));
+                        ->whereBetween('attendance_date', [$start, $end]))
+                    ->orWhereHas('sessionAnchor', fn ($anchorQuery) => $anchorQuery
+                        ->whereBetween('attendance_date', [$start, $end])
+                        ->orWhereHas('approvedCorrection', fn ($correctionQuery) => $correctionQuery
+                            ->whereBetween('attendance_date', [$start, $end])));
             })
-            ->with('approvedCorrection')
+            ->with(['approvedCorrection', 'sessionAnchor.approvedCorrection'])
             ->orderBy('employee_id')
-            ->get()
-            ->sortBy(fn (AttendanceRecord $event) => $event->effectiveRecordedAt()->timestamp)
-            ->values();
+            ->orderBy('recorded_at')
+            ->get();
 
         $eventsByEmployeeAndDate = collect();
 
-        // Pasangkan event per pegawai, berdasarkan waktu efektif, agar event
-        // Clock Out legacy setelah tengah malam tetap mengikuti Clock In-nya.
-        foreach ($rawEvents->groupBy('employee_id') as $employeeId => $employeeEvents) {
-            $orderedEvents = $employeeEvents
-                ->sortBy(fn (AttendanceRecord $event) => $event->effectiveRecordedAt()->timestamp)
-                ->values();
-            $sessionDate = null;
-            $sessionStartedAt = null;
+        foreach ($rawEvents as $event) {
+            $anchor = $event->sessionAnchor;
+            $assignedDate = $anchor
+                ? $anchor->effectiveAttendanceDate()
+                : $event->effectiveAttendanceDate();
 
-            foreach ($orderedEvents as $event) {
-                $eventDate = $event->effectiveAttendanceDate();
-
-                if ($event->type->value === 'clock_in') {
-                    $sessionDate = $eventDate;
-                    $sessionStartedAt = $event->effectiveRecordedAt();
-                    $assignedDate = $eventDate;
-                } elseif (in_array($event->type->value, ['overtime_start', 'clock_out'], true)) {
-                    $eventTimestamp = $event->effectiveRecordedAt()->getTimestamp();
-                    $sessionStartTimestamp = $sessionStartedAt?->getTimestamp();
-                    $withinSessionWindow = $sessionStartTimestamp !== null
-                        && $eventTimestamp >= $sessionStartTimestamp
-                        && $eventTimestamp <= ($sessionStartTimestamp + 86400);
-
-                    $assignedDate = $withinSessionWindow && $sessionDate !== null
-                        ? $sessionDate
-                        : $eventDate;
-                } else {
-                    $assignedDate = $eventDate;
-                }
-
-                if ($assignedDate >= $start && $assignedDate <= $end) {
-                    $key = $employeeId.'_'.$assignedDate;
-                    $eventsByEmployeeAndDate[$key] ??= collect();
-                    $eventsByEmployeeAndDate[$key]->push($event);
-                }
-
-                if ($event->type->value === 'clock_out') {
-                    $sessionDate = null;
-                    $sessionStartedAt = null;
-                }
+            if ($assignedDate >= $start && $assignedDate <= $end) {
+                $key = $event->employee_id.'_'.$assignedDate;
+                $eventsByEmployeeAndDate[$key] ??= collect();
+                $eventsByEmployeeAndDate[$key]->push($event);
             }
         }
 

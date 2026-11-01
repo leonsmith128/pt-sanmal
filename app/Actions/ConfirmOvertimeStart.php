@@ -77,6 +77,7 @@ class ConfirmOvertimeStart
 
                 $record = AttendanceRecord::create([
                     'employee_id' => $employee->id,
+                    'session_anchor_id' => $clockIn->session_anchor_id ?? $clockIn->id,
                     'type' => AttendanceType::OvertimeStart,
                     'work_type' => $clockIn->work_type,
                     'location_id' => $clockIn->location_id,
