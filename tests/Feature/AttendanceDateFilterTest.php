@@ -128,3 +128,43 @@ it('uses the latest approved clock-in date correction as the session filter date
         ->and($csv)->toContain('Pegawai Tanggal Koreksi')
         ->and($csv)->not->toContain('2026-10-30 01:00:00');
 });
+
+
+it('orders daily recap events by their effective timestamps after a correction', function () {
+    $employee = dateFilterEmployee('Pegawai Urutan Efektif');
+    $clockInAt = now()->subHours(4)->startOfMinute();
+    $attendanceDate = $clockInAt->copy()->setTimezone('Asia/Makassar')->toDateString();
+
+    $clockIn = AttendanceRecord::query()->create([
+        'employee_id' => $employee->id,
+        'type' => AttendanceType::ClockIn,
+        'work_type' => WorkType::Office,
+        'recorded_at' => $clockInAt,
+        'timezone' => 'Asia/Makassar',
+        'attendance_date' => $attendanceDate,
+    ]);
+
+    $clockOutOriginalAt = $clockInAt->copy()->subHour();
+    $clockOut = AttendanceRecord::query()->create([
+        'employee_id' => $employee->id,
+        'session_anchor_id' => $clockIn->id,
+        'type' => AttendanceType::ClockOut,
+        'work_type' => WorkType::Office,
+        'recorded_at' => $clockOutOriginalAt,
+        'timezone' => 'Asia/Makassar',
+        'attendance_date' => $attendanceDate,
+    ]);
+
+    $correctedLocal = $clockInAt->copy()->addHour()->setTimezone('Asia/Makassar');
+    $admin = dateFilterAdmin();
+
+    $this->actingAs($admin)->post(route('admin.kehadiran.correct-timestamp', $clockOut), [
+        'recorded_at_local' => $correctedLocal->format('Y-m-d\\TH:i'),
+        'reason' => 'Waktu pulang diperbaiki agar sesuai bukti aktual.',
+    ])->assertRedirect();
+
+    $daily = app(DailyAttendanceStatusService::class)->forEmployeeDate($employee, $attendanceDate);
+
+    expect($daily['events']->pluck('type')->map(fn (AttendanceType $type) => $type->value)->all())
+        ->toBe([AttendanceType::ClockIn->value, AttendanceType::ClockOut->value]);
+});
