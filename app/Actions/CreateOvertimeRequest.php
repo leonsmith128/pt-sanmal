@@ -13,6 +13,9 @@ use Illuminate\Validation\ValidationException;
 
 class CreateOvertimeRequest
 {
+    /** Maximum delay for linking a planned overtime request to an open attendance session. */
+    private const SESSION_LINK_WINDOW_HOURS = 24;
+
     public function handle(Employee $employee, ?string $reason, string $scheduledStartLocal): OvertimeRequest
     {
         return DB::transaction(function () use ($employee, $reason, $scheduledStartLocal) {
@@ -45,7 +48,7 @@ class CreateOvertimeRequest
             }
 
             $clockIn = $openSession
-                && $scheduledStart->utc()->lt($openSession->recorded_at->copy()->addHours(RecordAttendance::OPEN_SESSION_HOURS))
+                && $scheduledStart->utc()->lt($openSession->recorded_at->copy()->addHours(self::SESSION_LINK_WINDOW_HOURS))
                     ? $openSession
                     : null;
 
