@@ -24,12 +24,11 @@ class AdminAttendanceExportController extends Controller
         ]);
 
         $records = AttendanceRecord::query()
-            ->with(['employee.user', 'location', 'project', 'approvedCorrection'])
-            ->tap(fn ($query) => AttendanceDateFilter::apply(
-                $query,
-                $filters['from'] ?? null,
-                $filters['to'] ?? null,
-            ))
+            ->with(['employee.user', 'location', 'project', 'approvedCorrection', 'sessionAnchor.approvedCorrection']);
+
+        AttendanceDateFilter::apply($records, $filters['from'] ?? null, $filters['to'] ?? null);
+
+        $records = $records
             ->when($filters['employee_id'] ?? null, fn ($query, $employeeId) => $query->where('employee_id', $employeeId))
             ->when($filters['attendance_type'] ?? null, fn ($query, $type) => $query->where('type', $type))
             ->when($filters['work_type'] ?? null, fn ($query, $type) => $query->where('work_type', $type))
