@@ -24,8 +24,8 @@ class DailyAttendanceExportService
             'ID Pegawai', 'Nomor Pegawai', 'Nama Pegawai', 'Tanggal', 'Status Akhir',
             'Clock In Efektif', 'Clock Out Efektif', 'Total Durasi',
             'Waktu Asli Clock In', 'Waktu Asli Clock Out',
-            'Detail Sesi', 'Jenis Kerja', 'Lokasi / Proyek',
-            'Status Koreksi', 'Catatan Koreksi / Status',
+            'Detail Sesi', 'Event Lain (efektif / asli)', 'Jenis Kerja', 'Lokasi / Proyek',
+            'Status Koreksi', 'Catatan Absensi / Koreksi / Status',
         ]);
 
         $monthStart = $start->copy()->startOfMonth();
@@ -77,6 +77,8 @@ class DailyAttendanceExportService
                         $originalIns = [];
                         $originalOuts = [];
                         $correctionNotes = [];
+                        $otherEvents = [];
+                        $attendanceNotes = [];
 
                         foreach ($sessions as $sessionEvents) {
                             $in = $sessionEvents->first(fn (AttendanceRecord $event) => $event->type === AttendanceType::ClockIn);
@@ -120,6 +122,14 @@ class DailyAttendanceExportService
 
                         $correctionStatuses = [];
                         foreach ($allEvents as $event) {
+                            if (! in_array($event->type, [AttendanceType::ClockIn, AttendanceType::ClockOut], true)) {
+                                $otherEvents[] = $event->type->label().': '.$event->effectiveRecordedAtLocal()->format('Y-m-d H:i')
+                                    .' (asli: '.$event->recordedAtLocal()->format('Y-m-d H:i').')';
+                            }
+                            if ($event->notes) {
+                                $attendanceNotes[] = $event->type->label().': '.$event->notes;
+                            }
+
                             foreach ($event->corrections as $correction) {
                                 $correctionStatuses[] = match ($correction->status) {
                                     'pending' => 'Menunggu',
@@ -145,7 +155,11 @@ class DailyAttendanceExportService
                             ->unique()
                             ->implode('; ');
                         $notes = collect([$daily['reason'], $leaveLabels ? 'Permohonan: '.$leaveLabels : null])
-                            ->merge($correctionNotes)->filter()->unique()->implode(' | ');
+                            ->merge($attendanceNotes)
+                            ->merge($correctionNotes)
+                            ->filter()
+                            ->unique()
+                            ->implode(' | ');
 
                         $values = [
                             $employee->id,
@@ -159,6 +173,7 @@ class DailyAttendanceExportService
                             implode('; ', $originalIns),
                             implode('; ', $originalOuts),
                             implode('; ', $sessionDetails),
+                            implode('; ', $otherEvents),
                             $workTypes,
                             $places,
                             collect($correctionStatuses)->unique()->implode('; '),
