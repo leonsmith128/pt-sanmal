@@ -1,13 +1,13 @@
 <?php
 
-namespace App\\Services;
+namespace App\Services;
 
-use App\\Enums\\AttendanceType;
-use App\\Models\\AttendanceRecord;
-use App\\Models\\Employee;
-use Illuminate\\Database\\Eloquent\\Builder;
-use Illuminate\\Support\\Carbon;
-use Illuminate\\Support\\Collection;
+use App\Enums\AttendanceType;
+use App\Models\AttendanceRecord;
+use App\Models\Employee;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 
 class DailyAttendanceExportService
 {
@@ -158,6 +158,6 @@ class DailyAttendanceExportService
     {
         $value = (string) ($value ?? '');
 
-        return preg_match('/^[\\s\\x00-\\x1F]*[=+\\-@]/u', $value) === 1 ? "'".$value : $value;
+        return preg_match('/^[\s\x00-\x1F]*[=+\-@]/u', $value) === 1 ? "'".$value : $value;
     }
 }
