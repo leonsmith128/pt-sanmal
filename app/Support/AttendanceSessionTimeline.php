@@ -71,7 +71,25 @@ class AttendanceSessionTimeline
             'Waktu Clock Out harus lebih akhir daripada Clock In pada sesi yang sama.'
         );
 
-        $nextSession = collect($this->sessionsFor($anchor))
+        $sessions = collect($this->sessionsFor($anchor));
+        $previousSession = $sessions
+            ->filter(fn (array $session): bool => $session['id'] !== $anchor->id
+                && $session['start']->lt($anchorStart))
+            ->sortByDesc(fn (array $session): int => $session['start']->getTimestamp())
+            ->first();
+
+        abort_if(
+            $previousSession && $previousSession['clock_out'] === null,
+            422,
+            'Sesi sebelumnya belum memiliki Clock Out sehingga urutan waktu tidak dapat diverifikasi.'
+        );
+        abort_if(
+            $previousSession && $previousSession['clock_out']->gte($anchorStart),
+            422,
+            'Clock In harus terjadi setelah Clock Out sesi sebelumnya.'
+        );
+
+        $nextSession = $sessions
             ->filter(fn (array $session): bool => $session['id'] !== $anchor->id
                 && $session['start']->gt($anchorStart))
             ->sortBy(fn (array $session): int => $session['start']->getTimestamp())
@@ -117,7 +135,7 @@ class AttendanceSessionTimeline
             ->where('type', AttendanceType::ClockOut)
             ->with('approvedCorrection')
             ->get()
-            ->sortBy(fn (AttendanceRecord $record): int => $record->effectiveRecordedAt()->getTimestamp())
+            ->sortBy(fn (AttendanceRecord $record): int => $this->effectiveTimestamp($record)->getTimestamp())
             ->first();
 
         return $event ? $this->effectiveTimestamp($event) : null;
