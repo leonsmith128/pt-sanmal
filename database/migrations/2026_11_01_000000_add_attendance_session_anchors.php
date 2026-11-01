@@ -85,6 +85,19 @@ return new class extends Migration
             }
         }
 
+        DB::table('attendance_records')
+            ->where('type', 'overtime_start')
+            ->whereNotNull('session_anchor_id')
+            ->orderBy('id')
+            ->get()
+            ->each(function ($event): void {
+                $anchor = DB::table('attendance_records')->where('id', $event->session_anchor_id)->first();
+                if (! $anchor || $anchor->session_anchor_id !== $anchor->id) {
+                    DB::table('attendance_records')->where('id', $event->id)
+                        ->update(['session_anchor_id' => null]);
+                }
+            });
+
         DB::table('attendance_corrections')
             ->whereNotNull('attendance_record_id')
             ->whereNull('session_anchor_id')
@@ -94,7 +107,7 @@ return new class extends Migration
                 $record = DB::table('attendance_records')->where('id', $correction->attendance_record_id)->first();
                 if ($record) {
                     DB::table('attendance_corrections')->where('id', $correction->id)
-                        ->update(['session_anchor_id' => $record->session_anchor_id ?? ($record->type === 'clock_in' ? $record->id : null)]);
+                        ->update(['session_anchor_id' => $record->session_anchor_id]);
                 }
             });
     }
