@@ -10,6 +10,7 @@ class AttendanceCorrection extends Model
     protected $fillable = [
         'employee_id',
         'attendance_record_id',
+        'session_anchor_id',
         'requested_type',
         'requested_recorded_at',
         'attendance_date',
@@ -40,6 +41,11 @@ class AttendanceCorrection extends Model
     public function attendanceRecord(): BelongsTo
     {
         return $this->belongsTo(AttendanceRecord::class);
+    }
+
+    public function sessionAnchor(): BelongsTo
+    {
+        return $this->belongsTo(AttendanceRecord::class, 'session_anchor_id');
     }
 
     public function reviewedBy(): BelongsTo

@@ -10,6 +10,7 @@ use App\Http\Controllers\AdminEmployeeController;
 use App\Http\Controllers\AdminLeaveRequestController;
 use App\Http\Controllers\AdminOvertimeRequestController;
 use App\Http\Controllers\AttendanceHistoryController;
+use App\Http\Controllers\AttendanceCorrectionController;
 use App\Http\Controllers\AttendanceReverseGeocodeController;
 use App\Http\Controllers\AttendanceSelfieController;
 use App\Http\Controllers\AttendanceSelfieDriveController;
@@ -33,6 +34,10 @@ Route::middleware(['auth', EnsureUserIsActive::class, 'verified'])->group(functi
     Route::get('riwayat-absensi/ekspor', [AttendanceHistoryController::class, 'export'])->name('attendance-history.export');
     Route::get('riwayat-absensi/{record}/foto', [AttendanceSelfieController::class, 'showForEmployee'])->name('attendance-history.selfie');
     Route::get('riwayat-absensi/{record}/foto/download', [AttendanceSelfieController::class, 'downloadForEmployee'])->name('attendance-history.selfie.download');
+
+    Route::get('koreksi-absensi/buat', [AttendanceCorrectionController::class, 'create'])->name('attendance-corrections.create');
+    Route::post('koreksi-absensi', [AttendanceCorrectionController::class, 'store'])->name('attendance-corrections.store');
+    Route::patch('koreksi-absensi/{attendanceCorrection}/batalkan', [AttendanceCorrectionController::class, 'cancel'])->name('attendance-corrections.cancel');
 
     Route::get('permohonan', [LeaveRequestController::class, 'index'])->name('leave-requests.index');
     Route::get('permohonan/ekspor', [LeaveRequestController::class, 'export'])->name('leave-requests.export');

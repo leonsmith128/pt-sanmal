@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\ApproveAttendanceCorrection;
 use App\Enums\AttendanceType;
 use App\Models\AttendanceCorrection;
 use App\Models\AttendanceRecord;
