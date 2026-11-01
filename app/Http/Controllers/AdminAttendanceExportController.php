@@ -5,8 +5,8 @@ namespace App\Http\Controllers;
 use App\Enums\AttendanceType;
 use App\Enums\WorkType;
 use App\Models\AttendanceRecord;
+use App\Support\AttendanceDateFilter;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
