@@ -72,6 +72,16 @@ class DailyAttendanceStatusService
             }
         }
 
+        // Koreksi dapat mengubah urutan waktu relatif antar-event.
+        // Urutkan tampilan rekap memakai waktu efektif, bukan bukti waktu asli.
+        $eventsByEmployeeAndDate = $eventsByEmployeeAndDate->map(
+            fn (Collection $events) => $events->sort(function (AttendanceRecord $left, AttendanceRecord $right): int {
+                $timeOrder = $left->effectiveRecordedAt() <=> $right->effectiveRecordedAt();
+
+                return $timeOrder !== 0 ? $timeOrder : $left->id <=> $right->id;
+            })->values(),
+        );
+
         // Query 2: Ambil permohonan izin/cuti/sakit yang sudah disetujui
         $leaveRequestsByEmployee = LeaveRequest::query()
             ->with('leaveType')
