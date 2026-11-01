@@ -2,6 +2,10 @@
 
 use App\Enums\UserRole;
 use App\Models\Client;
+use App\Models\Location;
+use App\Models\Project;
+use App\Enums\ProjectStatus;
+use Illuminate\Database\QueryException;
 use App\Models\User;
 
 function clientLocationAdminUser(): User
@@ -113,7 +117,7 @@ it('requires location coordinates to be provided as a pair and validates IANA ti
             'is_active' => '1',
         ])
         ->assertRedirect(route('admin.locations.create'))
-        ->assertSessionHasErrors(['longitude', 'timezone']);
+        ->assertSessionHasErrors(['client_id', 'longitude', 'timezone']);
 
     $this->assertDatabaseMissing('locations', ['name' => 'Lokasi Tidak Valid']);
 });
@@ -128,4 +132,43 @@ it('denies employees access to client and location master data', function () {
     $this->actingAs($employee)
         ->get(route('admin.locations.index'))
         ->assertForbidden();
+});
+
+it('enforces location ownership and requires every project to have a location', function () {
+    $client = Client::query()->create([
+        'code' => 'CL-RULE',
+        'name' => 'Client Aturan',
+    ]);
+
+    expect(fn () => Location::query()->create([
+        'client_id' => $client->id,
+        'name' => 'Office dengan Client',
+        'type' => 'office',
+        'timezone' => 'Asia/Makassar',
+        'is_active' => true,
+    ]))->toThrow(QueryException::class);
+
+    expect(fn () => Location::query()->create([
+        'client_id' => null,
+        'name' => 'Site tanpa Client',
+        'type' => 'site',
+        'timezone' => 'Asia/Makassar',
+        'is_active' => true,
+    ]))->toThrow(QueryException::class);
+
+    $site = Location::query()->create([
+        'client_id' => $client->id,
+        'name' => 'Site Valid',
+        'type' => 'site',
+        'timezone' => 'Asia/Makassar',
+        'is_active' => true,
+    ]);
+
+    $project = Project::query()->create([
+        'code' => 'PRJ-RULE',
+        'name' => 'Project Valid',
+        'location_id' => $site->id,
+    ]);
+
+    expect($project->fresh()->status)->toBe(ProjectStatus::Pending);
 });
