@@ -190,7 +190,7 @@ class DailyAttendanceStatusService
         }
 
         $unanchoredEvents = $events->contains(fn (AttendanceRecord $event) =>
-            in_array($event->type->value, ['clock_out', 'overtime_start'], true)
+            in_array($event->type->value, ['clock_in', 'clock_out', 'overtime_start'], true)
             && $event->exists
             && $event->session_anchor_id === null
         );
