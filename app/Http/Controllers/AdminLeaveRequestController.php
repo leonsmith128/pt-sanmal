@@ -53,7 +53,9 @@ class AdminLeaveRequestController extends Controller
         $decision = LeaveRequestStatus::from($validated['decision']);
 
         DB::transaction(function () use ($request, $leaveRequest, $decision, $validated): void {
-            $locked = LeaveRequest::query()->whereKey($leaveRequest->id)->lockForUpdate()->firstOrFail();
+            $locked = LeaveRequest::query()->with('employee.user')->whereKey($leaveRequest->id)->lockForUpdate()->firstOrFail();
+
+            abort_if($locked->employee?->user_id === $request->user()->id, 403, 'Anda tidak dapat memproses permohonan milik sendiri.');
 
             if (! $locked->isPending()) {
                 abort(422, 'Permohonan sudah diproses dan tidak dapat diputuskan kembali.');
