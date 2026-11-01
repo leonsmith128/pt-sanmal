@@ -121,7 +121,7 @@ class AdminLocationController extends Controller
         });
 
         $data = $validator->validate();
-        $data['client_id'] = $data['client_id'] ?: null;
+        $data['client_id'] = filled($data['client_id'] ?? null) ? (int) $data['client_id'] : null;
         $data['latitude'] = $data['latitude'] ?? null;
         $data['longitude'] = $data['longitude'] ?? null;
 
