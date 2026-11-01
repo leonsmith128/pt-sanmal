@@ -130,7 +130,11 @@ class DailyAttendanceExportService
                                 $attendanceNotes[] = $event->type->label().': '.$event->notes;
                             }
 
-                            foreach ($event->corrections as $correction) {
+                            $eventCorrections = $event->corrections
+                                ->merge($event->sessionCorrections)
+                                ->unique('id');
+
+                            foreach ($eventCorrections as $correction) {
                                 $correctionStatuses[] = match ($correction->status) {
                                     'pending' => 'Menunggu',
                                     'approved' => 'Disetujui',
