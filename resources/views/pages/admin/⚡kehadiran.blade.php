@@ -121,10 +121,10 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
             ->when($from !== '' && $to !== '', function ($query) use ($from, $to, $previousDayBoundary): void {
                 $query->where(function ($nested) use ($from, $to, $previousDayBoundary): void {
                     $nested->whereRaw(
-                        "COALESCE((SELECT ac.attendance_date FROM attendance_corrections ac WHERE ac.attendance_record_id = attendance_records.id AND ac.status = 'approved' ORDER BY ac.reviewed_at DESC LIMIT 1), attendance_records.attendance_date) BETWEEN ? AND ?",
+                        "DATE(COALESCE((SELECT ac.attendance_date FROM attendance_corrections ac WHERE ac.attendance_record_id = attendance_records.id AND ac.status = 'approved' ORDER BY ac.reviewed_at DESC LIMIT 1), attendance_records.attendance_date)) BETWEEN ? AND ?",
                         [$from, $to],
                     )->orWhereRaw(
-                        "(SELECT COALESCE((SELECT ac2.attendance_date FROM attendance_corrections ac2 WHERE ac2.attendance_record_id = ci.id AND ac2.status = 'approved' ORDER BY ac2.reviewed_at DESC LIMIT 1), ci.attendance_date) FROM attendance_records ci WHERE ci.employee_id = attendance_records.employee_id AND ci.type = 'clock_in' AND ci.recorded_at <= attendance_records.recorded_at AND ci.recorded_at >= {$previousDayBoundary} ORDER BY ci.recorded_at DESC LIMIT 1) BETWEEN ? AND ?",
+                        "(SELECT DATE(COALESCE((SELECT ac2.attendance_date FROM attendance_corrections ac2 WHERE ac2.attendance_record_id = ci.id AND ac2.status = 'approved' ORDER BY ac2.reviewed_at DESC LIMIT 1), ci.attendance_date)) FROM attendance_records ci WHERE ci.employee_id = attendance_records.employee_id AND ci.type = 'clock_in' AND ci.recorded_at <= attendance_records.recorded_at AND ci.recorded_at >= {$previousDayBoundary} ORDER BY ci.recorded_at DESC LIMIT 1) BETWEEN ? AND ?",
                         [$from, $to],
                     );
                 });
@@ -157,7 +157,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
         return Employee::query()
             ->with('user:id,name')
             ->whereHas('user', fn ($query) => $query->where('is_active', true))
-            ->whereDoesntHave('attendanceRecords', fn ($query) => $query->where('attendance_date', $from))
+            ->whereDoesntHave('attendanceRecords', fn ($query) => $query->whereDate('attendance_date', $from))
             ->whereDoesntHave('leaveRequests', fn ($query) => $query
                 ->where('status', LeaveRequestStatus::Approved)
                 ->whereDate('start_date', '<=', $from)
