@@ -43,13 +43,26 @@
             </dl>
 
             @if ($correction->status === 'approved' && $correction->attendanceRecord)
-                <flux:callout variant="success" icon="check-circle">
-                    <flux:callout.text>{{ __('Waktu efektif laporan menggunakan waktu yang disetujui. Timestamp bukti asli tetap tersimpan tanpa perubahan.') }}</flux:callout.text>
-                </flux:callout>
+                <div>
+                    <p class="text-sm text-zinc-500">{{ __('Waktu efektif saat ini') }}</p>
+                    <p>{{ $correction->attendanceRecord->effectiveRecordedAtLocal()->format('d M Y H:i T') }}</p>
+                    @if ($correction->attendanceRecord->approvedCorrection?->is($correction))
+                        <flux:callout variant="success" icon="check-circle" class="mt-2">
+                            <flux:callout.text>{{ __('Permohonan ini menjadi koreksi terakhir yang menentukan waktu efektif. Timestamp bukti asli tetap tersimpan tanpa perubahan.') }}</flux:callout.text>
+                        </flux:callout>
+                    @else
+                        <flux:callout variant="warning" icon="information-circle" class="mt-2">
+                            <flux:callout.text>{{ __('Permohonan ini pernah disetujui, tetapi sudah ada koreksi yang lebih baru. Waktu efektif saat ini mengikuti koreksi terakhir.') }}</flux:callout.text>
+                        </flux:callout>
+                    @endif
+                </div>
             @endif
             @if ($correction->generatedAttendanceRecord)
                 <flux:callout variant="success" icon="check-circle">
-                    {{ __('Event Clock Out baru #') }}{{ $correction->generatedAttendanceRecord->id }}{{ __(' dibuat dan ditautkan ke sesi asli.') }}
+                    <flux:callout.text>
+                        {{ __('Event Clock Out baru #') }}{{ $correction->generatedAttendanceRecord->id }}{{ __(' dibuat dan ditautkan ke sesi asli.') }}
+                        {{ __('Waktu efektif event:') }} {{ $correction->generatedAttendanceRecord->effectiveRecordedAtLocal()->format('d M Y H:i T') }}
+                    </flux:callout.text>
                 </flux:callout>
             @endif
 
