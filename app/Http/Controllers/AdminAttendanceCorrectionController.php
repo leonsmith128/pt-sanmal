@@ -1,19 +1,20 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\\Http\\Controllers;
 
-use App\Actions\ApproveAttendanceCorrection;
-use App\Enums\AttendanceType;
-use App\Models\AttendanceCorrection;
-use App\Models\AttendanceRecord;
-use App\Models\AuditLog;
-use App\Models\Employee;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\View\View;
+use App\\Actions\\ApproveAttendanceCorrection;
+use App\\Enums\\AttendanceType;
+use App\\Models\\AttendanceCorrection;
+use App\\Models\\AttendanceRecord;
+use App\\Models\\AuditLog;
+use App\\Models\\Employee;
+use App\\Support\\AttendanceSessionTimeline;
+use Illuminate\\Http\\RedirectResponse;
+use Illuminate\\Http\\Request;
+use Illuminate\\Support\\Carbon;
+use Illuminate\\Support\\Facades\\DB;
+use Illuminate\\Support\\Facades\\Storage;
+use Illuminate\\View\\View;
 
 class AdminAttendanceCorrectionController extends Controller
 {
@@ -38,7 +39,7 @@ class AdminAttendanceCorrectionController extends Controller
     public function correctTimestamp(Request $request, AttendanceRecord $record): RedirectResponse
     {
         $validated = $request->validate([
-            'recorded_at_local' => ['required', 'date_format:Y-m-d\\TH:i'],
+            'recorded_at_local' => ['required', 'date_format:Y-m-d\\\\TH:i'],
             'reason' => ['required', 'string', 'min:5', 'max:2000'],
         ]);
 
@@ -55,7 +56,7 @@ class AdminAttendanceCorrectionController extends Controller
 
             abort_if($locked->employee?->user_id === $request->user()->id, 403, 'Anda tidak dapat mengoreksi timestamp absensi milik sendiri.');
 
-            $correctedAt = Carbon::createFromFormat('!Y-m-d\\TH:i', $validated['recorded_at_local'], $locked->timezone);
+            $correctedAt = Carbon::createFromFormat('!Y-m-d\\\\TH:i', $validated['recorded_at_local'], $locked->timezone);
             abort_if($correctedAt->isFuture(), 422, 'Timestamp koreksi tidak boleh berada di masa depan.');
 
             $previousEffectiveAt = $locked->effectiveRecordedAt();
@@ -71,6 +72,8 @@ class AdminAttendanceCorrectionController extends Controller
                 ->lockForUpdate()
                 ->firstOrFail();
 
+            $timeline = new AttendanceSessionTimeline();
+
             if ($locked->type === AttendanceType::ClockIn) {
                 $conflict = AttendanceRecord::query()
                     ->where('employee_id', $locked->employee_id)
@@ -81,19 +84,55 @@ class AdminAttendanceCorrectionController extends Controller
                     ->contains(fn (AttendanceRecord $other) => $other->effectiveAttendanceDate() === $correctedAt->toDateString());
 
                 abort_if($conflict, 422, 'Koreksi ditolak karena tanggal lokal tersebut sudah memiliki sesi absensi lain.');
-
-                $nextClockOut = $anchor->sessionEvents()
-                    ->where('type', AttendanceType::ClockOut)
-                    ->with('approvedCorrection')
-                    ->get()
-                    ->sortBy(fn (AttendanceRecord $event) => $event->effectiveRecordedAt()->timestamp)
-                    ->first();
-
-                abort_if($nextClockOut && $correctedAt->gte($nextClockOut->effectiveRecordedAt()), 422,
-                    'Waktu masuk harus lebih awal daripada waktu pulang pada sesi yang sama.');
+                $timeline->assertClockIn($anchor, $correctedAt);
             } else {
-                abort_if($correctedAt->lte($anchor->effectiveRecordedAt()), 422,
-                    'Waktu pulang harus lebih akhir daripada waktu masuk pada sesi yang sama.');
+                $otherClockOut = $anchor->sessionEvents()
+                    ->where('type', AttendanceType::ClockOut)
+                    ->where('id', '!=', $locked->id)
+                    ->exists();
+
+                abort_if($otherClockOut, 422, 'Sesi sudah memiliki event Clock Out lain.');
+                $timeline->assertClockOut($anchor, $correctedAt);
+            }
+
+            $pendingQuery = AttendanceCorrection::query()
+                ->where('employee_id', $locked->employee_id)
+                ->where('status', 'pending')
+                ->where(function ($query) use ($locked, $anchor): void {
+                    $query->where('attendance_record_id', $locked->id);
+
+                    if ($locked->type === AttendanceType::ClockOut) {
+                        $query->orWhere(function ($forgottenClockOut) use ($anchor): void {
+                            $forgottenClockOut->where('session_anchor_id', $anchor->id)
+                                ->where('requested_type', AttendanceType::ClockOut->value);
+                        });
+                    }
+                })
+                ->lockForUpdate();
+
+            foreach ($pendingQuery->get() as $pendingCorrection) {
+                $oldStatus = $pendingCorrection->status;
+                $reviewNote = 'Dibatalkan otomatis karena administrator melakukan koreksi langsung pada sesi ini.';
+
+                $pendingCorrection->update([
+                    'status' => 'cancelled',
+                    'reviewed_by' => $request->user()->id,
+                    'reviewed_at' => now(),
+                    'review_note' => $reviewNote,
+                    'decision_seen_at' => null,
+                ]);
+
+                AuditLog::record(
+                    auditable: $pendingCorrection,
+                    action: 'attendance_correction.cancelled_by_admin_direct_correction',
+                    oldValues: ['status' => $oldStatus],
+                    newValues: [
+                        'status' => $pendingCorrection->status,
+                        'review_note' => $reviewNote,
+                        'directly_corrected_record_id' => $locked->id,
+                    ],
+                    userId: $request->user()->id,
+                );
             }
 
             $correctedAtUtc = $correctedAt->copy()->utc();
