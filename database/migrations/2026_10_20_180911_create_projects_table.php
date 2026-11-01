@@ -18,6 +18,11 @@ return new class extends Migration
             $table->date('end_date')->nullable();
             $table->string('status', 20)->default('pending')->index();
             $table->timestamps();
+
+            $table->check(
+                "status IN ('pending', 'active', 'completed', 'cancelled')",
+                'projects_status_check',
+            );
         });
     }
 
