@@ -136,7 +136,6 @@ it('corrects a clock-out timestamp without changing its original event time', fu
         ->and($freshRecord->effectiveRecordedAt()->format('Y-m-d H:i:s'))->toBe($correctedLocal->copy()->utc()->format('Y-m-d H:i:s'));
 });
 
-
 it('creates a new clock-out event linked to the original session when a forgotten clock-out correction is approved', function () {
     $employeeUser = User::factory()->create();
     $employee = Employee::create(['user_id' => $employeeUser->id]);
