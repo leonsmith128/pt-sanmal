@@ -58,9 +58,8 @@ class RecordAttendance
             ->exists();
     }
 
-    public static function assignableProjects(Employee $employee): Builder
+    public static function availableForAttendance(): Builder
     {
-        // Semua pegawai dapat memilih Project Active; tidak ada relasi assignment.
         return Project::query()
             ->active()
             ->whereHas('location', fn (Builder $location) => $location
@@ -124,7 +123,7 @@ class RecordAttendance
                         $this->fail('form', 'Anda sudah menggunakan sesi absensi untuk tanggal ini. Setelah Clock Out, Anda tidak dapat Clock In lagi pada tanggal yang sama.');
                     }
 
-                    [$workType, $location, $project] = $this->resolveTarget($employee, $workType, $locationId, $projectId);
+                    [$workType, $location, $project] = $this->resolveTarget($workType, $locationId, $projectId);
                 } elseif ($type === AttendanceType::ClockOut) {
                     if ($open === null) {
                         $this->fail('form', 'Tidak ada clock-in yang perlu ditutup. Lakukan clock-in terlebih dahulu.');
@@ -251,7 +250,7 @@ class RecordAttendance
     }
 
     /** @return array{0: WorkType, 1: ?Location, 2: ?Project} */
-    private function resolveTarget(Employee $employee, ?WorkType $workType, mixed $locationId, mixed $projectId): array
+    private function resolveTarget(?WorkType $workType, mixed $locationId, mixed $projectId): array
     {
         if ($workType === WorkType::Office) {
             $location = self::officeLocations()->find($locationId);
@@ -264,7 +263,7 @@ class RecordAttendance
         }
 
         if ($workType === WorkType::Onsite) {
-            $project = self::assignableProjects($employee)->with('location')->find($projectId);
+            $project = self::availableForAttendance()->find($projectId);
 
             if ($project === null) {
                 $this->fail('projectId', 'Proyek tidak valid atau tidak tersedia untuk absensi.');
