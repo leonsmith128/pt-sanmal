@@ -20,6 +20,12 @@
                     <dt class="text-sm text-zinc-500">{{ __('Jenis') }}</dt>
                     <dd>{{ $correction->requested_type }}</dd>
                 </div>
+                @if ($correction->sessionAnchor)
+                    <div>
+                        <dt class="text-sm text-zinc-500">{{ __('Anchor sesi Clock In') }}</dt>
+                        <dd>#{{ $correction->sessionAnchor->id }} · {{ $correction->sessionAnchor->recordedAtLocal()->format('d M Y H:i T') }}</dd>
+                    </div>
+                @endif
                 @if ($correction->attendanceRecord)
                     <div>
                         <dt class="text-sm text-zinc-500">{{ __('Waktu bukti asli (immutable)') }}</dt>
@@ -28,7 +34,7 @@
                 @endif
                 <div>
                     <dt class="text-sm text-zinc-500">{{ __('Waktu yang diminta') }}</dt>
-                    <dd>{{ $correction->requested_recorded_at->setTimezone($correction->attendanceRecord?->timezone ?? config('app.timezone'))->format('d M Y H:i T') }}</dd>
+                    <dd>{{ $correction->requested_recorded_at->setTimezone($correction->sessionAnchor?->timezone ?? $correction->attendanceRecord?->timezone ?? config('app.timezone'))->format('d M Y H:i T') }}</dd>
                 </div>
                 <div>
                     <dt class="text-sm text-zinc-500">{{ __('Status') }}</dt>
@@ -39,6 +45,11 @@
             @if ($correction->status === 'approved' && $correction->attendanceRecord)
                 <flux:callout variant="success" icon="check-circle">
                     <flux:callout.text>{{ __('Waktu efektif laporan menggunakan waktu yang disetujui. Timestamp bukti asli tetap tersimpan tanpa perubahan.') }}</flux:callout.text>
+                </flux:callout>
+            @endif
+            @if ($correction->generatedAttendanceRecord)
+                <flux:callout variant="success" icon="check-circle">
+                    {{ __('Event Clock Out baru #') }}{{ $correction->generatedAttendanceRecord->id }}{{ __(' dibuat dan ditautkan ke sesi asli.') }}
                 </flux:callout>
             @endif
 

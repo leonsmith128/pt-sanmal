@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class AttendanceCorrection extends Model
 {
@@ -46,6 +47,11 @@ class AttendanceCorrection extends Model
     public function sessionAnchor(): BelongsTo
     {
         return $this->belongsTo(AttendanceRecord::class, 'session_anchor_id');
+    }
+
+    public function generatedAttendanceRecord(): HasOne
+    {
+        return $this->hasOne(AttendanceRecord::class, 'attendance_correction_id');
     }
 
     public function reviewedBy(): BelongsTo

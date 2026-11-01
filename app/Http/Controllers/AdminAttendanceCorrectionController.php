@@ -20,7 +20,7 @@ class AdminAttendanceCorrectionController extends Controller
     {
         $corrections = AttendanceCorrection::query()
             ->with(['employee.user', 'reviewedBy'])
-            ->when($request->filled('status') && in_array($request->status, ['pending', 'approved', 'rejected'], true), fn ($q) => $q->where('status', $request->status))
+            ->when($request->filled('status') && in_array($request->status, ['pending', 'approved', 'rejected', 'cancelled'], true), fn ($q) => $q->where('status', $request->status))
             ->latest()
             ->paginate(20)->withQueryString();
 
@@ -29,7 +29,7 @@ class AdminAttendanceCorrectionController extends Controller
 
     public function show(AttendanceCorrection $attendanceCorrection): View
     {
-        $attendanceCorrection->load(['employee.user', 'attendanceRecord', 'reviewedBy']);
+        $attendanceCorrection->load(['employee.user', 'attendanceRecord', 'sessionAnchor', 'generatedAttendanceRecord', 'reviewedBy']);
 
         return view('pages::admin.attendance-corrections.show', ['correction' => $attendanceCorrection]);
     }

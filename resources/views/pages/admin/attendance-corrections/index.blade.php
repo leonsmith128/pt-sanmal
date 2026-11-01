@@ -14,6 +14,7 @@
                 <flux:select.option value="pending">{{ __('Menunggu') }}</flux:select.option>
                 <flux:select.option value="approved">{{ __('Disetujui') }}</flux:select.option>
                 <flux:select.option value="rejected">{{ __('Ditolak') }}</flux:select.option>
+                <flux:select.option value="cancelled">{{ __('Dibatalkan') }}</flux:select.option>
             </flux:select>
             <flux:button type="submit">{{ __('Filter') }}</flux:button>
         </form>
