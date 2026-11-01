@@ -1,10 +1,10 @@
 <?php
 
-namespace App\\Support;
+namespace App\Support;
 
-use App\\Enums\\AttendanceType;
-use App\\Models\\AttendanceRecord;
-use Illuminate\\Support\\Carbon;
+use App\Enums\AttendanceType;
+use App\Models\AttendanceRecord;
+use Illuminate\Support\Carbon;
 
 class AttendanceSessionTimeline
 {
