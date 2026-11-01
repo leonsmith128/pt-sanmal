@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -18,12 +19,13 @@ return new class extends Migration
             $table->date('end_date')->nullable();
             $table->string('status', 20)->default('pending')->index();
             $table->timestamps();
-
-            $table->check(
-                "status IN ('pending', 'active', 'completed', 'cancelled')",
-                'projects_status_check',
-            );
         });
+
+        DB::statement(<<<'SQL'
+            ALTER TABLE projects
+            ADD CONSTRAINT projects_status_check
+            CHECK (status IN ('pending', 'active', 'completed', 'cancelled'))
+        SQL);
     }
 
     public function down(): void
