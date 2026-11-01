@@ -47,7 +47,7 @@ test('employees can visit their own attendance history', function () {
     $this->get(route('attendance-history.index'))
         ->assertOk()
         ->assertSee(__('Riwayat Absensi'))
-        ->assertSee(__('Ekspor Excel (CSV)'))
+        ->assertSee(__('Ekspor rekap harian (CSV)'))
         ->assertSee(__('Belum ada catatan absensi'));
 });
 
