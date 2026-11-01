@@ -1,9 +1,9 @@
 <?php
 
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
+use Illuminate\\Database\\Migrations\\Migration;
+use Illuminate\\Database\\Schema\\Blueprint;
+use Illuminate\\Support\\Facades\\DB;
+use Illuminate\\Support\\Facades\\Schema;
 
 return new class extends Migration
 {
@@ -21,11 +21,14 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        DB::statement(<<<'SQL'
-            ALTER TABLE projects
-            ADD CONSTRAINT projects_status_check
-            CHECK (status IN ('pending', 'active', 'completed', 'cancelled'))
-        SQL);
+        // SQLite tidak mendukung ALTER TABLE ... ADD CONSTRAINT.
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement(<<<'SQL'
+                ALTER TABLE projects
+                ADD CONSTRAINT projects_status_check
+                CHECK (status IN ('pending', 'active', 'completed', 'cancelled'))
+            SQL);
+        }
     }
 
     public function down(): void
