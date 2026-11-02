@@ -1,7 +1,7 @@
 <x-layouts::app :title="__('Ajukan Koreksi Absensi')">
     <div class="mx-auto w-full max-w-2xl space-y-5 px-4 py-4 sm:px-6 sm:py-6">
         <header class="space-y-2">
-            <flux:button href="{{ route('leave-requests.index') }}" variant="ghost" icon="arrow-left" size="sm" class="w-fit">{{ __('Kembali') }}</flux:button>
+            <x-ui.button href="{{ route('leave-requests.index') }}" variant="ghost" icon="arrow-left" size="sm" class="w-fit">{{ __('Kembali') }}</x-ui.button>
             <flux:heading size="xl" level="1">{{ __('Ajukan Koreksi Absensi') }}</flux:heading>
             <flux:text>{{ __('Pilih event yang ingin dikoreksi. Untuk Clock Out yang terlupa, pilih sesi Clock In yang masih terbuka.') }}</flux:text>
         </header>
@@ -66,8 +66,8 @@
             </flux:field>
 
             <div class="flex justify-end gap-2 border-t border-zinc-200 pt-4 dark:border-zinc-700">
-                <flux:button href="{{ route('leave-requests.index') }}" variant="ghost">{{ __('Batal') }}</flux:button>
-                <flux:button type="submit" variant="primary">{{ __('Kirim koreksi') }}</flux:button>
+                <x-ui.button href="{{ route('leave-requests.index') }}" variant="ghost">{{ __('Batal') }}</x-ui.button>
+                <x-ui.button type="submit" variant="primary">{{ __('Kirim koreksi') }}</x-ui.button>
             </div>
         </form>
     </div>
