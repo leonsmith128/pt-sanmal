@@ -4,16 +4,20 @@
     'type' => 'button',
     'href' => null,
     'icon' => null,
+    'iconTrailing' => null,
     'disabled' => false,
+    'square' => false,
 ])
 
-@if ($href)
+@if ($href !== null)
     <flux:button
         :href="$href"
         :variant="$variant"
         :size="$size"
         :icon="$icon"
+        :icon-trailing="$iconTrailing"
         :disabled="$disabled"
+        :square="$square"
         {{ $attributes }}
     >
         {{ $slot }}
@@ -24,7 +28,9 @@
         :variant="$variant"
         :size="$size"
         :icon="$icon"
+        :icon-trailing="$iconTrailing"
         :disabled="$disabled"
+        :square="$square"
         {{ $attributes }}
     >
         {{ $slot }}
