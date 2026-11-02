@@ -5,7 +5,7 @@
                 <flux:heading size="xl">{{ __('Pengajuan lembur') }}</flux:heading>
                 <flux:text class="mt-1">{{ __('Ajukan waktu mulai lembur sebelum pelaksanaan. Waktu selesai mengikuti clock-out aktual dan dicatat terpisah.') }}</flux:text>
             </div>
-            <flux:button href="{{ route('attendance') }}" variant="ghost" icon="arrow-left">{{ __('Absensi') }}</flux:button>
+            <x-ui.button href="{{ route('attendance') }}" variant="ghost" icon="arrow-left">{{ __('Absensi') }}</x-ui.button>
         </div>
 
         @if (session('status'))
@@ -28,7 +28,7 @@
                     <flux:error name="reason" />
                 </flux:field>
                 @error('form') <flux:text class="text-sm text-red-600 dark:text-red-400">{{ $message }}</flux:text> @enderror
-                <flux:button type="submit" variant="primary" class="w-full sm:w-auto">{{ __('Kirim pengajuan') }}</flux:button>
+                <x-ui.button type="submit" variant="primary" class="w-full sm:w-auto">{{ __('Kirim pengajuan') }}</x-ui.button>
             </form>
         </section>
 
@@ -54,7 +54,7 @@
                     @if (in_array($request->state->value, ['scheduled', 'awaiting_photo'], true) && $request->start_record_id === null)
                         <form method="POST" action="{{ route('overtime-requests.cancel', $request) }}" class="mt-3" onsubmit="return confirm('Batalkan jadwal lembur ini? Setelah dibatalkan, Anda dapat clock-out jika sesi masih aktif.')">
                             @csrf @method('PATCH')
-                            <flux:button type="submit" variant="primary" color="red" size="sm" icon="x-circle">{{ __('Batalkan Lembur') }}</flux:button>
+                            <x-ui.button type="submit" variant="danger" size="sm" icon="x-circle">{{ __('Batalkan Lembur') }}</x-ui.button>
                         </form>
                     @endif
                 </article>
