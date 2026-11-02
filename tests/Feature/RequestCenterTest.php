@@ -39,12 +39,26 @@ it('shows a unified request center with filters limited to the signed-in employe
         'status' => 'pending',
     ]);
 
-    $this->actingAs($user)->get(route('leave-requests.index', ['type' => 'izin', 'status' => 'pending']))
+    $this->actingAs($user)->get(route('leave-requests.index', [
+        'q' => 'Keperluan keluarga',
+        'type' => 'izin',
+        'status' => 'pending',
+        'from' => '2026-11-02',
+        'to' => '2026-11-03',
+    ]))
         ->assertOk()
         ->assertSee('Pusat Permohonan')
         ->assertSee('Keperluan keluarga.')
         ->assertDontSee('Rahasia pegawai lain.')
-        ->assertSee('Terapkan filter');
+        ->assertSee('Terapkan filter')
+        ->assertSee('name="q"', false)
+        ->assertSee('value="Keperluan keluarga"', false)
+        ->assertSee('name="type"', false)
+        ->assertSee('name="status"', false)
+        ->assertSee('name="from"', false)
+        ->assertSee('value="2026-11-02"', false)
+        ->assertSee('name="to"', false)
+        ->assertSee('value="2026-11-03"', false);
 });
 
 it('exports filtered rows as spreadsheet-safe UTF-8 CSV', function () {
