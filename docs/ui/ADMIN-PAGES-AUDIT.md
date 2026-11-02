@@ -21,6 +21,7 @@ Pencatatan berikut diperbarui setiap kelompok halaman selesai dikerjakan. Status
 | Location Edit | Selesai | Mengadopsi field controls dan tombol bersama; mempertahankan pilihan Client/Office, selected state, old/model fallback, status aktif, dan `PUT` | Source telah diperiksa; test otomatis belum dijalankan |
 | Project Create | Selesai | Shell halaman dan partial form menggunakan primitive `x-ui`; pilihan Client, selected state, serta default Create dipertahankan | Source telah diperiksa; test otomatis belum dijalankan |
 | Project Edit | Selesai | Diselaraskan dengan Create; Client tetap terkunci pada select disabled dengan hidden `client_id`, dan method tetap `PUT` | Source telah diperiksa; test otomatis belum dijalankan |
+| Attendance Correction Detail | Selesai | Page shell/header, field keputusan, catatan, dan tombol memakai primitive `x-ui`; metadata, snapshot, callout, lampiran, dan kondisi pending dipertahankan | Source telah diperiksa; test otomatis belum dijalankan |
 
 ### Catatan implementasi Location Create/Edit — 2026-11-03
 
@@ -35,6 +36,16 @@ Pencatatan berikut diperbarui setiap kelompok halaman selesai dikerjakan. Status
 
 **Batas verifikasi Location:** source telah diperiksa setelah perubahan. Belum ditemukan test Feature khusus bernama `AdminLocationPageTest`, `AdminLocationTest`, `LocationManagementTest`, `AdminLocationManagementTest`, atau `LocationTest` pada path `tests/Feature` yang diperiksa. Hal ini tidak membuktikan tidak ada coverage melalui test lain. Laravel/Pest dan browser visual test belum dijalankan.
 
+### Catatan implementasi Attendance Correction Detail — 2026-11-03
+
+- Container halaman diselaraskan menggunakan `x-ui.page` dengan lebar maksimum `max-w-3xl`; judul, identitas pegawai, dan tombol kembali disusun melalui `x-ui.page-header`.
+- Field keputusan menggunakan `x-ui.select`, catatan peninjau menggunakan `x-ui.textarea`, dan submit menggunakan `x-ui.button`.
+- Metadata `dl`, pemilihan snapshot (`sessionAnchor ?? attendanceRecord`), seluruh kondisi metadata, timestamp asli/efektif, penjelasan koreksi terakhir, event Clock Out yang dihasilkan, alasan, catatan peninjau, dan unduhan lampiran dipertahankan.
+- Form keputusan tetap hanya muncul saat status `pending`; action route, method `POST`, CSRF, nama field `decision` dan `review_note`, opsi `approved`/`rejected`, old input, serta required state keputusan tidak berubah.
+- Callout sukses/peringatan tetap menggunakan Flux karena merupakan feedback kontekstual dengan ikon/varian yang spesifik; tidak diganti atau digeneralisasi.
+- Tidak ada perubahan route, controller, validasi, timestamp calculation, authorization, persistence, atau business logic.
+
+**Batas verifikasi Attendance Correction Detail:** source hasil perubahan telah di-fetch kembali dari branch dan diperiksa. Test otomatis dan browser visual test belum dijalankan; belum ada klaim kelulusan test.
 ### Catatan implementasi Project Create/Edit — 2026-11-03
 
 - Kedua halaman memakai `x-ui.page` dengan lebar maksimum `max-w-3xl` dan `x-ui.page-header`; flash message tetap berada di antara header dan form.
