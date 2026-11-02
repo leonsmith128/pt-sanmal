@@ -218,7 +218,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                     </flux:select>
                 </div>
                 <div class="col-span-2 flex justify-end sm:col-span-4 lg:col-span-6">
-                    <flux:button size="sm" type="button" variant="ghost" icon="arrows-up-down" wire:click="resetAdditionalFilters">
+                    <flux:button size="sm" type="button" variant="outline" icon="arrows-up-down" wire:click="resetAdditionalFilters">
                         {{ __('Reset') }}
                     </flux:button>
                 </div>
@@ -374,7 +374,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                                             data-preview-url="{{ route('admin.attendance.selfie', $record) }}"
                                             data-download-url="{{ route('admin.attendance.selfie.download', $record) }}"
                                             x-on:click="selfiePreviewUrl = $el.dataset.previewUrl; selfieDownloadUrl = $el.dataset.downloadUrl; selfiePreviewOpen = true"
-                                            class="text-blue-600 underline dark:text-blue-400"
+                                            class="inline-flex items-center rounded-md border border-zinc-300 px-2.5 py-1 text-xs font-medium text-zinc-700 transition hover:bg-zinc-50 dark:border-zinc-600 dark:text-zinc-200 dark:hover:bg-zinc-800"
                                         >{{ __('Pratinjau') }}</button>
                                         @if ($record->selfie_source === SelfieSource::Upload)
                                             <flux:badge color="amber" size="sm" class="ml-1">{{ __('Unggahan') }}</flux:badge>
@@ -387,7 +387,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                                                 <form method="POST" action="{{ route('admin.attendance.selfie.delete-local', $record) }}" class="mt-2" onsubmit="return confirm('{{ __('Hapus foto lokal setelah backup Drive terverifikasi?') }}')">
                                                     @csrf
                                                     @method('DELETE')
-                                                    <button type="submit" class="text-xs text-red-600 underline dark:text-red-400">{{ __('Hapus lokal') }}</button>
+                                                    <button type="submit" class="inline-flex items-center rounded-md border border-red-300 px-2 py-1 text-xs font-medium text-red-700 transition hover:bg-red-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-950/40">{{ __('Hapus lokal') }}</button>
                                                 </form>
                                             @endif
                                         @else
@@ -396,7 +396,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                                             @endif
                                             <form method="POST" action="{{ route('admin.attendance.selfie.backup', $record) }}" class="mt-2">
                                                 @csrf
-                                                <button type="submit" class="text-xs text-blue-600 underline dark:text-blue-400">{{ __('Backup ke Drive') }}</button>
+                                                <button type="submit" class="inline-flex items-center rounded-md border border-zinc-300 px-2 py-1 text-xs font-medium text-zinc-700 transition hover:bg-zinc-50 dark:border-zinc-600 dark:text-zinc-200 dark:hover:bg-zinc-800">{{ __('Backup ke Drive') }}</button>
                                             </form>
                                         @endif
                                     @else
@@ -406,7 +406,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                                 <flux:table.cell>
                                     @if (in_array($record->type, [AttendanceType::ClockIn, AttendanceType::ClockOut], true) && $record->employee->user_id !== auth()->id())
                                         <details class="min-w-56">
-                                            <summary class="cursor-pointer text-sm font-medium text-blue-600 underline dark:text-blue-400">{{ __('Koreksi timestamp') }}</summary>
+                                            <summary class="inline-flex cursor-pointer items-center rounded-md border border-zinc-300 px-2.5 py-1.5 text-xs font-medium text-zinc-700 transition hover:bg-zinc-50 dark:border-zinc-600 dark:text-zinc-200 dark:hover:bg-zinc-800">{{ __('Koreksi timestamp') }}</summary>
                                             <form method="POST" action="{{ route('admin.kehadiran.correct-timestamp', $record) }}" class="mt-2 grid min-w-64 gap-2 rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-700 dark:bg-zinc-800">
                                                 @csrf
                                                 <label class="grid gap-1 text-xs">
@@ -417,7 +417,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                                                     <span>{{ __('Alasan wajib') }}</span>
                                                     <textarea name="reason" required minlength="5" maxlength="2000" rows="2" class="rounded-md border-zinc-300 text-sm dark:border-zinc-600 dark:bg-zinc-900"></textarea>
                                                 </label>
-                                                <button type="submit" class="rounded-md bg-blue-600 px-3 py-2 text-xs font-semibold text-white hover:bg-blue-700">{{ __('Simpan koreksi') }}</button>
+                                                <button type="submit" class="inline-flex min-h-9 items-center justify-center rounded-md bg-blue-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">{{ __('Simpan koreksi') }}</button>
                                                 <p class="text-xs text-zinc-500">{{ __('Timestamp bukti asli tidak diubah; perubahan dicatat di audit log.') }}</p>
                                             </form>
                                         </details>
@@ -502,8 +502,8 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                 <p class="text-sm text-zinc-600 dark:text-zinc-300">{{ $exportFilterSummary }}</p>
                 <p class="text-sm text-amber-700 dark:text-amber-300">{{ __('Ekspor menggunakan satu baris per pegawai per tanggal. Tanggal tanpa event absensi tetap disertakan. Periksa kembali cakupan sebelum melanjutkan.') }}</p>
                 <div class="flex justify-end gap-2">
-                    <flux:button type="button" variant="ghost" x-on:click="exportConfirmOpen = false">{{ __('Batal') }}</flux:button>
-                    <a :href="exportUrl" class="inline-flex items-center justify-center rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300" x-on:click="exportConfirmOpen = false">
+                    <flux:button type="button" variant="outline" x-on:click="exportConfirmOpen = false">{{ __('Batal') }}</flux:button>
+                    <flux:button :href="exportUrl" variant="primary" x-on:click="exportConfirmOpen = false">
                         {{ __('Konfirmasi dan ekspor') }}
                     </a>
                 </div>
