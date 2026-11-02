@@ -6,7 +6,7 @@ Dokumen ini adalah aturan kerja repository. Baca juga status proyek dan arsitekt
 
 1. Pastikan repository dan branch yang sedang dikerjakan.
 2. Periksa status working tree dan commit terbaru.
-3. Baca dokumentasi yang relevan dengan area tugas. Untuk perubahan UI, wajib baca `docs/ui/DESIGN-FOUNDATION.md` serta audit halaman/komponen terkait.
+3. Baca dokumentasi aktif yang relevan dengan area tugas. Untuk perubahan UI, wajib baca `docs/ui/DESIGN-FOUNDATION.md`, `docs/ui/PAGE-INVENTORY.md`, dan katalog/kontrak komponen terkait; lalu verifikasi route, source, serta test aktual.
 4. Baca file implementasi aktual, route, model, migration, test, dan komponen terkait sebelum mengusulkan perubahan.
 5. Bedakan fakta dari source, keputusan yang telah disepakati, rekomendasi, dan asumsi.
 6. Buat perubahan sekecil mungkin dan tetap dalam ruang lingkup permintaan.
