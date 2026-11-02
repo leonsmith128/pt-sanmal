@@ -22,7 +22,7 @@
         :name="$name"
         :id="$controlId"
         :placeholder="$placeholder"
-        {{ $attributes }}
+        {{ $attributes->class(['w-full']) }}
     >
         {{ $slot }}
     </flux:select>
