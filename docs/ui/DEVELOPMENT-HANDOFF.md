@@ -1,186 +1,104 @@
 # SanMal UI/UX Development Handoff
 
-> **Purpose:** operational entry point for AI coding agents and developers joining the SanMal V1 UI/UX program.
-> **Current delivery:** one long-lived branch and one tracking PR; do not merge until V1 UI/UX is complete.
+Panduan operasional ringkas untuk AI coding agent dan developer yang melanjutkan UI/UX V1. Terapkan perubahan langsung pada source Laravel; Figma bukan prasyarat.
 
-## 1. Start here
+## Mulai dari sini
 
-Read documents in this order:
+Baca berurutan:
 
-1. [Repository README](../../README.md) — application purpose and technology overview.
-2. [Project status](../PROJECT-STATUS.md) — repository milestones, known risks, and current project status.
-3. [AI agent rules](../../AGENTS.md) — mandatory repository constraints.
-4. [Architecture and development](../ARCHITECTURE-AND-DEVELOPMENT.md) — Laravel, Blade, Livewire, routes, domain, tests.
-5. [Design foundation](DESIGN-FOUNDATION.md) — brand, design principles, responsive priorities, component standards.
-6. [Page inventory](PAGE-INVENTORY.md) — in-scope pages, audit notes, and source areas to inspect.
-7. [Component catalog](COMPONENT-CATALOG.md) — existing shared UI building blocks.
-8. [Implementation status](progress/IMPLEMENTATION-STATUS.md) — current milestone state.
-9. [Visual QA log](progress/VISUAL-QA-LOG.md) — evidence of actual browser/device checks.
+1. [Repository README](../../README.md) — tujuan aplikasi dan stack.
+2. [Project Status](../PROJECT-STATUS.md) — milestone repository, risiko, dan status production.
+3. [AI Agent Rules](../../AGENTS.md) — batas perubahan, domain, testing, dan Git.
+4. [Architecture & Development](../ARCHITECTURE-AND-DEVELOPMENT.md) — struktur Laravel/Livewire, route, domain, dan test.
+5. [Design Foundation](DESIGN-FOUNDATION.md) — brand, prinsip visual, responsive role priorities.
+6. [Page Inventory](PAGE-INVENTORY.md) — cakupan halaman dan fokus review.
+7. [Component Catalog](COMPONENT-CATALOG.md) — peta primitive bersama.
+8. [Reusable Blade Components](REUSABLE-BLADE-COMPONENTS.md) — detail API/kontrak komponen.
+9. [Implementation Status](progress/IMPLEMENTATION-STATUS.md) dan [Visual QA Log](progress/VISUAL-QA-LOG.md) — status dan bukti yang tercatat.
 
-Do not read every historical audit before starting. Use the page inventory to open only the relevant audit and source.
+Tidak perlu membaca audit lama. Dokumen aktif di atas adalah panduan; source, route, test, dan hasil browser aktual adalah kebenaran implementasi.
 
-## 2. Product and role context
+## Konteks produk
 
-SanMal is an internal attendance and employee administration application for PT SanMal Calibration Laboratory. It is not a marketing website.
+SanMal adalah aplikasi internal absensi dan administrasi pegawai PT SanMal Calibration Laboratory.
 
-- **Employee:** mobile-first. Prioritize attendance, camera/GPS permissions and evidence, requests, history, and clear touch interactions.
-- **Admin:** desktop/tablet information-first, but mobile-friendly. Prioritize readable operational data, filters, tables/lists, review details, and efficient administration.
-- **Shared principle:** seamless-first. Roles share visual language and component behavior, not necessarily identical page composition.
+- **Employee:** mobile-first. Prioritaskan absensi, kamera/GPS/bukti, permohonan, riwayat, dan touch interaction.
+- **Admin:** desktop/tablet information-first tetapi tetap mobile-friendly. Prioritaskan data operasional, filter, table/list, detail review, dan efisiensi administrasi.
+- **Shared:** gunakan bahasa visual dan kontrak komponen yang konsisten; komposisi halaman tidak harus identik.
+- **Design principle:** seamless-first. Jangan membungkus semua konten dengan card/border/shadow atau membuat card-in-card.
 
-See [Design Foundation](DESIGN-FOUNDATION.md) for the authoritative visual rules.
+## Scope dan non-goals
 
-## 3. Scope and non-goals
+UI/UX V1 mencakup komponen bersama, halaman Employee/Admin/shared, layout, hierarchy, density, responsive behavior, feedback, status, data presentation, navigation, accessibility, dan QA.
 
-### Included in V1 UI/UX
+Tanpa persetujuan eksplisit, jangan mengubah fitur produk, domain rules, attendance calculation/timestamp, approval logic, persistence, authorization, validation, camera/GPS/evidence workflow, atau melakukan framework/broad refactor hanya demi konsistensi visual. Jika perbaikan UI membutuhkan perubahan kontrak tersebut, berhenti dan jelaskan dependensinya.
 
-- Shared components and their real usage across pages.
-- Employee and Admin page layout, hierarchy, density, and responsive behavior.
-- Forms, feedback, statuses, tables/lists/cards, navigation, and critical interaction states.
-- Accessibility, keyboard/touch behavior, visual regression, and responsive QA.
-- Documentation needed to maintain the system.
+## Git workflow wajib
 
-### Not included without explicit approval
-
-- New product features or workflow capabilities.
-- Changes to domain rules, attendance calculations, timestamps, approval logic, persistence, authorization, or validation.
-- Changes to camera/GPS/evidence capture behavior disguised as visual cleanup.
-- Framework migrations or broad refactors solely for stylistic consistency.
-
-If a visual improvement cannot be delivered without changing a protected behavior or contract, stop and explain the dependency before implementation.
-
-## 4. Git workflow — mandatory
-
-| Item | Required value |
+| Item | Nilai |
 |---|---|
 | Repository | `leonsmith128/pt-sanmal` |
-| Working branch | `docs/ui-v1-scope-and-pr-workflow` |
-| Tracking PR | [#27](https://github.com/leonsmith128/pt-sanmal/pull/27) |
-| PR target | `main` |
-| Merge policy | One merge only, after the entire V1 UI/UX scope is complete |
+| Branch | `docs/ui-v1-scope-and-pr-workflow` |
+| Tracking PR | [#27](https://github.com/leonsmith128/pt-sanmal/pull/27) ke `main` |
 
-Rules:
+- Semua pekerjaan UI/UX V1, test, dan dokumentasi dikerjakan pada branch dan PR yang sama.
+- Jangan membuat branch/PR UI/UX lain atau commit langsung ke `main`.
+- Jangan merge PR #27 sampai seluruh V1 selesai, direview, dan diverifikasi.
+- Sebelum setiap write, periksa status PR, branch HEAD, dan SHA file terbaru. Jangan menimpa perubahan yang lebih baru.
+- Gunakan commit kecil dan fokus; jangan force-push atau rewrite history.
 
-1. Never create another branch or PR for work within this UI/UX program.
-2. Never commit UI/UX work directly to `main`.
-3. Do not merge PR #27 early, even if an individual milestone is complete.
-4. Use focused commits on the existing branch.
-5. Before every write, inspect latest branch HEAD and current file SHA. Avoid stale writes.
-6. Update PR #27 description/checklist when a milestone changes state.
-7. If the branch has diverged or a newer commit appeared, fetch again and reconcile; do not force-push or rewrite history.
+## Workflow setiap task
 
-## 5. Required workflow for each task
+### Sebelum mengubah kode
 
-### Before coding
+- Periksa branch, HEAD, working tree, route, view/SFC, komponen, dan test aktual.
+- Baca [Page Inventory](PAGE-INVENTORY.md) dan [Component Catalog](COMPONENT-CATALOG.md) yang relevan.
+- Periksa implementasi komponen di source; jangan menganggap dokumentasi API selalu mutakhir.
+- Catat perilaku dan kontrak yang harus dipertahankan.
+- Tentukan role, viewport, state kritis, acceptance criteria, dan test yang relevan.
 
-- [ ] Confirm current branch and latest commit.
-- [ ] Read the relevant entry in [Page Inventory](PAGE-INVENTORY.md).
-- [ ] Read the linked audit and current component documentation.
-- [ ] Inspect the actual Blade/SFC/Controller/route and related tests on the working branch.
-- [ ] Record the existing user-visible behavior and contracts that must remain unchanged.
-- [ ] Identify target roles, viewports, critical states, and acceptance criteria.
+### Saat implementasi
 
-### During implementation
+- Gunakan primitive yang sudah ada jika semantik dan kontraknya sesuai.
+- Komponen presentasi tidak boleh mengambil keputusan bisnis.
+- Pertahankan route, HTTP method, authorization, validation, field name/ID/value, query/filter, sorting, pagination, export, Livewire property/action/event/lifecycle, dan test hooks.
+- Pertahankan Alpine/browser lifecycle, kamera, GPS, evidence, upload, dan workflow absensi.
+- Pertahankan semantic HTML, accessible name, focus, keyboard, touch target, dan label.
+- Hindari abstraksi generik atau refactor luas tanpa pengulangan struktur sekaligus kontrak perilaku yang terbukti.
 
-- [ ] Prefer existing primitives when their semantics and API fit.
-- [ ] Keep presentation components free of business/domain decisions.
-- [ ] Preserve route, HTTP method, authorization, validation, query/filter semantics, sorting, pagination, export behavior, and Livewire property/action/event contracts.
-- [ ] Preserve Alpine/browser lifecycle, camera/GPS, evidence, upload, and attendance workflows unless separately approved.
-- [ ] Avoid broad refactors and unrelated formatting changes.
-- [ ] Keep labels, accessible names, semantic HTML, focus behavior, and touch targets usable.
+### Sebelum menyatakan selesai
 
-### Before marking complete
+- Jalankan focused component/feature tests; jalankan regression tests lebih luas jika dampaknya lintas halaman.
+- Jalankan Pint dan frontend build bila relevan.
+- Periksa browser pada viewport relevan: mobile 360–430 px, tablet 768/1024 px, desktop 1280–1440 px.
+- Periksa state default, hover, focus-visible, active, disabled, loading, error, empty, long content, serta light/dark jika didukung.
+- Untuk perubahan kamera/GPS, uji perangkat nyata, HTTPS, permission, orientasi, network, dan upload; emulasi viewport saja tidak cukup.
+- Catat hanya hasil yang benar-benar dijalankan pada [Implementation Status](progress/IMPLEMENTATION-STATUS.md) dan [Visual QA Log](progress/VISUAL-QA-LOG.md).
+- Update PR #27 dan laporkan file, kontrak, test, QA, serta keterbatasan secara eksplisit.
 
-- [ ] Run focused component/feature tests.
-- [ ] Run relevant broader tests when the change has cross-page impact.
-- [ ] Run Pint for changed PHP/Blade-related files as appropriate.
-- [ ] Build frontend assets when CSS/JS changes require it.
-- [ ] Inspect browser rendering at relevant mobile/tablet/desktop checkpoints.
-- [ ] Check default, hover, focus-visible, active, disabled, loading, error, empty, and long-content states as relevant.
-- [ ] Check light/dark themes if supported by the affected page.
-- [ ] Record actual results and limitations in progress/QA documents.
-- [ ] Commit to the existing branch and update PR #27.
+Source inspection bukan browser test. Component test bukan bukti seluruh workflow halaman. Desktop QA bukan bukti mobile QA.
 
-A source inspection is not a browser test. A passing component test is not proof of a complete page workflow. A desktop screenshot is not proof of mobile behavior. Do not claim checks that were not actually performed.
+## Kontrak berisiko tinggi
 
-## 6. Responsive QA checkpoints
+Jangan mengubah tanpa scope dan persetujuan yang jelas:
 
-Use content-driven breakpoints and the existing Tailwind conventions. These are review widths, not a requirement to introduce custom breakpoints.
-
-| Target | Width | Typical focus |
-|---|---:|---|
-| Small mobile | 360–390 px | Employee primary flows, form controls, wrapping |
-| Large mobile | 414–430 px | Long labels, cards, buttons, metadata |
-| Tablet portrait | 768 px | Admin filters, navigation, table/list decisions |
-| Tablet landscape | 1024 px | Dense admin content, sidebar and panels |
-| Desktop | 1280–1440 px | Admin information hierarchy and tables |
-
-For camera/GPS attendance, viewport simulation is insufficient. Device QA must cover real supported browsers, permission states, HTTPS, orientation, network conditions, and upload where relevant.
-
-## 7. Page-level acceptance criteria
-
-A page is ready only when all applicable points are true:
-
-- The primary task and page hierarchy are obvious.
-- Information needed to make a decision is visible and understandable.
-- The layout follows the role's responsive strategy.
-- No unintended horizontal page overflow or clipped controls exists.
-- Forms retain labels, errors, values, and correct control semantics.
-- Tables/lists preserve meaningful relationships, headings, sorting, pagination, and actions.
-- Empty, loading, success, error, and disabled states are understandable.
-- Keyboard focus and touch interaction remain usable.
-- Existing route, authorization, validation, data, and workflow contracts are unchanged unless explicitly approved.
-- Relevant automated and visual checks have evidence recorded.
-
-## 8. Component-level acceptance criteria
-
-For every shared component, document:
-
-- Purpose and when to use it.
-- Actual source path and public Blade API/attributes.
-- Variants, sizes, and semantic constraints.
-- Interaction states and accessibility expectations.
-- Employee and Admin responsive behavior.
-- At least one real SanMal usage example.
-- Focused tests and browser verification evidence.
-- Known limitations or cases where the component should not be used.
-
-Do not invent a component API from this handoff. Verify the current implementation and tests.
-
-## 9. Protected behavior checklist
-
-Treat the following as high-risk contracts during UI work:
-
-- Role-based route access and server-side authorization.
-- Form field names, IDs, required state, validation errors, old/model values, and HTTP methods.
-- Livewire public properties, actions, events, lifecycle hooks, and bindings.
-- Query parameters, filters, sorting, pagination, export URLs, and download permissions.
-- Attendance sessions, original evidence timestamps, effective corrected timestamps, and historical snapshots.
-- Camera permission, stream lifecycle, GPS readiness/accuracy, selfie evidence, watermark, upload, and Clock In/Clock Out.
+- Role-based access dan server-side authorization.
+- Form fields, validation errors, old/model values, HTTP methods, CSRF.
+- Livewire public properties, actions, events, lifecycle hooks, bindings.
+- Query/filter semantics, sorting, pagination, export/download permissions.
+- Attendance session, bukti asli, timestamp efektif hasil koreksi, historical snapshot.
+- Camera permission/stream lifecycle, GPS readiness/accuracy, selfie, watermark, upload, Clock In/Out.
 - Overtime approval status versus operational state.
-- Leave/request and attendance correction submission/approval/cancellation transitions.
+- Leave/request dan attendance correction state transitions.
 
-When in doubt, inspect the domain tests and implementation; do not infer behavior from labels or visual state.
+Jika dokumentasi bertentangan dengan source/test terbaru, investigasi dan perbaiki dokumen yang paling sempit. Jangan menebak.
 
-## 10. Documentation maintenance
+## Definition of ready untuk merge V1
 
-- Design decisions and visual rules → [Design Foundation](DESIGN-FOUNDATION.md).
-- Page scope and audit pointers → [Page Inventory](PAGE-INVENTORY.md).
-- Component usage/API pointers → [Component Catalog](COMPONENT-CATALOG.md) and [Reusable Blade Components](REUSABLE-BLADE-COMPONENTS.md).
-- Current milestone state → [Implementation Status](progress/IMPLEMENTATION-STATUS.md).
-- Browser/device evidence → [Visual QA Log](progress/VISUAL-QA-LOG.md).
-- Repository-wide project and production status → [Project Status](../PROJECT-STATUS.md).
-
-Update the narrowest relevant document when a decision or implementation state changes. Avoid duplicating the same detailed guidance in multiple files; link to the authoritative source instead.
-
-## 11. Definition of ready for V1 merge
-
-Do not mark V1 complete until:
-
-- All in-scope Employee, Admin, shared, and authentication pages have been reviewed.
-- Shared components have been checked in real page contexts.
-- Required responsive, interaction, accessibility, and visual QA has been completed or explicitly accepted as a known limitation by the project owner.
-- Relevant automated tests, formatting, and asset builds have been run.
-- Critical camera/GPS/device flows have been tested on supported real devices where affected.
-- The PR checklist, implementation status, and QA log agree.
-- No unresolved high-severity regression or undocumented scope gap remains.
-- The final PR review confirms all changes are within the agreed V1 scope.
+- Semua halaman in-scope Employee, Admin, shared, dan authentication telah direview.
+- Komponen bersama telah diperiksa pada konteks penggunaan nyata.
+- Responsive, interaction, accessibility, dan visual QA telah dilakukan atau gap diterima eksplisit oleh owner.
+- Test, formatting, dan asset build relevan telah dijalankan.
+- Alur kamera/GPS kritis telah diuji pada perangkat nyata bila terdampak.
+- PR checklist, implementation status, dan QA log konsisten.
+- Tidak ada regression high-severity atau gap scope yang belum didokumentasikan.
