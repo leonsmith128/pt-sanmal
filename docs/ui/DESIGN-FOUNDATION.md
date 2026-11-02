@@ -175,7 +175,12 @@ The agreed design direction is **compact by default, comfortable when needed**. 
 
 Flux 2.13 button sizes are `xs`, `sm`, and `base`; do not pass unsupported values such as `md` or `lg`. The shared component defaults to `sm` for compact operational density. Use `base` for standard actions and add a 48 px minimum touch height only to the most important mobile action after checking its rendered alignment. Icon-only controls need an adequate hit area even if the visible icon is small.
 
-### 6.3 Button states
+### 6.3 Theme contrast and button states
+
+- Light theme: keep the neutral Flux outline treatment for secondary actions.
+- Dark theme: the shared `x-ui.button` applies a dedicated secondary treatment with a lighter neutral surface (`#262626`), border (`#525252`), and readable text (`#E5E7EB`). Hover increases surface and border contrast.
+- Primary remains SanMal blue in both themes; destructive remains semantic red.
+- Theme-specific styles must preserve visible focus indication and disabled-state affordance.
 
 Check and preserve:
 - Default
