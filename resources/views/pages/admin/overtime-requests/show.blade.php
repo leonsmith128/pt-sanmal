@@ -1,6 +1,6 @@
 <x-layouts::app :title="__('Detail Pengajuan Lembur')">
-    <div class="mx-auto flex w-full max-w-3xl flex-col gap-6">
-        <x-admin.page-header
+    <x-ui.page class="!max-w-3xl gap-6">
+        <x-ui.page-header
             :title="__('Detail pengajuan lembur')"
             :description="$overtimeRequest->employee->user->name"
         >
@@ -11,63 +11,45 @@
             >
                 {{ __('Kembali') }}
             </x-ui.button>
-        </x-admin.page-header>
+        </x-ui.page-header>
 
         <x-admin.flash-message />
 
         <section class="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900">
             <div class="flex flex-wrap gap-2">
-                <x-ui.badge
-                    :color="$overtimeRequest->approval_status->badgeColor()"
-                >
+                <x-ui.badge :color="$overtimeRequest->approval_status->badgeColor()">
                     {{ $overtimeRequest->approval_status->label() }}
                 </x-ui.badge>
 
-                <x-ui.badge :color="$overtimeRequest->state->badgeColor()">{{ $overtimeRequest->state->label() }}</x-ui.badge>
+                <x-ui.badge :color="$overtimeRequest->state->badgeColor()">
+                    {{ $overtimeRequest->state->label() }}
+                </x-ui.badge>
             </div>
 
             <dl class="mt-4 grid gap-4 sm:grid-cols-2">
-                <div>
-                    <dt class="text-sm text-zinc-500">{{ __('Waktu mulai terjadwal') }}</dt>
-                    <dd class="mt-1 font-medium">
-                        {{ $overtimeRequest->scheduledStartLocal()->format('d M Y, H:i T') }}
-                    </dd>
-                </div>
+                <x-ui.metadata-item :label="__('Waktu mulai terjadwal')" value-class="mt-1 font-medium">
+                    {{ $overtimeRequest->scheduledStartLocal()->format('d M Y, H:i T') }}
+                </x-ui.metadata-item>
 
-                <div>
-                    <dt class="text-sm text-zinc-500">{{ __('Waktu selesai terjadwal (data lama)') }}</dt>
-                    <dd class="mt-1 font-medium">
-                        {{ $overtimeRequest->scheduledEndLocal()?->format('d M Y, H:i T') ?? '—' }}
-                    </dd>
-                </div>
+                <x-ui.metadata-item :label="__('Waktu selesai terjadwal (data lama)')" value-class="mt-1 font-medium">
+                    {{ $overtimeRequest->scheduledEndLocal()?->format('d M Y, H:i T') ?? '—' }}
+                </x-ui.metadata-item>
 
-                <div>
-                    <dt class="text-sm text-zinc-500">{{ __('Waktu aktual mulai') }}</dt>
-                    <dd class="mt-1 font-medium">
-                        {{ $overtimeRequest->startRecord?->effectiveRecordedAtLocal()->format('d M Y, H:i T') ?? '—' }}
-                    </dd>
-                </div>
+                <x-ui.metadata-item :label="__('Waktu aktual mulai')" value-class="mt-1 font-medium">
+                    {{ $overtimeRequest->startRecord?->effectiveRecordedAtLocal()->format('d M Y, H:i T') ?? '—' }}
+                </x-ui.metadata-item>
 
-                <div>
-                    <dt class="text-sm text-zinc-500">{{ __('Waktu foto konfirmasi') }}</dt>
-                    <dd class="mt-1 font-medium">
-                        {{ $overtimeRequest->photo_confirmed_at?->setTimezone($overtimeRequest->timezone)->format('d M Y, H:i T') ?? '—' }}
-                    </dd>
-                </div>
+                <x-ui.metadata-item :label="__('Waktu foto konfirmasi')" value-class="mt-1 font-medium">
+                    {{ $overtimeRequest->photo_confirmed_at?->setTimezone($overtimeRequest->timezone)->format('d M Y, H:i T') ?? '—' }}
+                </x-ui.metadata-item>
 
-                <div>
-                    <dt class="text-sm text-zinc-500">{{ __('Clock-in terkait') }}</dt>
-                    <dd class="mt-1 font-medium">
-                        {{ $overtimeRequest->clockInRecord?->effectiveRecordedAtLocal()->format('d M Y, H:i') ?? '—' }}
-                    </dd>
-                </div>
+                <x-ui.metadata-item :label="__('Clock-in terkait')" value-class="mt-1 font-medium">
+                    {{ $overtimeRequest->clockInRecord?->effectiveRecordedAtLocal()->format('d M Y, H:i') ?? '—' }}
+                </x-ui.metadata-item>
 
-                <div>
-                    <dt class="text-sm text-zinc-500">{{ __('Clock-out terkait') }}</dt>
-                    <dd class="mt-1 font-medium">
-                        {{ $overtimeRequest->clockOutRecord?->effectiveRecordedAtLocal()->format('d M Y, H:i') ?? '—' }}
-                    </dd>
-                </div>
+                <x-ui.metadata-item :label="__('Clock-out terkait')" value-class="mt-1 font-medium">
+                    {{ $overtimeRequest->clockOutRecord?->effectiveRecordedAtLocal()->format('d M Y, H:i') ?? '—' }}
+                </x-ui.metadata-item>
             </dl>
 
             <div class="mt-4">
@@ -110,27 +92,22 @@
             @endif
         </section>
 
-
         @if ($overtimeRequest->finalized_at)
             <section class="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 dark:border-emerald-900 dark:bg-emerald-950/30">
                 <flux:heading size="lg">{{ __('Rentang waktu final') }}</flux:heading>
                 <dl class="mt-3 grid gap-3 sm:grid-cols-2">
-                    <div>
-                        <dt class="text-sm text-zinc-500">{{ __('Sumber') }}</dt>
-                        <dd class="font-medium">{{ ucfirst($overtimeRequest->finalization_source) }}</dd>
-                    </div>
-                    <div>
-                        <dt class="text-sm text-zinc-500">{{ __('Diputuskan pada') }}</dt>
-                        <dd class="font-medium">{{ $overtimeRequest->finalized_at->setTimezone($overtimeRequest->timezone)->format('d M Y, H:i') }}</dd>
-                    </div>
-                    <div>
-                        <dt class="text-sm text-zinc-500">{{ __('Mulai final') }}</dt>
-                        <dd class="font-medium">{{ $overtimeRequest->final_start_at?->setTimezone($overtimeRequest->timezone)->format('d M Y, H:i') ?? '—' }}</dd>
-                    </div>
-                    <div>
-                        <dt class="text-sm text-zinc-500">{{ __('Selesai final') }}</dt>
-                        <dd class="font-medium">{{ $overtimeRequest->final_end_at?->setTimezone($overtimeRequest->timezone)->format('d M Y, H:i') ?? '—' }}</dd>
-                    </div>
+                    <x-ui.metadata-item :label="__('Sumber')" value-class="font-medium">
+                        {{ ucfirst($overtimeRequest->finalization_source) }}
+                    </x-ui.metadata-item>
+                    <x-ui.metadata-item :label="__('Diputuskan pada')" value-class="font-medium">
+                        {{ $overtimeRequest->finalized_at->setTimezone($overtimeRequest->timezone)->format('d M Y, H:i') }}
+                    </x-ui.metadata-item>
+                    <x-ui.metadata-item :label="__('Mulai final')" value-class="font-medium">
+                        {{ $overtimeRequest->final_start_at?->setTimezone($overtimeRequest->timezone)->format('d M Y, H:i') ?? '—' }}
+                    </x-ui.metadata-item>
+                    <x-ui.metadata-item :label="__('Selesai final')" value-class="font-medium">
+                        {{ $overtimeRequest->final_end_at?->setTimezone($overtimeRequest->timezone)->format('d M Y, H:i') ?? '—' }}
+                    </x-ui.metadata-item>
                 </dl>
                 <p class="mt-3 whitespace-pre-line text-sm">{{ $overtimeRequest->finalization_reason }}</p>
             </section>
@@ -143,29 +120,32 @@
 
                 <form method="POST" action="{{ route('admin.overtime-requests.finalize', $overtimeRequest) }}" class="mt-4 flex flex-col gap-4">
                     @csrf
-                    <flux:field>
-                        <flux:label>{{ __('Sumber waktu final') }}</flux:label>
-                        <flux:select name="finalization_source" :value="old('finalization_source', $overtimeRequest->finalization_source)" required>
-                            @if ($overtimeRequest->scheduled_end_at)
-                                <flux:select.option value="scheduled">{{ __('Gunakan rentang jadwal lama') }}</flux:select.option>
-                            @endif
-                            <flux:select.option value="actual">{{ __('Gunakan aktual') }}</flux:select.option>
-                            <flux:select.option value="manual">{{ __('Koreksi manual') }}</flux:select.option>
-                        </flux:select>
-                        <flux:error name="finalization_source" />
-                    </flux:field>
+                    <x-ui.select
+                        name="finalization_source"
+                        :label="__('Sumber waktu final')"
+                        :value="old('finalization_source', $overtimeRequest->finalization_source)"
+                        required
+                    >
+                        @if ($overtimeRequest->scheduled_end_at)
+                            <flux:select.option value="scheduled">{{ __('Gunakan rentang jadwal lama') }}</flux:select.option>
+                        @endif
+                        <flux:select.option value="actual">{{ __('Gunakan aktual') }}</flux:select.option>
+                        <flux:select.option value="manual">{{ __('Koreksi manual') }}</flux:select.option>
+                    </x-ui.select>
 
                     <div class="grid gap-4 sm:grid-cols-2">
-                        <flux:field>
-                            <flux:label>{{ __('Mulai manual') }}</flux:label>
-                            <flux:input type="datetime-local" name="final_start_local" :value="old('final_start_local', $overtimeRequest->final_start_at?->setTimezone($overtimeRequest->timezone)->format('Y-m-d\\TH:i'))" />
-                            <flux:error name="final_start_local" />
-                        </flux:field>
-                        <flux:field>
-                            <flux:label>{{ __('Selesai manual') }}</flux:label>
-                            <flux:input type="datetime-local" name="final_end_local" :value="old('final_end_local', $overtimeRequest->final_end_at?->setTimezone($overtimeRequest->timezone)->format('Y-m-d\\TH:i'))" />
-                            <flux:error name="final_end_local" />
-                        </flux:field>
+                        <x-ui.input
+                            name="final_start_local"
+                            type="datetime-local"
+                            :label="__('Mulai manual')"
+                            :value="old('final_start_local', $overtimeRequest->final_start_at?->setTimezone($overtimeRequest->timezone)->format('Y-m-d\\\\TH:i'))"
+                        />
+                        <x-ui.input
+                            name="final_end_local"
+                            type="datetime-local"
+                            :label="__('Selesai manual')"
+                            :value="old('final_end_local', $overtimeRequest->final_end_at?->setTimezone($overtimeRequest->timezone)->format('Y-m-d\\\\TH:i'))"
+                        />
                     </div>
 
                     <x-ui.textarea
@@ -193,15 +173,11 @@
                 >
                     @csrf
 
-                    <flux:field>
-                        <flux:label>{{ __('Keputusan') }}</flux:label>
-                        <flux:select name="decision" :value="old('decision')" required>
-                            <flux:select.option value="">{{ __('Pilih keputusan') }}</flux:select.option>
-                            <flux:select.option value="approved">{{ __('Setujui') }}</flux:select.option>
-                            <flux:select.option value="rejected">{{ __('Tolak') }}</flux:select.option>
-                        </flux:select>
-                        <flux:error name="decision" />
-                    </flux:field>
+                    <x-ui.select name="decision" :label="__('Keputusan')" :value="old('decision')" required>
+                        <flux:select.option value="">{{ __('Pilih keputusan') }}</flux:select.option>
+                        <flux:select.option value="approved">{{ __('Setujui') }}</flux:select.option>
+                        <flux:select.option value="rejected">{{ __('Tolak') }}</flux:select.option>
+                    </x-ui.select>
 
                     <x-ui.textarea
                         name="decision_note"
@@ -248,5 +224,5 @@
                 </form>
             </section>
         @endif
-    </div>
+    </x-ui.page>
 </x-layouts::app>
