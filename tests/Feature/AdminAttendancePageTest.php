@@ -209,3 +209,12 @@ it('renders page header actions in a responsive wrapper when provided', function
         ->assertSee('md:w-auto md:shrink-0 md:justify-end', false)
         ->assertSee(__('Rekap harian'));
 });
+
+it('renders the attendance export confirmation with an Alpine-bound link', function () {
+    $admin = attendancePageAdmin();
+
+    Livewire::actingAs($admin)
+        ->test('pages::admin.kehadiran')
+        ->assertSee('x-bind:href="exportUrl"', false)
+        ->assertSee('Konfirmasi dan ekspor');
+});
