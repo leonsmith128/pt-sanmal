@@ -38,7 +38,7 @@ it('forwards Livewire, accessibility, disabled, and presentation attributes', fu
 
 it('uses the SanMal brand blue for primary actions by default', function () {
     $this->blade('<x-ui.button variant="primary">Simpan</x-ui.button>')
-        ->assertSee('blue-', false)
+        ->assertSee('sanmal-button-primary', false)
         ->assertSee('Simpan');
 });
 
