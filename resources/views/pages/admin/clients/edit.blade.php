@@ -1,5 +1,5 @@
 <x-layouts::app :title="__('Ubah Client')">
-    <div class="mx-auto max-w-2xl space-y-5">
+    <div class="mx-auto w-full max-w-2xl space-y-5">
         <div>
             <flux:button size="sm" variant="ghost" icon="arrow-left" href="{{ route('admin.clients.show', $client) }}">{{ __('Kembali ke Detail Client') }}</flux:button>
             <flux:heading size="xl" class="mt-3">{{ __('Ubah Client') }}</flux:heading>
