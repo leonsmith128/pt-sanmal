@@ -201,3 +201,22 @@ test('admins retain personal employee navigation alongside grouped administratio
         ->assertSee(__('Permohonan'))
         ->assertDontSee('aria-label="Navigasi utama"', false);
 });
+
+
+test('application main remains a direct layout child and keeps employee bottom navigation spacing inside main', function () {
+    $this->actingAs(userWithRole(UserRole::Employee));
+
+    $this->get(route('attendance'))
+        ->assertOk()
+        ->assertSee('data-flux-main', false)
+        ->assertSee('pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-0', false);
+});
+
+test('admin sidebar hides brand and theme controls when collapsed', function () {
+    $this->actingAs(userWithRole(UserRole::Admin));
+
+    $this->get(route('admin.daily-attendance'))
+        ->assertOk()
+        ->assertSee('in-data-flux-sidebar-collapsed-desktop:hidden', false)
+        ->assertSee('data-test="sidebar-theme-menu"', false);
+});
