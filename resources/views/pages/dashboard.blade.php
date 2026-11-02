@@ -94,13 +94,13 @@
                 </flux:text>
 
                 <div class="mt-4 flex flex-wrap gap-2">
-                    <flux:button href="{{ route('attendance') }}" variant="primary">
+                    <x-ui.button href="{{ route('attendance') }}" variant="primary">
                         {{ __('Buka absensi') }}
-                    </flux:button>
+                    </x-ui.button>
 
-                    <flux:button href="{{ route('attendance-history.index') }}" variant="ghost">
+                    <x-ui.button href="{{ route('attendance-history.index') }}" variant="ghost">
                         {{ __('Riwayat absensi') }}
-                    </flux:button>
+                    </x-ui.button>
                 </div>
             </section>
         @endif
