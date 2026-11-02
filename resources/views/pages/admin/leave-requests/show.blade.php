@@ -1,20 +1,19 @@
 <x-layouts::app :title="__('Detail Permohonan')">
-    <div class="mx-auto w-full max-w-3xl space-y-5">
+    <x-ui.page class="!max-w-3xl gap-5">
         <div>
             <x-ui.button href="{{ route('admin.leave-requests.index') }}" variant="outline" icon="arrow-left" size="sm">
                 {{ __('Kembali ke daftar') }}
             </x-ui.button>
         </div>
 
-        <div class="flex flex-wrap items-center justify-between gap-3">
-            <div>
-                <flux:heading size="xl" level="1">{{ __('Detail Permohonan') }}</flux:heading>
-                <flux:text class="mt-1">{{ __('Tinjau rincian pengajuan dan tentukan keputusan.') }}</flux:text>
-            </div>
-            <flux:badge size="lg" :color="$leaveRequest->status->badgeColor()">
+        <x-ui.page-header
+            :title="__('Detail Permohonan')"
+            :description="__('Tinjau rincian pengajuan dan tentukan keputusan.')"
+        >
+            <x-ui.badge :color="$leaveRequest->status->badgeColor()">
                 {{ $leaveRequest->status->label() }}
-            </flux:badge>
-        </div>
+            </x-ui.badge>
+        </x-ui.page-header>
 
         <x-admin.flash-message />
 
@@ -86,15 +85,11 @@
                 @csrf
                 <flux:heading size="lg">{{ __('Keputusan Admin') }}</flux:heading>
 
-                <flux:field>
-                    <flux:label>{{ __('Keputusan') }}</flux:label>
-                    <flux:select name="decision" :value="old('decision')" required>
-                        <flux:select.option value="">{{ __('Pilih keputusan') }}</flux:select.option>
-                        <flux:select.option value="approved">{{ __('Setujui') }}</flux:select.option>
-                        <flux:select.option value="rejected">{{ __('Tolak') }}</flux:select.option>
-                    </flux:select>
-                    <flux:error name="decision" />
-                </flux:field>
+                <x-ui.select name="decision" :label="__('Keputusan')" :value="old('decision')" required>
+                    <flux:select.option value="">{{ __('Pilih keputusan') }}</flux:select.option>
+                    <flux:select.option value="approved">{{ __('Setujui') }}</flux:select.option>
+                    <flux:select.option value="rejected">{{ __('Tolak') }}</flux:select.option>
+                </x-ui.select>
 
                 <x-ui.textarea
                     name="decision_note"
@@ -137,5 +132,5 @@
                 ]) }}
             </div>
         @endif
-    </div>
+    </x-ui.page>
 </x-layouts::app>
