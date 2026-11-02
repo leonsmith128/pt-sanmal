@@ -53,7 +53,7 @@ it('captures master identity at clock in and reuses it after master names change
         null,
         null,
         null,
-        UploadedFile::fake()->image('clock-in.jpg'),
+        UploadedFile::fake()->create('clock-in.jpg', 20, 'image/jpeg'),
         SelfieSource::Camera,
     );
 
@@ -77,7 +77,7 @@ it('captures master identity at clock in and reuses it after master names change
         null,
         null,
         null,
-        UploadedFile::fake()->image('clock-out.jpg'),
+        UploadedFile::fake()->create('clock-out.jpg', 20, 'image/jpeg'),
         SelfieSource::Camera,
     );
 
