@@ -45,17 +45,18 @@ Form control rules:
 - Do not put a border or card surface around every field; field grouping follows the Seamless-First design principle.
 
 Button and action hierarchy:
-- `primary`: the single most important action in the current page section or decision context. Avoid presenting several competing primary actions side by side.
-- `outline`: a labeled secondary action such as Back, Reset, Edit, or opening supporting details.
+- `primary`: the single most important action in the current page section or decision context. `x-ui.button` applies SanMal brand blue by default. Avoid presenting several competing primary actions side by side.
+- `outline`: a neutral, labeled secondary action such as Back, Reset, Edit, or opening supporting details.
 - `ghost`: a low-emphasis utility action that should not compete with the main task. Do not use it for an action whose consequence needs stronger emphasis.
-- Destructive actions: retain a supported Flux variant such as `outline` and pass `color="red"` for destructive emphasis when appropriate. Do not invent a `danger` variant: `x-ui.button` forwards the variant to Flux and does not define its own visual implementation.
+- `danger`: the semantic destructive variant supported by Flux 2.13; use it for Delete, Remove, or destructive cancellation. Preserve the workflow's existing confirmation. Explicit `color="red"` remains appropriate when a non-danger variant needs a red semantic tint.
+- Keep the supported Flux variant set; do not invent a separate `secondary` variant. In SanMal's action hierarchy, secondary is the design role implemented with Flux `outline`.
 - Keep the visual hierarchy aligned with the action's actual consequence. Color alone is not a substitute for a clear label or confirmation step.
 - Prefer one primary action per local context. If two actions are equally important, reconsider their grouping and make one secondary unless the workflow genuinely has two distinct primary tasks.
 - Use `href` for navigation so the rendered element remains a link. Use `type="button"` for in-page actions and `type="submit"` only for form submission. The component defaults to `type="button"` to avoid accidental form submission.
 - Icon-only actions must receive an accessible name through the supported Flux/API attributes; an icon is not a replacement for a label when the action is not self-evident.
 - Keep compact actions visually subordinate; do not increase button size merely to fill space.
 - Use `x-ui.button` for shared navigation and action controls, including Flux-backed controls inside Livewire components. Retain a native `<button>` only when the element is a specialized control whose state/content is tightly coupled to custom interaction markup (for example, selectable calendar-day tiles or photo-preview triggers); document the reason rather than keeping one-off button styling by default.
-- The wrapper forwards supported Flux button props and arbitrary HTML/Livewire/Alpine attributes. It does not implement a separate visual system; confirm a variant exists in the installed Flux version before adopting it across the app.
+- The wrapper forwards supported Flux button props and arbitrary HTML/Livewire/Alpine attributes. Its only design default is SanMal blue for `primary`; other variants retain Flux semantics unless an explicit color is supplied.
 
 A dynamically assigned Alpine URL must use an anchor rendered on the server (for example, provide a harmless initial `href` and bind the final URL with `x-bind:href`). A plain button cannot become a semantic link merely by adding an Alpine `href` attribute.
 
