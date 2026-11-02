@@ -17,16 +17,18 @@
 
         <section class="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900 sm:p-5">
             <form method="GET" action="{{ route('attendance-history.index') }}" class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
-                <flux:field>
-                    <flux:label>{{ __('Dari tanggal') }}</flux:label>
-                    <flux:input type="date" name="from" value="{{ $filters['from'] }}" />
-                    <flux:error name="from" />
-                </flux:field>
-                <flux:field>
-                    <flux:label>{{ __('Sampai tanggal') }}</flux:label>
-                    <flux:input type="date" name="to" value="{{ $filters['to'] }}" />
-                    <flux:error name="to" />
-                </flux:field>
+                <x-ui.input
+                    name="from"
+                    label="{{ __('Dari tanggal') }}"
+                    type="date"
+                    :value="$filters['from']"
+                />
+                <x-ui.input
+                    name="to"
+                    label="{{ __('Sampai tanggal') }}"
+                    type="date"
+                    :value="$filters['to']"
+                />
                 <div class="flex flex-col gap-2 sm:col-span-2 sm:flex-row sm:items-end lg:col-span-3 lg:justify-end">
                     <x-ui.button href="{{ route('attendance-history.index') }}" variant="ghost" class="w-full sm:w-auto">
                         {{ __('Reset') }}
