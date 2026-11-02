@@ -18,7 +18,7 @@
         :icon-trailing="$iconTrailing"
         :disabled="$disabled"
         :square="$square"
-        {{ $attributes->class(['sanmal-button-primary' => $variant === 'primary', 'sanmal-button-secondary' => $variant === 'outline']) }}
+        {{ $attributes->class(['sanmal-button-primary' => $variant === 'primary', 'sanmal-button-secondary' => $variant === 'outline' && $attributes->get('color') === null]) }}
     >
         {{ $slot }}
     </flux:button>
@@ -31,7 +31,7 @@
         :icon-trailing="$iconTrailing"
         :disabled="$disabled"
         :square="$square"
-        {{ $attributes->class(['sanmal-button-primary' => $variant === 'primary', 'sanmal-button-secondary' => $variant === 'outline']) }}
+        {{ $attributes->class(['sanmal-button-primary' => $variant === 'primary', 'sanmal-button-secondary' => $variant === 'outline' && $attributes->get('color') === null]) }}
     >
         {{ $slot }}
     </flux:button>
