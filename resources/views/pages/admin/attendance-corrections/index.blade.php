@@ -17,7 +17,7 @@
                 <flux:select.option value="rejected">{{ __('Ditolak') }}</flux:select.option>
                 <flux:select.option value="cancelled">{{ __('Dibatalkan') }}</flux:select.option>
             </flux:select>
-            <flux:button type="submit">{{ __('Filter') }}</flux:button>
+            <flux:button type="submit" variant="outline">{{ __('Filter') }}</flux:button>
         </form>
 </x-admin.filter-panel>
 
@@ -32,7 +32,8 @@
                             {{ $correction->requested_recorded_at->format('H:i') }}
                         </p>
                     </div>
-                    <flux:badge :color="match($correction->status) { 'pending' => 'amber', 'approved' => 'green', 'rejected' => 'red', 'cancelled' => 'zinc', default => 'zinc' }">
+                    <span class="inline-flex items-center rounded-md border border-zinc-300 px-2.5 py-1 text-xs font-medium text-zinc-700 dark:border-zinc-600 dark:text-zinc-200">{{ __('Tinjau') }}</span>
+                     <flux:badge :color="match($correction->status) { 'pending' => 'amber', 'approved' => 'green', 'rejected' => 'red', 'cancelled' => 'zinc', default => 'zinc' }">
                         {{ match($correction->status) { 'pending' => 'Menunggu', 'approved' => 'Disetujui', 'rejected' => 'Ditolak', 'cancelled' => 'Dibatalkan', default => ucfirst($correction->status) } }}
                     </flux:badge>
                 </a>
