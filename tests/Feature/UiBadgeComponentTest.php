@@ -14,7 +14,7 @@ it('uses a neutral color by default and forwards presentation attributes', funct
 });
 
 it('supports status labels and colors supplied by existing enums', function () {
-    $status = \\App\\Enums\\LeaveRequestStatus::Pending;
+    $status = \App\Enums\LeaveRequestStatus::Pending;
 
     $this->blade('<x-ui.badge :color="$status->badgeColor()">{{ $status->label() }}</x-ui.badge>', compact('status'))
         ->assertSee($status->label())
