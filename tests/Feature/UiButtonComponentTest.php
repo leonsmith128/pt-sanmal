@@ -34,3 +34,20 @@ it('forwards Livewire, accessibility, disabled, and presentation attributes', fu
         ->assertSee('w-full', false)
         ->assertSee('data-test="save-button"', false);
 });
+
+
+it('uses the SanMal brand blue for primary actions by default', function () {
+    $this->blade('<x-ui.button variant="primary">Simpan</x-ui.button>')
+        ->assertSee('blue-', false)
+        ->assertSee('Simpan');
+});
+
+it('supports the Flux destructive variant and explicit semantic colors', function () {
+    $this->blade('<x-ui.button variant="danger">Hapus</x-ui.button>')
+        ->assertSee('red-', false)
+        ->assertSee('Hapus');
+
+    $this->blade('<x-ui.button variant="outline" color="red">Hapus lokal</x-ui.button>')
+        ->assertSee('red-', false)
+        ->assertSee('Hapus lokal');
+});
