@@ -52,7 +52,7 @@
                     @if ($sidebarEmployee)
                         <flux:sidebar.group
                             expandable
-                            icon="user-round"
+                            icon="user-circle"
                             :heading="__('Aktivitas Saya')"
                             :expanded="request()->routeIs('attendance', 'attendance-history.*', 'leave-requests.*', 'overtime-requests.*')"
                             class="grid"
@@ -80,7 +80,7 @@
 
                     <flux:sidebar.group
                         expandable
-                        icon="activity"
+                        icon="clipboard-document-list"
                         :heading="__('Operasional')"
                         :expanded="request()->routeIs('admin.kehadiran', 'admin.daily-attendance*', 'admin.projects.*')"
                         class="grid"
@@ -98,7 +98,7 @@
 
                     <flux:sidebar.group
                         expandable
-                        icon="database"
+                        icon="building-office-2"
                         :heading="__('Master Data')"
                         :expanded="request()->routeIs('admin.clients.*', 'admin.locations.*', 'admin.employees.*')"
                         class="grid"
@@ -113,7 +113,7 @@
 
                     <flux:sidebar.group
                         expandable
-                        icon="inbox"
+                        icon="calendar"
                         :heading="__('Permohonan')"
                         :expanded="request()->routeIs('admin.leave-requests.*', 'admin.overtime-requests.*', 'admin.attendance-corrections.*')"
                         class="grid"
