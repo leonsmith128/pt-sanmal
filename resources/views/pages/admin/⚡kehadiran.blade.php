@@ -346,6 +346,9 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                                     @if ($record->location_name_snapshot)
                                         <span class="block text-xs text-zinc-500">{{ __('Lokasi') }}: {{ $record->location_name_snapshot }}</span>
                                     @endif
+                                    @if ($record->snapshot_source === 'migration_backfill')
+                                        <span class="mt-1 block text-xs text-amber-600 dark:text-amber-400">{{ __('Baseline migrasi') }}</span>
+                                    @endif
                                 </flux:table.cell>
                                 <flux:table.cell class="whitespace-nowrap">
                                     @if ($record->latitude !== null && $record->longitude !== null)
