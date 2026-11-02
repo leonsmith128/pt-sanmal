@@ -83,13 +83,14 @@ Audit ini tidak mengubah query, state, filter, pagination, sorting, route, otori
 
 Urutan berikut adalah rekomendasi berdasarkan dampak UX dan kompleksitas; dapat disesuaikan setelah pemeriksaan render langsung:
 
-1. **Kehadiran Admin dan Absensi Pegawai** — audit density dan alur interaksi kritis (kamera/GPS/evidence).
+1. **Kehadiran Admin** — audit density dan efisiensi tabel; implementasi mengikuti hasil audit.
 2. **Pegawai — daftar** — terapkan hybrid card/table setelah pola Proyek tervalidasi.
 3. **Halaman daftar dan pemantauan admin lain** — Client, Koreksi Absensi, Persetujuan Permohonan, Lembur, Audit Log, dan Rekap Harian sesuai pola masing-masing.
 4. **Riwayat Absensi dan halaman permohonan Pegawai** — selaraskan list, filter, detail ringkas, dan bukti.
 5. **Dashboard, Notifikasi, Profil, dan Pengaturan** — konsistensi spacing, density, dan hierarchy.
 6. **Form dan halaman detail admin/pegawai** — konsistensi bahasa visual, grouping, field, feedback, dan aksi; tidak dipadatkan secara agresif.
 7. **Auth dan layout global** — konsistensi shell dan responsivitas.
+8. **Implementasi halaman Pegawai /absensi** — dilakukan setelah implementasi halaman lain selesai; audit dan skenario pengujiannya disiapkan lebih awal dalam dokumen ini.
 
 ## Aturan implementasi
 
@@ -109,3 +110,61 @@ Urutan berikut adalah rekomendasi berdasarkan dampak UX dan kompleksitas; dapat 
 Inventarisasi struktur file telah mencakup halaman Admin, Pegawai, Dashboard, Notifikasi, Pengaturan, Auth, komponen admin, dan layout aplikasi pada branch ini. Pemeriksaan kode terperinci telah dilakukan pada sejumlah halaman representatif (dashboard, Client detail, Location form, Project form, daftar/detail permohonan, detail koreksi, lembur, dan notifikasi).
 
 Audit ini belum merupakan validasi visual langsung pada semua route dan viewport, dan belum memeriksa setiap Blade view baris demi baris. Rekomendasi di atas adalah arah audit/implementasi; temuan visual final harus dikonfirmasi melalui render aplikasi dan pengujian interaksi per kelompok halaman.
+
+
+## Audit khusus halaman Pegawai — /absensi (audit saja; implementasi ditunda)
+
+Halaman `/absensi` diperlakukan sebagai halaman kritis karena merupakan entry point utama pegawai untuk Clock In, Clock Out, dan konfirmasi mulai lembur. Sesuai keputusan pengguna, pada tahap ini halaman hanya diaudit dan tidak diubah. Implementasi UI/UX halaman ini dijadwalkan setelah implementasi halaman lain dalam cakupan P1-D4 selesai.
+
+### Struktur dan perilaku yang ditemukan
+
+- Halaman merupakan Livewire single-file component dengan `wire:poll.30s` pada root section.
+- Container konten saat ini `max-w-xl` dengan `gap-6`; ini membuat alur terfokus pada mobile, tetapi berpotensi menyisakan ruang besar pada tablet/desktop.
+- Header memuat avatar inisial, nama, nomor pegawai, jabatan, serta pintasan notifikasi.
+- Pemilih tanggal berbentuk kalender satu minggu (7 kolom), navigasi minggu sebelumnya/berikutnya, dan tombol Hari ini.
+- Ringkasan jam kerja memakai 3 kartu (Masuk, Pulang, Total kerja).
+- Kartu informasi menampilkan status kehadiran dan status/pengajuan lembur; daftar lembur dapat memuat detail, pembatalan, dan modal detail.
+- Form absensi hanya ditampilkan untuk tanggal hari ini. Mode form berubah mengikuti state Clock In, Clock Out, Clock In yang sudah digunakan, menunggu jadwal lembur, atau mulai lembur.
+- Clock In meminta jenis kerja (Kantor/Onsite), lalu pilihan Office atau Project/Site sesuai jenisnya.
+- Komponen kamera membuka dialog kamera fullscreen, menangani orientasi portrait/landscape, kamera depan/belakang, preview, ambil ulang, status lokasi, loading, dan error.
+- Data bukti yang dikirim meliputi selfie, sumber selfie, koordinat, akurasi, alamat snapshot, dan waktu capture; modal konfirmasi menampilkan ringkasan sebelum submit.
+- Ada modal terpisah untuk konfirmasi absensi, detail lembur, dan pengajuan lembur.
+- Layout aplikasi menambahkan ruang bawah untuk navigasi pegawai dan safe-area perangkat mobile.
+
+### Temuan audit awal
+
+| Area | Temuan | Hal yang perlu diverifikasi saat implementasi nanti |
+|---|---|---|
+| Lebar konten | `max-w-xl` menjaga fokus pada form utama, tetapi seluruh ringkasan, riwayat harian, dan form berada dalam satu kolom sempit pada layar lebar. | Uji apakah tablet/desktop lebih efektif dengan grid dua kolom yang memisahkan ringkasan/riwayat dari panel aksi, tanpa membuat form terlalu lebar. Mobile tetap satu kolom. |
+| Vertical density | Root memakai `gap-6`, beberapa panel memakai padding 4–5, dan form memakai `gap-5`. | Ukur blank space dan scroll depth aktual; ringkas jarak antarbagian yang tidak membantu, tetapi pertahankan ruang kamera, bukti, dan form. |
+| Kalender mingguan | Tujuh kolom dengan tombol tanggal ber-padding vertikal 2.5 dan kontrol navigasi di header panel. | Uji lebar layar kecil, keterbacaan label hari, ukuran target sentuh, dan wrapping tombol Hari ini pada perangkat sempit. |
+| Ringkasan waktu | Tiga kartu memakai grid 3 kolom tanpa breakpoint. | Uji angka/jam dan label pada ponsel kecil serta pembesaran teks; jangan sampai isi terpotong. Pertimbangkan perubahan susunan hanya bila terbukti perlu. |
+| Kartu status/lembur | Dua kolom mulai `sm`; informasi lembur bisa memanjang karena banyak timestamp, alasan, catatan, dan aksi. | Uji satu/lebih pengajuan lembur, teks panjang, status berbeda, dan urutan baca pada tablet portrait. Pastikan aksi pembatalan/detail tetap mudah ditemukan. |
+| Form utama | Form memiliki state kondisional dan disembunyikan saat tanggal yang dipilih bukan hari ini. | Audit penjelasan state dan visibilitas aksi untuk tiap mode; cegah pegawai mengira form hilang karena error. Pertahankan seluruh state dan aturan. |
+| Pilihan kerja | Pilihan Office/Onsite mengubah kontrol berikutnya; informasi Project menampilkan Client, Site, dan jenis layanan. | Uji label panjang, banyak pilihan, lokasi Office kosong/satu/banyak, proyek kosong, serta nama proyek/Client panjang. |
+| Kamera | Kamera memakai dialog fullscreen adaptif portrait/landscape, video/canvas preview, status lokasi, dan kontrol foto. | Uji iOS Safari/Android Chrome, izin ditolak, kamera tidak tersedia, kamera tunggal, orientasi berubah, jaringan lambat, dan safe-area. Jangan mengecilkan kontrol kamera atau menghilangkan pesan status. |
+| GPS dan bukti | Tombol capture terkunci sampai video siap dan location snapshot siap; akurasi dan alamat ditampilkan. | Perjelas hubungan status GPS, akurasi, dan kesiapan foto; uji lokasi gagal/timeout/akurasi rendah serta alamat kosong. Jangan mengubah kebijakan validasi atau bukti. |
+| Modal konfirmasi | Menampilkan jenis absensi, lokasi kerja, tempat/proyek, akurasi, alamat snapshot, sumber foto, dan preview selfie. | Uji modal pada viewport pendek dan ponsel landscape; pastikan konten dapat discroll dan tombol aksi tidak tertutup keyboard/safe-area. |
+| Modal lembur | Detail dan pengajuan lembur memakai modal dengan konten yang dapat panjang. | Uji scroll internal, datetime-local, error validasi, catatan panjang, dan tombol aksi pada layar pendek. |
+| Polling dan interaksi | Root melakukan polling setiap 30 detik; komponen kamera memiliki lifecycle Alpine dan menghentikan kamera saat event navigasi. | Uji apakah polling mengganggu state kamera, upload, modal, atau form yang sedang diisi; jangan mengubah interval tanpa bukti dan analisis dampak. |
+| Aksesibilitas | Banyak tombol ikon sudah memiliki aria-label; kamera menggunakan role dialog dan live status. | Audit fokus keyboard, focus trap/restore modal, kontras status, reduced motion bila animasi ditambahkan, dan screen reader. |
+
+### Prioritas pengujian ketika implementasi tiba
+
+1. Mobile portrait (ponsel kecil dan besar), mobile landscape.
+2. Tablet portrait dan tablet landscape.
+3. Desktop/laptop.
+4. Clock In Office: tidak ada Office, satu Office, beberapa Office.
+5. Clock In Onsite: tidak ada Project, banyak Project, nama panjang.
+6. Clock Out, sesi aktif, dan Clock In yang sudah digunakan hari itu.
+7. Seluruh state lembur: belum waktunya, waktu mulai tiba, foto mulai lembur, pembatalan, detail, dan error validasi.
+8. Kamera/GPS: izin diberikan/ditolak, perangkat tanpa kamera, kamera depan/belakang, lokasi lambat/gagal, foto ulang, upload, dan submit.
+9. Modal pada viewport pendek, keyboard terbuka, dan orientasi berubah.
+10. Polling saat modal/kamera/upload/form sedang aktif.
+
+### Batas dan keputusan
+
+- Ini adalah audit kode dan daftar skenario; belum merupakan pengujian visual langsung pada perangkat atau browser.
+- Tidak ada perubahan Blade, CSS, JavaScript, Livewire state, kamera, GPS, query, validasi, atau workflow pada halaman `/absensi` dalam tahap audit ini.
+- Halaman `/absensi` tetap menjadi prioritas khusus, tetapi implementasi layout/UI/UX ditunda sampai implementasi seluruh halaman lain dalam cakupan P1-D4 selesai.
+- Penundaan ini tidak berarti mengurangi prioritas UX-nya; justru perubahan akan dilakukan sebagai pekerjaan tersendiri setelah pola halaman lain stabil.
