@@ -1,9 +1,9 @@
 <x-layouts::app :title="__('Detail Permohonan')">
     <div class="mx-auto w-full max-w-3xl space-y-5">
         <div>
-            <flux:button href="{{ route('admin.leave-requests.index') }}" variant="outline" icon="arrow-left" size="sm">
+            <x-ui.button href="{{ route('admin.leave-requests.index') }}" variant="outline" icon="arrow-left" size="sm">
                 {{ __('Kembali ke daftar') }}
-            </flux:button>
+            </x-ui.button>
         </div>
 
         <div class="flex flex-wrap items-center justify-between gap-3">
@@ -44,9 +44,9 @@
                     <div class="sm:col-span-2">
                         <dt class="text-xs font-semibold uppercase tracking-wider text-zinc-500">{{ __('Lampiran') }}</dt>
                         <dd class="mt-1">
-                            <flux:button href="{{ route('admin.leave-requests.attachment', $leaveRequest) }}" size="sm" icon="arrow-down-tray" variant="outline">
+                            <x-ui.button href="{{ route('admin.leave-requests.attachment', $leaveRequest) }}" size="sm" icon="arrow-down-tray" variant="outline">
                                 {{ __('Unduh lampiran') }} ({{ basename($leaveRequest->attachment_path) }})
-                            </flux:button>
+                            </x-ui.button>
                         </dd>
                     </div>
                 @endif
@@ -86,7 +86,7 @@
 
                 <div class="flex justify-end pt-2">
                     <flux:modal.trigger name="confirm-decision">
-                        <flux:button variant="primary">{{ __('Simpan keputusan') }}</flux:button>
+                        <x-ui.button variant="primary">{{ __('Simpan keputusan') }}</x-ui.button>
                     </flux:modal.trigger>
                 </div>
 
@@ -96,11 +96,11 @@
                         <flux:text>{{ __('Apakah Anda yakin ingin memproses dan menyimpan keputusan untuk permohonan ini?') }}</flux:text>
                         <div class="flex justify-end gap-2 pt-2">
                             <flux:modal.close>
-                                <flux:button variant="outline">{{ __('Batal') }}</flux:button>
+                                <x-ui.button variant="outline">{{ __('Batal') }}</x-ui.button>
                             </flux:modal.close>
-                            <flux:button variant="primary" onclick="document.getElementById('decision-form').submit();">
+                            <x-ui.button variant="primary" onclick="document.getElementById('decision-form').submit();">
                                 {{ __('Ya, Simpan') }}
-                            </flux:button>
+                            </x-ui.button>
                         </div>
                     </div>
                 </flux:modal>
