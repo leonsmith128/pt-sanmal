@@ -74,7 +74,7 @@ Jika source bertentangan dengan dokumen, jangan langsung memilih salah satu. Lap
 - Commit focused, logically grouped changes to that same branch. Before every write, inspect the current branch HEAD and latest file SHA to avoid overwriting newer work.
 - The authoritative workflow and handoff are documented in `docs/ui/DEVELOPMENT-HANDOFF.md`; design decisions are in `docs/ui/DESIGN-FOUNDATION.md`; scope is tracked in `docs/ui/progress/IMPLEMENTATION-STATUS.md`.
 
-- Secara default, kerjakan di feature branch dari main, buat commit terfokus, lalu buka Pull Request.
+- Untuk pekerjaan di luar program UI/UX SanMal V1, secara default kerjakan di feature branch dari main, buat commit terfokus, lalu buka Pull Request. Untuk UI/UX V1, aturan satu branch dan satu PR di atas selalu berlaku.
 - Commit langsung ke main hanya jika pengguna secara eksplisit memintanya.
 - Jangan force-push, mengubah riwayat, merge, atau mengubah status PR tanpa instruksi eksplisit.
 - Sebelum menulis ke branch, periksa ulang HEAD dan hindari menimpa perubahan yang masuk setelah inspeksi.
