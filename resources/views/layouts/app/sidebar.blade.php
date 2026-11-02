@@ -24,8 +24,8 @@
         >
             <flux:sidebar.header>
                 <div class="flex w-full items-center justify-between gap-2">
-                    <x-app-logo :sidebar="true" href="{{ route('dashboard') }}" wire:navigate />
-                    <flux:dropdown position="bottom" align="end">
+                    <x-app-logo :sidebar="true" href="{{ route('dashboard') }}" wire:navigate class="in-data-flux-sidebar-collapsed-desktop:hidden" />
+                    <flux:dropdown position="bottom" align="end" class="in-data-flux-sidebar-collapsed-desktop:hidden" data-test="sidebar-theme-menu">
                         <flux:button variant="ghost" size="sm" icon="sun" aria-label="{{ __('Change appearance') }}" />
                         <flux:menu>
                             <flux:menu.radio.group x-data x-model="$flux.appearance">
@@ -236,9 +236,7 @@
             </nav>
         @endif
 
-        <div class="{{ $isEmployee && ! $isManager ? 'pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-0' : '' }}">
-            {{ $slot }}
-        </div>
+        {{ $slot }}
 
         @persist('toast')
             <flux:toast.group>
