@@ -26,7 +26,7 @@
             </div>
             <flux:button type="submit" variant="primary">{{ __('Terapkan') }}</flux:button>
             @if (request()->filled('status'))
-                <flux:button href="{{ route('admin.leave-requests.index') }}" variant="ghost">{{ __('Reset') }}</flux:button>
+                <flux:button href="{{ route('admin.leave-requests.index') }}" variant="outline">{{ __('Reset') }}</flux:button>
             @endif
         </form>
 </x-admin.filter-panel>
@@ -60,7 +60,7 @@
                                 <x-admin.request-status-badge :status="$item->status" />
                             </td>
                             <td class="whitespace-nowrap px-4 py-3 text-right">
-                                <flux:button href="{{ route('admin.leave-requests.show', $item) }}" size="sm" variant="ghost">
+                                <flux:button href="{{ route('admin.leave-requests.show', $item) }}" size="sm" variant="outline">
                                     {{ __('Buka') }}
                                 </flux:button>
                             </td>
