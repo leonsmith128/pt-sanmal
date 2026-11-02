@@ -1,9 +1,9 @@
 <x-layouts::app :title="__('Audit Log')">
     <div class="mx-auto max-w-7xl space-y-5">
-        <div>
-            <flux:heading size="xl">{{ __('Audit Log') }}</flux:heading>
-            <flux:text>{{ __('Riwayat tindakan administratif. Catatan audit bersifat hanya-baca.') }}</flux:text>
-        </div>
+        <x-admin.page-header
+            :title="__('Audit Log')"
+            :description="__('Riwayat tindakan administratif. Catatan audit bersifat hanya-baca.')"
+        />
 
         <x-admin.flash-message />
 
