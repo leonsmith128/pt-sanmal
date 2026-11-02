@@ -4,13 +4,13 @@
             :title="__('Detail pengajuan lembur')"
             :description="$overtimeRequest->employee->user->name"
         >
-            <flux:button
+            <x-ui.button
                 href="{{ route('admin.overtime-requests.index') }}"
                 variant="outline"
                 icon="arrow-left"
             >
                 {{ __('Kembali') }}
-            </flux:button>
+            </x-ui.button>
         </x-admin.page-header>
 
         <x-admin.flash-message />
@@ -93,7 +93,7 @@
                 <div class="mt-5">
                     <p class="mb-2 text-sm font-medium">{{ __('Foto mulai lembur') }}</p>
 
-                    <flux:button
+                    <x-ui.button
                         href="{{ route('admin.attendance.selfie', $overtimeRequest->startRecord) }}"
                         target="_blank"
                         rel="noopener noreferrer"
@@ -101,7 +101,7 @@
                         icon="image"
                     >
                         {{ __('Lihat foto tersimpan') }}
-                    </flux:button>
+                    </x-ui.button>
 
                     <p class="mt-2 text-sm text-zinc-500">
                         {{ $overtimeRequest->startRecord->address_snapshot ?? __('Alamat tidak tersedia') }}
@@ -175,7 +175,7 @@
                     </flux:field>
 
                     <div>
-                        <flux:button type="submit" variant="primary">{{ __('Simpan rentang final') }}</flux:button>
+                        <x-ui.button type="submit" variant="primary">{{ __('Simpan rentang final') }}</x-ui.button>
                     </div>
                 </form>
             </section>
@@ -209,9 +209,9 @@
                     </flux:field>
 
                     <div>
-                        <flux:button type="submit" variant="primary">
+                        <x-ui.button type="submit" variant="primary">
                             {{ __('Simpan keputusan') }}
-                        </flux:button>
+                        </x-ui.button>
                     </div>
                 </form>
             </section>
@@ -243,9 +243,9 @@
                     </flux:field>
 
                     <div>
-                        <flux:button type="submit" variant="danger">
+                        <x-ui.button type="submit" variant="danger">
                             {{ __('Catat pengecualian foto') }}
-                        </flux:button>
+                        </x-ui.button>
                     </div>
                 </form>
             </section>
