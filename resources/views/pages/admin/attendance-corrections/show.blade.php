@@ -1,5 +1,5 @@
 <x-layouts::app :title="__('Detail Koreksi Absensi')">
-    <div class="mx-auto max-w-3xl space-y-5">
+    <div class="mx-auto w-full max-w-3xl space-y-5">
         <div class="flex items-center justify-between">
             <div>
                 <flux:heading size="xl">{{ __('Detail Koreksi Absensi') }}</flux:heading>
