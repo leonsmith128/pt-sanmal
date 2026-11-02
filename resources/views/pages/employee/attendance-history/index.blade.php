@@ -6,12 +6,12 @@
                 <flux:text class="mt-1">{{ __('Lihat catatan masuk, mulai lembur, dan pulang yang tercatat pada akun Anda.') }}</flux:text>
             </div>
             <div class="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
-                <flux:button href="{{ route('attendance-history.export', request()->query()) }}" variant="outline" icon="arrow-down-tray" class="w-full sm:w-auto">
+                <x-ui.button href="{{ route('attendance-history.export', request()->query()) }}" variant="outline" icon="arrow-down-tray" class="w-full sm:w-auto">
                     {{ __('Ekspor rekap harian (CSV)') }}
-                </flux:button>
-                <flux:button href="{{ route('attendance') }}" variant="primary" icon="clock" class="w-full sm:w-auto">
+                </x-ui.button>
+                <x-ui.button href="{{ route('attendance') }}" variant="primary" icon="clock" class="w-full sm:w-auto">
                     {{ __('Buka halaman absensi') }}
-                </flux:button>
+                </x-ui.button>
             </div>
         </header>
 
@@ -28,12 +28,12 @@
                     <flux:error name="to" />
                 </flux:field>
                 <div class="flex flex-col gap-2 sm:col-span-2 sm:flex-row sm:items-end lg:col-span-3 lg:justify-end">
-                    <flux:button href="{{ route('attendance-history.index') }}" variant="ghost" class="w-full sm:w-auto">
+                    <x-ui.button href="{{ route('attendance-history.index') }}" variant="ghost" class="w-full sm:w-auto">
                         {{ __('Reset') }}
-                    </flux:button>
-                    <flux:button type="submit" variant="primary" icon="funnel" class="w-full sm:w-auto">
+                    </x-ui.button>
+                    <x-ui.button type="submit" variant="primary" icon="funnel" class="w-full sm:w-auto">
                         {{ __('Terapkan filter') }}
-                    </flux:button>
+                    </x-ui.button>
                 </div>
             </form>
         </section>
