@@ -307,9 +307,13 @@ new #[Title('Absensi')] class extends Component {
                     {{ $this->employee->title?->name ?? __('Jabatan belum diatur') }}
                 </p>
             </div>
-            <button type="button" disabled aria-label="{{ __('Notifikasi akan tersedia') }}" title="{{ __('Notifikasi akan tersedia') }}" class="flex size-10 shrink-0 items-center justify-center rounded-full text-zinc-400 disabled:cursor-not-allowed dark:text-zinc-500">
+            <a href="{{ route('notifications.index') }}" wire:navigate aria-label="{{ __('Buka notifikasi') }}" title="{{ __('Notifikasi') }}" class="relative flex size-10 shrink-0 items-center justify-center rounded-full text-zinc-600 transition hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800">
                 <flux:icon name="bell" variant="outline" class="size-5" />
-            </button>
+                @php($unreadCount = Auth::user()->unreadNotifications()->count())
+                @if ($unreadCount > 0)
+                    <span class="absolute right-0.5 top-0.5 flex min-h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-semibold text-white">{{ $unreadCount > 99 ? '99+' : $unreadCount }}</span>
+                @endif
+            </a>
         </header>
 
 
