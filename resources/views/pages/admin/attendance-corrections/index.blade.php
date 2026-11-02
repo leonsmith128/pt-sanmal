@@ -1,9 +1,9 @@
 <x-layouts::app :title="__('Koreksi Absensi')">
     <div class="mx-auto max-w-6xl space-y-5">
-        <div>
-            <flux:heading size="xl">{{ __('Pengelolaan Koreksi Absensi') }}</flux:heading>
-            <flux:text>{{ __('Tinjau permohonan perubahan catatan clock-in atau clock-out.') }}</flux:text>
-        </div>
+        <x-admin.page-header
+            :title="__('Pengelolaan Koreksi Absensi')"
+            :description="__('Tinjau permohonan perubahan catatan clock-in atau clock-out.')"
+        />
 
 
         <x-admin.flash-message />
