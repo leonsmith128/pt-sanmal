@@ -1,5 +1,5 @@
 <x-layouts::app :title="__('Detail Permohonan')">
-    <div class="mx-auto max-w-3xl space-y-6 p-6">
+    <div class="mx-auto w-full max-w-3xl space-y-5">
         <div>
             <flux:button href="{{ route('admin.leave-requests.index') }}" variant="ghost" icon="arrow-left" size="sm">
                 {{ __('Kembali ke daftar') }}
