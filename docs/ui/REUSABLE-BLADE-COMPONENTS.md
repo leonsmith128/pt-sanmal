@@ -16,7 +16,7 @@ Generic components that can be used by admin, employee, and authentication pages
 |---|---|---|
 | `x-ui.page` | Standard page width and vertical rhythm | Slot + mergeable attributes; default `w-full max-w-7xl`, `gap-4` |
 | `x-ui.card` | Standard content surface | Slot + mergeable attributes; Flux card surface |
-| `x-ui.button` | Standard action affordance | Slot, `variant`, `size`, `type`, optional `href`, `icon`, `disabled`; forwards Livewire/Alpine/HTML attributes |
+| `x-ui.button` | Standard action affordance | Slot, `variant`, `size`, `type`, optional `href`, `icon`, `iconTrailing`, `square`, `disabled`; forwards Livewire/Alpine/HTML attributes |
 
 Button variant policy:
 - `primary`: main action for the current context.
@@ -60,6 +60,12 @@ Page views should compose primitives and domain components, while retaining:
 8. Prefer named variants over arbitrary class strings for shared visual decisions.
 9. Do not put business logic, database access, authorization decisions, or route construction inside presentational components.
 10. Migrate a small page group at a time and add/update focused tests for rendered contracts.
+
+## Current migration status
+
+- `x-ui.page`, `x-ui.card`, and `x-ui.button` primitives exist.
+- The button primitive is now applied to Admin Leave Requests, Daily Attendance, Clients, Employees, Audit Logs, and the Admin Attendance export confirmation.
+- `tests/Feature/UiButtonComponentTest.php` covers button semantics, default type, and Alpine-bound links. These tests have been authored but not yet executed.
 
 ## Migration order
 
