@@ -1,5 +1,5 @@
 <x-layouts::app :title="__('Tambah Pegawai')">
-    <div class="mx-auto max-w-2xl space-y-5">
+    <div class="mx-auto w-full max-w-2xl space-y-5">
         <div>
             <flux:heading size="xl">{{ __('Tambah Pegawai') }}</flux:heading>
             <flux:text>{{ __('Buat akun pegawai dan lengkapi data administrasinya.') }}</flux:text>
