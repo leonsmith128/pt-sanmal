@@ -98,7 +98,7 @@
             @endif
 
             @if ($correction->attachment_path)
-                <flux:button href="{{ route('admin.attendance-corrections.attachment', $correction) }}" icon="paperclip">
+                <flux:button href="{{ route('admin.attendance-corrections.attachment', $correction) }}" variant="outline" icon="paperclip">
                     {{ __('Unduh lampiran') }}
                 </flux:button>
             @endif
