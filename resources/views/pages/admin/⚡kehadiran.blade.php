@@ -503,7 +503,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                 <p class="text-sm text-amber-700 dark:text-amber-300">{{ __('Ekspor menggunakan satu baris per pegawai per tanggal. Tanggal tanpa event absensi tetap disertakan. Periksa kembali cakupan sebelum melanjutkan.') }}</p>
                 <div class="flex justify-end gap-2">
                     <x-ui.button type="button" variant="outline" x-on:click="exportConfirmOpen = false">{{ __('Batal') }}</x-ui.button>
-                    <x-ui.button x-bind:href="exportUrl" variant="primary" x-on:click="exportConfirmOpen = false">
+                    <x-ui.button href="#" x-bind:href="exportUrl" variant="primary" x-on:click="exportConfirmOpen = false">
                         {{ __('Konfirmasi dan ekspor') }}
                     </x-ui.button>
                 </div>
