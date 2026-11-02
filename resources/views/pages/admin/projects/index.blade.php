@@ -30,7 +30,7 @@
                         <flux:select.option value="{{ $status->value }}">{{ $status->label() }}</flux:select.option>
                     @endforeach
                 </flux:select>
-                <flux:button size="sm" type="submit">{{ __('Filter') }}</flux:button>
+                <flux:button size="sm" type="submit" variant="outline">{{ __('Filter') }}</flux:button>
             </form>
         </x-admin.filter-panel>
 
