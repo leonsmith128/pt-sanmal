@@ -74,11 +74,13 @@
                     <flux:error name="decision" />
                 </flux:field>
 
-                <flux:field>
-                    <flux:label>{{ __('Catatan (opsional)') }}</flux:label>
-                    <flux:textarea name="decision_note" rows="3" maxlength="2000" placeholder="{{ __('Tuliskan catatan persetujuan atau penolakan...') }}">{{ old('decision_note') }}</flux:textarea>
-                    <flux:error name="decision_note" />
-                </flux:field>
+                <x-ui.textarea
+                    name="decision_note"
+                    :label="__('Catatan (opsional)')"
+                    rows="3"
+                    maxlength="2000"
+                    :placeholder="__('Tuliskan catatan persetujuan atau penolakan...')"
+                >{{ old('decision_note') }}</x-ui.textarea>
 
                 <flux:text class="text-xs text-zinc-500">
                     {{ __('Jika terdapat absensi aktual atau permohonan lain yang tumpang tindih, rekap harian akan menandainya sebagai perlu ditinjau.') }}
