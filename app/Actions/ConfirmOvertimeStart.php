@@ -87,6 +87,11 @@ class ConfirmOvertimeStart
                     'work_type' => $clockIn->work_type,
                     'location_id' => $clockIn->location_id,
                     'project_id' => $clockIn->project_id,
+                    ...$clockIn->only([
+                        'client_code_snapshot', 'client_name_snapshot',
+                        'project_code_snapshot', 'project_name_snapshot',
+                        'location_name_snapshot', 'snapshot_source',
+                    ]),
                     'recorded_at' => $now,
                     'captured_at' => $capturedAt,
                     'timezone' => $locked->timezone,
