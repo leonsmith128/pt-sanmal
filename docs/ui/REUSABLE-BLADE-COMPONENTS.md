@@ -48,7 +48,7 @@ Button and action hierarchy:
 - `primary`: the single most important action in the current page section or decision context. Avoid presenting several competing primary actions side by side.
 - `outline`: a labeled secondary action such as Back, Reset, Edit, or opening supporting details.
 - `ghost`: a low-emphasis utility action that should not compete with the main task. Do not use it for an action whose consequence needs stronger emphasis.
-- `danger`: reserve the destructive/high-risk role for actions such as delete or irreversible cancellation. Confirm that the installed Flux version supports the chosen destructive styling before using it; the wrapper forwards the variant rather than defining its own visual implementation.
+- Destructive actions: retain a supported Flux variant such as `outline` and pass `color="red"` for destructive emphasis when appropriate. Do not invent a `danger` variant: `x-ui.button` forwards the variant to Flux and does not define its own visual implementation.
 - Keep the visual hierarchy aligned with the action's actual consequence. Color alone is not a substitute for a clear label or confirmation step.
 - Prefer one primary action per local context. If two actions are equally important, reconsider their grouping and make one secondary unless the workflow genuinely has two distinct primary tasks.
 - Use `href` for navigation so the rendered element remains a link. Use `type="button"` for in-page actions and `type="submit"` only for form submission. The component defaults to `type="button"` to avoid accidental form submission.
