@@ -88,7 +88,7 @@
                                 <p class="text-xs font-medium text-zinc-500">{{ $item->reference }} · {{ $item->submitted_at?->format('d/m/Y') }}</p>
                                 <h2 class="mt-1 font-semibold text-zinc-900 dark:text-zinc-100">{{ $item->type_label }}</h2>
                             </div>
-                            <flux:badge :color="match($item->status) {'approved' => 'green', 'rejected' => 'red', 'cancelled' => 'zinc', default => 'amber'}">{{ $item->status_label }}</flux:badge>
+                            <x-ui.badge :color="match($item->status) {'approved' => 'green', 'rejected' => 'red', 'cancelled' => 'zinc', default => 'amber'}">{{ $item->status_label }}</x-ui.badge>
                         </div>
                         <div class="text-sm text-zinc-600 dark:text-zinc-300">
                             <p><span class="font-medium text-zinc-800 dark:text-zinc-100">{{ __('Periode') }}:</span>
