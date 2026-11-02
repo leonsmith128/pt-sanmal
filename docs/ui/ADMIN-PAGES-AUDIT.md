@@ -27,6 +27,20 @@ Pencatatan berikut diperbarui setiap kelompok halaman selesai dikerjakan. Status
 | Attendance Corrections Queue | Selesai | Page shell, filter status, badge status, dan empty state memakai primitive bersama; review list, pemetaan status, GET filter, tautan detail, dan pagination dipertahankan | Source telah diperiksa setelah perubahan; test otomatis belum dijalankan |
 | Overtime Requests Queue | Selesai | Page shell, filter status, dan empty state memakai primitive bersama; review list serta badge approval dan operational state tetap terpisah, GET filter, tautan detail, dan pagination dipertahankan | Source telah diperiksa setelah perubahan; test otomatis belum dijalankan |
 | Leave Requests Queue | Selesai | Page shell dan filter status memakai primitive bersama; tabel, adapter badge domain, reset filter, tautan detail, GET filter, dan pagination dipertahankan | Source telah diperiksa setelah perubahan; test otomatis belum dijalankan |
+| Client Master Data Cards | Selesai | Page shell, field pencarian, dan empty state menggunakan primitive bersama; kartu Client, daftar Site bersarang, Office list, badge, action link, GET query, dan pagination dipertahankan | Source telah diperiksa setelah perubahan; test otomatis belum dijalankan |
+| Project Master Data Cards | Selesai | Page shell, filter input/select, dan empty state menggunakan primitive bersama; expandable `article/details`, metadata, badge, action link, GET filters, grid responsif, dan pagination dipertahankan | Source telah diperiksa setelah perubahan; test otomatis belum dijalankan |
+
+### Catatan implementasi Master Data Cards — 2026-11-03
+
+- Halaman Master Data Client dan Master Proyek menggunakan `x-ui.page` dan `x-admin.page-header`. Lebar maksimum tetap `max-w-7xl`; ritme vertikal Client tetap `gap-5`, sedangkan Proyek mengikuti default page shell `gap-4` yang sama dengan container sebelumnya.
+- Filter pencarian Client berpindah dari `flux:input` langsung ke `x-ui.input`. Filter Proyek berpindah ke `x-ui.input` dan `x-ui.select`; seluruh nama field (`q`, `client_id`, `project_type`, `status`) dan sumber nilai request tetap sama.
+- Surface kartu Client tetap menggunakan elemen semantik `article`; daftar Site bersarang, hitungan Client/Location/Project, status aktif/nonaktif, dan tautan Ubah/Detail/Tambah Site tetap dipertahankan. Tidak dibuat card-in-card atau komponen kartu baru.
+- Kartu Proyek tetap menggunakan `article` dan native `details/summary` expandable. Grid satu kolom pada layar sempit dan dua kolom mulai `md`, metadata Client/Site/periode/status Site, jumlah record absensi, badge, dan tautan Ubah tetap dipertahankan.
+- Empty state daftar Client, Office, dan Proyek memakai primitive `x-admin.empty-state`/`x-ui.empty-state` dengan override surface agar konteks visual sebelumnya tetap terjaga.
+- Flash message, action create, route edit/detail/tambah Office/tambah Site, form method `GET`, kondisi tombol Reset Client, nilai filter, dan pagination (`links()`) tidak diubah.
+- Tidak ada perubahan controller, query, relasi, sorting, pagination, validasi, authorization, persistence, atau business logic. Tidak ada komponen runtime baru.
+
+**Batas verifikasi Master Data Cards:** kedua file telah di-fetch kembali dari branch untuk pemeriksaan source. Test otomatis dan browser visual test belum dijalankan; belum ada klaim kelulusan test.
 
 ### Catatan implementasi Review Queues — 2026-11-03
 
