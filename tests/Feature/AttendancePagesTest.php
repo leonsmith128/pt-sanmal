@@ -203,13 +203,26 @@ test('admins retain personal employee navigation alongside grouped administratio
 });
 
 
-test('application main remains a direct layout child and keeps employee bottom navigation spacing inside main', function () {
-    $this->actingAs(userWithRole(UserRole::Employee));
+test('Flux main is a direct body child on the key admin and employee pages', function () {
+    $admin = userWithRole(UserRole::Admin);
+    $employee = userWithRole(UserRole::Employee);
 
-    $this->get(route('attendance'))
-        ->assertOk()
-        ->assertSee('data-flux-main', false)
-        ->assertSee('pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-0', false);
+    foreach ([route('dashboard'), route('admin.daily-attendance'), route('admin.kehadiran')] as $url) {
+        $response = $this->actingAs($admin)->get($url)->assertOk();
+        $document = new DOMDocument();
+        @$document->loadHTML($response->getContent());
+        $xpath = new DOMXPath($document);
+
+        expect($xpath->query('//body/*[@data-flux-main]')->length)->toBe(1);
+    }
+
+    $response = $this->actingAs($employee)->get(route('attendance'))->assertOk();
+    $document = new DOMDocument();
+    @$document->loadHTML($response->getContent());
+    $xpath = new DOMXPath($document);
+
+    expect($xpath->query('//body/*[@data-flux-main]')->length)->toBe(1)
+        ->and($response->getContent())->toContain('pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-0');
 });
 
 test('admin sidebar hides brand and theme controls when collapsed', function () {
