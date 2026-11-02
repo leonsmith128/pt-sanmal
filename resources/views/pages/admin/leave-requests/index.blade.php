@@ -12,7 +12,8 @@
 
         <x-admin.flash-message />
 
-        <form method="GET" action="{{ route('admin.leave-requests.index') }}" class="flex flex-wrap items-end gap-3 rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-700 dark:bg-zinc-900">
+        <x-admin.filter-panel>
+<form method="GET" action="{{ route('admin.leave-requests.index') }}" class="flex flex-wrap items-end gap-3">
             <div class="w-full sm:w-64">
                 <flux:select name="status" :label="__('Filter status')">
                     <flux:select.option value="">{{ __('Semua status') }}</flux:select.option>
@@ -28,6 +29,7 @@
                 <flux:button href="{{ route('admin.leave-requests.index') }}" variant="ghost">{{ __('Reset') }}</flux:button>
             @endif
         </form>
+</x-admin.filter-panel>
 
         <div class="overflow-x-auto rounded-xl border border-neutral-200 dark:border-neutral-700">
             <table class="w-full text-left text-sm">

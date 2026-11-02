@@ -7,12 +7,14 @@
 
         <x-admin.flash-message />
 
-        <form method="GET" class="flex flex-wrap items-end gap-3">
+        <x-admin.filter-panel>
+<form method="GET" class="flex flex-wrap items-end gap-3">
             <flux:input name="action" :label="__('Aksi')" value="{{ request('action') }}" placeholder="leave.approved" />
             <flux:input type="date" name="from" :label="__('Dari tanggal')" value="{{ request('from') }}" />
             <flux:input type="date" name="to" :label="__('Sampai tanggal')" value="{{ request('to') }}" />
             <flux:button type="submit">{{ __('Filter') }}</flux:button>
         </form>
+</x-admin.filter-panel>
 
         <div class="overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-700">
             <table class="w-full text-sm">

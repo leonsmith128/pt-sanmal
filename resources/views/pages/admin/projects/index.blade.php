@@ -9,7 +9,8 @@
 
         <x-admin.flash-message />
 
-        <form method="GET" class="flex flex-wrap items-end gap-3">
+        <x-admin.filter-panel>
+<form method="GET" class="flex flex-wrap items-end gap-3">
             <flux:input name="q" value="{{ request('q') }}" :label="__('Cari proyek')" placeholder="Kode atau nama proyek" />
             <flux:select name="client_id" :label="__('Client')" :value="request('client_id')">
                 <flux:select.option value="">{{ __('Semua Client') }}</flux:select.option>
@@ -31,6 +32,7 @@
             </flux:select>
             <flux:button type="submit">{{ __('Filter') }}</flux:button>
         </form>
+</x-admin.filter-panel>
 
         <div class="overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-700">
             <table class="w-full text-sm">

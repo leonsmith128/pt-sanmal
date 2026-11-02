@@ -9,7 +9,7 @@
                 <form method="POST" action="{{ route('notifications.read-all') }}">
                     @csrf
                     @method('PATCH')
-                    <flux:button type="submit" variant="ghost" icon="check-check">{{ __('Tandai semua dibaca') }}</flux:button>
+                    <flux:button type="submit" variant="ghost" icon="check">{{ __('Tandai semua dibaca') }}</flux:button>
                 </form>
             @endif
         </header>
@@ -34,7 +34,7 @@
                 ])>
                     <div class="flex items-start gap-3">
                         <div class="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-full {{ $notification->read_at ? 'bg-zinc-100 text-zinc-500 dark:bg-zinc-800' : 'bg-sky-100 text-sky-700 dark:bg-sky-900 dark:text-sky-300' }}">
-                            <flux:icon name="{{ $isResolved ? 'calendar-x' : 'bell' }}" class="size-4" />
+                            <flux:icon name="{{ $isResolved ? 'x-circle' : 'bell' }}" class="size-4" />
                         </div>
                         <div class="min-w-0 flex-1">
                             <div class="flex flex-wrap items-start justify-between gap-2">

@@ -9,7 +9,8 @@
 
         <x-admin.flash-message />
 
-        <form method="GET" action="{{ route('admin.clients.index') }}" class="flex flex-wrap items-end gap-3">
+        <x-admin.filter-panel>
+<form method="GET" action="{{ route('admin.clients.index') }}" class="flex flex-wrap items-end gap-3">
             <div class="min-w-64 flex-1">
                 <flux:input name="q" value="{{ $term }}" :label="__('Pencarian')" placeholder="Kode/nama Client, nama/alamat Location" />
             </div>
@@ -18,6 +19,7 @@
                 <flux:button href="{{ route('admin.clients.index') }}" variant="ghost">{{ __('Reset') }}</flux:button>
             @endif
         </form>
+</x-admin.filter-panel>
 
         <section class="space-y-3">
             <div class="flex flex-wrap items-center justify-between gap-2">

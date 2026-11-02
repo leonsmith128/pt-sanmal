@@ -12,7 +12,8 @@
 
         <x-admin.flash-message />
 
-        <form method="GET" class="flex flex-wrap items-end gap-3">
+        <x-admin.filter-panel>
+<form method="GET" class="flex flex-wrap items-end gap-3">
             <flux:input name="q" value="{{ request('q') }}" :label="__('Cari pegawai')" placeholder="Nama, email, nomor pegawai" />
             <flux:select name="status" :label="__('Status akun')" :value="request('status')">
                 <flux:select.option value="">{{ __('Semua') }}</flux:select.option>
@@ -21,6 +22,7 @@
             </flux:select>
             <flux:button type="submit">{{ __('Filter') }}</flux:button>
         </form>
+</x-admin.filter-panel>
 
         <div class="overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-700">
             <table class="w-full text-sm">

@@ -8,7 +8,8 @@
 
         <x-admin.flash-message />
 
-        <form method="GET" class="flex items-end gap-3">
+        <x-admin.filter-panel>
+<form method="GET" class="flex flex-wrap items-end gap-3">
             <flux:select name="status" :label="__('Status')" :value="request('status')">
                 <flux:select.option value="">{{ __('Semua') }}</flux:select.option>
                 <flux:select.option value="pending">{{ __('Menunggu') }}</flux:select.option>
@@ -18,6 +19,7 @@
             </flux:select>
             <flux:button type="submit">{{ __('Filter') }}</flux:button>
         </form>
+</x-admin.filter-panel>
 
         <div class="overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-700">
             @forelse ($corrections as $correction)
