@@ -48,7 +48,6 @@ it('applies a dedicated secondary button class for dark theme contrast', functio
         ->assertSee('Kembali');
 });
 
-
 it('preserves explicit semantic colors on outline buttons', function () {
     $this->blade('<x-ui.button variant="outline" color="red">Hapus</x-ui.button>')
         ->assertDontSee('sanmal-button-secondary', false)
