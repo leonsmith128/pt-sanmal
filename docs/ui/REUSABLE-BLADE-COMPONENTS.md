@@ -103,6 +103,33 @@ Page views should compose primitives and domain components, while retaining:
 - `tests/Feature/UiMetadataItemComponentTest.php` covers semantic description-list markup, default/custom classes, slot values, and forwarded wrapper attributes.
 - Tests have been authored but not yet executed in this environment; CI status must be checked before considering this migration validated.
 
+## Responsive data presentation
+
+Use the presentation pattern that matches the data's purpose; do not force every collection into a universal table component.
+
+### Pattern selection
+
+- **Responsive table with mobile cards:** use when desktop/tablet users benefit from comparing multiple attributes across records, while the same records need a readable stacked presentation on narrow screens.
+- **Responsive list:** use when each row primarily acts as an entry point to inspect or process one record. Keep the identity, relevant date, and status visible without adding a table solely for consistency.
+- **Data cards:** use when a record has contextual metadata, evidence, or a small number of independent actions that are easier to understand as a grouped unit.
+
+### Responsive table contract
+
+1. Keep the information hierarchy equivalent between mobile cards and the table. A field may be arranged differently, but do not silently omit useful information such as submission time, status, decision details, or location.
+2. Use a single horizontal scroll container around the table. Give the scroll region an accessible name and keyboard focus when horizontal scrolling is required.
+3. Set a content-driven minimum table width when columns would otherwise become too compressed. Choose the width per page and column density; do not apply one global width to all tables.
+4. Keep intrinsically short values such as dates, times, and compact status indicators unwrapped where that improves scanning. Allow summaries, addresses, project names, and decision notes to wrap.
+5. Use `scope="col"` on column headers. Preserve semantic links, buttons, and forms inside table cells.
+6. Keep sorting affordances in their corresponding headers. Responsive presentation changes must not alter sorting parameters, filter query strings, pagination, export URLs, or action conditions.
+7. Do not render a duplicate mobile and desktop record in the accessibility tree at the same viewport; use responsive visibility utilities so only the intended presentation is exposed.
+
+### Current page-specific decisions
+
+- Employee Leave Requests: mobile cards retain reference, submission date and time, period, summary, operational overtime status, decision metadata, status, and conditional cancellation. The tablet/desktop table has a content-driven minimum width and a named, keyboard-focusable horizontal scroll region.
+- Employee Attendance History: mobile cards retain event time, activity, work type, client/project/location snapshots, photo preview, map access, and stored address. The table has a narrower content-driven minimum width than Leave Requests because it has fewer columns, but still needs room for evidence and location details.
+- Admin Employees: keep the existing card presentation through tablet and switch to the comparison table at the established desktop breakpoint until a separate viewport review justifies changing it.
+- Admin review queues such as Attendance Corrections and Overtime Requests remain responsive lists; a table is not required when the primary interaction is opening an individual request.
+
 ## Migration order
 
 1. UI primitives: page, button, card.
