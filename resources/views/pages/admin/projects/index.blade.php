@@ -90,7 +90,7 @@
                     </details>
 
                     <div class="mt-3 flex justify-end border-t border-zinc-100 pt-2 dark:border-zinc-800">
-                        <flux:button size="sm" variant="ghost" href="{{ route('admin.projects.edit', $project) }}">{{ __('Ubah proyek') }}</flux:button>
+                        <flux:button size="sm" variant="outline" href="{{ route('admin.projects.edit', $project) }}">{{ __('Ubah proyek') }}</flux:button>
                     </div>
                 </article>
             @empty
