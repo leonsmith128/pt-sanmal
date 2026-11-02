@@ -1,7 +1,7 @@
 <x-layouts::app :title="__('Tambah Location')">
     <div class="mx-auto w-full max-w-2xl space-y-5">
         <div>
-            <flux:button size="sm" variant="ghost" icon="arrow-left" href="{{ $selectedClient ? route('admin.clients.show', $selectedClient) : route('admin.clients.index') }}">{{ __('Kembali') }}</flux:button>
+            <flux:button size="sm" variant="outline" icon="arrow-left" href="{{ $selectedClient ? route('admin.clients.show', $selectedClient) : route('admin.clients.index') }}">{{ __('Kembali') }}</flux:button>
             <flux:heading size="xl" class="mt-3">{{ __('Tambah Location') }}</flux:heading>
             <flux:text>
                 @if ($selectedClient)
@@ -74,7 +74,7 @@
             </flux:field>
             <input type="hidden" name="is_active" value="1">
             <div class="flex justify-end gap-2">
-                <flux:button href="{{ $selectedClient ? route('admin.clients.show', $selectedClient) : route('admin.clients.index') }}" variant="ghost">{{ __('Batal') }}</flux:button>
+                <flux:button href="{{ $selectedClient ? route('admin.clients.show', $selectedClient) : route('admin.clients.index') }}" variant="outline">{{ __('Batal') }}</flux:button>
                 <flux:button type="submit" variant="primary">{{ __('Simpan Location') }}</flux:button>
             </div>
         </form>
