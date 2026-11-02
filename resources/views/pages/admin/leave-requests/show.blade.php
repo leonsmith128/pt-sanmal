@@ -44,7 +44,7 @@
                     <div class="sm:col-span-2">
                         <dt class="text-xs font-semibold uppercase tracking-wider text-zinc-500">{{ __('Lampiran') }}</dt>
                         <dd class="mt-1">
-                            <flux:button href="{{ route('admin.leave-requests.attachment', $leaveRequest) }}" size="sm" icon="arrow-down-tray" variant="filled">
+                            <flux:button href="{{ route('admin.leave-requests.attachment', $leaveRequest) }}" size="sm" icon="arrow-down-tray" variant="outline">
                                 {{ __('Unduh lampiran') }} ({{ basename($leaveRequest->attachment_path) }})
                             </flux:button>
                         </dd>
@@ -96,7 +96,7 @@
                         <flux:text>{{ __('Apakah Anda yakin ingin memproses dan menyimpan keputusan untuk permohonan ini?') }}</flux:text>
                         <div class="flex justify-end gap-2 pt-2">
                             <flux:modal.close>
-                                <flux:button variant="filled">{{ __('Batal') }}</flux:button>
+                                <flux:button variant="outline">{{ __('Batal') }}</flux:button>
                             </flux:modal.close>
                             <flux:button variant="primary" onclick="document.getElementById('decision-form').submit();">
                                 {{ __('Ya, Simpan') }}
