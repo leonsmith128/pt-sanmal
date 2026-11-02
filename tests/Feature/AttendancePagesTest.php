@@ -233,3 +233,14 @@ test('admin sidebar hides brand and theme controls when collapsed', function () 
         ->assertSee('in-data-flux-sidebar-collapsed-desktop:hidden', false)
         ->assertSee('data-test="sidebar-theme-menu"', false);
 });
+
+
+test('admin sidebar collapse control stays visible and sidebar prevents horizontal overflow', function () {
+    $this->actingAs(userWithRole(UserRole::Admin));
+
+    $this->get(route('admin.daily-attendance'))
+        ->assertOk()
+        ->assertSee('<flux:sidebar.collapse class="!opacity-100" />', false)
+        ->assertSee('overflow-x-hidden', false)
+        ->assertSee('<x-desktop-user-menu class="hidden lg:block"', false);
+});
