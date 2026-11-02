@@ -6,7 +6,7 @@
 - Commit baseline: `a58d4e7908a49caeb40daf936f4b6c816a446b3f`
 - Cakupan: seluruh Blade view di `resources/views/pages/admin/` pada baseline tersebut, komponen Blade Admin/UI yang terkait, serta struktur test Feature yang tersedia.
 - Inventaris: 22 file Blade (21 view layar/halaman dan 1 partial form proyek).
-- Jenis pekerjaan dokumen ini: audit struktur dan presentasi. Tidak ada perubahan pada view halaman, komponen runtime, route, query, validasi, Livewire state, atau business logic.
+- Bagian audit merekam kondisi struktur dan presentasi pada commit baseline. Pada tahap audit awal tersebut belum ada perubahan pada view halaman, komponen runtime, route, query, validasi, Livewire state, atau business logic; progres implementasi setelah audit dicatat pada bagian tersendiri di bawah.
 - Audit ini berbasis inspeksi source. Tidak mengklaim hasil render visual, browser test, maupun Pest test.
 
 ## Progress implementasi
