@@ -19,6 +19,8 @@ Pencatatan berikut diperbarui setiap kelompok halaman selesai dikerjakan. Status
 | Client Edit | Selesai | Diselaraskan dengan Create; mempertahankan `PUT`, model fallback untuk seluruh field, serta tautan kembali/batal ke detail Client | Source telah diperiksa; test otomatis belum dijalankan |
 | Location Create | Selesai | Mengadopsi page/header, field controls, dan tombol bersama; seluruh cabang Client terpilih, Office mode, serta mode pilihan bebas dipertahankan | Source telah diperiksa; test otomatis belum dijalankan |
 | Location Edit | Selesai | Mengadopsi field controls dan tombol bersama; mempertahankan pilihan Client/Office, selected state, old/model fallback, status aktif, dan `PUT` | Source telah diperiksa; test otomatis belum dijalankan |
+| Project Create | Selesai | Shell halaman dan partial form menggunakan primitive `x-ui`; pilihan Client, selected state, serta default Create dipertahankan | Source telah diperiksa; test otomatis belum dijalankan |
+| Project Edit | Selesai | Diselaraskan dengan Create; Client tetap terkunci pada select disabled dengan hidden `client_id`, dan method tetap `PUT` | Source telah diperiksa; test otomatis belum dijalankan |
 
 ### Catatan implementasi Location Create/Edit — 2026-11-03
 
@@ -33,6 +35,19 @@ Pencatatan berikut diperbarui setiap kelompok halaman selesai dikerjakan. Status
 
 **Batas verifikasi Location:** source telah diperiksa setelah perubahan. Belum ditemukan test Feature khusus bernama `AdminLocationPageTest`, `AdminLocationTest`, `LocationManagementTest`, `AdminLocationManagementTest`, atau `LocationTest` pada path `tests/Feature` yang diperiksa. Hal ini tidak membuktikan tidak ada coverage melalui test lain. Laravel/Pest dan browser visual test belum dijalankan.
 
+### Catatan implementasi Project Create/Edit — 2026-11-03
+
+- Kedua halaman memakai `x-ui.page` dengan lebar maksimum `max-w-3xl` dan `x-ui.page-header`; flash message tetap berada di antara header dan form.
+- Partial `_form` kini menjadi satu sumber markup untuk Create dan Edit dengan `x-ui.input`, `x-ui.select`, `x-ui.textarea`, `x-ui.field`, dan `x-ui.button` yang sudah tersedia. Tidak ada komponen form baru.
+- Field kode proyek, nama, tanggal mulai/selesai, keterangan, jenis layanan, lokasi Site, dan status mempertahankan nama input serta kondisi required yang sama.
+- Create tetap menyediakan select Client dengan placeholder dan selected state dari `old('client_id')`.
+- Edit tetap menampilkan Client sebagai select disabled tanpa name, mempertahankan hidden input `client_id` yang berisi Client proyek, dan menampilkan error untuk field `client_id` melalui `x-ui.field`.
+- Selected state untuk jenis layanan, lokasi Site, dan status tetap menggunakan ekspresi `old()` dan fallback model yang sama. Default jenis layanan `calibration` dan status `pending` tetap dipertahankan.
+- Deskripsi lokasi Site, termasuk aturan Site milik Client proyek dan alasan lokasi nonaktif tetap ditampilkan, dipindahkan ke slot description wrapper.
+- Form action, CSRF, conditional method spoofing `PUT`, tujuan tombol Batal, label tombol submit Create/Edit, serta flash message tidak diubah. Tombol aksi kini tersusun vertikal pada layar sempit dan horizontal mulai breakpoint `sm`.
+- Tidak ada perubahan route, controller, validasi, query, payload, atau business logic.
+
+**Batas verifikasi Project:** source hasil perubahan perlu diperiksa kembali melalui fetch branch. Test otomatis dan browser visual test belum dijalankan pada runtime pengerjaan ini; belum ada klaim kelulusan test.
 ### Catatan implementasi Client Create/Edit — 2026-11-03
 
 - Kedua halaman sekarang memakai page shell dengan lebar maksimum yang sama (`max-w-2xl`) dan header bersama.
