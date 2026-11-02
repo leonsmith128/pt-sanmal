@@ -21,6 +21,16 @@ Generic components that can be used by admin, employee, and authentication pages
 | `x-ui.empty-state` | Empty collection state | Optional `message`, optional table `colspan`, slot, and mergeable attributes |
 | `x-ui.card` | Standard content surface or linked card | Slot, optional `href`, `padding`, and mergeable attributes; semantic anchor when `href` is supplied |
 | `x-ui.button` | Standard action affordance | Slot, `variant` (default `primary`), `size`, `type`, optional `href`, `icon`, `iconTrailing`, `square`, `disabled`; forwards Livewire/Alpine/HTML attributes |
+| `x-ui.field` | Shared field layout for labels, descriptions, and validation errors | Optional `name`, `id`, `label`, `description`, and `showError`; slot for the actual control |
+| `x-ui.input` | Standard text/date/file and other native input types | Optional `name`, `id`, `label`, `description`, `value`, `type`, and `showError`; forwards remaining HTML, Livewire, and Alpine attributes to `flux:input` |
+
+Form control rules:
+- Keep Flux as the renderer; `x-ui.*` supplies a consistent SanMal contract rather than reimplementing native controls.
+- The interactive control receives forwarded `wire:*`, `x-*`, accessibility, and native HTML attributes.
+- A field label is associated with the control ID. If no explicit ID is supplied, the field name is used.
+- A field description and validation error remain adjacent to the relevant control.
+- Use `x-ui.field` directly when a custom control needs the shared label/description/error layout.
+- Do not put a border or card surface around every field; field grouping follows the Seamless-First design principle.
 
 Button variant policy:
 - `primary`: main action for the current context.
@@ -73,20 +83,22 @@ Page views should compose primitives and domain components, while retaining:
 - `x-ui.section` provides a standard vertical section wrapper.
 - Generic flash-message and empty-state components now back the existing Admin component names, preserving their call sites.
 - Dashboard statistic/action cards and Admin daily employee cards now compose `x-ui.card`. Attendance information cards retain their semantic section wrapper.
+- `x-ui.field` and `x-ui.input` are now implemented. Admin Employee Create/Edit use `x-ui.input` for text, email, phone, employee number, and date fields; selects remain on the existing Flux pattern pending `x-ui.select`.
+- `tests/Feature/UiFormControlsTest.php` covers label/description/error rendering, Livewire/Alpine/native attribute forwarding, and custom field slots.
 - `tests/Feature/UiButtonComponentTest.php` covers button semantics, default type, and Alpine-bound links.
 - `tests/Feature/UiLayoutComponentsTest.php` covers the generic page header, page container, and section wrapper.
 - `tests/Feature/UiCardComponentTest.php` covers content and linked-card semantics.
 - `tests/Feature/UiFeedbackComponentsTest.php` covers generic and Admin-compatible empty states.
-- These tests have been authored but not yet executed; CI status is tracked separately.
-- These tests have been authored but not yet executed.
+- Tests have been authored but not yet executed in this environment; CI status must be checked before considering this migration validated.
 
 ## Migration order
 
 1. UI primitives: page, button, card.
 2. Shared feedback and navigation patterns: flash message, empty state, page header, filter panel.
-3. Repeated data presentation: badges, table wrappers, list/card rows, metadata groups.
-4. Apply components to Admin pages, then employee pages and auth.
-5. Consolidate remaining one-off utility classes only after usage has been audited.
+3. Form controls: field, input, select, textarea, checkbox.
+4. Repeated data presentation: badges, table wrappers, list/card rows, metadata groups.
+5. Apply components to Admin pages, then employee pages and auth.
+6. Consolidate remaining one-off utility classes only after usage has been audited.
 
 ## Validation checklist
 

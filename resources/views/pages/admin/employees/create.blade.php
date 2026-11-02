@@ -10,25 +10,32 @@
         <form method="POST" action="{{ route('admin.employees.store') }}" class="space-y-4 rounded-xl border border-zinc-200 p-5 dark:border-zinc-700">
             @csrf
 
-            <flux:field>
-                <flux:input name="name" :label="__('Nama lengkap')" value="{{ old('name') }}" required />
-                <flux:error name="name" />
-            </flux:field>
+            <x-ui.input
+                name="name"
+                :label="__('Nama lengkap')"
+                :value="old('name')"
+                required
+            />
 
-            <flux:field>
-                <flux:input name="email" type="email" :label="__('Email akun')" value="{{ old('email') }}" required />
-                <flux:error name="email" />
-            </flux:field>
+            <x-ui.input
+                name="email"
+                type="email"
+                :label="__('Email akun')"
+                :value="old('email')"
+                required
+            />
 
-            <flux:field>
-                <flux:input name="employee_number" :label="__('Nomor pegawai')" value="{{ old('employee_number') }}" />
-                <flux:error name="employee_number" />
-            </flux:field>
+            <x-ui.input
+                name="employee_number"
+                :label="__('Nomor pegawai')"
+                :value="old('employee_number')"
+            />
 
-            <flux:field>
-                <flux:input name="phone" :label="__('Nomor telepon')" value="{{ old('phone') }}" />
-                <flux:error name="phone" />
-            </flux:field>
+            <x-ui.input
+                name="phone"
+                :label="__('Nomor telepon')"
+                :value="old('phone')"
+            />
 
             <flux:field>
                 <flux:select name="title_id" :label="__('Jabatan')">
@@ -42,10 +49,12 @@
                 <flux:error name="title_id" />
             </flux:field>
 
-            <flux:field>
-                <flux:input name="joined_at" type="date" :label="__('Tanggal bergabung')" value="{{ old('joined_at') }}" />
-                <flux:error name="joined_at" />
-            </flux:field>
+            <x-ui.input
+                name="joined_at"
+                type="date"
+                :label="__('Tanggal bergabung')"
+                :value="old('joined_at')"
+            />
 
             <flux:callout variant="warning">
                 {{ __('Password awal dibuat acak dan tidak ditampilkan. Admin perlu menjalankan prosedur reset password sebelum akun dapat digunakan.') }}

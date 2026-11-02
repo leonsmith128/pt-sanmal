@@ -11,25 +11,32 @@
             @csrf
             @method('PUT')
 
-            <flux:field>
-                <flux:input name="name" :label="__('Nama lengkap')" value="{{ old('name', $employee->user->name) }}" required />
-                <flux:error name="name" />
-            </flux:field>
+            <x-ui.input
+                name="name"
+                :label="__('Nama lengkap')"
+                :value="old('name', $employee->user->name)"
+                required
+            />
 
-            <flux:field>
-                <flux:input name="email" type="email" :label="__('Email akun')" value="{{ old('email', $employee->user->email) }}" required />
-                <flux:error name="email" />
-            </flux:field>
+            <x-ui.input
+                name="email"
+                type="email"
+                :label="__('Email akun')"
+                :value="old('email', $employee->user->email)"
+                required
+            />
 
-            <flux:field>
-                <flux:input name="employee_number" :label="__('Nomor pegawai')" value="{{ old('employee_number', $employee->employee_number) }}" />
-                <flux:error name="employee_number" />
-            </flux:field>
+            <x-ui.input
+                name="employee_number"
+                :label="__('Nomor pegawai')"
+                :value="old('employee_number', $employee->employee_number)"
+            />
 
-            <flux:field>
-                <flux:input name="phone" :label="__('Nomor telepon')" value="{{ old('phone', $employee->phone) }}" />
-                <flux:error name="phone" />
-            </flux:field>
+            <x-ui.input
+                name="phone"
+                :label="__('Nomor telepon')"
+                :value="old('phone', $employee->phone)"
+            />
 
             <flux:field>
                 <flux:select name="title_id" :label="__('Jabatan')">
@@ -46,10 +53,12 @@
                 <flux:error name="title_id" />
             </flux:field>
 
-            <flux:field>
-                <flux:input name="joined_at" type="date" :label="__('Tanggal bergabung')" value="{{ old('joined_at', $employee->joined_at?->format('Y-m-d')) }}" />
-                <flux:error name="joined_at" />
-            </flux:field>
+            <x-ui.input
+                name="joined_at"
+                type="date"
+                :label="__('Tanggal bergabung')"
+                :value="old('joined_at', $employee->joined_at?->format('Y-m-d'))"
+            />
 
             <flux:field>
                 <flux:select name="is_active" :label="__('Status akun')">
