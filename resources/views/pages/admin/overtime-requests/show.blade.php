@@ -138,13 +138,13 @@
                             name="final_start_local"
                             type="datetime-local"
                             :label="__('Mulai manual')"
-                            :value="old('final_start_local', $overtimeRequest->final_start_at?->setTimezone($overtimeRequest->timezone)->format('Y-m-d\\\\TH:i'))"
+                            :value="old('final_start_local', $overtimeRequest->final_start_at?->setTimezone($overtimeRequest->timezone)->format('Y-m-d\\TH:i'))"
                         />
                         <x-ui.input
                             name="final_end_local"
                             type="datetime-local"
                             :label="__('Selesai manual')"
-                            :value="old('final_end_local', $overtimeRequest->final_end_at?->setTimezone($overtimeRequest->timezone)->format('Y-m-d\\\\TH:i'))"
+                            :value="old('final_end_local', $overtimeRequest->final_end_at?->setTimezone($overtimeRequest->timezone)->format('Y-m-d\\TH:i'))"
                         />
                     </div>
 
