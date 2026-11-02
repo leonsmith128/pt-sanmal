@@ -18,7 +18,7 @@
                         <flux:select.option value="rejected">{{ __('Ditolak') }}</flux:select.option>
                     </flux:select>
                 </flux:field>
-                <flux:button type="submit" variant="primary">{{ __('Filter') }}</flux:button>
+                <x-ui.button type="submit" variant="primary">{{ __('Filter') }}</x-ui.button>
             </form>
         </x-admin.filter-panel>
 
