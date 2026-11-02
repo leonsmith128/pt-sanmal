@@ -44,11 +44,16 @@ Form control rules:
 - Use `x-ui.field` directly when a custom control needs the shared label/description/error layout.
 - Do not put a border or card surface around every field; field grouping follows the Seamless-First design principle.
 
-Button variant policy:
-- `primary`: main action for the current context.
-- `outline`: labeled secondary action.
-- `danger`: destructive or high-risk action.
-- `ghost`: icon-only or intentionally low-emphasis utility action.
+Button and action hierarchy:
+- `primary`: the single most important action in the current page section or decision context. Avoid presenting several competing primary actions side by side.
+- `outline`: a labeled secondary action such as Back, Reset, Edit, or opening supporting details.
+- `ghost`: a low-emphasis utility action that should not compete with the main task. Do not use it for an action whose consequence needs stronger emphasis.
+- `danger`: reserve the destructive/high-risk role for actions such as delete or irreversible cancellation. Confirm that the installed Flux version supports the chosen destructive styling before using it; the wrapper forwards the variant rather than defining its own visual implementation.
+- Keep the visual hierarchy aligned with the action's actual consequence. Color alone is not a substitute for a clear label or confirmation step.
+- Prefer one primary action per local context. If two actions are equally important, reconsider their grouping and make one secondary unless the workflow genuinely has two distinct primary tasks.
+- Use `href` for navigation so the rendered element remains a link. Use `type="button"` for in-page actions and `type="submit"` only for form submission. The component defaults to `type="button"` to avoid accidental form submission.
+- Icon-only actions must receive an accessible name through the supported Flux/API attributes; an icon is not a replacement for a label when the action is not self-evident.
+- Keep compact actions visually subordinate; do not increase button size merely to fill space.
 
 A dynamically assigned Alpine URL must use an anchor rendered on the server (for example, provide a harmless initial `href` and bind the final URL with `x-bind:href`). A plain button cannot become a semantic link merely by adding an Alpine `href` attribute.
 
@@ -90,7 +95,7 @@ Page views should compose primitives and domain components, while retaining:
 ## Current migration status
 
 - `x-ui.page`, `x-ui.card`, and `x-ui.button` primitives exist.
-- The button primitive is now applied to Admin Attendance, Leave Requests, Daily Attendance, Clients, Employees, Audit Logs, Attendance Corrections, Overtime Requests, Projects, Notifications, and selected Employee list/history pages.
+- The button primitive is applied to Admin Attendance, Leave Requests, Daily Attendance, Clients, Employees, Audit Logs, Attendance Corrections, Overtime Requests, Projects, Notifications, selected Employee list/history pages, the Employee dashboard's primary/secondary navigation actions, and the authentication login submit action. The latter two were standardized in the current V1 UI/UX branch; remaining direct Flux/native buttons still require page-by-page review rather than blanket replacement.
 - The generic page header is now the implementation behind the existing `x-admin.page-header` API, preserving current callers while making the layout primitive reusable outside Admin.
 - `x-ui.section` provides a standard vertical section wrapper.
 - Generic flash-message and empty-state components now back the existing Admin component names, preserving their call sites.
@@ -102,7 +107,7 @@ Page views should compose primitives and domain components, while retaining:
 - `tests/Feature/UiSelectComponentTest.php` covers select label/description/error rendering, option slots, custom IDs, and Livewire/Alpine/native attribute forwarding.
 - `tests/Feature/UiTextareaComponentTest.php` covers textarea label/description/error rendering, slot content, row/resize options, custom IDs, and Livewire/Alpine/native attribute forwarding.
 - `tests/Feature/UiCheckboxComponentTest.php` covers checkbox label/description/error rendering, checked state, custom IDs, and Livewire/Alpine/native attribute forwarding.
-- `tests/Feature/UiButtonComponentTest.php` covers button semantics, default type, and Alpine-bound links.
+- `tests/Feature/UiButtonComponentTest.php` covers button semantics, default type, Alpine-bound links, and forwarding of Livewire, accessibility, disabled, and presentation attributes. The expanded test has not yet been executed in the current environment.
 - `tests/Feature/UiLayoutComponentsTest.php` covers the generic page header, page container, and section wrapper.
 - `tests/Feature/UiCardComponentTest.php` covers content and linked-card semantics.
 - `tests/Feature/UiFeedbackComponentsTest.php` covers generic and Admin-compatible empty states.
