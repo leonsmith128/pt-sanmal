@@ -28,6 +28,9 @@ Route::redirect('/', '/login')->name('home');
 Route::middleware(['auth', EnsureUserIsActive::class, 'verified'])->group(function () {
     Route::get('dashboard', AdminDashboardController::class)->name('dashboard');
     Route::livewire('profil', 'pages::employee.employee-profile')->name('profile.edit');
+    Route::get('notifikasi', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::patch('notifikasi/{notification}/baca', [NotificationController::class, 'read'])->name('notifications.read');
+    Route::patch('notifikasi/baca-semua', [NotificationController::class, 'readAll'])->name('notifications.read-all');
     Route::redirect('profil-pegawai', '/profil')->name('employee-profile.edit');
     Route::livewire('absensi', 'pages::employee.attendance')->name('attendance');
     Route::get('absensi/reverse-geocode', AttendanceReverseGeocodeController::class)
