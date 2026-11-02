@@ -1,15 +1,9 @@
 <x-layouts::app :title="__('Rekap Absensi Harian')">
     <div class="mx-auto max-w-7xl space-y-6 p-6">
-        <header class="flex flex-wrap items-center justify-between gap-3">
-            <div>
-                <flux:heading size="xl" level="1">
-                    {{ __('Rekap Absensi Harian') }}
-                </flux:heading>
-                <flux:text class="mt-1">
-                    {{ __('Status cuti, sakit, dan izin dihitung dari permohonan yang disetujui tanpa membuat event absensi sintetis.') }}
-                </flux:text>
-            </div>
-
+        <x-admin.page-header
+            :title="__('Rekap Absensi Harian')"
+            :description="__('Status cuti, sakit, dan izin dihitung dari permohonan yang disetujui tanpa membuat event absensi sintetis.')"
+        >
             <flux:button
                 href="{{ route('admin.leave-requests.index') }}"
                 variant="filled"
@@ -17,7 +11,7 @@
             >
                 {{ __('Daftar permohonan') }}
             </flux:button>
-        </header>
+        </x-admin.page-header>
 
         <x-admin.flash-message />
 
