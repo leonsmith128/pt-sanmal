@@ -1,5 +1,7 @@
 <?php
 
+use App\Enums\LeaveRequestStatus;
+
 it('renders a reusable badge with its semantic color', function () {
     $this->blade('<x-ui.badge color="green">Aktif</x-ui.badge>')
         ->assertSee('Aktif')
@@ -14,7 +16,7 @@ it('uses a neutral color by default and forwards presentation attributes', funct
 });
 
 it('supports status labels and colors supplied by existing enums', function () {
-    $status = \App\Enums\LeaveRequestStatus::Pending;
+    $status = LeaveRequestStatus::Pending;
 
     $this->blade('<x-ui.badge :color="$status->badgeColor()">{{ $status->label() }}</x-ui.badge>', compact('status'))
         ->assertSee($status->label())

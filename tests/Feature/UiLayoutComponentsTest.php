@@ -2,8 +2,8 @@
 
 it('renders the generic page header with title, description, and action slot', function () {
     $this->blade(
-        '<x-ui.page-header title="Daftar Pegawai" description="Kelola data pegawai">' .
-        '<a href="/pegawai/create">Tambah pegawai</a>' .
+        '<x-ui.page-header title="Daftar Pegawai" description="Kelola data pegawai">'.
+        '<a href="/pegawai/create">Tambah pegawai</a>'.
         '</x-ui.page-header>'
     )
         ->assertSee('Daftar Pegawai')

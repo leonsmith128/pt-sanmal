@@ -30,7 +30,6 @@ return new class extends Migration
             'client_id' => DB::raw('(SELECT locations.client_id FROM locations WHERE locations.id = projects.location_id)'),
         ]);
 
-
         Schema::table('projects', function (Blueprint $table): void {
             $table->unsignedBigInteger('client_id')->nullable(false)->change();
             $table->foreign('client_id')->references('id')->on('clients')->restrictOnDelete();
