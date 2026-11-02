@@ -29,40 +29,42 @@
 
             <form method="GET" action="{{ route('leave-requests.index') }}" class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-6">
                 <div class="sm:col-span-2 lg:col-span-2">
-                    <flux:field>
-                        <flux:label>{{ __('Cari') }}</flux:label>
-                        <flux:input name="q" value="{{ $filters['q'] }}" placeholder="{{ __('Nomor, jenis, atau alasan') }}" icon="magnifying-glass" clearable />
-                    </flux:field>
+                    <x-ui.input
+                        name="q"
+                        label="{{ __('Cari') }}"
+                        :value="$filters['q']"
+                        placeholder="{{ __('Nomor, jenis, atau alasan') }}"
+                        icon="magnifying-glass"
+                        clearable
+                    />
                 </div>
-                <flux:field>
-                    <flux:label>{{ __('Jenis') }}</flux:label>
-                    <flux:select name="type">
-                        <flux:select.option value="">{{ __('Semua jenis') }}</flux:select.option>
-                        <flux:select.option value="izin" :selected="$filters['type'] === 'izin'">{{ __('Izin') }}</flux:select.option>
-                        <flux:select.option value="sakit" :selected="$filters['type'] === 'sakit'">{{ __('Sakit') }}</flux:select.option>
-                        <flux:select.option value="cuti" :selected="$filters['type'] === 'cuti'">{{ __('Cuti') }}</flux:select.option>
-                        <flux:select.option value="lembur" :selected="$filters['type'] === 'lembur'">{{ __('Lembur') }}</flux:select.option>
-                        <flux:select.option value="koreksi_absensi" :selected="$filters['type'] === 'koreksi_absensi'">{{ __('Koreksi absensi') }}</flux:select.option>
-                    </flux:select>
-                </flux:field>
-                <flux:field>
-                    <flux:label>{{ __('Status') }}</flux:label>
-                    <flux:select name="status">
-                        <flux:select.option value="">{{ __('Semua status') }}</flux:select.option>
-                        <flux:select.option value="pending" :selected="$filters['status'] === 'pending'">{{ __('Menunggu') }}</flux:select.option>
-                        <flux:select.option value="approved" :selected="$filters['status'] === 'approved'">{{ __('Disetujui') }}</flux:select.option>
-                        <flux:select.option value="rejected" :selected="$filters['status'] === 'rejected'">{{ __('Ditolak') }}</flux:select.option>
-                        <flux:select.option value="cancelled" :selected="$filters['status'] === 'cancelled'">{{ __('Dibatalkan') }}</flux:select.option>
-                    </flux:select>
-                </flux:field>
-                <flux:field>
-                    <flux:label>{{ __('Dari tanggal') }}</flux:label>
-                    <flux:input type="date" name="from" value="{{ $filters['from'] }}" />
-                </flux:field>
-                <flux:field>
-                    <flux:label>{{ __('Sampai tanggal') }}</flux:label>
-                    <flux:input type="date" name="to" value="{{ $filters['to'] }}" />
-                </flux:field>
+                <x-ui.select name="type" label="{{ __('Jenis') }}">
+                    <flux:select.option value="">{{ __('Semua jenis') }}</flux:select.option>
+                    <flux:select.option value="izin" :selected="$filters['type'] === 'izin'">{{ __('Izin') }}</flux:select.option>
+                    <flux:select.option value="sakit" :selected="$filters['type'] === 'sakit'">{{ __('Sakit') }}</flux:select.option>
+                    <flux:select.option value="cuti" :selected="$filters['type'] === 'cuti'">{{ __('Cuti') }}</flux:select.option>
+                    <flux:select.option value="lembur" :selected="$filters['type'] === 'lembur'">{{ __('Lembur') }}</flux:select.option>
+                    <flux:select.option value="koreksi_absensi" :selected="$filters['type'] === 'koreksi_absensi'">{{ __('Koreksi absensi') }}</flux:select.option>
+                </x-ui.select>
+                <x-ui.select name="status" label="{{ __('Status') }}">
+                    <flux:select.option value="">{{ __('Semua status') }}</flux:select.option>
+                    <flux:select.option value="pending" :selected="$filters['status'] === 'pending'">{{ __('Menunggu') }}</flux:select.option>
+                    <flux:select.option value="approved" :selected="$filters['status'] === 'approved'">{{ __('Disetujui') }}</flux:select.option>
+                    <flux:select.option value="rejected" :selected="$filters['status'] === 'rejected'">{{ __('Ditolak') }}</flux:select.option>
+                    <flux:select.option value="cancelled" :selected="$filters['status'] === 'cancelled'">{{ __('Dibatalkan') }}</flux:select.option>
+                </x-ui.select>
+                <x-ui.input
+                    name="from"
+                    label="{{ __('Dari tanggal') }}"
+                    type="date"
+                    :value="$filters['from']"
+                />
+                <x-ui.input
+                    name="to"
+                    label="{{ __('Sampai tanggal') }}"
+                    type="date"
+                    :value="$filters['to']"
+                />
                 <div class="flex flex-col gap-2 sm:col-span-2 lg:col-span-6 sm:flex-row sm:justify-end">
                     <x-ui.button href="{{ route('leave-requests.index') }}" variant="ghost" class="w-full sm:w-auto">{{ __('Reset filter') }}</x-ui.button>
                     <x-ui.button type="submit" variant="primary" icon="funnel" class="w-full sm:w-auto">{{ __('Terapkan filter') }}</x-ui.button>
