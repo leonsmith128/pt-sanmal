@@ -67,6 +67,30 @@ class OvertimeRequestController extends Controller
                 'cancelled_at' => now(),
             ]);
 
+            // Keep the original database notification and its created_at timestamp,
+            // but resolve its action so an obsolete prompt cannot invite clock-in.
+            $user = $locked->employee?->user;
+            if ($user) {
+                $user->notifications()
+                    ->where('data->overtime_request_id', $locked->id)
+                    ->get()
+                    ->each(function ($notification): void {
+                        $data = $notification->data;
+                        $data['title'] = 'Jadwal lembur dibatalkan';
+                        $data['message'] = 'Pengajuan lembur ini telah dibatalkan. Instruksi konfirmasi foto sudah tidak berlaku.';
+                        $data['event_status'] = 'cancelled';
+                        $data['resolved_at'] = now()->toISOString();
+                        $data['url'] = route('overtime-requests.index');
+
+                        $notification->forceFill([
+                            'data' => $data,
+                            'read_at' => $notification->read_at ?? now(),
+                        ])->save();
+                    });
+
+                $user->notify(new OvertimeScheduleNotification($locked->fresh(), 'cancelled'));
+            }
+
             AuditLog::record(
                 auditable: $locked,
                 action: 'overtime.cancelled',
