@@ -196,7 +196,7 @@ it('renders the admin attendance page with a full-width responsive container and
 
     Livewire::actingAs($admin)
         ->test('pages::admin.kehadiran')
-        ->assertSee('mx-auto flex w-full max-w-7xl flex-col gap-5', false)
+        ->assertSee('mx-auto flex w-full max-w-7xl flex-col gap-4', false)
         ->assertSee('flex flex-col gap-3 md:flex-row md:items-start md:justify-between', false);
 });
 
