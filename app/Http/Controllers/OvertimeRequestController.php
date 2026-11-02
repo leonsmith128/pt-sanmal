@@ -6,6 +6,7 @@ use App\Actions\CreateOvertimeRequest;
 use App\Enums\OvertimeState;
 use App\Models\AuditLog;
 use App\Models\OvertimeRequest;
+use App\Notifications\OvertimeScheduleNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
