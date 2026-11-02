@@ -1,9 +1,9 @@
 <x-layouts::app :title="__('Buat Permohonan')">
     <div class="mx-auto w-full max-w-2xl space-y-5 px-4 py-4 sm:px-6 sm:py-6">
         <header class="space-y-3">
-            <flux:button href="{{ route('leave-requests.index') }}" variant="ghost" icon="arrow-left" size="sm" class="w-fit">
+            <x-ui.button href="{{ route('leave-requests.index') }}" variant="ghost" icon="arrow-left" size="sm" class="w-fit">
                 {{ __('Kembali ke permohonan saya') }}
-            </flux:button>
+            </x-ui.button>
             <div>
                 <flux:heading size="xl" level="1">{{ __('Buat Permohonan') }}</flux:heading>
                 <flux:text class="mt-1">{{ __('Lengkapi informasi berikut. Permohonan akan menunggu keputusan admin.') }}</flux:text>
@@ -65,12 +65,12 @@
             </flux:field>
 
             <div class="flex flex-col-reverse gap-2 border-t border-zinc-200 pt-4 dark:border-zinc-700 sm:flex-row sm:justify-end">
-                <flux:button href="{{ route('leave-requests.index') }}" variant="ghost" class="w-full sm:w-auto">
+                <x-ui.button href="{{ route('leave-requests.index') }}" variant="ghost" class="w-full sm:w-auto">
                     {{ __('Batal') }}
-                </flux:button>
-                <flux:button type="submit" variant="primary" icon="paper-airplane" class="w-full sm:w-auto">
+                </x-ui.button>
+                <x-ui.button type="submit" variant="primary" icon="paper-airplane" class="w-full sm:w-auto">
                     {{ __('Kirim permohonan') }}
-                </flux:button>
+                </x-ui.button>
             </div>
         </form>
     </div>
