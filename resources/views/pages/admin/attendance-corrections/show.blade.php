@@ -33,7 +33,9 @@
                     {{ $correction->requested_recorded_at->setTimezone($correction->sessionAnchor?->timezone ?? $correction->attendanceRecord?->timezone ?? config('app.timezone'))->format('d M Y H:i T') }}
                 </x-ui.metadata-item>
                 <x-ui.metadata-item :label="__('Status')">
-                    {{ ucfirst($correction->status) }}
+                    <x-ui.badge :color="match($correction->status) { 'pending' => 'amber', 'approved' => 'green', 'rejected' => 'red', 'cancelled' => 'zinc', default => 'zinc' }">
+                        {{ ucfirst($correction->status) }}
+                    </x-ui.badge>
                 </x-ui.metadata-item>
             </dl>
 
