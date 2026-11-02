@@ -1,13 +1,13 @@
 <?php
 
-namespace App\\Http\\Controllers;
+namespace App\Http\Controllers;
 
-use App\\Models\\Client;
-use App\\Models\\Location;
-use Illuminate\\Http\\RedirectResponse;
-use Illuminate\\Http\\Request;
-use Illuminate\\Validation\\Rule;
-use Illuminate\\View\\View;
+use App\Models\Client;
+use App\Models\Location;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use Illuminate\View\View;
 
 class AdminClientController extends Controller
 {
