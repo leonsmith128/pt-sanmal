@@ -17,7 +17,7 @@
                 <flux:select.option value="rejected">{{ __('Ditolak') }}</flux:select.option>
                 <flux:select.option value="cancelled">{{ __('Dibatalkan') }}</flux:select.option>
             </flux:select>
-            <flux:button type="submit" variant="outline">{{ __('Filter') }}</flux:button>
+            <x-ui.button type="submit" variant="outline">{{ __('Filter') }}</x-ui.button>
         </form>
 </x-admin.filter-panel>
 
