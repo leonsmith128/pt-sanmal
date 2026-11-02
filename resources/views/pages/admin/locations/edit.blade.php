@@ -1,7 +1,7 @@
 <x-layouts::app :title="__('Ubah Location')">
     <div class="mx-auto w-full max-w-2xl space-y-5">
         <div>
-            <flux:button size="sm" variant="ghost" icon="arrow-left" href="{{ $location->client_id ? route('admin.clients.show', $location->client_id) : route('admin.clients.index') }}">{{ __('Kembali ke Master Data Client') }}</flux:button>
+            <flux:button size="sm" variant="outline" icon="arrow-left" href="{{ $location->client_id ? route('admin.clients.show', $location->client_id) : route('admin.clients.index') }}">{{ __('Kembali ke Master Data Client') }}</flux:button>
             <flux:heading size="xl" class="mt-3">{{ __('Ubah Location') }}</flux:heading>
             <flux:text>{{ __('Perbarui data lokasi. Perubahan timezone hanya berlaku untuk sesi yang dibuat setelah perubahan.') }}</flux:text>
         </div>
@@ -56,7 +56,7 @@
                 <flux:error name="is_active" />
             </flux:field>
             <div class="flex justify-end gap-2">
-                <flux:button href="{{ $location->client_id ? route('admin.clients.show', $location->client_id) : route('admin.clients.index') }}" variant="ghost">{{ __('Batal') }}</flux:button>
+                <flux:button href="{{ $location->client_id ? route('admin.clients.show', $location->client_id) : route('admin.clients.index') }}" variant="outline">{{ __('Batal') }}</flux:button>
                 <flux:button type="submit" variant="primary">{{ __('Simpan perubahan Location') }}</flux:button>
             </div>
         </form>
