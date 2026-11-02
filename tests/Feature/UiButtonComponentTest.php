@@ -23,3 +23,14 @@ it('defaults to a non-submitting action button', function () {
         ->assertSee('type="button"', false)
         ->assertSee('Detail');
 });
+
+it('forwards Livewire, accessibility, disabled, and presentation attributes', function () {
+    $this->blade(
+        '<x-ui.button wire:click="save" disabled aria-label="Simpan perubahan" class="w-full" data-test="save-button">Simpan</x-ui.button>'
+    )
+        ->assertSee('wire:click="save"', false)
+        ->assertSee('disabled', false)
+        ->assertSee('aria-label="Simpan perubahan"', false)
+        ->assertSee('w-full', false)
+        ->assertSee('data-test="save-button"', false);
+});
