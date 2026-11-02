@@ -10,7 +10,7 @@
     $badgeColor = $status?->badgeColor() ?? 'zinc';
 @endphp
 
-<section class="rounded-xl border border-neutral-200 bg-white p-5 dark:border-neutral-700 dark:bg-zinc-900">
+<x-ui.card padding="p-5">
     <div class="flex flex-wrap items-start justify-between gap-3">
         <div>
             <flux:heading level="2" size="base">
@@ -109,4 +109,4 @@
             </div>
         </form>
     </details>
-</section>
+</x-ui.card>
