@@ -9,7 +9,7 @@
                 <form method="POST" action="{{ route('notifications.read-all') }}">
                     @csrf
                     @method('PATCH')
-                    <flux:button type="submit" variant="outline" icon="check">{{ __('Tandai semua dibaca') }}</flux:button>
+                    <x-ui.button type="submit" variant="outline" icon="check">{{ __('Tandai semua dibaca') }}</x-ui.button>
                 </form>
             @endif
         </header>
@@ -59,9 +59,9 @@
                                 <form method="POST" action="{{ route('notifications.read', $notification) }}">
                                     @csrf
                                     @method('PATCH')
-                                    <flux:button type="submit" size="sm" variant="outline" icon="arrow-up-right">
+                                    <x-ui.button type="submit" size="sm" variant="outline" icon="arrow-up-right">
                                         {{ $isResolved ? __('Lihat riwayat lembur') : __('Buka') }}
-                                    </flux:button>
+                                    </x-ui.button>
                                 </form>
                             </div>
                         </div>
