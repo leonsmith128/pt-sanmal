@@ -213,7 +213,6 @@ it('accepts an overtime request scheduled for the current minute and allows phot
     $employee = overtimeEmployee();
     $clockIn = overtimeClockIn($employee);
     $start = now('Asia/Makassar')->startOfMinute();
-    $clockIn->update(['recorded_at' => $start->copy()->subHour()->utc()]);
 
     $overtime = app(CreateOvertimeRequest::class)->handle(
         employee: $employee,
