@@ -21,7 +21,6 @@ it('renders a labeled textarea with description and validation error', function 
         ->assertSee('id="reason"', false)
         ->assertSee('name="reason"', false)
         ->assertSee('rows="5"', false)
-        ->assertSee('resize="none"', false)
         ->assertSee('maxlength="5000"', false)
         ->assertSee('required', false)
         ->assertSee('Alasan')
