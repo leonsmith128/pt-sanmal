@@ -101,6 +101,35 @@ it('allows admins and superadmins to manage project master data', function () {
     }
 });
 
+it('renders project monitoring cards with summary visible and period in expandable details', function () {
+    $client = projectClient('CL-CARD');
+    $site = projectSite($client, 'Site Card Test');
+    $project = Project::query()->create([
+        'client_id' => $client->id,
+        'code' => 'PRJ-CARD-001',
+        'name' => 'Proyek Pemantauan Card',
+        'project_type' => ProjectType::Service,
+        'location_id' => $site->id,
+        'start_date' => '2026-11-01',
+        'end_date' => '2026-11-30',
+        'status' => ProjectStatus::Active,
+    ]);
+
+    $this->actingAs(projectAdminUser())
+        ->get(route('admin.projects.index'))
+        ->assertOk()
+        ->assertSee('<details class="group">', false)
+        ->assertSee('Proyek Pemantauan Card')
+        ->assertSee('PRJ-CARD-001')
+        ->assertSee('Jasa')
+        ->assertSee('Client CL-CARD')
+        ->assertSee('Site Card Test')
+        ->assertSee('0 record absensi')
+        ->assertSee('Periode mulai')
+        ->assertSee('Ubah proyek')
+        ->assertSee(route('admin.projects.edit', $project), false);
+});
+
 it('requires a project site to belong to its selected client', function () {
     $client = projectClient('CL-OWNER-A');
     $otherClient = projectClient('CL-OWNER-B');
