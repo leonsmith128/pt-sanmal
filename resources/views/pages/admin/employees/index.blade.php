@@ -28,7 +28,7 @@
         </x-admin.filter-panel>
 
         @if ($employees->count())
-            <div class="grid grid-cols-1 gap-3 md:grid-cols-2 xl:hidden">
+            <div class="grid grid-cols-1 gap-3 lg:grid-cols-2 xl:hidden">
                 @foreach ($employees as $employee)
                     <article class="flex min-w-0 flex-col gap-3 rounded-xl border border-zinc-200 bg-white p-3 dark:border-zinc-700 dark:bg-zinc-900">
                         <div class="flex min-w-0 items-start justify-between gap-3">
@@ -46,14 +46,16 @@
                         </div>
 
                         <dl class="grid grid-cols-2 gap-x-3 gap-y-2 border-t border-zinc-100 pt-3 text-sm dark:border-zinc-800">
-                            <div class="min-w-0">
-                                <dt class="text-xs text-zinc-500 dark:text-zinc-400">{{ __('Nomor pegawai') }}</dt>
-                                <dd class="mt-0.5 break-words font-medium text-zinc-800 dark:text-zinc-200">{{ $employee->employee_number ?: '—' }}</dd>
-                            </div>
-                            <div class="min-w-0">
-                                <dt class="text-xs text-zinc-500 dark:text-zinc-400">{{ __('Jabatan') }}</dt>
-                                <dd class="mt-0.5 break-words font-medium text-zinc-800 dark:text-zinc-200">{{ $employee->title?->name ?: '—' }}</dd>
-                            </div>
+                            <x-ui.metadata-item
+                                :label="__('Nomor pegawai')"
+                                label-class="text-xs text-zinc-500 dark:text-zinc-400"
+                                value-class="mt-0.5 break-words font-medium text-zinc-800 dark:text-zinc-200"
+                            >{{ $employee->employee_number ?: '—' }}</x-ui.metadata-item>
+                            <x-ui.metadata-item
+                                :label="__('Jabatan')"
+                                label-class="text-xs text-zinc-500 dark:text-zinc-400"
+                                value-class="mt-0.5 break-words font-medium text-zinc-800 dark:text-zinc-200"
+                            >{{ $employee->title?->name ?: '—' }}</x-ui.metadata-item>
                         </dl>
 
                         <div class="flex justify-end border-t border-zinc-100 pt-2 dark:border-zinc-800">
@@ -65,15 +67,20 @@
                 @endforeach
             </div>
 
-            <div class="hidden overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-700 xl:block">
-                <table class="w-full text-sm">
+            <div
+                class="hidden overflow-x-auto overscroll-x-contain rounded-xl border border-zinc-200 dark:border-zinc-700 xl:block"
+                role="region"
+                aria-label="{{ __('Tabel manajemen pegawai; geser horizontal untuk melihat seluruh kolom') }}"
+                tabindex="0"
+            >
+                <table class="min-w-[52rem] w-full text-sm">
                     <thead class="bg-zinc-50 text-left dark:bg-zinc-900">
                         <tr>
-                            <th class="px-3 py-2">{{ __('Pegawai') }}</th>
-                            <th class="px-3 py-2">{{ __('Nomor') }}</th>
-                            <th class="px-3 py-2">{{ __('Jabatan') }}</th>
-                            <th class="px-3 py-2">{{ __('Status') }}</th>
-                            <th class="px-3 py-2"></th>
+                            <th scope="col" class="px-3 py-2">{{ __('Pegawai') }}</th>
+                            <th scope="col" class="px-3 py-2">{{ __('Nomor') }}</th>
+                            <th scope="col" class="px-3 py-2">{{ __('Jabatan') }}</th>
+                            <th scope="col" class="px-3 py-2">{{ __('Status') }}</th>
+                            <th scope="col" class="px-3 py-2"><span class="sr-only">{{ __('Aksi') }}</span></th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800">
