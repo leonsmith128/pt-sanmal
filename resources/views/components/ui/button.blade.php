@@ -28,6 +28,7 @@
     <flux:button
         :type="$type"
         :variant="$variant"
+        :color="$color ?? ($variant === 'primary' ? 'blue' : null)"
         :size="$size"
         :icon="$icon"
         :icon-trailing="$iconTrailing"
