@@ -2,7 +2,9 @@
 
 ## Status
 
-- Tahap: audit diperluas; belum ada perubahan tampilan pada halaman selain Proyek.
+> **Catatan pembacaan:** dokumen ini mempertahankan temuan dan rekomendasi pada saat audit dilakukan. Baris yang menyebut implementasi belum dilakukan adalah kondisi historis, bukan pernyataan bahwa source `main` saat ini belum berubah. Audit ini juga bukan hasil browser visual QA menyeluruh.
+
+- Tahap: dokumen audit baseline dan rekomendasi lintas halaman. Setelah audit ini, standardisasi beberapa halaman Admin dilanjutkan dan di-merge melalui PR #25. Untuk status implementasi Admin terkini, lihat `docs/ui/ADMIN-PAGES-AUDIT.md` dan `docs/PROJECT-STATUS.md`.
 - Repository: `leonsmith128/pt-sanmal`
 - PR: #25
 - Branch: `feature/ui-standardization-p1-ab`
