@@ -1,5 +1,5 @@
 <x-layouts::app :title="__('Tambah Proyek')">
-    <div class="mx-auto max-w-3xl space-y-5">
+    <div class="mx-auto w-full max-w-3xl space-y-5">
         <div>
             <flux:heading size="xl">{{ __('Tambah Proyek') }}</flux:heading>
             <flux:text>{{ __('Daftarkan pekerjaan kalibrasi atau pelatihan untuk satu Client dan satu lokasi Site.') }}</flux:text>
