@@ -40,7 +40,7 @@
                                     {{ $employee->user->email }}
                                 </p>
                             </div>
-                            <x-ui.badge :color="$employee->user->is_active ? 'green' : 'zinc'">
+                            <x-ui.badge class="shrink-0" :color="$employee->user->is_active ? 'green' : 'zinc'">
                                 {{ $employee->user->is_active ? __('Aktif') : __('Nonaktif') }}
                             </x-ui.badge>
                         </div>
@@ -90,14 +90,14 @@
                                     <p class="font-medium text-zinc-900 dark:text-zinc-100">{{ $employee->user->name }}</p>
                                     <p class="break-all text-zinc-500 dark:text-zinc-400">{{ $employee->user->email }}</p>
                                 </td>
-                                <td class="px-3 py-2">{{ $employee->employee_number ?: '—' }}</td>
-                                <td class="px-3 py-2">{{ $employee->title?->name ?: '—' }}</td>
-                                <td class="px-3 py-2">
+                                <td class="max-w-40 break-words px-3 py-2">{{ $employee->employee_number ?: '—' }}</td>
+                                <td class="max-w-56 break-words px-3 py-2">{{ $employee->title?->name ?: '—' }}</td>
+                                <td class="whitespace-nowrap px-3 py-2">
                                     <x-ui.badge :color="$employee->user->is_active ? 'green' : 'zinc'">
                                         {{ $employee->user->is_active ? __('Aktif') : __('Nonaktif') }}
                                     </x-ui.badge>
                                 </td>
-                                <td class="px-3 py-2 text-right">
+                                <td class="whitespace-nowrap px-3 py-2 text-right">
                                     <x-ui.button size="sm" variant="outline" href="{{ route('admin.employees.edit', $employee) }}">
                                         {{ __('Ubah') }}
                                     </x-ui.button>
