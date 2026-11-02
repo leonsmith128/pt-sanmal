@@ -42,7 +42,6 @@ it('uses the SanMal brand blue for primary actions by default', function () {
         ->assertSee('Simpan');
 });
 
-
 it('applies a dedicated secondary button class for dark theme contrast', function () {
     $this->blade('<x-ui.button variant="outline">Kembali</x-ui.button>')
         ->assertSee('sanmal-button-secondary', false)
