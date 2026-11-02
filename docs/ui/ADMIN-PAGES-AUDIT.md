@@ -9,6 +9,26 @@
 - Jenis pekerjaan dokumen ini: audit struktur dan presentasi. Tidak ada perubahan pada view halaman, komponen runtime, route, query, validasi, Livewire state, atau business logic.
 - Audit ini berbasis inspeksi source. Tidak mengklaim hasil render visual, browser test, maupun Pest test.
 
+## Progress implementasi
+
+Pencatatan berikut diperbarui setiap kelompok halaman selesai dikerjakan. Status mencerminkan perubahan source yang sudah masuk ke branch; status pengujian dicatat terpisah agar tidak menyiratkan pengujian yang belum dijalankan.
+
+| Kelompok/halaman | Status implementasi | Catatan perubahan | Status verifikasi |
+|---|---|---|---|
+| Client Create | Selesai | Mengadopsi `x-ui.page`, `x-ui.page-header`, `x-ui.input`, `x-ui.textarea`, dan `x-ui.button`; route, method, nama field, old input, serta pesan validasi tetap dipertahankan melalui wrapper field | Source telah diperiksa; test otomatis belum dijalankan |
+| Client Edit | Selesai | Diselaraskan dengan Create; mempertahankan `PUT`, model fallback untuk seluruh field, serta tautan kembali/batal ke detail Client | Source telah diperiksa; test otomatis belum dijalankan |
+
+### Catatan implementasi Client Create/Edit — 2026-11-03
+
+- Kedua halaman sekarang memakai page shell dengan lebar maksimum yang sama (`max-w-2xl`) dan header bersama.
+- Semua input teks dan textarea menggunakan wrapper `x-ui`, sehingga label dan error field mengikuti kontrak yang sama dengan form Pegawai.
+- Tombol kembali, batal, dan submit menggunakan `x-ui.button`; tombol aksi ditata responsif dengan susunan vertikal pada layar sempit dan horizontal mulai breakpoint `sm`.
+- Surface form, CSRF token, flash message, dan konten field tetap dipertahankan.
+- Tidak ada perubahan pada route/action, HTTP method, nama input, required attribute, old/model fallback, maupun payload.
+- Tidak ada perubahan backend atau business logic.
+
+**Batas verifikasi:** perubahan dilakukan melalui GitHub source. Laravel/Pest tidak tersedia pada runtime pengerjaan ini, sehingga belum ada klaim bahwa test render/feature atau browser visual test telah lulus. Verifikasi lanjutan perlu menjalankan test terkait pada lingkungan proyek dan memeriksa tampilan di viewport mobile hingga desktop serta light/dark mode.
+
 ## 1. Inventaris halaman
 
 | Area | File | Pola utama yang ditemukan |
