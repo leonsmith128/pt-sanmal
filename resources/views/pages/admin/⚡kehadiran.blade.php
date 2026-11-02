@@ -7,6 +7,7 @@ use App\Enums\SelfieSource;
 use App\Enums\WorkType;
 use App\Models\AttendanceRecord;
 use App\Models\Employee;
+use App\Support\AttendanceDateFilter;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
@@ -99,13 +100,6 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
     {
         [$from, $to] = $this->range();
 
-        // Gunakan ekspresi tanggal yang sesuai dengan driver agar query juga
-        // dapat dijalankan oleh SQLite pada feature tests.
-        $previousDayBoundary = match (\Illuminate\Support\Facades\DB::connection()->getDriverName()) {
-            'sqlite' => "datetime(attendance_records.recorded_at, '-24 hours')",
-            default => 'DATE_SUB(attendance_records.recorded_at, INTERVAL 24 HOUR)',
-        };
-
         $sortColumns = [
             'recorded_at' => "COALESCE((SELECT ac.requested_recorded_at FROM attendance_corrections ac WHERE ac.attendance_record_id = attendance_records.id AND ac.status = 'approved' ORDER BY ac.reviewed_at DESC LIMIT 1), attendance_records.recorded_at)",
             'employee' => 'sort_users.name',
@@ -113,22 +107,19 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
             'work_type' => 'attendance_records.work_type',
         ];
 
-        return AttendanceRecord::query()
+        $query = AttendanceRecord::query()
             ->select('attendance_records.*')
             ->join('employees as sort_employees', 'sort_employees.id', '=', 'attendance_records.employee_id')
             ->join('users as sort_users', 'sort_users.id', '=', 'sort_employees.user_id')
-            ->with(['employee.user', 'location', 'project', 'approvedCorrection'])
-            ->when($from !== '' && $to !== '', function ($query) use ($from, $to, $previousDayBoundary): void {
-                $query->where(function ($nested) use ($from, $to, $previousDayBoundary): void {
-                    $nested->whereRaw(
-                        "COALESCE((SELECT ac.attendance_date FROM attendance_corrections ac WHERE ac.attendance_record_id = attendance_records.id AND ac.status = 'approved' ORDER BY ac.reviewed_at DESC LIMIT 1), attendance_records.attendance_date) BETWEEN ? AND ?",
-                        [$from, $to],
-                    )->orWhereRaw(
-                        "(SELECT COALESCE((SELECT ac2.attendance_date FROM attendance_corrections ac2 WHERE ac2.attendance_record_id = ci.id AND ac2.status = 'approved' ORDER BY ac2.reviewed_at DESC LIMIT 1), ci.attendance_date) FROM attendance_records ci WHERE ci.employee_id = attendance_records.employee_id AND ci.type = 'clock_in' AND ci.recorded_at <= attendance_records.recorded_at AND ci.recorded_at >= {$previousDayBoundary} ORDER BY ci.recorded_at DESC LIMIT 1) BETWEEN ? AND ?",
-                        [$from, $to],
-                    );
-                });
-            })
+            ->with(['employee.user', 'location', 'project', 'approvedCorrection', 'sessionAnchor.approvedCorrection']);
+
+        AttendanceDateFilter::apply(
+            $query,
+            $from !== '' ? $from : null,
+            $to !== '' ? $to : null,
+        );
+
+        return $query
             ->when($this->employeeId !== '', fn ($query) => $query->where('attendance_records.employee_id', (int) $this->employeeId))
             ->when($this->attendanceType !== '', fn ($query) => $query->where('attendance_records.type', $this->attendanceType))
             ->when($this->workType !== '', fn ($query) => $query->where('attendance_records.work_type', $this->workType))
@@ -157,7 +148,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
         return Employee::query()
             ->with('user:id,name')
             ->whereHas('user', fn ($query) => $query->where('is_active', true))
-            ->whereDoesntHave('attendanceRecords', fn ($query) => $query->where('attendance_date', $from))
+            ->whereDoesntHave('attendanceRecords', fn ($query) => AttendanceDateFilter::apply($query, $from, $from))
             ->whereDoesntHave('leaveRequests', fn ($query) => $query
                 ->where('status', LeaveRequestStatus::Approved)
                 ->whereDate('start_date', '<=', $from)
@@ -170,12 +161,22 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
     }
 }; ?>
 
-<section class="w-full">
+<section x-data="{ selfiePreviewOpen: false, selfiePreviewUrl: null, selfieDownloadUrl: null, exportConfirmOpen: false, exportUrl: '', exportDescription: '' }" x-on:keydown.escape.window="selfiePreviewOpen = false; exportConfirmOpen = false" class="w-full">
     <div class="mx-auto flex w-full max-w-7xl flex-col gap-5">
         <x-admin.page-header
             :title="__('Kehadiran Pegawai')"
             :description="__('Pantau dan telusuri catatan absensi seluruh pegawai.')"
         />
+        @if (session('status'))
+            <div role="status" class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-200">
+                {{ session('status') }}
+            </div>
+        @endif
+        @error('drive_backup')
+            <div role="alert" class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
+                {{ $message }}
+            </div>
+        @enderror
 
         @php
             ($records = $this->records)
@@ -239,9 +240,28 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                         'attendance_type' => $attendanceType,
                         'work_type' => $workType,
                     ], fn ($value) => $value !== '');
-                    $today = Carbon::today();
-                    $weekStart = Carbon::today()->startOfWeek();
-                    $monthStart = Carbon::today()->startOfMonth();
+                    $today = Carbon::now('Asia/Makassar')->startOfDay();
+                    $weekStart = $today->copy()->startOfWeek(Carbon::MONDAY);
+                    $weekEnd = $today->copy()->endOfWeek(Carbon::SUNDAY);
+                    $monthStart = $today->copy()->startOfMonth();
+                    $monthEnd = $today->copy()->endOfMonth();
+                    $activeExportFilters = [];
+                    if ($employeeId !== '') {
+                        $selectedEmployee = $this->employees->firstWhere('id', (int) $employeeId);
+                        $activeExportFilters[] = 'Pegawai: '.($selectedEmployee?->user?->name ?? 'ID '.$employeeId);
+                    }
+                    if (trim($search) !== '') {
+                        $activeExportFilters[] = 'Pencarian: '.trim($search);
+                    }
+                    if ($attendanceType !== '') {
+                        $activeExportFilters[] = 'Jenis absensi: '.(AttendanceType::tryFrom($attendanceType)?->label() ?? $attendanceType);
+                    }
+                    if ($workType !== '') {
+                        $activeExportFilters[] = 'Jenis kerja: '.(WorkType::tryFrom($workType)?->label() ?? $workType);
+                    }
+                    $exportFilterSummary = $activeExportFilters
+                        ? 'Filter tambahan aktif: '.implode(' · ', $activeExportFilters)
+                        : 'Filter tambahan: tidak ada; seluruh pegawai masuk dalam cakupan laporan.';
                 @endphp
                 <flux:dropdown position="bottom" align="end">
                     <flux:button size="sm" variant="outline" icon="arrow-down-tray">
@@ -251,18 +271,21 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                     <flux:menu>
                         <flux:menu.item
                             :href="route('admin.kehadiran.export', [...$exportFilters, 'from' => $today->toDateString(), 'to' => $today->toDateString()])"
+                            x-on:click.prevent="exportUrl = $el.href; exportDescription = 'Laporan seluruh pegawai untuk {{ $today->translatedFormat('d M Y') }}.'; exportConfirmOpen = true"
                             icon="calendar-days"
                         >
                             {{ __('Hari ini') }}
                         </flux:menu.item>
                         <flux:menu.item
-                            :href="route('admin.kehadiran.export', [...$exportFilters, 'from' => $weekStart->toDateString(), 'to' => $today->toDateString()])"
+                            :href="route('admin.kehadiran.export', [...$exportFilters, 'from' => $weekStart->toDateString(), 'to' => $weekEnd->toDateString()])"
+                            x-on:click.prevent="exportUrl = $el.href; exportDescription = 'Laporan seluruh pegawai dari {{ $weekStart->translatedFormat('d M Y') }} sampai {{ $weekEnd->translatedFormat('d M Y') }}. Filter aktif tetap diterapkan.'; exportConfirmOpen = true"
                             icon="calendar-days"
                         >
                             {{ __('Minggu ini') }}
                         </flux:menu.item>
                         <flux:menu.item
-                            :href="route('admin.kehadiran.export', [...$exportFilters, 'from' => $monthStart->toDateString(), 'to' => $today->toDateString()])"
+                            :href="route('admin.kehadiran.export', [...$exportFilters, 'from' => $monthStart->toDateString(), 'to' => $monthEnd->toDateString()])"
+                            x-on:click.prevent="exportUrl = $el.href; exportDescription = 'Laporan seluruh pegawai dari {{ $monthStart->translatedFormat('d M Y') }} sampai {{ $monthEnd->translatedFormat('d M Y') }}. Filter aktif tetap diterapkan.'; exportConfirmOpen = true"
                             icon="calendar"
                         >
                             {{ __('Bulan ini') }}
@@ -274,6 +297,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                                 'from' => $dateFrom,
                                 'to' => $dateTo,
                             ], fn ($value) => $value !== ''))"
+                            x-on:click.prevent="exportUrl = $el.href; exportDescription = '{{ $dateFrom || $dateTo ? 'Rentang tanggal mengikuti filter aktif: '.($dateFrom ? Carbon::parse($dateFrom)->translatedFormat('d M Y') : 'riwayat paling awal').' sampai '.($dateTo ? Carbon::parse($dateTo)->translatedFormat('d M Y') : 'hari ini').'.' : 'Tidak ada filter tanggal. Ekspor mencakup seluruh riwayat yang tersedia sampai hari ini.' }} Filter pegawai, pencarian, jenis absensi, dan jenis kerja yang aktif tetap diterapkan.'; exportConfirmOpen = true"
                             icon="arrow-down-tray"
                         >
                             {{ __('Sesuai filter tanggal') }}
@@ -301,6 +325,9 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                                     @if ($record->approvedCorrection)
                                         <p class="text-xs text-zinc-500">{{ __('Bukti asli:') }} {{ $record->recordedAtLocal()->format('d M Y, H:i T') }}</p>
                                     @endif
+                                    @if ($record->captured_at)
+                                        <p class="text-xs text-zinc-500">{{ __('Waktu perangkat (informasi):') }} {{ $record->captured_at->copy()->setTimezone($record->timezone)->format('d M Y, H:i T') }}</p>
+                                    @endif
                                 </flux:table.cell>
                                 <flux:table.cell>{{ $record->employee->user->name }}</flux:table.cell>
                                 <flux:table.cell>
@@ -310,27 +337,67 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                                 </flux:table.cell>
                                 <flux:table.cell>
                                     {{ $record->work_type->label() }}
-                                    @if ($record->project)
-                                        <span class="text-zinc-500">· {{ $record->project->code }}</span>
-                                    @elseif ($record->location)
-                                        <span class="text-zinc-500">· {{ $record->location->name }}</span>
+                                    @if ($record->client_name_snapshot)
+                                        <span class="block text-xs text-zinc-500">{{ __('Client') }}: {{ $record->client_code_snapshot ? $record->client_code_snapshot.' · ' : '' }}{{ $record->client_name_snapshot }}</span>
+                                    @endif
+                                    @if ($record->project_name_snapshot)
+                                        <span class="block text-xs text-zinc-500">{{ __('Proyek') }}: {{ $record->project_code_snapshot ? $record->project_code_snapshot.' · ' : '' }}{{ $record->project_name_snapshot }}</span>
+                                    @endif
+                                    @if ($record->location_name_snapshot)
+                                        <span class="block text-xs text-zinc-500">{{ __('Lokasi') }}: {{ $record->location_name_snapshot }}</span>
+                                    @endif
+                                    @if ($record->snapshot_source === 'migration_backfill')
+                                        <span class="mt-1 block text-xs text-amber-600 dark:text-amber-400">{{ __('Baseline migrasi') }}</span>
                                     @endif
                                 </flux:table.cell>
                                 <flux:table.cell class="whitespace-nowrap">
                                     @if ($record->latitude !== null && $record->longitude !== null)
                                         @if ($record->accuracy_m !== null)
-                                            ±{{ round((float) $record->accuracy_m) }} m
+                                            <p>±{{ round((float) $record->accuracy_m) }} m</p>
                                         @endif
-                                        <a href="https://www.google.com/maps?q={{ $record->latitude }},{{ $record->longitude }}" target="_blank" rel="noopener noreferrer" class="ml-1 text-blue-600 underline dark:text-blue-400">{{ __('Peta') }}</a>
+                                        <a href="https://www.google.com/maps?q={{ $record->latitude }},{{ $record->longitude }}" target="_blank" rel="noopener noreferrer" class="text-blue-600 underline dark:text-blue-400">{{ __('Peta') }}</a>
                                     @else
-                                        —
+                                        <span>—</span>
+                                    @endif
+                                    <p class="mt-1 max-w-xs whitespace-normal break-words text-xs text-zinc-600 dark:text-zinc-300">
+                                        <span class="font-medium">{{ __('Alamat tersimpan:') }}</span>
+                                        {{ $record->address_snapshot ?: __('Alamat belum tersedia') }}
+                                    </p>
+                                    @if ($record->location_status === 'unavailable')
+                                        <flux:badge color="amber" size="sm" class="ml-1">{{ __('Perlu ditinjau') }}</flux:badge>
                                     @endif
                                 </flux:table.cell>
                                 <flux:table.cell class="whitespace-nowrap">
                                     @if ($record->selfie_path)
-                                        <a href="{{ route('admin.attendance.selfie', $record) }}" target="_blank" rel="noopener" class="text-blue-600 underline dark:text-blue-400">{{ __('Lihat') }}</a>
+                                        <button
+                                            type="button"
+                                            data-preview-url="{{ route('admin.attendance.selfie', $record) }}"
+                                            data-download-url="{{ route('admin.attendance.selfie.download', $record) }}"
+                                            x-on:click="selfiePreviewUrl = $el.dataset.previewUrl; selfieDownloadUrl = $el.dataset.downloadUrl; selfiePreviewOpen = true"
+                                            class="text-blue-600 underline dark:text-blue-400"
+                                        >{{ __('Pratinjau') }}</button>
                                         @if ($record->selfie_source === SelfieSource::Upload)
                                             <flux:badge color="amber" size="sm" class="ml-1">{{ __('Unggahan') }}</flux:badge>
+                                        @endif
+                                        @if ($record->drive_backup_status === 'verified')
+                                            <flux:badge color="green" size="sm" class="ml-1">{{ __('Drive terverifikasi') }}</flux:badge>
+                                            @if ($record->local_deleted_at)
+                                                <flux:badge color="zinc" size="sm" class="ml-1">{{ __('Lokal dihapus') }}</flux:badge>
+                                            @else
+                                                <form method="POST" action="{{ route('admin.attendance.selfie.delete-local', $record) }}" class="mt-2" onsubmit="return confirm('{{ __('Hapus foto lokal setelah backup Drive terverifikasi?') }}')">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="text-xs text-red-600 underline dark:text-red-400">{{ __('Hapus lokal') }}</button>
+                                                </form>
+                                            @endif
+                                        @else
+                                            @if ($record->drive_backup_status === 'failed')
+                                                <flux:badge color="red" size="sm" class="ml-1">{{ __('Backup gagal') }}</flux:badge>
+                                            @endif
+                                            <form method="POST" action="{{ route('admin.attendance.selfie.backup', $record) }}" class="mt-2">
+                                                @csrf
+                                                <button type="submit" class="text-xs text-blue-600 underline dark:text-blue-400">{{ __('Backup ke Drive') }}</button>
+                                            </form>
                                         @endif
                                     @else
                                         —
@@ -386,5 +453,61 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                 </flux:table>
             </div>
         </flux:card>
+        <div
+            x-show="selfiePreviewOpen"
+            x-cloak
+            x-transition.opacity
+            x-on:click.self="selfiePreviewOpen = false"
+            class="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-4"
+            role="dialog"
+            aria-modal="true"
+            aria-label="{{ __('Pratinjau foto absensi') }}"
+        >
+            <div class="flex max-h-full w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-zinc-900">
+                <div class="flex items-center justify-between gap-3 border-b border-zinc-200 px-4 py-3 dark:border-zinc-700">
+                    <h2 class="font-semibold">{{ __('Foto absensi') }}</h2>
+                    <button type="button" x-on:click="selfiePreviewOpen = false" class="rounded-lg p-2 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800" aria-label="{{ __('Tutup pratinjau') }}">
+                        <flux:icon name="x-mark" class="size-5" />
+                    </button>
+                </div>
+                <div class="min-h-0 overflow-auto bg-zinc-950 p-2">
+                    <img :src="selfiePreviewUrl" alt="{{ __('Foto absensi ukuran penuh') }}" class="mx-auto max-h-[75dvh] w-auto max-w-full object-contain">
+                </div>
+                <div class="flex justify-end border-t border-zinc-200 p-3 dark:border-zinc-700">
+                    <a :href="selfieDownloadUrl" class="inline-flex items-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300">
+                        <flux:icon name="arrow-down-tray" class="size-4" />
+                        {{ __('Unduh foto') }}
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div
+            x-show="exportConfirmOpen"
+            x-cloak
+            x-transition.opacity
+            x-on:click.self="exportConfirmOpen = false"
+            class="fixed inset-0 z-[110] flex items-center justify-center bg-black/60 p-4"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="attendance-export-confirm-title"
+        >
+            <div class="w-full max-w-lg space-y-4 rounded-2xl bg-white p-5 shadow-xl dark:bg-zinc-900">
+                <div class="flex items-start justify-between gap-3">
+                    <h2 id="attendance-export-confirm-title" class="text-lg font-semibold">{{ __('Konfirmasi ekspor rekap absensi') }}</h2>
+                    <button type="button" x-on:click="exportConfirmOpen = false" class="rounded-lg p-1 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800" aria-label="{{ __('Tutup') }}">
+                        <flux:icon name="x-mark" class="size-5" />
+                    </button>
+                </div>
+                <p class="text-sm text-zinc-600 dark:text-zinc-300" x-text="exportDescription"></p>
+                <p class="text-sm text-zinc-600 dark:text-zinc-300">{{ $exportFilterSummary }}</p>
+                <p class="text-sm text-amber-700 dark:text-amber-300">{{ __('Ekspor menggunakan satu baris per pegawai per tanggal. Tanggal tanpa event absensi tetap disertakan. Periksa kembali cakupan sebelum melanjutkan.') }}</p>
+                <div class="flex justify-end gap-2">
+                    <flux:button type="button" variant="ghost" x-on:click="exportConfirmOpen = false">{{ __('Batal') }}</flux:button>
+                    <a :href="exportUrl" class="inline-flex items-center justify-center rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300" x-on:click="exportConfirmOpen = false">
+                        {{ __('Konfirmasi dan ekspor') }}
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
 </section>

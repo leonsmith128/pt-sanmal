@@ -83,5 +83,12 @@ jobs:
           app/Http/Controllers/AdminLeaveRequestController.php
           app/Http/Middleware/EnsureUserIsActive.php
 
-      - name: Run tests
+      - name: Run tests on MariaDB
+        run: php artisan test
+
+      - name: Run tests on SQLite
+        env:
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ':memory:'
+          DB_URL: ''
         run: php artisan test

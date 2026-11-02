@@ -3,19 +3,20 @@
 namespace App\Http\Controllers;
 
 use App\Enums\LeaveRequestStatus;
-use App\Enums\OvertimeApprovalStatus;
 use App\Models\AttendanceCorrection;
 use App\Models\AuditLog;
 use App\Models\Employee;
 use App\Models\LeaveRequest;
 use App\Models\LeaveType;
 use App\Models\OvertimeRequest;
-use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class LeaveRequestController extends Controller
@@ -53,7 +54,7 @@ class LeaveRequestController extends Controller
         $rows = $rows->values();
         $perPage = 30;
         $page = max(1, LengthAwarePaginator::resolveCurrentPage());
-        $requests = new \Illuminate\Pagination\LengthAwarePaginator(
+        $requests = new LengthAwarePaginator(
             $rows->forPage($page, $perPage)->values(),
             $rows->count(),
             $perPage,
@@ -75,7 +76,7 @@ class LeaveRequestController extends Controller
         abort_unless($request->user()->is_active && $employee, 403, 'Akun ini belum terhubung dengan data pegawai aktif.');
 
         $rows = $this->filteredRows($employee, $this->validatedFilters($request));
-        $filename = 'permohonan-' . now()->format('Ymd-His') . '.csv';
+        $filename = 'permohonan-'.now()->format('Ymd-His').'.csv';
 
         return response()->streamDownload(function () use ($rows): void {
             $stream = fopen('php://output', 'w');
@@ -132,11 +133,11 @@ class LeaveRequestController extends Controller
             'start_date' => ['required', 'date'],
             'end_date' => ['required', 'date', 'after_or_equal:start_date'],
             'reason' => ['required', 'string', 'min:5', 'max:5000'],
-            'attachment' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
+            'attachment' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:1024'],
         ], [
             'end_date.after_or_equal' => 'Tanggal selesai tidak boleh sebelum tanggal mulai.',
             'attachment.mimes' => 'Lampiran harus berupa JPG, PNG, atau PDF.',
-            'attachment.max' => 'Ukuran lampiran maksimal 5 MB.',
+            'attachment.max' => 'Ukuran lampiran maksimal 1 MB.',
         ]);
 
         $leaveType = LeaveType::query()
@@ -144,16 +145,60 @@ class LeaveRequestController extends Controller
             ->where('is_active', true)
             ->firstOrFail();
 
-        $attachmentPath = $request->file('attachment')?->store('leave-attachments');
+        $attachmentPath = $request->file('attachment')?->store('leave-attachments', 'local');
 
-        $employee->leaveRequests()->create([
-            'leave_type_id' => $leaveType->id,
-            'start_date' => $validated['start_date'],
-            'end_date' => $validated['end_date'],
-            'reason' => $validated['reason'],
-            'attachment_path' => $attachmentPath,
-            'status' => LeaveRequestStatus::Pending,
-        ]);
+        try {
+            DB::transaction(function () use ($request, $employee, $leaveType, $validated, $attachmentPath): void {
+                Employee::query()->whereKey($employee->id)->lockForUpdate()->firstOrFail();
+
+                $overlaps = LeaveRequest::query()
+                    ->where('employee_id', $employee->id)
+                    ->whereIn('status', [LeaveRequestStatus::Pending, LeaveRequestStatus::Approved])
+                    ->whereDate('start_date', '<=', $validated['end_date'])
+                    ->whereDate('end_date', '>=', $validated['start_date'])
+                    ->lockForUpdate()
+                    ->get();
+
+                if ($overlaps->contains(fn (LeaveRequest $item) => $item->status === LeaveRequestStatus::Approved)) {
+                    throw ValidationException::withMessages([
+                        'start_date' => 'Periode ini bertumpang tindih dengan permohonan yang sudah disetujui. Hubungi admin untuk meminta koreksi.',
+                    ]);
+                }
+
+                if ($overlaps->contains(fn (LeaveRequest $item) => $item->status === LeaveRequestStatus::Pending)) {
+                    throw ValidationException::withMessages([
+                        'start_date' => 'Periode ini bertumpang tindih dengan permohonan yang masih menunggu. Batalkan permohonan sebelumnya terlebih dahulu jika ingin mengubah pengajuan.',
+                    ]);
+                }
+
+                $leaveRequest = $employee->leaveRequests()->create([
+                    'leave_type_id' => $leaveType->id,
+                    'start_date' => $validated['start_date'],
+                    'end_date' => $validated['end_date'],
+                    'reason' => $validated['reason'],
+                    'attachment_path' => $attachmentPath,
+                    'status' => LeaveRequestStatus::Pending,
+                ]);
+
+                AuditLog::record(
+                    auditable: $leaveRequest,
+                    action: 'leave.submitted',
+                    oldValues: [],
+                    newValues: [
+                        'leave_type_id' => $leaveRequest->leave_type_id,
+                        'start_date' => $leaveRequest->start_date->toDateString(),
+                        'end_date' => $leaveRequest->end_date->toDateString(),
+                        'status' => $leaveRequest->status->value,
+                    ],
+                    userId: $request->user()->id,
+                );
+            });
+        } catch (\Throwable $exception) {
+            if ($attachmentPath) {
+                Storage::disk('local')->delete($attachmentPath);
+            }
+            throw $exception;
+        }
 
         return redirect()->route('leave-requests.index')
             ->with('status', 'Permohonan berhasil dikirim dan menunggu persetujuan admin.');
@@ -168,7 +213,7 @@ class LeaveRequestController extends Controller
         DB::transaction(function () use ($leaveRequest): void {
             $locked = LeaveRequest::query()->whereKey($leaveRequest->id)->lockForUpdate()->firstOrFail();
 
-            if (! $locked->isPending()) {
+            if ($locked->isPending() === false) {
                 abort(422, 'Hanya permohonan yang masih menunggu yang dapat dibatalkan.');
             }
 
@@ -203,7 +248,7 @@ class LeaveRequestController extends Controller
                 $rows->push((object) [
                     'source' => 'leave',
                     'source_id' => $item->id,
-                    'reference' => 'IZ-' . str_pad((string) $item->id, 5, '0', STR_PAD_LEFT),
+                    'reference' => 'IZ-'.str_pad((string) $item->id, 5, '0', STR_PAD_LEFT),
                     'type' => in_array($code, ['izin', 'sakit', 'cuti'], true) ? $code : 'izin',
                     'type_label' => $item->leaveType?->name ?? 'Jenis tidak tersedia',
                     'submitted_at' => $item->created_at,
@@ -229,7 +274,7 @@ class LeaveRequestController extends Controller
                 $rows->push((object) [
                     'source' => 'overtime',
                     'source_id' => $item->id,
-                    'reference' => 'LM-' . str_pad((string) $item->id, 5, '0', STR_PAD_LEFT),
+                    'reference' => 'LM-'.str_pad((string) $item->id, 5, '0', STR_PAD_LEFT),
                     'type' => 'lembur',
                     'type_label' => 'Lembur',
                     'submitted_at' => $item->created_at,
@@ -243,7 +288,7 @@ class LeaveRequestController extends Controller
                     'decided_at' => $item->decided_at,
                     'decision_note' => $item->decision_note,
                     'cancelable' => in_array($item->state->value, ['scheduled', 'awaiting_photo'], true)
-                        && $item->start_record_id === null && $item->scheduled_start_at->isFuture(),
+                        && $item->start_record_id === null,
                     'cancel_route' => route('overtime-requests.cancel', $item),
                 ]);
             });
@@ -256,14 +301,14 @@ class LeaveRequestController extends Controller
                 $rows->push((object) [
                     'source' => 'correction',
                     'source_id' => $item->id,
-                    'reference' => 'KA-' . str_pad((string) $item->id, 5, '0', STR_PAD_LEFT),
+                    'reference' => 'KA-'.str_pad((string) $item->id, 5, '0', STR_PAD_LEFT),
                     'type' => 'koreksi_absensi',
                     'type_label' => 'Koreksi Absensi',
                     'submitted_at' => $item->created_at,
                     'period_start' => $item->attendance_date?->toDateString(),
                     'period_end' => $item->attendance_date?->toDateString(),
-                    'summary' => strtoupper(str_replace('_', ' ', $item->requested_type)) . ' · '
-                        . $item->requested_recorded_at?->format('d/m/Y H:i') . ' — ' . $item->reason,
+                    'summary' => strtoupper(str_replace('_', ' ', $item->requested_type)).' · '
+                        .$item->requested_recorded_at?->format('d/m/Y H:i').' — '.$item->reason,
                     'status' => $status,
                     'status_label' => match ($status) {
                         'pending' => 'Menunggu',
@@ -276,8 +321,8 @@ class LeaveRequestController extends Controller
                     'reviewer' => $item->reviewedBy?->name,
                     'decided_at' => $item->reviewed_at,
                     'decision_note' => $item->review_note,
-                    'cancelable' => false,
-                    'cancel_route' => null,
+                    'cancelable' => $item->status === 'pending',
+                    'cancel_route' => route('attendance-corrections.cancel', $item),
                 ]);
             });
 
@@ -303,7 +348,7 @@ class LeaveRequestController extends Controller
                     $haystack = mb_strtolower(implode(' ', [
                         $row->reference, $row->type_label, $row->summary, $row->status_label,
                     ]));
-                    if (! str_contains($haystack, mb_strtolower($filters['q']))) {
+                    if (str_contains($haystack, mb_strtolower($filters['q'])) === false) {
                         return false;
                     }
                 }
@@ -344,6 +389,6 @@ class LeaveRequestController extends Controller
         $value = (string) ($value ?? '');
 
         // CSV can be opened by spreadsheet software; prevent untrusted text becoming a formula.
-        return preg_match('/^[\s\x00-\x1F]*[=+\-@]/u', $value) === 1 ? "'" . $value : $value;
+        return preg_match('/^[\s\x00-\x1F]*[=+\-@]/u', $value) === 1 ? "'".$value : $value;
     }
 }

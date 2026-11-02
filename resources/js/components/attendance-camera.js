@@ -1,5 +1,5 @@
 import LocationTracker from './location-tracker.js';
-import { createAttendancePhoto } from './attendance-photo.js';
+import { createAttendancePhoto, drawAttendanceWatermark, loadAttendanceWatermarkLogo } from './attendance-photo.js';
 /**
  * Kamera absensi berbasis Alpine.
  *
@@ -11,6 +11,11 @@ import { createAttendancePhoto } from './attendance-photo.js';
 export default function attendanceCamera(config = {}) {
     return {
         stream: null,
+        cameraSessionId: 0,
+        activeVideoTrack: null,
+        trackEndedHandler: null,
+        visibilityHandler: null,
+        pageHideHandler: null,
         active: false,
         starting: false,
         busy: false,
@@ -26,27 +31,26 @@ export default function attendanceCamera(config = {}) {
         isLandscape: window.matchMedia('(orientation: landscape)').matches,
         orientationQuery: null,
         orientationHandler: null,
+        watermarkRenderId: 0,
 
         locationTracker: null,
         best: null,
         liveAccuracy: null,
         gpsReady: false,
-        gpsStatusText: 'Mencari lokasi GPS presisi…',
+        locationAccessReady: false,
+        gpsStatusText: 'Memeriksa izin dan layanan lokasi…',
         address: '',
         addressLoading: false,
+        locationSnapshot: null,
+        locationSnapshotReady: false,
+        locationSnapshotFailed: false,
+        locationStatusMessage: 'Sedang mencari lokasi...',
 
         capturedBlob: null,
         capturedUrl: null,
         capturedPosition: null,
         capturedAddress: '',
-        formattedTimestamp: '',
-
-        get currentTimestamp() {
-            return new Intl.DateTimeFormat('id-ID', {
-                dateStyle: 'medium',
-                timeStyle: 'short',
-            }).format(new Date());
-        },
+        capturedAt: null,
 
         get viewportStyle() {
             const isSmallScreen = window.matchMedia('(max-width: 640px)').matches;
@@ -72,27 +76,59 @@ export default function attendanceCamera(config = {}) {
                 this.isLandscape = event.matches;
             };
             this.orientationQuery.addEventListener?.('change', this.orientationHandler);
+            this.visibilityHandler = () => {
+                if (!document.hidden || (!this.active && !this.starting)) return;
+
+                this.stopCameraStream();
+                this.error = 'Kamera dihentikan karena halaman tidak aktif. Buka kamera kembali sebelum mengambil foto.';
+                this.fallback = true;
+            };
+            this.pageHideHandler = () => this.stopCameraStream();
+            document.addEventListener('visibilitychange', this.visibilityHandler);
+            window.addEventListener('pagehide', this.pageHideHandler);
 
             this.locationTracker = new LocationTracker({
+                reverseGeocodeUrl: this.$el?.dataset?.reverseGeocodeUrl,
                 onChange: (state) => {
                     this.best = state.best;
                     this.liveAccuracy = state.liveAccuracy;
                     this.address = state.address;
                     this.addressLoading = state.addressLoading;
+                    this.locationSnapshot = state.locationSnapshot;
+                    this.locationSnapshotReady = state.locationStatus === 'ready' && Boolean(state.locationSnapshot?.address);
+                    this.locationSnapshotFailed = state.locationStatus === 'failed';
+                    this.locationStatusMessage = state.locationStatus === 'geocoding'
+                        ? 'Sedang menyiapkan alamat lokasi...'
+                        : state.locationStatus === 'failed'
+                            ? state.locationError === 'address-not-found'
+                                ? 'Alamat belum berhasil ditemukan. Coba buka kembali kamera.'
+                                : 'Lokasi GPS belum berhasil ditemukan. Coba buka kembali kamera.'
+                            : 'Sedang mencari lokasi...';
                     this.gpsReady = state.gpsReady;
+                    this.locationAccessReady = state.accessGranted;
                     this.gpsStatusText = state.gpsStatusText;
+                    this.updateWatermarkPreview();
                 },
                 onError: (message) => {
-                    if (message) {
-                        this.error = message;
-                        this.gpsStatusText = message;
-                    }
+                    if (message) this.gpsStatusText = message;
                 },
             });
         },
 
         startLocationWatch() {
             this.locationTracker?.start();
+            this.prepareLocationSnapshot();
+        },
+
+        async prepareLocationSnapshot() {
+            this.locationSnapshotReady = false;
+            this.locationSnapshotFailed = false;
+            try {
+                await this.locationTracker.prepareSnapshot();
+            } catch (error) {
+                // Status gagal sudah dipublikasikan oleh LocationTracker.
+                this.locationSnapshotFailed = true;
+            }
         },
 
         stopLocationWatch() {
@@ -113,6 +149,67 @@ export default function attendanceCamera(config = {}) {
         getPosition() {
             if (!this.locationTracker) return Promise.reject(new Error('no-geolocation'));
             return this.locationTracker.getFreshPosition();
+        },
+
+        getWatermarkSnapshot(timestamp = new Date(), position = this.locationSnapshot || this.best) {
+            const age = position
+                ? Date.now() - (position.measuredAt ?? position.receivedAt)
+                : Infinity;
+            const isFrozenSnapshot = Boolean(
+                this.locationSnapshot
+                && position === this.locationSnapshot
+            );
+            const positionIsUsable = Boolean(
+                isFrozenSnapshot
+                || (
+                    position
+                    && age >= 0
+                    && age <= 15_000
+                    && Number.isFinite(position.accuracy)
+                    && position.accuracy >= 0
+                    && position.accuracy <= 100
+                )
+            );
+            const address = isFrozenSnapshot
+                ? this.locationSnapshot.address
+                : positionIsUsable
+                    ? this.locationTracker?.getAddressForPosition(position) || this.locationStatusMessage
+                    : this.locationStatusMessage;
+
+            return Object.freeze({
+                name: this.name,
+                eventLabel: this.eventLabel,
+                timestamp,
+                address,
+            });
+        },
+
+        updateWatermarkPreview(snapshot = this.getWatermarkSnapshot()) {
+            const video = this.getVideoElement();
+            const canvas = this.$refs?.watermarkPreview;
+            if (!video || !canvas || !video.videoWidth || !video.videoHeight) return;
+
+            if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+            }
+
+            const context = canvas.getContext('2d');
+            if (!context) return;
+
+            const renderId = ++this.watermarkRenderId;
+            context.clearRect(0, 0, canvas.width, canvas.height);
+
+            loadAttendanceWatermarkLogo().then((logo) => {
+                if (
+                    !this.active
+                    || renderId !== this.watermarkRenderId
+                    || canvas !== this.$refs?.watermarkPreview
+                ) return;
+
+                context.clearRect(0, 0, canvas.width, canvas.height);
+                drawAttendanceWatermark(context, canvas.width, canvas.height, snapshot, logo);
+            });
         },
 
         getVideoElement() {
@@ -191,17 +288,40 @@ export default function attendanceCamera(config = {}) {
             this.error = null;
             this.fallback = false;
             this.starting = true;
-            this.startLocationWatch();
+            this.locationAccessReady = false;
+            this.locationSnapshot = null;
+            this.locationSnapshotReady = false;
+            this.locationSnapshotFailed = false;
+            this.locationStatusMessage = 'Sedang mencari lokasi...';
+            this.startingLocation = true;
+            const sessionId = ++this.cameraSessionId;
 
             try {
                 if (!navigator.mediaDevices?.getUserMedia) {
                     throw new Error('camera-unavailable');
                 }
 
-                this.stream = await this.openCamera();
-                this.updateCameraMetadata(this.stream);
+                // GPS permission and the device location service are mandatory.
+                // Permission and device location service are checked first.
+                // A fresh, accurate coordinate and its resolved address are
+                // prepared asynchronously before the shutter becomes available.
+                await this.locationTracker.prepareAccess(5000);
+                if (sessionId !== this.cameraSessionId) return;
+                this.locationAccessReady = true;
+                this.startLocationWatch();
+
+                const stream = await this.openCamera();
+                if (sessionId !== this.cameraSessionId) {
+                    stream.getTracks().forEach((track) => track.stop());
+                    return;
+                }
+
+                this.stream = stream;
+                this.bindCameraTrack(stream);
+                this.updateCameraMetadata(stream);
                 this.active = true;
                 await this.$nextTick();
+                if (sessionId !== this.cameraSessionId) return;
 
                 const video = this.getVideoElement();
                 if (!video) throw new Error('video-element-not-found');
@@ -210,13 +330,23 @@ export default function attendanceCamera(config = {}) {
                 video.playsInline = true;
                 video.srcObject = this.stream;
                 await video.play();
+                if (sessionId !== this.cameraSessionId) return;
                 await this.waitForVideoFrame(video);
+                if (sessionId !== this.cameraSessionId) return;
+                this.updateWatermarkPreview();
                 await this.refreshCameraList().catch(() => {});
             } catch (error) {
                 console.error('Kamera gagal dibuka:', error);
                 this.stop();
 
-                if (error.message === 'video-element-not-found') {
+                this.locationAccessReady = false;
+                if (error.message === 'permission-denied') {
+                    this.error = 'Izin lokasi wajib diberikan. Aktifkan izin lokasi untuk situs ini, lalu buka kamera kembali.';
+                } else if (error.message === 'location-unavailable') {
+                    this.error = 'Layanan lokasi perangkat tidak tersedia atau dinonaktifkan. Aktifkan Lokasi/GPS, lalu coba kembali.';
+                } else if (error.message === 'permission-unconfirmed' || error.message === 'no-geolocation') {
+                    this.error = 'Status izin atau layanan lokasi tidak dapat diverifikasi oleh browser. Periksa pengaturan lokasi dan coba browser lain.';
+                } else if (error.message === 'video-element-not-found') {
                     this.error = 'Elemen video tidak ditemukan. Muat ulang halaman dan coba kembali.';
                 } else if (error.message === 'video-frame-timeout') {
                     this.error = 'Kamera terbuka tetapi belum mengirim gambar. Tutup aplikasi kamera lain lalu coba kembali.';
@@ -243,6 +373,7 @@ export default function attendanceCamera(config = {}) {
 
             const previousFacingMode = this.facingMode;
             const previousStream = this.stream;
+            const sessionId = this.cameraSessionId;
             let nextStream = null;
 
             this.facingMode = previousFacingMode === 'user' ? 'environment' : 'user';
@@ -256,6 +387,10 @@ export default function attendanceCamera(config = {}) {
                     : null;
                 this.facingMode = previousFacingMode === 'user' ? 'environment' : 'user';
                 nextStream = await this.openCamera(alternative?.deviceId || null);
+                if (sessionId !== this.cameraSessionId) {
+                    nextStream.getTracks().forEach((track) => track.stop());
+                    return;
+                }
 
                 const video = this.getVideoElement();
                 if (!video) throw new Error('video-element-not-found');
@@ -263,8 +398,13 @@ export default function attendanceCamera(config = {}) {
                 video.srcObject = nextStream;
                 await video.play();
                 await this.waitForVideoFrame(video);
+                if (sessionId !== this.cameraSessionId) {
+                    nextStream.getTracks().forEach((track) => track.stop());
+                    return;
+                }
 
                 this.stream = nextStream;
+                this.bindCameraTrack(nextStream);
                 this.updateCameraMetadata(nextStream);
                 previousStream?.getTracks().forEach((track) => track.stop());
 
@@ -273,6 +413,8 @@ export default function attendanceCamera(config = {}) {
                 await this.refreshCameraList().catch(() => {});
             } catch (error) {
                 nextStream?.getTracks().forEach((track) => track.stop());
+                if (sessionId !== this.cameraSessionId) return;
+
                 this.facingMode = previousFacingMode;
 
                 const video = this.getVideoElement();
@@ -289,12 +431,42 @@ export default function attendanceCamera(config = {}) {
             }
         },
 
-        stop() {
+        bindCameraTrack(stream) {
+            this.unbindCameraTrack();
+
+            const track = stream?.getVideoTracks?.()[0];
+            if (!track) return;
+
+            this.activeVideoTrack = track;
+            this.trackEndedHandler = () => {
+                if (this.stream !== stream) return;
+
+                this.stopCameraStream();
+                this.error = 'Koneksi kamera terputus. Buka kamera kembali sebelum melanjutkan.';
+                this.fallback = true;
+            };
+            track.addEventListener?.('ended', this.trackEndedHandler, { once: true });
+        },
+
+        unbindCameraTrack() {
+            if (this.activeVideoTrack && this.trackEndedHandler) {
+                this.activeVideoTrack.removeEventListener?.('ended', this.trackEndedHandler);
+            }
+
+            this.activeVideoTrack = null;
+            this.trackEndedHandler = null;
+        },
+
+        stopCameraStream() {
+            this.cameraSessionId += 1;
+            this.unbindCameraTrack();
+
             const video = this.getVideoElement();
             if (video) {
                 video.pause();
                 video.srcObject = null;
             }
+
             this.stream?.getTracks().forEach((track) => track.stop());
             this.stream = null;
             this.activeDeviceId = null;
@@ -302,6 +474,15 @@ export default function attendanceCamera(config = {}) {
             this.active = false;
             this.starting = false;
             this.stopLocationWatch();
+        },
+
+        stop() {
+            this.stopCameraStream();
+            this.locationAccessReady = false;
+            this.locationSnapshot = null;
+            this.locationSnapshotReady = false;
+            this.locationSnapshotFailed = false;
+            this.locationStatusMessage = 'Sedang mencari lokasi...';
             this.clearCapturedPhoto();
         },
 
@@ -309,7 +490,7 @@ export default function attendanceCamera(config = {}) {
             if (this.capturedUrl) URL.revokeObjectURL(this.capturedUrl);
             this.capturedUrl = null;
             this.capturedBlob = null;
-            this.formattedTimestamp = '';
+            this.capturedAt = null;
             this.capturedPosition = null;
             this.capturedAddress = '';
         },
@@ -317,49 +498,44 @@ export default function attendanceCamera(config = {}) {
         async capture() {
             const video = this.getVideoElement();
             if (!video || !this.videoReady || !video.videoWidth || !video.videoHeight || this.busy) return;
+            if (!this.locationSnapshotReady || !this.locationSnapshot?.address) {
+                this.error = 'Lokasi belum siap. Tunggu sampai alamat ditemukan atau buka kembali kamera jika pencarian gagal.';
+                return;
+            }
 
             this.error = null;
             this.busy = true;
             this.clearCapturedPhoto();
             try {
-                let position = await this.getPosition();
-                this.best = position;
-                this.liveAccuracy = Math.round(position.accuracy);
-                await this.locationTracker.resolveAddress(position);
-
-                // Reverse geocoding bisa memerlukan waktu. Pastikan posisi yang
-                // dipakai saat foto dibuat tetap segar setelah alamat diperoleh.
-                if (Date.now() - (position.measuredAt ?? position.receivedAt) > 15_000) {
-                    position = await this.getPosition();
-                    this.best = position;
-                    this.liveAccuracy = Math.round(position.accuracy);
-                }
-
-                const addressSnapshot = this.address || '';
+                // Koordinat dan alamat selalu berasal dari snapshot sesi kamera.
+                const position = this.locationSnapshot;
+                const capturedAt = new Date();
+                const watermarkSnapshot = this.getWatermarkSnapshot(capturedAt, position);
+                const addressSnapshot = position.address;
+                this.updateWatermarkPreview(watermarkSnapshot);
                 const photo = await createAttendancePhoto({
                     video,
                     facingMode: this.facingMode,
-                    name: this.name,
-                    eventLabel: this.eventLabel,
-                    address: addressSnapshot,
+                    watermarkSnapshot,
                 });
-                this.formattedTimestamp = photo.timestamp;
-                const blob = photo.blob;
-                this.capturedPosition = position;
+                this.capturedAt = photo.capturedAt;
+                this.capturedPosition = Object.freeze({
+                    latitude: position.latitude,
+                    longitude: position.longitude,
+                    accuracy: position.accuracy,
+                    measuredAt: position.measuredAt,
+                    receivedAt: position.receivedAt,
+                });
                 this.capturedAddress = addressSnapshot;
-                this.capturedBlob = blob;
-                this.capturedUrl = URL.createObjectURL(blob);
+                this.capturedBlob = photo.blob;
+                this.capturedUrl = URL.createObjectURL(photo.blob);
             } catch (error) {
                 console.error('Gagal mengambil foto:', error);
                 this.error = error.message === 'canvas-context-unavailable'
                     ? 'Foto tidak dapat diproses oleh browser ini.'
                     : error.message === 'photo-size-limit-exceeded'
                         ? 'Ukuran foto tidak dapat diperkecil hingga batas 190 KB. Coba ambil foto kembali.'
-                        : error.message === 'location-not-accurate'
-                        ? 'Akurasi GPS belum memadai. Tunggu hingga GPS siap atau coba refresh lokasi.'
-                        : error.message === 'location-stopped'
-                            ? 'Pemantauan lokasi berhenti. Buka kamera kembali dan coba lagi.'
-                            : 'Foto atau lokasi gagal diproses. Periksa izin lokasi dan coba lagi.';
+                        : 'Foto gagal diproses. Periksa kamera dan coba lagi.';
             } finally {
                 this.busy = false;
             }
@@ -377,10 +553,10 @@ export default function attendanceCamera(config = {}) {
 
             try {
                 const position = this.capturedPosition;
-                if (!position) throw new Error('captured-location-missing');
-                this.$wire.latitude = position.latitude;
-                this.$wire.longitude = position.longitude;
-                this.$wire.accuracy = position.accuracy;
+                this.$wire.latitude = position?.latitude ?? null;
+                this.$wire.longitude = position?.longitude ?? null;
+                this.$wire.accuracy = position?.accuracy ?? null;
+                this.$wire.capturedAt = this.capturedAt;
                 this.$wire.addressSnapshot = this.capturedAddress || '';
                 this.$wire.selfieSource = 'camera';
 
@@ -405,6 +581,8 @@ export default function attendanceCamera(config = {}) {
         destroy() {
             this.stop();
             this.orientationQuery?.removeEventListener?.('change', this.orientationHandler);
+            document.removeEventListener('visibilitychange', this.visibilityHandler);
+            window.removeEventListener('pagehide', this.pageHideHandler);
         },
     };
 }

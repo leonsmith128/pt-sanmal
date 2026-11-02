@@ -8,11 +8,15 @@ use App\Enums\WorkType;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
  * @property int $id
  * @property int $employee_id
+ * @property int|null $session_anchor_id
+ * @property string $source
+ * @property int|null $attendance_correction_id
  * @property AttendanceType $type
  * @property WorkType $work_type
  * @property int|null $location_id
@@ -21,7 +25,14 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @property string|null $latitude
  * @property string|null $longitude
  * @property string|null $accuracy_m
+ * @property string $location_status
  * @property string|null $address_snapshot
+ * @property string|null $client_code_snapshot
+ * @property string|null $client_name_snapshot
+ * @property string|null $project_code_snapshot
+ * @property string|null $project_name_snapshot
+ * @property string|null $location_name_snapshot
+ * @property string|null $snapshot_source
  * @property string|null $selfie_path
  * @property SelfieSource|null $selfie_source
  * @property string|null $notes
@@ -30,25 +41,88 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @property-read Project|null $project
  */
 #[Fillable([
-    'employee_id', 'type', 'work_type', 'location_id', 'project_id',
-    'recorded_at', 'timezone', 'attendance_date',
-    'latitude', 'longitude', 'accuracy_m', 'address_snapshot',
+    'employee_id', 'session_anchor_id', 'attendance_correction_id', 'source', 'type', 'work_type', 'location_id', 'project_id',
+    'recorded_at', 'captured_at', 'timezone', 'attendance_date',
+    'client_code_snapshot', 'client_name_snapshot', 'project_code_snapshot', 'project_name_snapshot', 'location_name_snapshot', 'snapshot_source',
+    'latitude', 'longitude', 'accuracy_m', 'location_status', 'address_snapshot',
+    'drive_backup_status', 'drive_file_id', 'drive_md5_checksum', 'drive_size_bytes',
+    'drive_backed_up_at', 'local_deleted_at',
     'selfie_path', 'selfie_source', 'notes',
 ])]
 class AttendanceRecord extends Model
 {
+    protected static function booted(): void
+    {
+        static::created(function (self $record): void {
+            if ($record->type === AttendanceType::ClockIn && $record->session_anchor_id === null) {
+                $record->forceFill(['session_anchor_id' => $record->id])->saveQuietly();
+
+                return;
+            }
+
+            // Compatibility for trusted internal creation paths: attach a new Clock Out
+            // only when exactly one open anchor exists. Ambiguous events remain unlinked.
+            if ($record->type === AttendanceType::ClockOut && $record->session_anchor_id === null) {
+                $openAnchors = self::query()
+                    ->where('employee_id', $record->employee_id)
+                    ->where('type', AttendanceType::ClockIn)
+                    ->whereColumn('session_anchor_id', 'id')
+                    ->whereDoesntHave('sessionEvents', fn ($query) => $query
+                        ->where('type', AttendanceType::ClockOut))
+                    ->get();
+
+                if ($openAnchors->count() === 1) {
+                    $anchor = $openAnchors->first();
+
+                    if ($record->recorded_at->gt($anchor->effectiveRecordedAt())) {
+                        $record->forceFill(['session_anchor_id' => $anchor->id])->saveQuietly();
+                    }
+                }
+            }
+        });
+    }
+
     protected function casts(): array
     {
         return [
             'type' => AttendanceType::class,
             'work_type' => WorkType::class,
             'recorded_at' => 'datetime',
+            'captured_at' => 'datetime',
+            'drive_backed_up_at' => 'datetime',
+            'local_deleted_at' => 'datetime',
+            'drive_size_bytes' => 'integer',
             'attendance_date' => 'date',
             'latitude' => 'decimal:7',
             'longitude' => 'decimal:7',
             'accuracy_m' => 'decimal:2',
             'selfie_source' => SelfieSource::class,
         ];
+    }
+
+    public function sessionAnchor(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'session_anchor_id');
+    }
+
+    public function sessionEvents(): HasMany
+    {
+        return $this->hasMany(self::class, 'session_anchor_id');
+    }
+
+    public function attendanceCorrection(): BelongsTo
+    {
+        return $this->belongsTo(AttendanceCorrection::class, 'attendance_correction_id');
+    }
+
+    public function corrections(): HasMany
+    {
+        return $this->hasMany(AttendanceCorrection::class);
+    }
+
+    public function sessionCorrections(): HasMany
+    {
+        return $this->hasMany(AttendanceCorrection::class, 'session_anchor_id');
     }
 
     public function employee(): BelongsTo

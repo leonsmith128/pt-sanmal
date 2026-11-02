@@ -1,15 +1,17 @@
 const MAX_ACCEPTABLE_ACCURACY_METERS = 100;
 const MAX_READING_AGE_MS = 15_000;
-const LOCATION_WAIT_TIMEOUT_MS = 25_000;
+const LOCATION_RETRY_ATTEMPTS = 3;
+const LOCATION_ATTEMPT_TIMEOUT_MS = 5_000;
 
 /**
  * Mengelola GPS dan reverse geocoding di luar komponen UI kamera.
  * Tidak memeriksa jarak dari kantor; hanya kualitas dan kesegaran pembacaan.
  */
 export default class LocationTracker {
-    constructor({ onChange, onError } = {}) {
+    constructor({ onChange, onError, reverseGeocodeUrl } = {}) {
         this.onChange = onChange;
         this.onError = onError;
+        this.reverseGeocodeUrl = reverseGeocodeUrl;
         this.watchId = null;
         this.freshnessTimer = null;
         this.best = null;
@@ -18,19 +20,35 @@ export default class LocationTracker {
         this.addressLoading = false;
         this.lastGeocodedAt = 0;
         this.lastGeocodedPosition = null;
+        this.addressRequestId = 0;
+        this.pendingGeocodePosition = null;
+        this.addressRequestPromise = null;
+        this.locationSnapshot = null;
+        this.locationStatus = 'searching';
+        this.locationError = null;
+        this.snapshotRequestId = 0;
         this.waiters = [];
         this.gpsReady = false;
-        this.gpsStatusText = 'Mencari lokasi GPS presisi…';
+        this.gpsStatusText = 'Memeriksa izin dan layanan lokasi…';
+        this.accessGranted = false;
+        this.accessError = null;
+        this.permissionStatus = null;
+        this.permissionChangeHandler = null;
     }
 
     snapshot() {
         return {
             best: this.best,
             liveAccuracy: this.liveAccuracy,
-            address: this.address,
+            address: this.locationSnapshot?.address || '',
             addressLoading: this.addressLoading,
+            locationSnapshot: this.locationSnapshot,
+            locationStatus: this.locationStatus,
+            locationError: this.locationError,
             gpsReady: this.gpsReady,
             gpsStatusText: this.gpsStatusText,
+            accessGranted: this.accessGranted,
+            accessError: this.accessError,
         };
     }
 
@@ -66,6 +84,84 @@ export default class LocationTracker {
         };
     }
 
+    async prepareAccess(timeoutMs = 5000) {
+        if (!navigator.geolocation) {
+            this.accessGranted = false;
+            this.accessError = 'no-geolocation';
+            this.publish();
+            throw new Error(this.accessError);
+        }
+
+        // Permissions API lets us distinguish an approved permission from a
+        // still-pending prompt. Geolocation timeout is acceptable only after
+        // the browser explicitly reports that permission is granted.
+        try {
+            if (navigator.permissions?.query) {
+                this.permissionStatus = await navigator.permissions.query({ name: 'geolocation' });
+                if (this.permissionStatus.state === 'denied') {
+                    this.accessGranted = false;
+                    this.accessError = 'permission-denied';
+                    this.publish();
+                    throw new Error(this.accessError);
+                }
+
+                this.permissionChangeHandler = () => {
+                    if (this.permissionStatus?.state !== 'granted') {
+                        this.accessGranted = false;
+                        this.accessError = 'permission-denied';
+                    } else {
+                        this.accessError = null;
+                    }
+                    this.publish();
+                };
+                this.permissionStatus.addEventListener?.('change', this.permissionChangeHandler);
+            }
+        } catch (error) {
+            if (error.message === 'permission-denied') throw error;
+            // Some browsers expose geolocation but do not implement this
+            // Permissions API descriptor. A successful location fix below
+            // remains the fallback proof of access.
+            this.permissionStatus = null;
+        }
+
+        return new Promise((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    this.accessGranted = true;
+                    this.accessError = null;
+                    this.handlePosition(this.toPlain(position));
+                    this.publish();
+                    resolve(true);
+                },
+                (error) => {
+                    if (error.code === 1) {
+                        this.accessGranted = false;
+                        this.accessError = 'permission-denied';
+                    } else if (error.code === 2) {
+                        this.accessGranted = false;
+                        this.accessError = 'location-unavailable';
+                    } else if (error.code === 3 && this.permissionStatus?.state === 'granted') {
+                        // The browser confirms permission and the location
+                        // service did not report itself unavailable. A fix may
+                        // still arrive asynchronously through watchPosition.
+                        this.accessGranted = true;
+                        this.accessError = null;
+                        this.publish();
+                        resolve(true);
+                        return;
+                    } else {
+                        this.accessGranted = false;
+                        this.accessError = 'permission-unconfirmed';
+                    }
+
+                    this.publish();
+                    reject(new Error(this.accessError));
+                },
+                { enableHighAccuracy: true, timeout: timeoutMs, maximumAge: 0 },
+            );
+        });
+    }
+
     start() {
         if (this.watchId !== null) {
             this.publish();
@@ -73,6 +169,8 @@ export default class LocationTracker {
         }
 
         if (!navigator.geolocation) {
+            this.accessGranted = false;
+            this.accessError = 'no-geolocation';
             this.gpsStatusText = 'Browser tidak mendukung GPS';
             this.publish();
             this.onError?.('Browser tidak mendukung pengambilan lokasi.');
@@ -83,9 +181,13 @@ export default class LocationTracker {
             (position) => this.handlePosition(this.toPlain(position)),
             (error) => {
                 if (error.code === 1) {
+                    this.accessGranted = false;
+                    this.accessError = 'permission-denied';
                     this.onError?.('Izin lokasi ditolak. Aktifkan izin lokasi di pengaturan browser.');
                 } else if (error.code === 2) {
-                    this.gpsStatusText = 'Sumber lokasi tidak tersedia';
+                    this.accessGranted = false;
+                    this.accessError = 'location-unavailable';
+                    this.gpsStatusText = 'Layanan lokasi tidak tersedia atau dinonaktifkan';
                 } else if (error.code === 3) {
                     this.gpsStatusText = 'GPS masih mencari lokasi presisi…';
                 }
@@ -119,97 +221,157 @@ export default class LocationTracker {
                 window.clearTimeout(waiter.timer);
                 waiter.resolve(reading);
             });
-
-            const lastPosition = this.lastGeocodedPosition;
-            const movedFar = !lastPosition || this.distanceMeters(lastPosition, reading) > 75;
-            const addressExpired = Date.now() - this.lastGeocodedAt >= 300_000;
-            if (!this.address || movedFar || addressExpired) this.resolveAddress(reading);
         }
 
+        // GPS boleh terus diperbarui, tetapi tidak mengubah snapshot sesi
+        // setelah koordinat dan alamat untuk watermark berhasil dibekukan.
         this.publish();
     }
 
-    distanceMeters(a, b) {
-        const radians = (degrees) => degrees * Math.PI / 180;
-        const dLat = radians(b.latitude - a.latitude);
-        const dLon = radians(b.longitude - a.longitude);
-        const lat1 = radians(a.latitude);
-        const lat2 = radians(b.latitude);
-        const value = Math.sin(dLat / 2) ** 2
-            + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
-        return 6371000 * 2 * Math.atan2(Math.sqrt(value), Math.sqrt(1 - value));
-    }
-
-    async resolveAddress(position, force = false) {
-        if (!position) return this.address;
-
-        // Jika reverse geocoding sedang berjalan, tunggu agar alamat yang
-        // dipakai watermark tidak kosong hanya karena request sebelumnya belum selesai.
-        if (this.addressLoading) {
-            const deadline = Date.now() + 8_500;
-            while (this.addressLoading && Date.now() < deadline) {
-                await new Promise((resolve) => window.setTimeout(resolve, 100));
-            }
-            if (this.addressLoading) return this.address;
-        }
-
-        const previous = this.lastGeocodedPosition;
-        const movedFar = !previous || this.distanceMeters(previous, position) > 75;
-        if (!force && this.address && !movedFar && Date.now() - this.lastGeocodedAt < 300_000) {
-            return this.address;
-        }
-
-        if (movedFar) {
-            this.address = '';
-            this.publish();
-        }
-
-        this.addressLoading = true;
+    async prepareSnapshot() {
+        const requestId = ++this.snapshotRequestId;
+        this.locationSnapshot = null;
+        this.locationStatus = 'searching';
+        this.locationError = null;
+        this.address = '';
         this.publish();
 
         try {
-            const url = new URL('https://nominatim.openstreetmap.org/reverse');
-            url.search = new URLSearchParams({
-                format: 'jsonv2',
-                lat: String(position.latitude),
-                lon: String(position.longitude),
-                zoom: '18',
-                addressdetails: '1',
-            }).toString();
+            const position = await this.getFreshPosition();
+            if (requestId !== this.snapshotRequestId) throw new Error('location-stopped');
 
-            const response = await fetch(url.toString(), {
-                headers: { Accept: 'application/json' },
-                signal: AbortSignal.timeout ? AbortSignal.timeout(8000) : undefined,
-            });
-            if (!response.ok) throw new Error('reverse-geocode-failed');
-
-            const result = await response.json();
-            this.address = typeof result.display_name === 'string'
-                ? result.display_name.slice(0, 500)
-                : '';
-            this.lastGeocodedAt = Date.now();
-            this.lastGeocodedPosition = position;
-        } catch (error) {
-            console.warn('Reverse geocoding tidak tersedia:', error);
-        } finally {
-            this.addressLoading = false;
+            const positionSnapshot = Object.freeze({ ...position });
+            this.locationStatus = 'geocoding';
             this.publish();
-        }
 
-        return this.address;
+            const address = await this.resolveAddress(positionSnapshot);
+            if (requestId !== this.snapshotRequestId) throw new Error('location-stopped');
+            if (!address) throw new Error('address-not-found');
+
+            this.locationSnapshot = Object.freeze({
+                ...positionSnapshot,
+                address,
+            });
+            this.locationStatus = 'ready';
+            this.publish();
+
+            return this.locationSnapshot;
+        } catch (error) {
+            if (requestId === this.snapshotRequestId) {
+                this.locationSnapshot = null;
+                this.locationStatus = 'failed';
+                this.locationError = error.message;
+                this.publish();
+            }
+            throw error;
+        }
     }
 
-    getFreshPosition() {
-        if (!navigator.geolocation) return Promise.reject(new Error('no-geolocation'));
+    samePosition(a, b) {
+        if (!a || !b) return false;
+
+        return Number(a.latitude).toFixed(5) === Number(b.latitude).toFixed(5)
+            && Number(a.longitude).toFixed(5) === Number(b.longitude).toFixed(5);
+    }
+
+    getAddressForPosition(position) {
+        return this.samePosition(this.lastGeocodedPosition, position) ? this.address : '';
+    }
+
+    async resolveAddress(position, force = false) {
+        if (!position) return '';
+
+        const addressMatchesPosition = this.samePosition(this.lastGeocodedPosition, position);
+        if (!force && addressMatchesPosition && this.address && Date.now() - this.lastGeocodedAt < 300_000) {
+            return this.address;
+        }
+
+        // Hindari request duplikat untuk koordinat yang sama, tetapi jangan
+        // menahan koordinat baru di belakang request lama.
+        if (this.addressRequestPromise && this.samePosition(this.pendingGeocodePosition, position)) {
+            return this.addressRequestPromise;
+        }
+
+        const requestId = ++this.addressRequestId;
+        const positionSnapshot = { ...position };
+        this.pendingGeocodePosition = positionSnapshot;
+        this.address = '';
+        this.lastGeocodedPosition = null;
+        this.addressLoading = true;
+        this.publish();
+
+        this.addressRequestPromise = (async () => {
+            try {
+                if (!this.reverseGeocodeUrl) throw new Error('reverse-geocode-url-missing');
+
+                const url = new URL(this.reverseGeocodeUrl, window.location.origin);
+                url.search = new URLSearchParams({
+                    latitude: String(positionSnapshot.latitude),
+                    longitude: String(positionSnapshot.longitude),
+                }).toString();
+
+                const response = await fetch(url.toString(), {
+                    headers: { Accept: 'application/json' },
+                    credentials: 'same-origin',
+                    signal: AbortSignal.timeout ? AbortSignal.timeout(8000) : undefined,
+                });
+                if (!response.ok) throw new Error('reverse-geocode-failed');
+
+                const result = await response.json();
+                // Respons hanya boleh mengubah state jika masih request terbaru.
+                if (requestId !== this.addressRequestId) return '';
+
+                this.address = typeof result.address === 'string'
+                    ? result.address.slice(0, 500)
+                    : '';
+                this.lastGeocodedAt = Date.now();
+                this.lastGeocodedPosition = positionSnapshot;
+                return this.address;
+            } catch (error) {
+                if (requestId === this.addressRequestId) {
+                    console.warn('Reverse geocoding tidak tersedia:', error);
+                }
+                return '';
+            } finally {
+                if (requestId === this.addressRequestId) {
+                    this.addressLoading = false;
+                    this.pendingGeocodePosition = null;
+                    this.addressRequestPromise = null;
+                    this.publish();
+                }
+            }
+        })();
+
+        return this.addressRequestPromise;
+    }
+
+    async getFreshPosition() {
+        if (!navigator.geolocation) throw new Error('no-geolocation');
 
         const age = this.best ? Date.now() - (this.best.measuredAt ?? this.best.receivedAt) : Infinity;
         if (this.best && age >= 0 && age <= MAX_READING_AGE_MS
             && this.best.accuracy <= MAX_ACCEPTABLE_ACCURACY_METERS) {
-            return Promise.resolve(this.best);
+            return this.best;
         }
 
         if (this.watchId === null) this.start();
 
+        for (let attempt = 1; attempt <= LOCATION_RETRY_ATTEMPTS; attempt += 1) {
+            try {
+                return await this.waitForAccuratePosition(LOCATION_ATTEMPT_TIMEOUT_MS);
+            } catch (error) {
+                if (attempt === LOCATION_RETRY_ATTEMPTS) {
+                    this.gpsStatusText = 'GPS tidak tersedia atau belum cukup presisi.';
+                    this.publish();
+                    throw error;
+                }
+            }
+        }
+
+        throw new Error('location-not-accurate');
+    }
+
+    waitForAccuratePosition(timeoutMs) {
         return new Promise((resolve, reject) => {
             const waiter = {
                 resolve,
@@ -217,7 +379,7 @@ export default class LocationTracker {
                 timer: window.setTimeout(() => {
                     this.waiters = this.waiters.filter((item) => item !== waiter);
                     reject(new Error('location-not-accurate'));
-                }, LOCATION_WAIT_TIMEOUT_MS),
+                }, timeoutMs),
             };
             this.waiters.push(waiter);
         });
@@ -240,10 +402,29 @@ export default class LocationTracker {
     }
 
     stop() {
+        this.snapshotRequestId += 1;
+        this.locationSnapshot = null;
+        this.locationStatus = 'searching';
+        this.locationError = null;
+        this.best = null;
+        this.liveAccuracy = null;
+        this.gpsReady = false;
+        this.gpsStatusText = 'Mencari lokasi GPS presisi…';
+        this.addressRequestId += 1;
+        this.address = '';
+        this.lastGeocodedPosition = null;
+        this.pendingGeocodePosition = null;
+        this.addressRequestPromise = null;
+        this.addressLoading = false;
         if (this.watchId !== null && navigator.geolocation) {
             navigator.geolocation.clearWatch(this.watchId);
         }
         this.watchId = null;
+
+        this.permissionStatus?.removeEventListener?.('change', this.permissionChangeHandler);
+        this.permissionStatus = null;
+        this.permissionChangeHandler = null;
+        this.accessGranted = false;
 
         if (this.freshnessTimer !== null) {
             window.clearInterval(this.freshnessTimer);

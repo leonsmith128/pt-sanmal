@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -10,17 +11,32 @@ return new class extends Migration
     {
         Schema::create('locations', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('client_id')->nullable()->constrained('clients')->restrictOnDelete();
             $table->string('name');
             $table->string('type', 20)->default('site'); // office / site
             $table->text('address')->nullable();
             $table->decimal('latitude', 10, 7)->nullable();
             $table->decimal('longitude', 10, 7)->nullable();
-            // Nullable: kebijakan geofence belum diputuskan
-            $table->unsignedInteger('geofence_radius_m')->nullable();
-            $table->string('timezone', 50)->default('Asia/Makassar'); // identifier IANA
+            // Disimpan sebagai identifier IANA, mis. Asia/Makassar.
+            $table->string('timezone', 50)->default('Asia/Makassar');
             $table->boolean('is_active')->default(true);
             $table->timestamps();
+
+            $table->index(['client_id', 'is_active']);
         });
+
+        // SQLite tidak mendukung ALTER TABLE ... ADD CONSTRAINT.
+        // Validasi model tetap berjalan lintas driver; constraint DB dipasang di MySQL/MariaDB.
+        if (in_array(DB::getDriverName(), ['mysql', 'mariadb'], true)) {
+            DB::statement(<<<'SQL'
+                ALTER TABLE locations
+                ADD CONSTRAINT locations_type_client_consistency_check
+                CHECK (
+                    (type = 'office' AND client_id IS NULL)
+                    OR (type = 'site' AND client_id IS NOT NULL)
+                )
+            SQL);
+        }
     }
 
     public function down(): void

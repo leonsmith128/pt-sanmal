@@ -8,10 +8,10 @@ use App\Models\LeaveRequest;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\View\View;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AdminLeaveRequestController extends Controller
 {
@@ -53,7 +53,9 @@ class AdminLeaveRequestController extends Controller
         $decision = LeaveRequestStatus::from($validated['decision']);
 
         DB::transaction(function () use ($request, $leaveRequest, $decision, $validated): void {
-            $locked = LeaveRequest::query()->whereKey($leaveRequest->id)->lockForUpdate()->firstOrFail();
+            $locked = LeaveRequest::query()->with('employee.user')->whereKey($leaveRequest->id)->lockForUpdate()->firstOrFail();
+
+            abort_if($locked->employee?->user_id === $request->user()->id, 403, 'Anda tidak dapat memproses permohonan milik sendiri.');
 
             if (! $locked->isPending()) {
                 abort(422, 'Permohonan sudah diproses dan tidak dapat diputuskan kembali.');

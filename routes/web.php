@@ -2,19 +2,25 @@
 
 use App\Enums\UserRole;
 use App\Http\Controllers\AdminAttendanceCorrectionController;
-use App\Http\Controllers\AdminAuditLogController;
-use App\Http\Controllers\AdminDashboardController;
-use App\Http\Controllers\AdminDailyAttendanceController;
 use App\Http\Controllers\AdminAttendanceExportController;
+use App\Http\Controllers\AdminAuditLogController;
+use App\Http\Controllers\AdminDailyAttendanceController;
+use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AdminEmployeeController;
 use App\Http\Controllers\AdminLeaveRequestController;
+use App\Http\Controllers\AdminClientController;
+use App\Http\Controllers\AdminLocationController;
+use App\Http\Controllers\AdminProjectController;
 use App\Http\Controllers\AdminOvertimeRequestController;
 use App\Http\Controllers\AttendanceHistoryController;
+use App\Http\Controllers\AttendanceCorrectionController;
+use App\Http\Controllers\AttendanceReverseGeocodeController;
 use App\Http\Controllers\AttendanceSelfieController;
+use App\Http\Controllers\AttendanceSelfieDriveController;
 use App\Http\Controllers\LeaveRequestController;
 use App\Http\Controllers\OvertimeRequestController;
-use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\EnsureUserHasRole;
+use App\Http\Middleware\EnsureUserIsActive;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/login')->name('home');
@@ -24,9 +30,17 @@ Route::middleware(['auth', EnsureUserIsActive::class, 'verified'])->group(functi
     Route::livewire('profil', 'pages::employee.employee-profile')->name('profile.edit');
     Route::redirect('profil-pegawai', '/profil')->name('employee-profile.edit');
     Route::livewire('absensi', 'pages::employee.attendance')->name('attendance');
+    Route::get('absensi/reverse-geocode', AttendanceReverseGeocodeController::class)
+        ->middleware('throttle:30,1')
+        ->name('attendance.reverse-geocode');
     Route::get('riwayat-absensi', [AttendanceHistoryController::class, 'index'])->name('attendance-history.index');
     Route::get('riwayat-absensi/ekspor', [AttendanceHistoryController::class, 'export'])->name('attendance-history.export');
     Route::get('riwayat-absensi/{record}/foto', [AttendanceSelfieController::class, 'showForEmployee'])->name('attendance-history.selfie');
+    Route::get('riwayat-absensi/{record}/foto/download', [AttendanceSelfieController::class, 'downloadForEmployee'])->name('attendance-history.selfie.download');
+
+    Route::get('koreksi-absensi/buat', [AttendanceCorrectionController::class, 'create'])->name('attendance-corrections.create');
+    Route::post('koreksi-absensi', [AttendanceCorrectionController::class, 'store'])->name('attendance-corrections.store');
+    Route::patch('koreksi-absensi/{attendanceCorrection}/batalkan', [AttendanceCorrectionController::class, 'cancel'])->name('attendance-corrections.cancel');
 
     Route::get('permohonan', [LeaveRequestController::class, 'index'])->name('leave-requests.index');
     Route::get('permohonan/ekspor', [LeaveRequestController::class, 'export'])->name('leave-requests.export');
@@ -47,7 +61,14 @@ Route::middleware(['auth', EnsureUserIsActive::class, 'verified'])->group(functi
             Route::livewire('kehadiran', 'pages::admin.kehadiran')->name('kehadiran');
             Route::get('kehadiran/ekspor', [AdminAttendanceExportController::class, 'export'])->name('kehadiran.export');
             Route::get('kehadiran/{record}/selfie', [AttendanceSelfieController::class, 'show'])->name('attendance.selfie');
+            Route::get('kehadiran/{record}/selfie/download', [AttendanceSelfieController::class, 'download'])->name('attendance.selfie.download');
+            Route::post('kehadiran/{record}/selfie/backup', [AttendanceSelfieDriveController::class, 'store'])->name('attendance.selfie.backup');
+            Route::delete('kehadiran/{record}/selfie/local', [AttendanceSelfieDriveController::class, 'destroyLocal'])->name('attendance.selfie.delete-local');
             Route::post('kehadiran/{record}/koreksi-waktu', [AdminAttendanceCorrectionController::class, 'correctTimestamp'])->name('kehadiran.correct-timestamp');
+
+            Route::resource('clients', AdminClientController::class)->except(['destroy']);
+            Route::resource('locations', AdminLocationController::class)->except(['destroy']);
+            Route::resource('projects', AdminProjectController::class)->except(['destroy']);
 
             Route::resource('pegawai', AdminEmployeeController::class)
                 ->parameters(['pegawai' => 'employee'])

@@ -20,6 +20,12 @@
                     <dt class="text-sm text-zinc-500">{{ __('Jenis') }}</dt>
                     <dd>{{ $correction->requested_type }}</dd>
                 </div>
+                @if ($correction->sessionAnchor)
+                    <div>
+                        <dt class="text-sm text-zinc-500">{{ __('Anchor sesi Clock In') }}</dt>
+                        <dd>#{{ $correction->sessionAnchor->id }} · {{ $correction->sessionAnchor->recordedAtLocal()->format('d M Y H:i T') }}</dd>
+                    </div>
+                @endif
                 @if ($correction->attendanceRecord)
                     <div>
                         <dt class="text-sm text-zinc-500">{{ __('Waktu bukti asli (immutable)') }}</dt>
@@ -28,7 +34,7 @@
                 @endif
                 <div>
                     <dt class="text-sm text-zinc-500">{{ __('Waktu yang diminta') }}</dt>
-                    <dd>{{ $correction->requested_recorded_at->setTimezone($correction->attendanceRecord?->timezone ?? config('app.timezone'))->format('d M Y H:i T') }}</dd>
+                    <dd>{{ $correction->requested_recorded_at->setTimezone($correction->sessionAnchor?->timezone ?? $correction->attendanceRecord?->timezone ?? config('app.timezone'))->format('d M Y H:i T') }}</dd>
                 </div>
                 <div>
                     <dt class="text-sm text-zinc-500">{{ __('Status') }}</dt>
@@ -36,9 +42,46 @@
                 </div>
             </dl>
 
+            @php($snapshotRecord = $correction->sessionAnchor ?? $correction->attendanceRecord)
+            @if ($snapshotRecord)
+                <div class="rounded-lg bg-zinc-50 p-3 dark:bg-zinc-800">
+                    <p class="mb-2 text-sm font-medium">{{ __('Identitas pekerjaan saat Clock In') }}</p>
+                    <dl class="grid gap-2 text-sm sm:grid-cols-2">
+                        @if ($snapshotRecord->client_name_snapshot)
+                            <div><dt class="text-zinc-500">{{ __('Client') }}</dt><dd>{{ $snapshotRecord->client_code_snapshot ? $snapshotRecord->client_code_snapshot.' · ' : '' }}{{ $snapshotRecord->client_name_snapshot }}</dd></div>
+                        @endif
+                        @if ($snapshotRecord->project_name_snapshot)
+                            <div><dt class="text-zinc-500">{{ __('Proyek') }}</dt><dd>{{ $snapshotRecord->project_code_snapshot ? $snapshotRecord->project_code_snapshot.' · ' : '' }}{{ $snapshotRecord->project_name_snapshot }}</dd></div>
+                        @endif
+                        @if ($snapshotRecord->location_name_snapshot)
+                            <div><dt class="text-zinc-500">{{ __('Lokasi') }}</dt><dd>{{ $snapshotRecord->location_name_snapshot }}</dd></div>
+                        @endif
+                        <div><dt class="text-zinc-500">{{ __('Sumber snapshot') }}</dt><dd>{{ $snapshotRecord->snapshot_source === 'migration_backfill' ? __('Backfill migrasi (baseline data master)') : ($snapshotRecord->snapshot_source === 'clock_in' ? __('Diambil saat Clock In') : '—') }}</dd></div>
+                    </dl>
+                </div>
+            @endif
+
             @if ($correction->status === 'approved' && $correction->attendanceRecord)
+                <div>
+                    <p class="text-sm text-zinc-500">{{ __('Waktu efektif saat ini') }}</p>
+                    <p>{{ $correction->attendanceRecord->effectiveRecordedAtLocal()->format('d M Y H:i T') }}</p>
+                    @if ($correction->attendanceRecord->approvedCorrection?->is($correction))
+                        <flux:callout variant="success" icon="check-circle" class="mt-2">
+                            <flux:callout.text>{{ __('Permohonan ini menjadi koreksi terakhir yang menentukan waktu efektif. Timestamp bukti asli tetap tersimpan tanpa perubahan.') }}</flux:callout.text>
+                        </flux:callout>
+                    @else
+                        <flux:callout variant="warning" icon="information-circle" class="mt-2">
+                            <flux:callout.text>{{ __('Permohonan ini pernah disetujui, tetapi sudah ada koreksi yang lebih baru. Waktu efektif saat ini mengikuti koreksi terakhir.') }}</flux:callout.text>
+                        </flux:callout>
+                    @endif
+                </div>
+            @endif
+            @if ($correction->generatedAttendanceRecord)
                 <flux:callout variant="success" icon="check-circle">
-                    <flux:callout.text>{{ __('Waktu efektif laporan menggunakan waktu yang disetujui. Timestamp bukti asli tetap tersimpan tanpa perubahan.') }}</flux:callout.text>
+                    <flux:callout.text>
+                        {{ __('Event Clock Out baru #') }}{{ $correction->generatedAttendanceRecord->id }}{{ __(' dibuat dan ditautkan ke sesi asli.') }}
+                        {{ __('Waktu efektif event:') }} {{ $correction->generatedAttendanceRecord->effectiveRecordedAtLocal()->format('d M Y H:i T') }}
+                    </flux:callout.text>
                 </flux:callout>
             @endif
 

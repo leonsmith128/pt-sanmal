@@ -60,8 +60,14 @@ class AdminOvertimeRequestController extends Controller
                 'decision_note' => $locked->decision_note,
             ];
 
+            $oldState = $locked->state->value;
+            $newState = $decision === OvertimeApprovalStatus::Rejected && $locked->start_record_id !== null
+                ? OvertimeState::NeedsReview
+                : $locked->state;
+
             $locked->update([
                 'approval_status' => $decision,
+                'state' => $newState,
                 'decided_by' => $request->user()->id,
                 'decided_at' => now(),
                 'decision_seen_at' => null,
@@ -74,6 +80,8 @@ class AdminOvertimeRequestController extends Controller
                 oldValues: $old,
                 newValues: [
                     'approval_status' => $locked->approval_status->value,
+                    'previous_state' => $oldState,
+                    'state' => $locked->state->value,
                     'decided_by' => $locked->decided_by,
                     'decided_at' => $locked->decided_at?->toISOString(),
                     'decision_note' => $locked->decision_note,

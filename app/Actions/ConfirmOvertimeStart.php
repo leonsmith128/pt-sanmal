@@ -3,6 +3,7 @@
 namespace App\Actions;
 
 use App\Enums\AttendanceType;
+use App\Enums\OvertimeApprovalStatus;
 use App\Enums\OvertimeState;
 use App\Enums\SelfieSource;
 use App\Models\AttendanceRecord;
@@ -11,6 +12,7 @@ use App\Models\Employee;
 use App\Models\OvertimeRequest;
 use App\Support\AttendanceEvidence;
 use App\Support\AttendanceSelfie;
+use Carbon\CarbonInterface;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -20,12 +22,13 @@ class ConfirmOvertimeStart
     public function handle(
         Employee $employee,
         OvertimeRequest $overtime,
-        float $latitude,
-        float $longitude,
+        ?float $latitude,
+        ?float $longitude,
         ?float $accuracy,
         ?string $addressSnapshot,
         UploadedFile $selfie,
         SelfieSource $selfieSource = SelfieSource::Camera,
+        ?CarbonInterface $capturedAt = null,
     ): AttendanceRecord {
         if ($selfieSource !== SelfieSource::Camera) {
             $this->fail('selfieSource', 'Foto lembur harus diambil langsung dari kamera.');
@@ -44,7 +47,7 @@ class ConfirmOvertimeStart
         try {
             return DB::transaction(function () use (
                 $employee, $overtime, $latitude, $longitude, $accuracy,
-                $addressSnapshot, $selfie, $selfieSource, &$storedPath
+                $addressSnapshot, $selfie, $selfieSource, $capturedAt, &$storedPath
             ) {
                 Employee::query()->whereKey($employee->id)->lockForUpdate()->firstOrFail();
 
@@ -53,6 +56,10 @@ class ConfirmOvertimeStart
                     ->where('employee_id', $employee->id)
                     ->lockForUpdate()
                     ->firstOrFail();
+
+                if ($locked->approval_status === OvertimeApprovalStatus::Rejected) {
+                    $this->fail('form', 'Pengajuan lembur ditolak admin dan tidak dapat dimulai. Hubungi admin jika ada event yang perlu ditinjau.');
+                }
 
                 if (in_array($locked->state, [OvertimeState::Scheduled, OvertimeState::AwaitingPhoto], true) === false
                     || $locked->start_record_id !== null) {
@@ -75,16 +82,24 @@ class ConfirmOvertimeStart
 
                 $record = AttendanceRecord::create([
                     'employee_id' => $employee->id,
+                    'session_anchor_id' => $clockIn->session_anchor_id ?? $clockIn->id,
                     'type' => AttendanceType::OvertimeStart,
                     'work_type' => $clockIn->work_type,
                     'location_id' => $clockIn->location_id,
                     'project_id' => $clockIn->project_id,
+                    ...$clockIn->only([
+                        'client_code_snapshot', 'client_name_snapshot',
+                        'project_code_snapshot', 'project_name_snapshot',
+                        'location_name_snapshot', 'snapshot_source',
+                    ]),
                     'recorded_at' => $now,
+                    'captured_at' => $capturedAt,
                     'timezone' => $locked->timezone,
-                    'attendance_date' => $clockIn->attendance_date->toDateString(),
+                    'attendance_date' => $clockIn->effectiveAttendanceDate(),
                     'latitude' => $latitude,
                     'longitude' => $longitude,
                     'accuracy_m' => $accuracy,
+                    'location_status' => $latitude !== null && $longitude !== null && $accuracy !== null ? 'captured' : 'unavailable',
                     'address_snapshot' => $addressSnapshot,
                     'selfie_path' => $storedPath,
                     'selfie_source' => $selfieSource,

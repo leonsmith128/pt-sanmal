@@ -5,7 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
@@ -36,13 +35,6 @@ class Employee extends Model
     public function title(): BelongsTo
     {
         return $this->belongsTo(Title::class);
-    }
-
-    public function projects(): BelongsToMany
-    {
-        return $this->belongsToMany(Project::class, 'project_assignments')
-            ->withPivot(['starts_on', 'ends_on'])
-            ->withTimestamps();
     }
 
     public function attendanceRecords(): HasMany

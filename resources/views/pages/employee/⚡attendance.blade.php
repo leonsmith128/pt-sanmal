@@ -32,6 +32,7 @@ new #[Title('Absensi')] class extends Component {
     public $longitude = null;
     public $accuracy = null;
     public $addressSnapshot = null;
+    public $capturedAt = null;
     public $selfie = null;
     public string $selfieSource = 'camera';
     public string $selectedDate = '';
@@ -80,7 +81,7 @@ new #[Title('Absensi')] class extends Component {
     #[Computed]
     public function projects()
     {
-        return RecordAttendance::assignableProjects($this->employee)->get();
+        return RecordAttendance::availableForAttendance()->get();
     }
 
     #[Computed]
@@ -180,7 +181,7 @@ new #[Title('Absensi')] class extends Component {
 
     public function retakeSelfie(): void
     {
-        $this->reset('selfie', 'selfieSource', 'latitude', 'longitude', 'accuracy', 'addressSnapshot');
+        $this->reset('selfie', 'selfieSource', 'latitude', 'longitude', 'accuracy', 'addressSnapshot', 'capturedAt');
         $this->resetErrorBag();
     }
 
@@ -200,6 +201,7 @@ new #[Title('Absensi')] class extends Component {
                 'address'=>'addressSnapshot','selfie'=>'selfie',
             ]),
             'selfieSource' => ['required', Rule::enum(SelfieSource::class)],
+            'capturedAt' => ['nullable', 'date'],
         ];
 
         if ($type === AttendanceType::ClockIn) {
@@ -207,9 +209,6 @@ new #[Title('Absensi')] class extends Component {
         }
 
         $this->validate($rules, [
-            'latitude.required' => 'Lokasi belum terambil. Ambil ulang foto agar lokasi ikut terambil.',
-            'longitude.required' => 'Lokasi belum terambil. Ambil ulang foto agar lokasi ikut terambil.',
-            'accuracy.required' => 'Akurasi GPS belum tersedia. Tunggu hingga GPS siap lalu ambil foto.',
             ...AttendanceEvidence::messages('accuracy', 'selfie'),
             'selfie.required' => 'Foto belum diambil.',
         ]);
@@ -241,12 +240,13 @@ new #[Title('Absensi')] class extends Component {
                 app(ConfirmOvertimeStart::class)->handle(
                     employee: $this->employee,
                     overtime: $overtime,
-                    latitude: (float) $this->latitude,
-                    longitude: (float) $this->longitude,
+                    latitude: $this->latitude !== null ? (float) $this->latitude : null,
+                    longitude: $this->longitude !== null ? (float) $this->longitude : null,
                     accuracy: $this->accuracy !== null ? (float) $this->accuracy : null,
                     addressSnapshot: $this->addressSnapshot,
                     selfie: $this->selfie,
                     selfieSource: SelfieSource::from($this->selfieSource),
+                    capturedAt: $this->capturedAt ? Carbon::parse($this->capturedAt)->utc() : null,
                 );
             } else {
                 app(RecordAttendance::class)->handle(
@@ -255,12 +255,13 @@ new #[Title('Absensi')] class extends Component {
                     workType: WorkType::tryFrom($this->workType),
                     locationId: $this->locationId,
                     projectId: $this->projectId,
-                    latitude: (float) $this->latitude,
-                    longitude: (float) $this->longitude,
+                    latitude: $this->latitude !== null ? (float) $this->latitude : null,
+                    longitude: $this->longitude !== null ? (float) $this->longitude : null,
                     accuracy: $this->accuracy !== null ? (float) $this->accuracy : null,
                     addressSnapshot: $this->addressSnapshot,
                     selfie: $this->selfie,
                     selfieSource: SelfieSource::from($this->selfieSource),
+                    capturedAt: $this->capturedAt ? Carbon::parse($this->capturedAt)->utc() : null,
                 );
             }
         } catch (ValidationException $e) {
@@ -270,7 +271,7 @@ new #[Title('Absensi')] class extends Component {
             throw $e;
         }
 
-        $this->reset('latitude', 'longitude', 'accuracy', 'addressSnapshot', 'selfie', 'selfieSource');
+        $this->reset('latitude', 'longitude', 'accuracy', 'addressSnapshot', 'capturedAt', 'selfie', 'selfieSource');
         unset($this->openSession, $this->history, $this->overtimeRequest, $this->selectedDateOvertimeRequests, $this->hasClockInToday);
 
         Flux::modal('confirm-attendance')->close();
@@ -523,6 +524,11 @@ new #[Title('Absensi')] class extends Component {
                 @if ($workType === 'office')
                     @if ($this->officeLocations->isEmpty())
                         <flux:text class="text-red-500">{{ __('Belum ada lokasi kantor aktif. Hubungi admin.') }}</flux:text>
+                    @elseif ($this->officeLocations->count() === 1)
+                        <div class="rounded-lg border border-zinc-200 bg-zinc-50 p-3 text-sm dark:border-zinc-700 dark:bg-zinc-900">
+                            <span class="font-medium">{{ __('Lokasi kantor') }}:</span>
+                            {{ $this->officeLocations->first()->name }}
+                        </div>
                     @else
                         <flux:select wire:model="locationId" :label="__('Kantor')">
                             @foreach ($this->officeLocations as $office)
@@ -533,13 +539,22 @@ new #[Title('Absensi')] class extends Component {
                     @error('locationId') <flux:text class="text-red-500">{{ $message }}</flux:text> @enderror
                 @else
                     @if ($this->projects->isEmpty())
-                        <flux:text class="text-red-500">{{ __('Belum ada proyek aktif yang ditugaskan kepada Anda. Hubungi admin.') }}</flux:text>
+                        <flux:text class="text-red-500">{{ __('Belum ada proyek aktif yang tersedia untuk absensi. Hubungi admin.') }}</flux:text>
                     @else
-                        <flux:select wire:model="projectId" :label="__('Proyek')">
+                        <flux:select wire:model.live="projectId" :label="__('Proyek')">
                             @foreach ($this->projects as $project)
-                                <flux:select.option value="{{ $project->id }}">{{ $project->code }} &ndash; {{ $project->name }}</flux:select.option>
+                                <flux:select.option value="{{ $project->id }}">
+                                    {{ $project->code }} — {{ $project->name }} ({{ $project->client->name }})
+                                </flux:select.option>
                             @endforeach
                         </flux:select>
+                        @if ($selectedProject = $this->projects->firstWhere('id', (int) $projectId))
+                            <div class="rounded-lg border border-zinc-200 bg-zinc-50 p-3 text-sm dark:border-zinc-700 dark:bg-zinc-900">
+                                <p><span class="font-medium">{{ __('Client') }}:</span> {{ $selectedProject->client->name }}</p>
+                                <p><span class="font-medium">{{ __('Lokasi Site') }}:</span> {{ $selectedProject->location->name }}</p>
+                                <p><span class="font-medium">{{ __('Jenis layanan') }}:</span> {{ $selectedProject->project_type->label() }}</p>
+                            </div>
+                        @endif
                     @endif
                     @error('projectId') <flux:text class="text-red-500">{{ $message }}</flux:text> @enderror
                 @endif
@@ -629,6 +644,11 @@ new #[Title('Absensi')] class extends Component {
                         <dd class="font-medium">
                             @if ($accuracy !== null) &plusmn;{{ round((float) $accuracy) }} m @else — @endif
                         </dd>
+                    </div>
+                    <div class="grid gap-1 border-t border-zinc-200 pt-2 dark:border-zinc-700">
+                        <dt class="text-zinc-500">{{ __('Alamat pada watermark dan bukti yang akan disimpan') }}</dt>
+                        <dd class="break-words font-medium">{{ filled($addressSnapshot ?? null) ? $addressSnapshot : __('Alamat belum tersedia untuk koordinat ini.') }}</dd>
+                        <p class="text-xs text-zinc-500">{{ __('Alamat yang ditampilkan di sini adalah snapshot yang sama dengan yang dikirim bersama foto.') }}</p>
                     </div>
                     <div class="flex justify-between gap-4">
                         <dt class="text-zinc-500">{{ __('Sumber foto') }}</dt>

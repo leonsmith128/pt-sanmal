@@ -3,34 +3,77 @@
 namespace App\Models;
 
 use App\Enums\ProjectStatus;
+use App\Enums\ProjectType;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
+use Illuminate\Validation\ValidationException;
 
 /**
  * @property int $id
+ * @property int $client_id
  * @property string $code
  * @property string $name
- * @property int|null $location_id
+ * @property ProjectType $project_type
+ * @property int $location_id
  * @property string|null $description
  * @property Carbon|null $start_date
  * @property Carbon|null $end_date
  * @property ProjectStatus $status
- * @property-read Location|null $location
+ * @property-read Client $client
+ * @property-read Location $location
  */
-#[Fillable(['code', 'name', 'location_id', 'description', 'start_date', 'end_date', 'status'])]
+#[Fillable(['client_id', 'code', 'name', 'project_type', 'location_id', 'description', 'start_date', 'end_date', 'status'])]
 class Project extends Model
 {
+    protected static function booted(): void
+    {
+        static::saving(function (self $project): void {
+            if ($project->exists && $project->isDirty('client_id')) {
+                throw ValidationException::withMessages([
+                    'client_id' => 'Client proyek tidak dapat diganti setelah proyek dibuat.',
+                ]);
+            }
+
+            $mustValidateLocation = ! $project->exists
+                || $project->isDirty('location_id')
+                || ($project->isDirty('status') && $project->status === ProjectStatus::Active);
+
+            if (! $mustValidateLocation) {
+                return;
+            }
+
+            $location = Location::query()
+                ->whereKey($project->location_id)
+                ->where('client_id', $project->client_id)
+                ->where('type', 'site')
+                ->where('is_active', true)
+                ->first();
+
+            if ($location === null) {
+                throw ValidationException::withMessages([
+                    'location_id' => 'Project harus menggunakan Site aktif milik Client yang dipilih.',
+                ]);
+            }
+        });
+    }
+
     protected function casts(): array
     {
         return [
+            'project_type' => ProjectType::class,
             'start_date' => 'date',
             'end_date' => 'date',
             'status' => ProjectStatus::class,
         ];
+    }
+
+    public function client(): BelongsTo
+    {
+        return $this->belongsTo(Client::class);
     }
 
     public function location(): BelongsTo
@@ -38,11 +81,9 @@ class Project extends Model
         return $this->belongsTo(Location::class);
     }
 
-    public function employees(): BelongsToMany
+    public function attendanceRecords(): HasMany
     {
-        return $this->belongsToMany(Employee::class, 'project_assignments')
-            ->withPivot(['starts_on', 'ends_on'])
-            ->withTimestamps();
+        return $this->hasMany(AttendanceRecord::class);
     }
 
     public function scopeActive(Builder $query): Builder

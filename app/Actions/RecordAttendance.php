@@ -3,6 +3,7 @@
 namespace App\Actions;
 
 use App\Enums\AttendanceType;
+use App\Enums\OvertimeApprovalStatus;
 use App\Enums\OvertimeState;
 use App\Enums\SelfieSource;
 use App\Enums\WorkType;
@@ -13,6 +14,7 @@ use App\Models\OvertimeRequest;
 use App\Models\Project;
 use App\Support\AttendanceEvidence;
 use App\Support\AttendanceSelfie;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -20,28 +22,21 @@ use Illuminate\Validation\ValidationException;
 
 class RecordAttendance
 {
-    public const OPEN_SESSION_HOURS = 24;
-
     public const DEFAULT_TIMEZONE = 'Asia/Makassar';
 
     /** Sesi kerja terakhir yang belum ditutup clock-out. Event mulai lembur tidak menutup sesi. */
     public static function openSession(Employee $employee): ?AttendanceRecord
     {
-        $latest = $employee->attendanceRecords()
-            ->whereIn('type', [AttendanceType::ClockIn->value, AttendanceType::ClockOut->value])
-            ->with(['location', 'project'])
+        return AttendanceRecord::query()
+            ->where('employee_id', $employee->id)
+            ->where('type', AttendanceType::ClockIn)
+            ->whereColumn('session_anchor_id', 'id')
+            ->whereDoesntHave('sessionEvents', fn (Builder $query) => $query
+                ->where('type', AttendanceType::ClockOut))
+            ->with(['location', 'project.client', 'approvedCorrection'])
             ->orderByDesc('recorded_at')
             ->orderByDesc('id')
             ->first();
-
-        if ($latest && $latest->type === AttendanceType::ClockIn) {
-            // Sesi tetap terbuka sampai ada Clock Out, termasuk bila melewati tengah malam.
-            // Batas 24 jam hanya dipakai untuk mengelompokkan jadwal lembur masa depan,
-            // bukan untuk mengakhiri sesi secara otomatis.
-            return $latest;
-        }
-
-        return null;
     }
 
     /**
@@ -63,19 +58,15 @@ class RecordAttendance
             ->exists();
     }
 
-    public static function assignableProjects(Employee $employee): Builder
+    public static function availableForAttendance(): Builder
     {
-        $today = now(self::DEFAULT_TIMEZONE)->toDateString();
-
         return Project::query()
             ->active()
-            ->whereHas('employees', function ($query) use ($employee, $today) {
-                $query->where('employees.id', $employee->id)
-                    ->where(fn ($w) => $w->whereNull('project_assignments.starts_on')
-                        ->orWhere('project_assignments.starts_on', '<=', $today))
-                    ->where(fn ($w) => $w->whereNull('project_assignments.ends_on')
-                        ->orWhere('project_assignments.ends_on', '>=', $today));
-            })
+            ->whereHas('client')
+            ->whereHas('location', fn (Builder $location) => $location
+                ->where('type', 'site')
+                ->where('is_active', true))
+            ->with(['client', 'location'])
             ->orderBy('name');
     }
 
@@ -90,19 +81,20 @@ class RecordAttendance
         ?WorkType $workType,
         mixed $locationId,
         mixed $projectId,
-        float $latitude,
-        float $longitude,
+        ?float $latitude,
+        ?float $longitude,
         ?float $accuracy,
         UploadedFile $selfie,
         SelfieSource $selfieSource,
         ?string $addressSnapshot = null,
+        ?CarbonInterface $capturedAt = null,
     ): AttendanceRecord {
         if ($selfieSource !== SelfieSource::Camera) {
             $this->fail('selfieSource', 'Foto absensi harus diambil langsung dari kamera.');
         }
 
-        // Validasi ulang di action agar jalur pemanggilan lain tidak dapat
-        // menyimpan koordinat dengan kualitas GPS yang tidak layak.
+        // Validasi ulang agar koordinat yang dikirim tetap lengkap dan memenuhi
+        // batas akurasi. Seluruh bukti lokasi boleh kosong jika GPS gagal.
         AttendanceEvidence::validate([
             'latitude' => $latitude,
             'longitude' => $longitude,
@@ -114,7 +106,7 @@ class RecordAttendance
         try {
             return DB::transaction(function () use (
                 $employee, $type, $workType, $locationId, $projectId,
-                $latitude, $longitude, $accuracy, $selfie, $selfieSource, $addressSnapshot, &$storedPath
+                $latitude, $longitude, $accuracy, $selfie, $selfieSource, $addressSnapshot, $capturedAt, &$storedPath
             ) {
                 Employee::query()->whereKey($employee->id)->lockForUpdate()->firstOrFail();
 
@@ -132,7 +124,7 @@ class RecordAttendance
                         $this->fail('form', 'Anda sudah menggunakan sesi absensi untuk tanggal ini. Setelah Clock Out, Anda tidak dapat Clock In lagi pada tanggal yang sama.');
                     }
 
-                    [$workType, $location, $project] = $this->resolveTarget($employee, $workType, $locationId, $projectId);
+                    [$workType, $location, $project] = $this->resolveTarget($workType, $locationId, $projectId);
                 } elseif ($type === AttendanceType::ClockOut) {
                     if ($open === null) {
                         $this->fail('form', 'Tidak ada clock-in yang perlu ditutup. Lakukan clock-in terlebih dahulu.');
@@ -164,6 +156,21 @@ class RecordAttendance
                     $this->fail('form', 'Jenis event absensi tidak valid untuk proses ini.');
                 }
 
+                $identitySnapshot = $type === AttendanceType::ClockIn
+                    ? [
+                        'client_code_snapshot' => $project?->client?->code,
+                        'client_name_snapshot' => $project?->client?->name,
+                        'project_code_snapshot' => $project?->code,
+                        'project_name_snapshot' => $project?->name,
+                        'location_name_snapshot' => $location?->name,
+                        'snapshot_source' => 'clock_in',
+                    ]
+                    : $open->only([
+                        'client_code_snapshot', 'client_name_snapshot',
+                        'project_code_snapshot', 'project_name_snapshot',
+                        'location_name_snapshot', 'snapshot_source',
+                    ]);
+
                 $timezone = $location?->timezone ?? self::DEFAULT_TIMEZONE;
                 $now = now();
 
@@ -171,26 +178,30 @@ class RecordAttendance
 
                 $record = AttendanceRecord::create([
                     'employee_id' => $employee->id,
+                    'session_anchor_id' => $type === AttendanceType::ClockOut ? ($open->session_anchor_id ?? $open->id) : null,
                     'type' => $type,
                     'work_type' => $workType,
                     'location_id' => $location?->id,
                     'project_id' => $project?->id,
+                    ...$identitySnapshot,
                     'recorded_at' => $now,
+                    'captured_at' => $capturedAt,
                     'timezone' => $timezone,
-                    'attendance_date' => (
-                        $type === AttendanceType::ClockOut
-                            ? $open->attendance_date
-                            : $now->copy()->setTimezone($timezone)
-                    )->toDateString(),
+                    'attendance_date' => $type === AttendanceType::ClockOut
+                        ? $open->effectiveAttendanceDate()
+                        : $now->copy()->setTimezone($timezone)->toDateString(),
                     'latitude' => $latitude,
                     'longitude' => $longitude,
                     'accuracy_m' => $accuracy,
+                    'location_status' => $latitude !== null && $longitude !== null && $accuracy !== null ? 'captured' : 'unavailable',
                     'address_snapshot' => $addressSnapshot,
                     'selfie_path' => $storedPath,
                     'selfie_source' => $selfieSource,
                 ]);
 
                 if ($type === AttendanceType::ClockIn) {
+                    $record->forceFill(['session_anchor_id' => $record->id])->save();
+
                     // Kaitkan pengajuan yang dibuat sebelum clock-in ke sesi pada tanggal target.
                     // Kaitkan jadwal yang mulai dalam jendela sesi teknis (maks. 24 jam),
                     // termasuk jadwal setelah tengah malam pada sesi yang sama.
@@ -232,7 +243,9 @@ class RecordAttendance
                     && ($overtime->start_record_id !== null || $overtime->state === OvertimeState::NeedsReview)
                 ) {
                     $overtime->update([
-                        'state' => OvertimeState::Completed,
+                        'state' => $overtime->approval_status === OvertimeApprovalStatus::Rejected
+                            ? OvertimeState::NeedsReview
+                            : OvertimeState::Completed,
                         'clock_out_record_id' => $record->id,
                         'completed_at' => $now,
                     ]);
@@ -252,7 +265,7 @@ class RecordAttendance
     }
 
     /** @return array{0: WorkType, 1: ?Location, 2: ?Project} */
-    private function resolveTarget(Employee $employee, ?WorkType $workType, mixed $locationId, mixed $projectId): array
+    private function resolveTarget(?WorkType $workType, mixed $locationId, mixed $projectId): array
     {
         if ($workType === WorkType::Office) {
             $location = self::officeLocations()->find($locationId);
@@ -265,10 +278,10 @@ class RecordAttendance
         }
 
         if ($workType === WorkType::Onsite) {
-            $project = self::assignableProjects($employee)->with('location')->find($projectId);
+            $project = self::availableForAttendance()->find($projectId);
 
             if ($project === null) {
-                $this->fail('projectId', 'Proyek tidak valid atau tidak ditugaskan kepada Anda.');
+                $this->fail('projectId', 'Proyek tidak valid atau tidak tersedia untuk absensi.');
             }
 
             return [WorkType::Onsite, $project->location, $project];

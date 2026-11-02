@@ -1,5 +1,5 @@
 <x-layouts::app :title="__('Riwayat Absensi')">
-    <div class="mx-auto w-full max-w-5xl space-y-5 px-4 py-4 sm:px-6 sm:py-6">
+    <div x-data="{ selfiePreviewOpen: false, selfiePreviewUrl: null, selfieDownloadUrl: null }" x-on:keydown.escape.window="selfiePreviewOpen = false" class="mx-auto w-full max-w-5xl space-y-5 px-4 py-4 sm:px-6 sm:py-6">
         <header class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
                 <flux:heading size="xl" level="1">{{ __('Riwayat Absensi') }}</flux:heading>
@@ -7,7 +7,7 @@
             </div>
             <div class="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
                 <flux:button href="{{ route('attendance-history.export', request()->query()) }}" variant="outline" icon="arrow-down-tray" class="w-full sm:w-auto">
-                    {{ __('Ekspor Excel (CSV)') }}
+                    {{ __('Ekspor rekap harian (CSV)') }}
                 </flux:button>
                 <flux:button href="{{ route('attendance') }}" variant="primary" icon="clock" class="w-full sm:w-auto">
                     {{ __('Buka halaman absensi') }}
@@ -65,18 +65,38 @@
 
                         <div class="flex items-start gap-3">
                             @if ($record->selfie_path)
-                                <a href="{{ route('attendance-history.selfie', $record) }}" target="_blank" rel="noopener noreferrer" class="shrink-0" aria-label="{{ __('Buka foto absensi') }}">
-                                    <img src="{{ route('attendance-history.selfie', $record) }}" alt="{{ __('Foto absensi') }}" loading="lazy" class="size-20 rounded-lg border border-zinc-200 object-cover dark:border-zinc-700">
-                                </a>
+                                <button
+                                    type="button"
+                                    data-preview-url="{{ route('attendance-history.selfie', $record) }}"
+                                    data-download-url="{{ route('attendance-history.selfie.download', $record) }}"
+                                    x-on:click="selfiePreviewUrl = $el.dataset.previewUrl; selfieDownloadUrl = $el.dataset.downloadUrl; selfiePreviewOpen = true"
+                                    class="shrink-0"
+                                    aria-label="{{ __('Pratinjau foto absensi') }}"
+                                >
+                                    @if ($record->local_deleted_at)
+                                        <span class="flex size-20 flex-col items-center justify-center gap-1 rounded-lg border border-zinc-200 bg-zinc-50 text-xs text-zinc-500 dark:border-zinc-700 dark:bg-zinc-800">
+                                            <flux:icon name="cloud" class="size-5" />
+                                            {{ __('Di Drive') }}
+                                        </span>
+                                    @else
+                                        <img src="{{ route('attendance-history.selfie', $record) }}" alt="{{ __('Foto absensi') }}" loading="lazy" class="size-20 rounded-lg border border-zinc-200 object-cover dark:border-zinc-700">
+                                    @endif
+                                </button>
                             @else
                                 <div class="flex size-20 shrink-0 items-center justify-center rounded-lg bg-zinc-100 text-zinc-400 dark:bg-zinc-800">
-                                    <flux:icon name="image-off" class="size-6" />
+                                    <flux:icon name="photo" class="size-6" />
                                 </div>
                             @endif
 
                             <div class="min-w-0 space-y-1 text-sm text-zinc-600 dark:text-zinc-300">
                                 <p><span class="font-medium">{{ __('Jenis kerja') }}:</span> {{ $record->work_type->label() }}</p>
-                                <p><span class="font-medium">{{ __('Lokasi') }}:</span> {{ $record->project?->name ?? $record->location?->name ?? '—' }}</p>
+                                @if ($record->client_name_snapshot)
+                                    <p><span class="font-medium">{{ __('Client') }}:</span> {{ $record->client_code_snapshot ? $record->client_code_snapshot.' · ' : '' }}{{ $record->client_name_snapshot }}</p>
+                                @endif
+                                @if ($record->project_name_snapshot)
+                                    <p><span class="font-medium">{{ __('Proyek') }}:</span> {{ $record->project_code_snapshot ? $record->project_code_snapshot.' · ' : '' }}{{ $record->project_name_snapshot }}</p>
+                                @endif
+                                <p><span class="font-medium">{{ __('Lokasi') }}:</span> {{ $record->location_name_snapshot ?? '—' }}</p>
                                 @if (($record->latitude !== null && $record->longitude !== null) || $record->address_snapshot)
                                     <a href="https://www.google.com/maps/search/?api=1&amp;query={{ urlencode($record->latitude !== null && $record->longitude !== null ? $record->latitude . ',' . $record->longitude : $record->address_snapshot) }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 font-medium text-blue-600 hover:underline dark:text-blue-400" title="{{ $record->address_snapshot }}">
                                         <flux:icon name="map-pin" class="size-4" />
@@ -85,6 +105,13 @@
                                 @else
                                     <p class="text-zinc-400">—</p>
                                 @endif
+                                @if ($record->snapshot_source === 'migration_backfill')
+                                    <p class="text-xs text-amber-600 dark:text-amber-400">{{ __('Identitas pekerjaan menggunakan data master saat migrasi, bukan catatan historis terverifikasi.') }}</p>
+                                @endif
+                                <p class="break-words text-xs text-zinc-500">
+                                    <span class="font-medium">{{ __('Alamat tersimpan:') }}</span>
+                                    {{ $record->address_snapshot ?: __('Alamat belum tersedia') }}
+                                </p>
                             </div>
                         </div>
                     </article>
@@ -119,12 +146,36 @@
                                         </flux:badge>
                                     </td>
                                     <td class="px-4 py-4">{{ $record->work_type->label() }}</td>
-                                    <td class="px-4 py-4">{{ $record->project?->name ?? $record->location?->name ?? '—' }}</td>
+                                    <td class="px-4 py-4">
+                                        @if ($record->client_name_snapshot)
+                                            <p class="text-xs text-zinc-500">{{ __('Client') }}: {{ $record->client_code_snapshot ? $record->client_code_snapshot.' · ' : '' }}{{ $record->client_name_snapshot }}</p>
+                                        @endif
+                                        @if ($record->project_name_snapshot)
+                                            <p>{{ $record->project_code_snapshot ? $record->project_code_snapshot.' · ' : '' }}{{ $record->project_name_snapshot }}</p>
+                                        @endif
+                                        <p class="text-xs text-zinc-500">{{ $record->location_name_snapshot ?? '—' }}</p>
+                                        @if ($record->snapshot_source === 'migration_backfill')
+                                            <p class="mt-1 text-xs text-amber-600 dark:text-amber-400">{{ __('Baseline migrasi') }}</p>
+                                        @endif
+                                    </td>
                                     <td class="px-4 py-4">
                                         @if ($record->selfie_path)
-                                            <a href="{{ route('attendance-history.selfie', $record) }}" target="_blank" rel="noopener noreferrer" aria-label="{{ __('Buka foto absensi') }}">
-                                                <img src="{{ route('attendance-history.selfie', $record) }}" alt="{{ __('Foto absensi') }}" loading="lazy" class="size-16 rounded-lg border border-zinc-200 object-cover dark:border-zinc-700">
-                                            </a>
+                                            <button
+                                                type="button"
+                                                data-preview-url="{{ route('attendance-history.selfie', $record) }}"
+                                                data-download-url="{{ route('attendance-history.selfie.download', $record) }}"
+                                                x-on:click="selfiePreviewUrl = $el.dataset.previewUrl; selfieDownloadUrl = $el.dataset.downloadUrl; selfiePreviewOpen = true"
+                                                aria-label="{{ __('Pratinjau foto absensi') }}"
+                                            >
+                                                @if ($record->local_deleted_at)
+                                                    <span class="flex size-16 flex-col items-center justify-center gap-1 rounded-lg border border-zinc-200 bg-zinc-50 text-xs text-zinc-500 dark:border-zinc-700 dark:bg-zinc-800">
+                                                        <flux:icon name="cloud" class="size-4" />
+                                                        {{ __('Drive') }}
+                                                    </span>
+                                                @else
+                                                    <img src="{{ route('attendance-history.selfie', $record) }}" alt="{{ __('Foto absensi') }}" loading="lazy" class="size-16 rounded-lg border border-zinc-200 object-cover dark:border-zinc-700">
+                                                @endif
+                                            </button>
                                         @else
                                             <span class="text-zinc-400">—</span>
                                         @endif
@@ -138,6 +189,10 @@
                                         @else
                                             <span class="text-zinc-400">—</span>
                                         @endif
+                                        <p class="mt-1 max-w-xs whitespace-normal break-words text-xs text-zinc-500">
+                                            <span class="font-medium">{{ __('Alamat tersimpan:') }}</span>
+                                            {{ $record->address_snapshot ?: __('Alamat belum tersedia') }}
+                                        </p>
                                     </td>
                                 </tr>
                             @endforeach
@@ -148,5 +203,33 @@
 
             <div>{{ $records->links() }}</div>
         @endif
+        <div
+            x-show="selfiePreviewOpen"
+            x-cloak
+            x-transition.opacity
+            x-on:click.self="selfiePreviewOpen = false"
+            class="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-4"
+            role="dialog"
+            aria-modal="true"
+            aria-label="{{ __('Pratinjau foto absensi') }}"
+        >
+            <div class="flex max-h-full w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-zinc-900">
+                <div class="flex items-center justify-between gap-3 border-b border-zinc-200 px-4 py-3 dark:border-zinc-700">
+                    <h2 class="font-semibold">{{ __('Foto absensi') }}</h2>
+                    <button type="button" x-on:click="selfiePreviewOpen = false" class="rounded-lg p-2 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800" aria-label="{{ __('Tutup pratinjau') }}">
+                        <flux:icon name="x-mark" class="size-5" />
+                    </button>
+                </div>
+                <div class="min-h-0 overflow-auto bg-zinc-950 p-2">
+                    <img :src="selfiePreviewUrl" alt="{{ __('Foto absensi ukuran penuh') }}" class="mx-auto max-h-[75dvh] w-auto max-w-full object-contain">
+                </div>
+                <div class="flex justify-end border-t border-zinc-200 p-3 dark:border-zinc-700">
+                    <a :href="selfieDownloadUrl" class="inline-flex items-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300">
+                        <flux:icon name="arrow-down-tray" class="size-4" />
+                        {{ __('Unduh foto') }}
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
 </x-layouts::app>

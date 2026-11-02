@@ -12,12 +12,14 @@ return new class extends Migration
             $table->id();
             // Relasi utama
             $table->foreignId('employee_id')->constrained()->restrictOnDelete();
-            $table->foreignId('clock_in_record_id')->constrained('attendance_records')->restrictOnDelete();
+            $table->date('session_date')->nullable();
+            $table->foreignId('clock_in_record_id')->nullable()->constrained('attendance_records')->restrictOnDelete();
             $table->foreignId('start_record_id')->nullable()->unique()->constrained('attendance_records')->restrictOnDelete();
             $table->foreignId('clock_out_record_id')->nullable()->unique()->constrained('attendance_records')->restrictOnDelete();
             // Informasi pengajuan lembur
-            $table->string('reason', 2000);
+            $table->string('reason', 2000)->nullable();
             $table->timestamp('scheduled_start_at'); // UTC, waktu rencana
+            $table->timestamp('scheduled_end_at')->nullable();
             $table->string('timezone', 50)->default('Asia/Makassar');
             // Status lembur
             $table->string('state', 30)->default('scheduled');
@@ -36,11 +38,19 @@ return new class extends Migration
             $table->text('decision_note')->nullable();
             // Pengecualian konfirmasi foto
             $table->text('photo_exception_reason')->nullable();
+            // Finalisasi lembur
+            $table->string('finalization_source', 20)->nullable();
+            $table->timestamp('final_start_at')->nullable();
+            $table->timestamp('final_end_at')->nullable();
+            $table->text('finalization_reason')->nullable();
+            $table->foreignId('finalized_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->timestamp('finalized_at')->nullable();
             $table->timestamps();
-            // Index
+
             $table->index(['employee_id', 'scheduled_start_at']);
             $table->index(['state', 'scheduled_start_at']);
             $table->index(['approval_status', 'created_at']);
+            $table->index(['employee_id', 'session_date'], 'overtime_employee_session_date_index');
         });
     }
 
