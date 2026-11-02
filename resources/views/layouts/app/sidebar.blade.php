@@ -64,7 +64,7 @@
                     </flux:sidebar.group>
 
                     <flux:sidebar.group :heading="__('Proyek')" class="grid">
-                        <flux:sidebar.item icon="briefcase-business" :href="route('admin.projects.index')" :current="request()->routeIs('admin.projects.*')" wire:navigate>
+                        <flux:sidebar.item icon="briefcase" :href="route('admin.projects.index')" :current="request()->routeIs('admin.projects.*')" wire:navigate>
                             {{ __('Pengelolaan Proyek') }}
                         </flux:sidebar.item>
                     </flux:sidebar.group>
