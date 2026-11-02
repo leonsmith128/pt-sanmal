@@ -56,6 +56,18 @@ Detail viewport dan observasi visual hanya ditulis di [Visual QA Log](VISUAL-QA-
 - **Visual QA:** owner mengonfirmasi primary button diperiksa pada light/dark dan beberapa ukuran layar serta tampilannya lulus. Browser/version, device, ukuran viewport, screenshot, dan state interaksi individual tidak tersedia pada catatan konfirmasi; lihat [QA log](VISUAL-QA-LOG.md).
 - **Limitation:** specialized native controls tetap di luar wrapper generik dengan alasan semantik/interaksi.
 
+## Form controls — Batch 1 migration (in progress, 2026-11-03)
+
+- **Branch/PR:** `docs/ui-v1-scope-and-pr-workflow`, [PR #27](https://github.com/leonsmith128/pt-sanmal/pull/27).
+- **Scope:** Employee request-center filters and attendance-history date filters.
+- **Source:** `resources/views/pages/employee/leave-requests/index.blade.php` and `resources/views/pages/employee/attendance-history/index.blade.php`.
+- **Contracts:** GET field names (`q`, `type`, `status`, `from`, `to`), filter values, option values, route actions, reset links, export query forwarding, and date-filter validation rendering remain unchanged.
+- **Tests added/extended:** `RequestCenterTest` covers filter controls and retained query values; `AttendancePagesTest` covers retained date values and reset/apply actions.
+- **Automated checks:** CI for the current branch head is running; result not yet available.
+- **Browser/device checks:** Not run. No visual QA pass is claimed.
+- **Component changes:** None. Existing `x-ui.input` and `x-ui.select` primitives were sufficient.
+- **Status:** In progress pending CI completion and browser/viewport review.
+
 ## Dokumentasi dan status handoff
 
 Dokumentasi UI aktif terdiri dari Development Handoff, Design Foundation, Page Inventory, Component Catalog, Reusable Blade Components, file status ini, dan Visual QA Log. Audit UI lama yang sudah diserap atau tidak lagi relevan dihapus; jangan membuat ulang audit paralel. Tambahkan keputusan atau temuan baru ke dokumen aktif yang tepat.
