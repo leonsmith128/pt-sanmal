@@ -1,9 +1,9 @@
 <x-layouts::app :title="__('Ubah Pegawai')">
-    <div class="mx-auto w-full max-w-2xl space-y-5">
-        <div>
-            <flux:heading size="xl">{{ __('Ubah Data Pegawai') }}</flux:heading>
-            <flux:text>{{ $employee->user->email }}</flux:text>
-        </div>
+    <x-ui.page class="!max-w-2xl gap-5">
+        <x-admin.page-header
+            :title="__('Ubah Data Pegawai')"
+            :description="$employee->user->email"
+        />
 
         <x-admin.flash-message />
 
@@ -63,9 +63,9 @@
             </x-ui.select>
 
             <div class="flex justify-end gap-2">
-                <flux:button href="{{ route('admin.employees.index') }}" variant="outline">{{ __('Batal') }}</flux:button>
-                <flux:button type="submit" variant="primary">{{ __('Simpan perubahan') }}</flux:button>
+                <x-ui.button href="{{ route('admin.employees.index') }}" variant="outline">{{ __('Batal') }}</x-ui.button>
+                <x-ui.button type="submit" variant="primary">{{ __('Simpan perubahan') }}</x-ui.button>
             </div>
         </form>
-    </div>
+    </x-ui.page>
 </x-layouts::app>
