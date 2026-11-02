@@ -287,7 +287,7 @@ test('attendance status and overtime cards use a responsive two-column grid with
         ->assertOk()
         ->assertSee('grid grid-cols-1 items-stretch gap-3 sm:grid-cols-2', false)
         ->assertSee('showOvertimeDetails('.$overtime->id.')', false)
-        ->assertSee('name="request-overtime"', false);
+        ->assertSee('wire:submit="requestOvertime"', false);
 
     Livewire::actingAs($employee)
         ->test('pages::employee.attendance')
