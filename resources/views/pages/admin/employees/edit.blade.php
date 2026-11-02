@@ -1,5 +1,5 @@
 <x-layouts::app :title="__('Ubah Pegawai')">
-    <div class="mx-auto max-w-2xl space-y-5">
+    <div class="mx-auto w-full max-w-2xl space-y-5">
         <div>
             <flux:heading size="xl">{{ __('Ubah Data Pegawai') }}</flux:heading>
             <flux:text>{{ $employee->user->email }}</flux:text>
