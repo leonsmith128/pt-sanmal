@@ -177,9 +177,11 @@ Flux 2.13 button sizes are `xs`, `sm`, and `base`; do not pass unsupported value
 
 ### 6.3 Theme contrast and button states
 
-- Light theme: keep the neutral Flux outline treatment for secondary actions.
-- Dark theme: the shared `x-ui.button` applies a dedicated secondary treatment with a lighter neutral surface (`#262626`), border (`#525252`), and readable text (`#E5E7EB`). Hover increases surface and border contrast.
-- Primary remains SanMal blue in both themes; destructive remains semantic red.
+- Light theme primary: SanMal brand blue (`#003A6C`) with white text; hover uses brand dark blue (`#00294D`).
+- Dark theme primary: use a brighter blue (`#2563EB`) with white text so the dominant action remains distinct against dark surfaces; hover uses `#1D4ED8`. Keyboard focus uses a lighter blue outline (`#BFDBFE`).
+- Light theme secondary: keep the neutral Flux outline treatment.
+- Dark theme secondary: the shared `x-ui.button` applies a lighter neutral surface (`#262626`), border (`#525252`), and readable text (`#E5E7EB`). Hover increases surface and border contrast.
+- Destructive remains semantic red in both themes.
 - Theme-specific styles must preserve visible focus indication and disabled-state affordance.
 
 Check and preserve:
