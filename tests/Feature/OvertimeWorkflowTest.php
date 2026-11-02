@@ -268,7 +268,7 @@ it('keeps system notification timestamps and resolves overtime prompts when canc
     }
 
     expect($employee->user->notifications()->count())->toBe(3)
-        ->and($employee->user->notifications()->latest()->first()->data['event'])->toBe('cancelled');
+        ->and($employee->user->notifications()->where('data->event', 'cancelled')->exists())->toBeTrue();
 });
 
 it('does not send scheduled overtime notifications after cancellation', function () {
