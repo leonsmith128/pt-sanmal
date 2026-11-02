@@ -40,7 +40,7 @@
                         </div>
                         <div class="flex flex-wrap gap-2">
                             <flux:button size="sm" variant="outline" href="{{ route('admin.clients.edit', $client) }}">{{ __('Ubah Client') }}</flux:button>
-                            <flux:button size="sm" variant="filled" href="{{ route('admin.clients.show', $client) }}">{{ __('Detail Client') }}</flux:button>
+                            <flux:button size="sm" variant="outline" href="{{ route('admin.clients.show', $client) }}">{{ __('Detail Client') }}</flux:button>
                         </div>
                     </div>
 
