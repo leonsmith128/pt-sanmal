@@ -44,25 +44,29 @@
                                     <p class="break-words font-semibold text-zinc-900 dark:text-zinc-100">{{ $project->name }}</p>
                                     <div class="mt-1 flex flex-wrap items-center gap-1.5">
                                         <span class="font-mono text-xs text-zinc-500 dark:text-zinc-400">{{ $project->code }}</span>
-                                        <flux:badge size="sm" color="blue">{{ $project->project_type->label() }}</flux:badge>
+                                        <x-ui.badge size="sm" color="blue">{{ $project->project_type->label() }}</x-ui.badge>
                                     </div>
                                 </div>
-                                <flux:badge size="sm" :color="$project->status === \App\Enums\ProjectStatus::Active ? 'green' : 'zinc'">{{ $project->status->label() }}</flux:badge>
+                                <x-ui.badge size="sm" :color="$project->status === \App\Enums\ProjectStatus::Active ? 'green' : 'zinc'">{{ $project->status->label() }}</x-ui.badge>
                             </div>
 
-                            <div class="mt-3 grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
-                                <div class="min-w-0">
-                                    <p class="text-xs text-zinc-500 dark:text-zinc-400">{{ __('Client') }}</p>
-                                    <p class="break-words font-medium">{{ $project->client->name }}</p>
-                                </div>
-                                <div class="min-w-0">
-                                    <p class="text-xs text-zinc-500 dark:text-zinc-400">{{ __('Lokasi Site') }}</p>
-                                    <p class="break-words font-medium">{{ $project->location->name }}</p>
+                            <dl class="mt-3 grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
+                                <x-ui.metadata-item
+                                    :label="__('Client')"
+                                    label-class="text-xs text-zinc-500 dark:text-zinc-400"
+                                    value-class="mt-0.5 break-words font-medium"
+                                >{{ $project->client->name }}</x-ui.metadata-item>
+                                <x-ui.metadata-item
+                                    :label="__('Lokasi Site')"
+                                    label-class="text-xs text-zinc-500 dark:text-zinc-400"
+                                    value-class="mt-0.5 break-words font-medium"
+                                >
+                                    {{ $project->location->name }}
                                     @if (! $project->location->is_active)
-                                        <div class="mt-1"><flux:badge size="sm" color="amber">{{ __('Lokasi nonaktif') }}</flux:badge></div>
+                                        <span class="mt-1 block"><x-ui.badge size="sm" color="amber">{{ __('Lokasi nonaktif') }}</x-ui.badge></span>
                                     @endif
-                                </div>
-                            </div>
+                                </x-ui.metadata-item>
+                            </dl>
 
                             <div class="mt-3 flex items-center justify-between gap-3 border-t border-zinc-100 pt-2 text-xs dark:border-zinc-800">
                                 <span class="text-zinc-600 dark:text-zinc-300">{{ number_format($project->attendance_records_count) }} {{ __('record absensi') }}</span>
@@ -73,20 +77,24 @@
                             </div>
                         </summary>
 
-                        <div class="mt-3 grid grid-cols-1 gap-2 rounded-lg bg-zinc-50 p-3 text-sm dark:bg-zinc-800/60 sm:grid-cols-2">
-                            <div>
-                                <p class="text-xs text-zinc-500 dark:text-zinc-400">{{ __('Periode mulai') }}</p>
-                                <p class="font-medium">{{ $project->start_date?->format('d M Y') ?? '—' }}</p>
-                            </div>
-                            <div>
-                                <p class="text-xs text-zinc-500 dark:text-zinc-400">{{ __('Periode selesai') }}</p>
-                                <p class="font-medium">{{ $project->end_date?->format('d M Y') ?? '—' }}</p>
-                            </div>
-                            <div class="sm:col-span-2">
-                                <p class="text-xs text-zinc-500 dark:text-zinc-400">{{ __('Status Site') }}</p>
-                                <p class="font-medium">{{ $project->location->is_active ? __('Aktif') : __('Nonaktif') }}</p>
-                            </div>
-                        </div>
+                        <dl class="mt-3 grid grid-cols-1 gap-2 rounded-lg bg-zinc-50 p-3 text-sm dark:bg-zinc-800/60 sm:grid-cols-2">
+                            <x-ui.metadata-item
+                                :label="__('Periode mulai')"
+                                label-class="text-xs text-zinc-500 dark:text-zinc-400"
+                                value-class="mt-0.5 font-medium"
+                            >{{ $project->start_date?->format('d M Y') ?? '—' }}</x-ui.metadata-item>
+                            <x-ui.metadata-item
+                                :label="__('Periode selesai')"
+                                label-class="text-xs text-zinc-500 dark:text-zinc-400"
+                                value-class="mt-0.5 font-medium"
+                            >{{ $project->end_date?->format('d M Y') ?? '—' }}</x-ui.metadata-item>
+                            <x-ui.metadata-item
+                                :label="__('Status Site')"
+                                label-class="text-xs text-zinc-500 dark:text-zinc-400"
+                                value-class="mt-0.5 font-medium"
+                                class="sm:col-span-2"
+                            >{{ $project->location->is_active ? __('Aktif') : __('Nonaktif') }}</x-ui.metadata-item>
+                        </dl>
                     </details>
 
                     <div class="mt-3 flex justify-end border-t border-zinc-100 pt-2 dark:border-zinc-800">
