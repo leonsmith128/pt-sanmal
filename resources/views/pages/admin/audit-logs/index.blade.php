@@ -12,7 +12,7 @@
             <flux:input name="action" :label="__('Aksi')" value="{{ request('action') }}" placeholder="leave.approved" />
             <flux:input type="date" name="from" :label="__('Dari tanggal')" value="{{ request('from') }}" />
             <flux:input type="date" name="to" :label="__('Sampai tanggal')" value="{{ request('to') }}" />
-            <flux:button type="submit" variant="outline">{{ __('Filter') }}</flux:button>
+            <x-ui.button type="submit" variant="outline">{{ __('Filter') }}</x-ui.button>
         </form>
 </x-admin.filter-panel>
 
