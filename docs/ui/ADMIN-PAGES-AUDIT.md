@@ -139,7 +139,7 @@ Pencatatan berikut diperbarui setiap kelompok halaman selesai dikerjakan. Status
 | Kehadiran | `attendance-corrections/index.blade.php` | Filter status + responsive review list + badge status |
 | Kehadiran | `attendance-corrections/show.blade.php` | Detail koreksi, metadata `dl`, snapshot pekerjaan, form keputusan |
 | Kehadiran | `daily-attendance.blade.php` | Filter tanggal dan ekspor terpisah, daftar kartu pegawai, koreksi inline per pegawai |
-| Kehadiran | `⚡kehadiran.blade.php` | Livewire Volt, filter reaktif, Flux table sortable/paginated, ekspor, foto, GPS, koreksi timestamp, dialog Alpine |
+| Kehadiran | `⚡kehadiran.blade.php` | Native Livewire 4 Single-File Component (SFC), filter reaktif, Flux table sortable/paginated, ekspor, foto, GPS, koreksi timestamp, dialog Alpine |
 | Audit | `audit-logs/index.blade.php` | Filter rentang tanggal/aksi + tabel audit |
 | Pegawai | `employees/index.blade.php` | Filter + kartu responsif + tabel desktop |
 | Pegawai | `employees/create.blade.php`, `employees/edit.blade.php` | Form create/edit dengan komponen input/select bersama |
@@ -404,3 +404,31 @@ Prioritas paling efisien adalah menyelesaikan satu keluarga pola form CRUD terle
 - Tidak ada perubahan pada PHP class, property, lifecycle hook, computed property, query, allowlist sorting, filter semantics, pagination, method, route, authorization, atau business logic.
 
 **Batas verifikasi Kehadiran Admin:** file telah di-fetch kembali dan diperiksa. Seluruh nama property/method, wire binding, route ekspor/koreksi, sumber timestamp, dan state Alpine yang menjadi kontrak utama tetap ditemukan. Test Livewire yang sudah ada belum dijalankan; browser visual test juga belum dijalankan.
+
+## Final consistency pass — 2026-11-03
+
+Pemeriksaan akhir difokuskan pada penyelarasan halaman Admin yang masih memakai pola lama, tanpa mengubah struktur data atau kontrak interaksi.
+
+### Penyelarasan yang diterapkan
+
+- **Daftar Pegawai** (employees/index.blade.php): page shell menggunakan x-ui.page; filter pencarian dan status menggunakan x-ui.input/x-ui.select; empty state menggunakan x-ui.empty-state. Layout kartu pada mobile, tabel desktop, navigasi tabel, filter GET, tombol Ubah, dan pagination dipertahankan.
+- **Form Pegawai** (employees/create.blade.php, employees/edit.blade.php): shell dan heading menggunakan x-ui.page/x-admin.page-header; tombol Batal dan submit menggunakan x-ui.button. Field tetap memakai primitive yang sama seperti sebelumnya. Callout informasi password awal tetap memakai Flux karena merupakan feedback kontekstual.
+- **Detail Client** (clients/show.blade.php): container menggunakan x-ui.page; badge status Site menggunakan x-ui.badge; empty state menggunakan x-ui.empty-state dengan surface transparan/dashed agar tampilan semula tidak berubah. Header record tetap disusun khusus karena memuat kode Client, tombol kembali, dan dua aksi kontekstual.
+- **Detail Koreksi Absensi** (attendance-corrections/show.blade.php): status dalam metadata kini menggunakan x-ui.badge dengan pemetaan warna yang sama seperti antrean koreksi.
+
+### Variasi yang dipertahankan secara sengaja
+
+- Lebar maksimum halaman tetap mengikuti kebutuhan konten (form, detail, daftar, dan pemantauan); tidak diseragamkan secara paksa.
+- Daftar Pegawai tetap menggunakan kartu pada viewport kecil dan tabel pada desktop.
+- Tabel Audit Log, Permohonan, dan Kehadiran Admin tetap memakai markup/komponen tabel masing-masing karena kebutuhan kolom, navigasi, sorting, pagination, atau interaksi berbeda.
+- Kehadiran Admin adalah Native Livewire 4 Single-File Component, bukan Volt. Filter reaktif, Flux table, export confirmation, modal foto, dan state Alpine tetap dipertahankan.
+- Filter tanggal dan form ekspor bulan pada Rekap Harian tetap menjadi dua form GET terpisah.
+- Expandable card Proyek tetap menggunakan native details/summary.
+- Modal dan callout Flux yang memiliki kontrak interaksi/feedback khusus tidak diganti hanya demi keseragaman visual.
+
+### Batas perubahan dan verifikasi
+
+- Perubahan hanya menyentuh Blade presentation dan dokumentasi audit. Route, controller, query, validasi, authorization, Livewire state/action, persistence, filter semantics, sorting, pagination, ekspor, dan perhitungan absensi tidak diubah.
+- File hasil perubahan di-fetch kembali dari branch untuk pemeriksaan source.
+- Pengguna telah menyatakan halaman berjalan normal selain pekerjaan CI dan formatting. Pernyataan tersebut dicatat sebagai verifikasi penggunaan oleh pengguna, bukan sebagai klaim test otomatis.
+- Pest/browser visual test dan CI belum diklaim lulus pada tahap ini; formatting tetap menjadi pekerjaan terpisah.
