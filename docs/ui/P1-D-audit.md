@@ -2,7 +2,7 @@
 
 ## Status
 
-- Tahap: audit dan inventarisasi; belum ada perubahan UI P1-D.
+- Tahap: audit selesai; P1-D1 spacing/density baseline dan P1-D2 expandable card Proyek sudah diimplementasikan pada branch ini.
 - Repository: `leonsmith128/pt-sanmal`
 - PR: #25
 - Branch: `feature/ui-standardization-p1-ab`
@@ -19,7 +19,7 @@ Menentukan pola presentasi per halaman berdasarkan struktur data, kepadatan kolo
 | Halaman | Implementasi saat ini | Informasi/aksi utama | Rekomendasi P1-D |
 |---|---|---|---|
 | Client | Card per Client; Site ditampilkan sebagai daftar di dalam card. Office Internal ditampilkan sebagai list row. | Kode/nama, kontak, jumlah Location dan Project, Site dan alamat, status Location; aksi ubah/detail/tambah Site. | Pertahankan card sebagai pola dasar. Audit dan rapikan responsivitas, hierarki informasi, dan area aksi; jangan membuat ulang sebagai tabel. |
-| Proyek | Tabel 8 kolom: kode/nama, Client, Site, jenis layanan, periode, status, jumlah absensi, aksi ubah. | Identitas proyek, relasi Client/Site, status dan periode, jumlah absensi, edit. | Hybrid: tabel pada desktop/lebar cukup; card pada mobile. Tablet adaptif. |
+| Proyek | Expandable card pada desktop dan mobile; dua kolom mulai breakpoint md. | Ringkasan: nama/kode, jenis layanan, Client, Site, status proyek, peringatan Site nonaktif, jumlah absensi. Detail: periode dan status Site. Aksi ubah selalu tersedia. | Expandable card di semua ukuran layar; tidak menampilkan rincian absensi individu. |
 | Pegawai | Tabel 5 kolom: identitas/email, nomor, jabatan, status akun, aksi ubah. | Nama/email, nomor pegawai, jabatan, status akun, edit. | Hybrid: tabel pada desktop/lebar cukup; card pada mobile. Tablet adaptif. |
 | Koreksi Absensi | Daftar link per baris (sudah menyerupai card/list, bukan tabel HTML). | Nama pegawai, tanggal, jenis koreksi, waktu yang diminta, status, navigasi ke detail. | Pertahankan pola list/card dan tingkatkan pemisahan visual serta susunan informasi mobile bila dibutuhkan. Jangan menduplikasi isi detail atau aksi keputusan di daftar. |
 | Persetujuan Permohonan | Tabel 6 kolom: pegawai, jenis, periode, waktu pengajuan, status, detail. | Identitas pegawai, jenis permohonan, periode, waktu masuk, status, buka detail. | Hybrid: card pada mobile; tabel pada desktop/lebar cukup. Tablet adaptif. |
@@ -46,7 +46,7 @@ File:
 - `resources/views/pages/admin/projects/index.blade.php`
 - `resources/views/pages/admin/employees/index.blade.php`
 
-Keduanya memakai tabel HTML di dalam `overflow-x-auto` dan pagination di luar tabel. Data per baris merupakan entitas yang bisa diringkas tanpa menghilangkan relasi atau status. Tampilan card dan tabel nantinya harus memakai koleksi hasil query yang sama, bukan query atau state terpisah.
+Pada baseline audit keduanya memakai tabel HTML di dalam `overflow-x-auto` dan pagination di luar tabel. Proyek kini sudah menggunakan expandable card pada desktop dan mobile. Pegawai tetap menjadi kandidat implementasi berikutnya. Data card Proyek memakai koleksi `$projects` yang sama; query dan state tidak diduplikasi.
 
 ### 3. Beberapa daftar sudah berupa card/list
 
@@ -87,8 +87,8 @@ Card ini bukan sekadar ringkasan: terdapat status, event, alasan, indikator revi
 
 ## Urutan implementasi yang direkomendasikan
 
-1. **Proyek** — implementasi hybrid pertama; validasi delapan kolom dan relasi Client/Site.
-2. **Pegawai** — implementasi hybrid kedua; validasi email panjang, nomor pegawai kosong, jabatan kosong, dan status akun.
+1. **Proyek** — expandable card di desktop dan mobile; implementasi P1-D2 selesai, menunggu pengujian visual pengguna dan validasi CI.
+2. **Pegawai** — implementasi berikutnya; validasi email panjang, nomor pegawai kosong, jabatan kosong, dan status akun.
 3. **Client** — review responsivitas dan konsistensi card/list yang sudah ada; perubahan hanya jika audit visual menemukan masalah konkret.
 4. **Persetujuan Permohonan** — hybrid card/tabel.
 5. **Koreksi Absensi dan Pengelolaan Lembur** — review dan penyempurnaan list/card yang sudah ada.
@@ -110,3 +110,12 @@ Card ini bukan sekadar ringkasan: terdapat status, event, alasan, indikator revi
 ## Batas audit
 
 Audit ini berdasarkan Blade view yang dibaca pada baseline branch di atas. Audit belum memeriksa seluruh controller/query, seluruh feature test, atau hasil render pada setiap ukuran viewport. Detail implementasi dan pengujian harus diverifikasi kembali saat masing-masing halaman mulai dikerjakan.
+
+
+## Catatan implementasi P1-D1 dan P1-D2
+
+- Standar spacing/density: `docs/ui/P1-D1-spacing-density.md`.
+- Spesifikasi expandable card Proyek: `docs/ui/P1-D2-project-expandable-card.md`.
+- Halaman Proyek kini memakai container `max-w-7xl` dengan `gap-4`, filter panel padding 12px, card padding 12px, dan gap antarkartu 12px.
+- Feature test tambahan memverifikasi ringkasan card, detail periode, jumlah absensi nol, dan route edit.
+- CI belum dijalankan sesuai keputusan untuk menunda CI; render visual lintas viewport masih perlu diperiksa pengguna.
