@@ -52,7 +52,7 @@
             </flux:callout>
 
             <div class="flex justify-end gap-2">
-                <flux:button href="{{ route('admin.employees.index') }}" variant="ghost">{{ __('Batal') }}</flux:button>
+                <flux:button href="{{ route('admin.employees.index') }}" variant="outline">{{ __('Batal') }}</flux:button>
                 <flux:button type="submit" variant="primary">{{ __('Simpan pegawai') }}</flux:button>
             </div>
         </form>
