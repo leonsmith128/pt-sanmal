@@ -1,5 +1,5 @@
 <x-layouts::app :title="__('Pengelolaan Lembur')">
-    <div class="mx-auto flex w-full max-w-6xl flex-col gap-6">
+    <x-ui.page class="!max-w-6xl !gap-6">
         <x-admin.page-header
             :title="__('Pengelolaan lembur')"
             :description="__('Tinjau pengajuan, status konfirmasi foto, dan keputusan lembur pegawai.')"
@@ -9,15 +9,12 @@
 
         <x-admin.filter-panel>
             <form method="GET" class="flex flex-wrap items-end gap-3">
-                <flux:field class="min-w-48">
-                    <flux:label>{{ __('Status persetujuan') }}</flux:label>
-                    <flux:select name="status" :value="request('status')">
-                        <flux:select.option value="">{{ __('Semua status') }}</flux:select.option>
-                        <flux:select.option value="pending">{{ __('Menunggu') }}</flux:select.option>
-                        <flux:select.option value="approved">{{ __('Disetujui') }}</flux:select.option>
-                        <flux:select.option value="rejected">{{ __('Ditolak') }}</flux:select.option>
-                    </flux:select>
-                </flux:field>
+                <x-ui.select name="status" :label="__('Status persetujuan')" :value="request('status')" class="min-w-48">
+                    <flux:select.option value="">{{ __('Semua status') }}</flux:select.option>
+                    <flux:select.option value="pending">{{ __('Menunggu') }}</flux:select.option>
+                    <flux:select.option value="approved">{{ __('Disetujui') }}</flux:select.option>
+                    <flux:select.option value="rejected">{{ __('Ditolak') }}</flux:select.option>
+                </x-ui.select>
                 <x-ui.button type="submit" variant="primary">{{ __('Filter') }}</x-ui.button>
             </form>
         </x-admin.filter-panel>
@@ -39,10 +36,13 @@
                         </div>
                     </a>
                 @empty
-                    <div class="p-10 text-center"><flux:text>{{ __('Tidak ada pengajuan lembur yang cocok.') }}</flux:text></div>
+                    <x-ui.empty-state
+                        class="!rounded-none !border-0 !bg-transparent !p-10"
+                        :message="__('Tidak ada pengajuan lembur yang cocok.')"
+                    />
                 @endforelse
             </div>
         </div>
         {{ $requests->links() }}
-    </div>
+    </x-ui.page>
 </x-layouts::app>
