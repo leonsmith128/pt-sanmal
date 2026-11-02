@@ -22,7 +22,7 @@ Generic components that can be used by admin, employee, and authentication pages
 | `x-ui.card` | Standard content surface or linked card | Slot, optional `href`, `padding`, and mergeable attributes; semantic anchor when `href` is supplied |
 | `x-ui.button` | Standard action affordance | Slot, `variant` (default `primary`), `size`, `type`, optional `href`, `icon`, `iconTrailing`, `square`, `disabled`; forwards Livewire/Alpine/HTML attributes |
 | `x-ui.field` | Shared field layout for labels, descriptions, and validation errors | Optional `name`, `id`, `label`, `description`, and `showError`; slot for the actual control |
-| `x-ui.input` | Standard text/date/file and other native input types | Optional `name`, `id`, `label`, `description`, `value`, `type`, and `showError`; forwards remaining HTML, Livewire, and Alpine attributes to `flux:input` |
+| `x-ui.input` | Standard text/date/file and other native input types | Optional `name`, `id`, `label`, `description`, `value`, `type`, and `showError`; forwards remaining HTML, Livewire, and Alpine attributes to `flux:input` |\n| `x-ui.select` | Standard select field with shared label, description, and validation layout | Optional `name`, `id`, `label`, `description`, `placeholder`, and `showError`; option markup remains in the slot and remaining attributes are forwarded to `flux:select` |
 
 Form control rules:
 - Keep Flux as the renderer; `x-ui.*` supplies a consistent SanMal contract rather than reimplementing native controls.
@@ -83,8 +83,8 @@ Page views should compose primitives and domain components, while retaining:
 - `x-ui.section` provides a standard vertical section wrapper.
 - Generic flash-message and empty-state components now back the existing Admin component names, preserving their call sites.
 - Dashboard statistic/action cards and Admin daily employee cards now compose `x-ui.card`. Attendance information cards retain their semantic section wrapper.
-- `x-ui.field` and `x-ui.input` are now implemented. Admin Employee Create/Edit use `x-ui.input` for text, email, phone, employee number, and date fields; selects remain on the existing Flux pattern pending `x-ui.select`.
-- `tests/Feature/UiFormControlsTest.php` covers label/description/error rendering, Livewire/Alpine/native attribute forwarding, and custom field slots.
+- `x-ui.field`, `x-ui.input`, and `x-ui.select` are now implemented. Admin Employee Create/Edit use `x-ui.input` for text, email, phone, employee number, and date fields, plus `x-ui.select` for job title and account status. Option markup and selected-state expressions remain in the page so existing request values are preserved.
+- `tests/Feature/UiFormControlsTest.php` covers input label/description/error rendering, Livewire/Alpine/native attribute forwarding, and custom field slots.\n- `tests/Feature/UiSelectComponentTest.php` covers select label/description/error rendering, option slots, custom IDs, and Livewire/Alpine/native attribute forwarding.
 - `tests/Feature/UiButtonComponentTest.php` covers button semantics, default type, and Alpine-bound links.
 - `tests/Feature/UiLayoutComponentsTest.php` covers the generic page header, page container, and section wrapper.
 - `tests/Feature/UiCardComponentTest.php` covers content and linked-card semantics.
