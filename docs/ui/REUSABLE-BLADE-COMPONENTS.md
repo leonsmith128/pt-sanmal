@@ -20,7 +20,7 @@ Generic components that can be used by admin, employee, and authentication pages
 | `x-ui.flash-message` | Session status and validation feedback | Reads Laravel session status and error bag |
 | `x-ui.empty-state` | Empty collection state | Optional `message`, optional table `colspan`, slot, and mergeable attributes |
 | `x-ui.card` | Standard content surface or linked card | Slot, optional `href`, `padding`, and mergeable attributes; semantic anchor when `href` is supplied |
-| `x-ui.button` | Standard action affordance | Slot, `variant` (default `primary`), `size`, `type`, optional `href`, `icon`, `iconTrailing`, `square`, `disabled`; forwards Livewire/Alpine/HTML attributes |
+| `x-ui.button` | Standard action affordance | Slot, `variant` (default `primary`), optional `color`, `size` (default `sm`), `type`, optional `href`, `icon`, `iconTrailing`, `square`, `disabled`; primary defaults to SanMal blue and forwards Livewire/Alpine/HTML attributes |
 | `x-ui.field` | Shared field layout for labels, descriptions, and validation errors | Optional `name`, `id`, `label`, `description`, and `showError`; slot for the actual control |
 | `x-ui.input` | Standard text/date/file and other native input types | Optional `name`, `id`, `label`, `description`, `value`, `type`, and `showError`; forwards remaining HTML, Livewire, and Alpine attributes to `flux:input` |
 | `x-ui.select` | Standard select field with shared label, description, and validation layout | Optional `name`, `id`, `label`, `description`, `placeholder`, and `showError`; option markup remains in the slot and remaining attributes are forwarded to `flux:select` |
