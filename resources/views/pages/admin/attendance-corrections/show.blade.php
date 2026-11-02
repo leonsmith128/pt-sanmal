@@ -5,7 +5,7 @@
                 <flux:heading size="xl">{{ __('Detail Koreksi Absensi') }}</flux:heading>
                 <flux:text>{{ $correction->employee?->user?->name ?? 'Pegawai #'.$correction->employee_id }}</flux:text>
             </div>
-            <flux:button href="{{ route('admin.attendance-corrections.index') }}" variant="outline">{{ __('Kembali') }}</flux:button>
+            <x-ui.button href="{{ route('admin.attendance-corrections.index') }}" variant="outline">{{ __('Kembali') }}</x-ui.button>
         </div>
 
         <x-admin.flash-message />
@@ -98,9 +98,9 @@
             @endif
 
             @if ($correction->attachment_path)
-                <flux:button href="{{ route('admin.attendance-corrections.attachment', $correction) }}" variant="outline" icon="paperclip">
+                <x-ui.button href="{{ route('admin.attendance-corrections.attachment', $correction) }}" variant="outline" icon="paperclip">
                     {{ __('Unduh lampiran') }}
-                </flux:button>
+                </x-ui.button>
             @endif
         </section>
 
@@ -120,7 +120,7 @@
                     <flux:textarea name="review_note">{{ old('review_note') }}</flux:textarea>
                     <flux:error name="review_note" />
                 </flux:field>
-                <flux:button type="submit" variant="primary">{{ __('Simpan keputusan') }}</flux:button>
+                <x-ui.button type="submit" variant="primary">{{ __('Simpan keputusan') }}</x-ui.button>
             </form>
         @endif
     </div>
