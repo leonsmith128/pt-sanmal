@@ -141,9 +141,9 @@
                                 <tr class="align-top">
                                     <td class="whitespace-nowrap px-4 py-4">{{ $record->effectiveRecordedAtLocal()->translatedFormat('d M Y · H:i') }}</td>
                                     <td class="px-4 py-4">
-                                        <flux:badge color="{{ $record->type->value === 'clock_in' ? 'green' : ($record->type->value === 'clock_out' ? 'blue' : 'amber') }}">
+                                        <x-ui.badge color="{{ $record->type->value === 'clock_in' ? 'green' : ($record->type->value === 'clock_out' ? 'blue' : 'amber') }}">
                                             {{ $record->type->label() }}
-                                        </flux:badge>
+                                        </x-ui.badge>
                                     </td>
                                     <td class="px-4 py-4">{{ $record->work_type->label() }}</td>
                                     <td class="px-4 py-4">
