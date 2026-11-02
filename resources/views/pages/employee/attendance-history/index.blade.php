@@ -105,6 +105,9 @@
                                 @else
                                     <p class="text-zinc-400">—</p>
                                 @endif
+                                @if ($record->snapshot_source === 'migration_backfill')
+                                    <p class="text-xs text-amber-600 dark:text-amber-400">{{ __('Identitas pekerjaan menggunakan data master saat migrasi, bukan catatan historis terverifikasi.') }}</p>
+                                @endif
                                 <p class="break-words text-xs text-zinc-500">
                                     <span class="font-medium">{{ __('Alamat tersimpan:') }}</span>
                                     {{ $record->address_snapshot ?: __('Alamat belum tersedia') }}
