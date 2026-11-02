@@ -31,6 +31,7 @@ Pencatatan berikut diperbarui setiap kelompok halaman selesai dikerjakan. Status
 | Project Master Data Cards | Selesai | Page shell, filter input/select, dan empty state menggunakan primitive bersama; expandable `article/details`, metadata, badge, action link, GET filters, grid responsif, dan pagination dipertahankan | Source telah diperiksa setelah perubahan; test otomatis belum dijalankan |
 | Daily Attendance | Selesai | Page shell, filter tanggal, surface ekspor bulan, tombol, dan empty state menggunakan primitive bersama; GET parameter `date`/`month`, kartu pegawai, pagination, dan alur ekspor dipertahankan | Source telah di-fetch kembali dan diperiksa; test otomatis belum dijalankan |
 | Audit Log | Selesai | Page shell, filter input, dan empty state menggunakan primitive bersama; tabel tetap native dengan scroll region keyboard-accessible dan scoped headers; GET filters dan pagination dipertahankan | Source telah di-fetch kembali dan diperiksa; test otomatis belum dijalankan |
+| Admin Attendance (Livewire SFC) | Selesai | Enam filter reaktif dan tombol reset mengadopsi `x-ui.input`, `x-ui.select`, dan `x-ui.button`; Flux table, sorting, pagination, export confirmation, foto, GPS, serta koreksi timestamp dipertahankan | Source telah di-fetch kembali; kontrak state/action diperiksa secara statis; test otomatis dan browser visual test belum dijalankan |
 
 ### Catatan implementasi Master Data Cards — 2026-11-03
 
@@ -390,3 +391,16 @@ Prioritas paling efisien adalah menyelesaikan satu keluarga pola form CRUD terle
 - Tidak ada perubahan controller, query, validasi filter, authorization, audit data, atau business logic.
 
 **Batas verifikasi Audit Log:** file telah di-fetch kembali dari branch dan diperiksa. Feature test ditambahkan untuk memeriksa render filter, region tabel yang dapat diakses keyboard, dan empty state; test otomatis dan browser visual test belum dijalankan, sehingga belum ada klaim kelulusan test.
+
+
+### Catatan implementasi Monitoring/Reporting — Kehadiran Admin — 2026-11-03
+
+- Halaman ini menggunakan native Livewire 4 single-file component dengan anonymous class `new #[Title(...)] class extends Component`; bukan Volt. Struktur komponen dan route Livewire tidak dimigrasikan.
+- Enam filter reaktif menggunakan wrapper UI yang telah tersedia: dua `x-ui.input` untuk rentang tanggal, satu `x-ui.input` untuk pencarian, serta tiga `x-ui.select` untuk pegawai, jenis absensi, dan jenis kerja.
+- Seluruh binding tetap identik: `dateFrom`, `dateTo`, `employeeId`, `search` dengan debounce 300 ms, `attendanceType`, dan `workType`. Tombol Reset menggunakan `x-ui.button` dan tetap memanggil `resetAdditionalFilters`.
+- Grid filter tetap dua kolom pada layar sempit, empat kolom mulai `sm`, dan enam kolom mulai `lg`. Filter panel, page shell, header, dan kartu aktivitas tidak diubah.
+- Flux table dipertahankan karena sorting, pagination, sticky header, dan interaksi Livewire-nya merupakan bagian dari kontrak halaman. Kolom Waktu, Pegawai, Jenis, Lokasi kerja, GPS, Foto, dan Koreksi waktu tidak diubah.
+- Export dropdown dan seluruh URL/filter ekspor, deskripsi konfirmasi, Alpine state, preview/download foto, status backup Drive, link GPS, form koreksi timestamp, serta sumber timestamp asli/efektif tidak diubah.
+- Tidak ada perubahan pada PHP class, property, lifecycle hook, computed property, query, allowlist sorting, filter semantics, pagination, method, route, authorization, atau business logic.
+
+**Batas verifikasi Kehadiran Admin:** file telah di-fetch kembali dan diperiksa. Seluruh nama property/method, wire binding, route ekspor/koreksi, sumber timestamp, dan state Alpine yang menjadi kontrak utama tetap ditemukan. Test Livewire yang sudah ada belum dijalankan; browser visual test juga belum dijalankan.
