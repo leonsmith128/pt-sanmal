@@ -1,12 +1,11 @@
 <x-layouts::app :title="__('Master Data Client')">
     <div class="mx-auto flex w-full max-w-7xl flex-col gap-5">
-        <header class="flex flex-wrap items-start justify-between gap-3">
-            <div>
-                <flux:heading size="xl">{{ __('Master Data Client') }}</flux:heading>
-                <flux:text>{{ __('Kelola Client, Site milik Client, dan kantor internal SanMal dalam satu halaman.') }}</flux:text>
-            </div>
+        <x-admin.page-header
+            :title="__('Master Data Client')"
+            :description="__('Kelola Client, Site milik Client, dan kantor internal SanMal dalam satu halaman.')"
+        >
             <flux:button href="{{ route('admin.clients.create') }}" variant="primary" icon="plus">{{ __('Tambah Client') }}</flux:button>
-        </header>
+        </x-admin.page-header>
 
         <x-admin.flash-message />
 
