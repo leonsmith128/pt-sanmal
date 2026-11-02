@@ -408,7 +408,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                                                 <form method="POST" action="{{ route('admin.attendance.selfie.delete-local', $record) }}" class="mt-2" onsubmit="return confirm('{{ __('Hapus foto lokal setelah backup Drive terverifikasi?') }}')">
                                                     @csrf
                                                     @method('DELETE')
-                                                    <x-ui.button type="submit" size="xs" variant="danger">{{ __('Hapus lokal') }}</x-ui.button>
+                                                    <x-ui.button type="submit" size="xs" variant="outline" color="red">{{ __('Hapus lokal') }}</x-ui.button>
                                                 </form>
                                             @endif
                                         @else
