@@ -10,7 +10,7 @@
             :title="__('Detail Permohonan')"
             :description="__('Tinjau rincian pengajuan dan tentukan keputusan.')"
         >
-            <x-ui.badge :color="$leaveRequest->status->badgeColor()">
+            <x-ui.badge :color="$leaveRequest->status->badgeColor()" size="lg">
                 {{ $leaveRequest->status->label() }}
             </x-ui.badge>
         </x-ui.page-header>
