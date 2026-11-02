@@ -155,7 +155,7 @@ Pencatatan berikut diperbarui setiap kelompok halaman selesai dikerjakan. Status
 | Lembur | `overtime-requests/index.blade.php` | Filter status + responsive review list dengan dua status berbeda |
 | Lembur | `overtime-requests/show.blade.php` | Detail dan beberapa form keputusan/finalisasi/pengecualian foto |
 
-Catatan: `⚡kehadiran.blade.php` adalah halaman Volt/Livewire dan perlu diperlakukan sebagai halaman interaktif khusus, bukan dipaksa mengikuti pola form GET atau tabel Blade statis.
+Catatan: `⚡kehadiran.blade.php` adalah Native Livewire 4 Single-File Component (SFC), bukan Volt. Halaman ini perlu diperlakukan sebagai halaman interaktif khusus, bukan dipaksa mengikuti pola form GET atau tabel Blade statis.
 
 ## 2. Peta pola berulang
 
