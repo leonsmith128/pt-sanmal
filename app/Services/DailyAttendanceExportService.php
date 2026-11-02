@@ -24,7 +24,8 @@ class DailyAttendanceExportService
             'ID Pegawai', 'Nomor Pegawai', 'Nama Pegawai', 'Tanggal', 'Status Akhir',
             'Clock In Efektif', 'Clock Out Efektif', 'Total Durasi',
             'Waktu Asli Clock In', 'Waktu Asli Clock Out',
-            'Detail Sesi', 'Event Lain (efektif / asli)', 'Jenis Kerja', 'Lokasi / Proyek',
+            'Detail Sesi', 'Event Lain (efektif / asli)', 'Jenis Kerja',
+            'Kode Client', 'Client', 'Kode Project', 'Project', 'Location', 'Sumber Snapshot',
             'Status Koreksi', 'Catatan Absensi / Koreksi / Status',
         ]);
 
@@ -114,11 +115,12 @@ class DailyAttendanceExportService
                         }
 
                         $workTypes = $allEvents->pluck('work_type')->map(fn ($type) => $type->label())->unique()->implode('; ');
-                        $places = $allEvents->map(function (AttendanceRecord $event): string {
-                            return $event->project?->name && $event->location?->name
-                                ? $event->project->name.' — '.$event->location->name
-                                : ($event->project?->name ?? $event->location?->name ?? '');
-                        })->filter()->unique()->implode('; ');
+                        $clientCodes = $allEvents->pluck('client_code_snapshot')->filter()->unique()->implode('; ');
+                        $clientNames = $allEvents->pluck('client_name_snapshot')->filter()->unique()->implode('; ');
+                        $projectCodes = $allEvents->pluck('project_code_snapshot')->filter()->unique()->implode('; ');
+                        $projectNames = $allEvents->pluck('project_name_snapshot')->filter()->unique()->implode('; ');
+                        $locationNames = $allEvents->pluck('location_name_snapshot')->filter()->unique()->implode('; ');
+                        $snapshotSources = $allEvents->pluck('snapshot_source')->filter()->unique()->implode('; ');
 
                         $correctionStatuses = [];
                         foreach ($allEvents as $event) {
@@ -179,7 +181,12 @@ class DailyAttendanceExportService
                             implode('; ', $sessionDetails),
                             implode('; ', $otherEvents),
                             $workTypes,
-                            $places,
+                            $clientCodes,
+                            $clientNames,
+                            $projectCodes,
+                            $projectNames,
+                            $locationNames,
+                            $snapshotSources,
                             collect($correctionStatuses)->unique()->implode('; '),
                             $notes,
                         ];
