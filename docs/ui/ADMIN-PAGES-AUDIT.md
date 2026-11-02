@@ -22,6 +22,8 @@ Pencatatan berikut diperbarui setiap kelompok halaman selesai dikerjakan. Status
 | Project Create | Selesai | Shell halaman dan partial form menggunakan primitive `x-ui`; pilihan Client, selected state, serta default Create dipertahankan | Source telah diperiksa; test otomatis belum dijalankan |
 | Project Edit | Selesai | Diselaraskan dengan Create; Client tetap terkunci pada select disabled dengan hidden `client_id`, dan method tetap `PUT` | Source telah diperiksa; test otomatis belum dijalankan |
 | Attendance Correction Detail | Selesai | Page shell/header, field keputusan, catatan, dan tombol memakai primitive `x-ui`; metadata, snapshot, callout, lampiran, dan kondisi pending dipertahankan | Source telah diperiksa; test otomatis belum dijalankan |
+| Leave Request Detail | Selesai | Page shell/header, badge status, select keputusan, textarea catatan, dan tombol memakai primitive `x-ui`; modal konfirmasi dan status non-pending dipertahankan | Source telah diperiksa; test otomatis belum dijalankan |
+| Overtime Request Detail | Selesai | Page shell/header, metadata, badge, seluruh select/input/textarea dan tombol form memakai primitive `x-ui`; dua status lembur dan kondisi tiga alur form dipertahankan | Source telah diperiksa; test otomatis belum dijalankan |
 
 ### Catatan implementasi Location Create/Edit — 2026-11-03
 
@@ -46,6 +48,33 @@ Pencatatan berikut diperbarui setiap kelompok halaman selesai dikerjakan. Status
 - Tidak ada perubahan route, controller, validasi, timestamp calculation, authorization, persistence, atau business logic.
 
 **Batas verifikasi Attendance Correction Detail:** source hasil perubahan telah di-fetch kembali dari branch dan diperiksa. Test otomatis dan browser visual test belum dijalankan; belum ada klaim kelulusan test.
+
+### Catatan implementasi Leave Request Detail — 2026-11-03
+
+- Container dan header menggunakan `x-ui.page` serta `x-ui.page-header`; tombol kembali ke daftar tetap berada di atas header.
+- Status permohonan menggunakan `x-ui.badge` dengan warna dan label langsung dari enum status yang sama.
+- Metadata pegawai, jenis permohonan, periode, waktu pengajuan, alasan, lampiran, dan catatan keputusan tetap menggunakan `x-ui.metadata-item` dengan kelas presentasi sebelumnya.
+- Select keputusan menggunakan `x-ui.select`; catatan keputusan menggunakan `x-ui.textarea`. Form tetap hanya tampil ketika `isPending()` bernilai true.
+- ID form `decision-form`, action route, method `POST`, CSRF, nama field, placeholder, opsi keputusan, `old()` values, maxlength 2000, dan placeholder textarea tetap dipertahankan.
+- Modal Flux `confirm-decision`, trigger, close action, serta pemanggilan submit form melalui tombol konfirmasi tidak diubah.
+- Tampilan informasi pemrosesan untuk permohonan non-pending dan tujuan unduhan lampiran tetap dipertahankan.
+- Tidak ada perubahan route, controller, validasi, authorization, persistence, atau business logic.
+
+**Batas verifikasi Leave Request Detail:** source hasil perubahan telah di-fetch kembali dari branch dan diperiksa. Test otomatis dan browser visual test belum dijalankan.
+
+### Catatan implementasi Overtime Request Detail — 2026-11-03
+
+- Container dan header menggunakan `x-ui.page` serta `x-ui.page-header`; tombol kembali dan flash message tetap tersedia.
+- Dua badge status tetap terpisah: `approval_status` dan `state`. Keduanya menggunakan warna/label dari enum masing-masing, tidak digabungkan.
+- Metadata jadwal, waktu aktual, foto konfirmasi, Clock In/Out terkait, dan rentang final menggunakan `x-ui.metadata-item`; kondisi dan sumber nilainya dipertahankan.
+- Form finalisasi menggunakan `x-ui.select`, `x-ui.input` untuk kedua datetime-local, `x-ui.textarea`, dan `x-ui.button`. Format nilai datetime-local tetap menggunakan escaping format PHP yang sama.
+- Form keputusan admin menggunakan select, textarea, dan tombol bersama; kondisi `approval_status === 'pending'` tetap dipertahankan.
+- Form pengecualian foto tetap hanya muncul untuk state `scheduled` atau `awaiting_photo` ketika `start_record_id` belum tersedia; `required`, `minlength=5`, dan route tetap dipertahankan.
+- Kondisi finalisasi berdasarkan `clock_out_record_id`, tampilan hasil final berdasarkan `finalized_at`, informasi foto, alasan, catatan keputusan, dan pengecualian foto tetap dipertahankan.
+- Semua action route, method `POST`, CSRF, nama field, opsi select, old/model fallback, serta kondisi render tetap sama. Dua konsep status lembur tidak disatukan.
+- Tidak ada perubahan route, controller, validasi, authorization, timestamp calculation, persistence, atau business logic.
+
+**Batas verifikasi Overtime Request Detail:** source hasil perubahan telah di-fetch kembali dari branch dan diperiksa. Test otomatis dan browser visual test belum dijalankan.
 ### Catatan implementasi Project Create/Edit — 2026-11-03
 
 - Kedua halaman memakai `x-ui.page` dengan lebar maksimum `max-w-3xl` dan `x-ui.page-header`; flash message tetap berada di antara header dan form.
