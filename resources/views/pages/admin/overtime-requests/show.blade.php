@@ -1,11 +1,9 @@
 <x-layouts::app :title="__('Detail Pengajuan Lembur')">
     <div class="mx-auto flex w-full max-w-3xl flex-col gap-6">
-        <header class="flex items-center justify-between gap-3">
-            <div>
-                <flux:heading size="xl">{{ __('Detail pengajuan lembur') }}</flux:heading>
-                <flux:text class="mt-1">{{ $overtimeRequest->employee->user->name }}</flux:text>
-            </div>
-
+        <x-admin.page-header
+            :title="__('Detail pengajuan lembur')"
+            :description="$overtimeRequest->employee->user->name"
+        >
             <flux:button
                 href="{{ route('admin.overtime-requests.index') }}"
                 variant="ghost"
@@ -13,7 +11,7 @@
             >
                 {{ __('Kembali') }}
             </flux:button>
-        </header>
+        </x-admin.page-header>
 
         <x-admin.flash-message />
 
