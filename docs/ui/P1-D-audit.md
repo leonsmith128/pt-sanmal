@@ -2,7 +2,9 @@
 
 ## Status
 
-- Tahap: audit selesai; P1-D1 spacing/density baseline dan P1-D2 expandable card Proyek sudah diimplementasikan pada branch ini.
+> **Catatan pembacaan:** dokumen ini adalah catatan audit baseline. Implementasi lanjutan setelah audit (termasuk standardisasi Admin pada PR #25) dicatat pada `docs/ui/ADMIN-PAGES-AUDIT.md`. Status terkini repository berada di `docs/PROJECT-STATUS.md`.
+
+- Tahap: audit baseline selesai; P1-D1 spacing/density dan P1-D2 expandable card Proyek kemudian diimplementasikan. Standardisasi lanjutan halaman Admin telah di-merge melalui PR #25.
 - Repository: `leonsmith128/pt-sanmal`
 - PR: #25
 - Branch: `feature/ui-standardization-p1-ab`
@@ -127,4 +129,4 @@ Inventarisasi P1-D sebelumnya diperluas ke halaman Admin, Pegawai, Dashboard, No
 
 - `docs/ui/P1-D3-expanded-page-audit.md`
 
-P1-D3 merupakan audit dan penentuan pola; belum mengubah view selain implementasi Proyek yang sudah ada. Penerapan pola ke Pegawai dan halaman lain dilanjutkan pada P1-D4 secara bertahap setelah audit dan validasi per kelompok. Pengembangan transisi navigasi halaman ditunda ke tahap P berikutnya.
+Pada saat P1-D3 disusun, dokumen tersebut berfungsi sebagai audit dan penentuan pola, sementara penerapan pola ke halaman lain masih direncanakan bertahap. Implementasi Admin yang kemudian selesai dicatat pada `docs/ui/ADMIN-PAGES-AUDIT.md`. Halaman `/absensi` tetap memiliki audit khusus dan memerlukan verifikasi UX perangkat nyata sebelum perubahan lebih lanjut. Pengembangan transisi navigasi halaman tetap merupakan pekerjaan terpisah.
