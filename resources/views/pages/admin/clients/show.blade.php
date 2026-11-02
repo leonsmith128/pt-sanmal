@@ -2,14 +2,14 @@
     <div class="mx-auto flex w-full max-w-6xl flex-col gap-5">
         <header class="flex flex-wrap items-start justify-between gap-3">
             <div>
-                <flux:button size="sm" variant="ghost" icon="arrow-left" href="{{ route('admin.clients.index') }}">{{ __('Kembali ke Master Data Client') }}</flux:button>
+                <x-ui.button size="sm" variant="ghost" icon="arrow-left" href="{{ route('admin.clients.index') }}">{{ __('Kembali ke Master Data Client') }}</x-ui.button>
                 <p class="mt-3 font-mono text-xs text-zinc-500">{{ $client->code }}</p>
                 <flux:heading size="xl">{{ $client->name }}</flux:heading>
                 <flux:text>{{ $client->address ?: 'Alamat Client belum diisi' }} · {{ $client->phone ?: 'Kontak belum diisi' }}</flux:text>
             </div>
             <div class="flex gap-2">
-                <flux:button href="{{ route('admin.clients.edit', $client) }}" variant="ghost">{{ __('Ubah Client') }}</flux:button>
-                <flux:button href="{{ route('admin.locations.create', ['client_id' => $client->id]) }}" variant="primary" icon="plus">{{ __('Tambah Location') }}</flux:button>
+                <x-ui.button href="{{ route('admin.clients.edit', $client) }}" variant="ghost">{{ __('Ubah Client') }}</x-ui.button>
+                <x-ui.button href="{{ route('admin.locations.create', ['client_id' => $client->id]) }}" variant="primary" icon="plus">{{ __('Tambah Location') }}</x-ui.button>
             </div>
         </header>
 
@@ -38,7 +38,7 @@
                                     <p class="mt-1 text-xs text-amber-600">{{ __('Koordinat belum diatur; radius absensi belum dapat digunakan.') }}</p>
                                 @endif
                             </div>
-                            <flux:button size="sm" variant="ghost" href="{{ route('admin.locations.edit', $location) }}">{{ __('Ubah Location') }}</flux:button>
+                            <x-ui.button size="sm" variant="ghost" href="{{ route('admin.locations.edit', $location) }}">{{ __('Ubah Location') }}</x-ui.button>
                         </div>
                     </article>
                 @empty
