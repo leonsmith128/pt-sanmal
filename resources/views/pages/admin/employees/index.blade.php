@@ -23,7 +23,7 @@
                         <flux:select.option value="inactive">{{ __('Nonaktif') }}</flux:select.option>
                     </flux:select>
                 </div>
-                <flux:button type="submit">{{ __('Filter') }}</flux:button>
+                <flux:button type="submit" variant="outline">{{ __('Filter') }}</flux:button>
             </form>
         </x-admin.filter-panel>
 
