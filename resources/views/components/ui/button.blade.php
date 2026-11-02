@@ -9,6 +9,13 @@
     'square' => false,
 ])
 
+@php
+    $buttonClasses = [
+        'sanmal-button-primary' => $variant === 'primary',
+        'sanmal-button-secondary' => $variant === 'outline' && $attributes->get('color') === null,
+    ];
+@endphp
+
 @if ($href !== null)
     <flux:button
         :href="$href"
@@ -18,7 +25,7 @@
         :icon-trailing="$iconTrailing"
         :disabled="$disabled"
         :square="$square"
-        {{ $attributes->class(['sanmal-button-primary' => $variant === 'primary', 'sanmal-button-secondary' => $variant === 'outline' && $attributes->get('color') === null]) }}
+        {{ $attributes->class($buttonClasses) }}
     >
         {{ $slot }}
     </flux:button>
@@ -31,7 +38,7 @@
         :icon-trailing="$iconTrailing"
         :disabled="$disabled"
         :square="$square"
-        {{ $attributes->class(['sanmal-button-primary' => $variant === 'primary', 'sanmal-button-secondary' => $variant === 'outline' && $attributes->get('color') === null]) }}
+        {{ $attributes->class($buttonClasses) }}
     >
         {{ $slot }}
     </flux:button>
