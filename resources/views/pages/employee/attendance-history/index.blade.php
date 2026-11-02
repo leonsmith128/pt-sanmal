@@ -91,7 +91,7 @@
                             <div class="min-w-0 space-y-1 text-sm text-zinc-600 dark:text-zinc-300">
                                 <p><span class="font-medium">{{ __('Jenis kerja') }}:</span> {{ $record->work_type->label() }}</p>
                                 @if ($record->client_name_snapshot)
-                                    <p><span class="font-medium">{{ __('Client') }}:</span> {{ $record->client_name_snapshot }}</p>
+                                    <p><span class="font-medium">{{ __('Client') }}:</span> {{ $record->client_code_snapshot ? $record->client_code_snapshot.' · ' : '' }}{{ $record->client_name_snapshot }}</p>
                                 @endif
                                 @if ($record->project_name_snapshot)
                                     <p><span class="font-medium">{{ __('Proyek') }}:</span> {{ $record->project_code_snapshot ? $record->project_code_snapshot.' · ' : '' }}{{ $record->project_name_snapshot }}</p>
