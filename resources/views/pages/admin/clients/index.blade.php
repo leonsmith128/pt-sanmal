@@ -1,5 +1,5 @@
 <x-layouts::app :title="__('Master Data Client')">
-    <div class="mx-auto flex w-full max-w-7xl flex-col gap-5">
+    <x-ui.page class="!gap-5">
         <x-admin.page-header
             :title="__('Master Data Client')"
             :description="__('Kelola Client, Site milik Client, dan kantor internal SanMal dalam satu halaman.')"
@@ -10,16 +10,16 @@
         <x-admin.flash-message />
 
         <x-admin.filter-panel>
-<form method="GET" action="{{ route('admin.clients.index') }}" class="flex flex-wrap items-end gap-3">
-            <div class="min-w-64 flex-1">
-                <flux:input name="q" value="{{ $term }}" :label="__('Pencarian')" placeholder="Kode/nama Client, nama/alamat Location" />
-            </div>
-            <x-ui.button type="submit" icon="magnifying-glass">{{ __('Cari') }}</x-ui.button>
-            @if ($term !== '')
-                <x-ui.button href="{{ route('admin.clients.index') }}" variant="outline">{{ __('Reset') }}</x-ui.button>
-            @endif
-        </form>
-</x-admin.filter-panel>
+            <form method="GET" action="{{ route('admin.clients.index') }}" class="flex flex-wrap items-end gap-3">
+                <div class="min-w-64 flex-1">
+                <x-ui.input name="q" :value="$term" :label="__('Pencarian')" placeholder="Kode/nama Client, nama/alamat Location" />
+                </div>
+                <x-ui.button type="submit" icon="magnifying-glass">{{ __('Cari') }}</x-ui.button>
+                @if ($term !== '')
+                    <x-ui.button href="{{ route('admin.clients.index') }}" variant="outline">{{ __('Reset') }}</x-ui.button>
+                @endif
+            </form>
+        </x-admin.filter-panel>
 
         <section class="space-y-3">
             <div class="flex flex-wrap items-center justify-between gap-2">
@@ -66,9 +66,10 @@
                     </div>
                 </article>
             @empty
-                <div class="rounded-xl border border-dashed border-zinc-300 p-8 text-center text-sm text-zinc-500 dark:border-zinc-700">
-                    {{ __('Tidak ada Client yang cocok dengan pencarian.') }}
-                </div>
+                <x-admin.empty-state
+                    class="!border-dashed !border-zinc-300 !p-8 dark:!border-zinc-700"
+                    :message="__('Tidak ada Client yang cocok dengan pencarian.')"
+                />
             @endforelse
 
             {{ $clients->links() }}
@@ -97,9 +98,12 @@
                         </div>
                     </div>
                 @empty
-                    <p class="p-6 text-center text-sm text-zinc-500">{{ $term !== '' ? 'Tidak ada Office yang cocok dengan pencarian.' : 'Belum ada Office Internal SanMal.' }}</p>
+                    <x-ui.empty-state
+                        class="!rounded-none !border-0 !bg-transparent !p-6"
+                        :message="$term !== '' ? 'Tidak ada Office yang cocok dengan pencarian.' : 'Belum ada Office Internal SanMal.'"
+                    />
                 @endforelse
             </div>
         </section>
-    </div>
+    </x-ui.page>
 </x-layouts::app>
