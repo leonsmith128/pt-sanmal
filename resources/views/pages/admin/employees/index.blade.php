@@ -108,7 +108,10 @@
                 </table>
             </div>
         @else
-            <x-ui.empty-state :message="__('Belum ada data pegawai yang sesuai dengan filter.')" />
+            <x-ui.empty-state
+                class="!border-dashed !border-zinc-300 !bg-transparent !px-4 !py-10 dark:!border-zinc-700"
+                :message="__('Belum ada data pegawai yang sesuai dengan filter.')"
+            />
         @endif
 
         {{ $employees->links() }}
