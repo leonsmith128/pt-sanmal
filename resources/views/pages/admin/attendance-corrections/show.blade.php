@@ -1,12 +1,13 @@
 <x-layouts::app :title="__('Detail Koreksi Absensi')">
-    <div class="mx-auto w-full max-w-3xl space-y-5">
-        <div class="flex items-center justify-between">
-            <div>
-                <flux:heading size="xl">{{ __('Detail Koreksi Absensi') }}</flux:heading>
-                <flux:text>{{ $correction->employee?->user?->name ?? 'Pegawai #'.$correction->employee_id }}</flux:text>
-            </div>
-            <x-ui.button href="{{ route('admin.attendance-corrections.index') }}" variant="outline">{{ __('Kembali') }}</x-ui.button>
-        </div>
+    <x-ui.page class="!max-w-3xl gap-5">
+        <x-ui.page-header
+            :title="__('Detail Koreksi Absensi')"
+            :description="$correction->employee?->user?->name ?? 'Pegawai #'.$correction->employee_id"
+        >
+            <x-ui.button href="{{ route('admin.attendance-corrections.index') }}" variant="outline">
+                {{ __('Kembali') }}
+            </x-ui.button>
+        </x-ui.page-header>
 
         <x-admin.flash-message />
 
@@ -109,21 +110,19 @@
         @if ($correction->status === 'pending')
             <form method="POST" action="{{ route('admin.attendance-corrections.decide', $correction) }}" class="space-y-3 rounded-xl border border-zinc-200 p-5 dark:border-zinc-700">
                 @csrf
-                <flux:field>
-                    <flux:label>{{ __('Keputusan') }}</flux:label>
-                    <flux:select name="decision" :value="old('decision')" required>
-                        <flux:select.option value="approved">{{ __('Setujui') }}</flux:select.option>
-                        <flux:select.option value="rejected">{{ __('Tolak') }}</flux:select.option>
-                    </flux:select>
-                    <flux:error name="decision" />
-                </flux:field>
-                <flux:field>
-                    <flux:label>{{ __('Catatan (opsional)') }}</flux:label>
-                    <flux:textarea name="review_note">{{ old('review_note') }}</flux:textarea>
-                    <flux:error name="review_note" />
-                </flux:field>
+                <x-ui.select name="decision" :label="__('Keputusan')" :value="old('decision')" required>
+                    <flux:select.option value="approved">{{ __('Setujui') }}</flux:select.option>
+                    <flux:select.option value="rejected">{{ __('Tolak') }}</flux:select.option>
+                </x-ui.select>
+
+                <x-ui.textarea
+                    name="review_note"
+                    :label="__('Catatan (opsional)')"
+                    :rows="3"
+                >{{ old('review_note') }}</x-ui.textarea>
+
                 <x-ui.button type="submit" variant="primary">{{ __('Simpan keputusan') }}</x-ui.button>
             </form>
         @endif
-    </div>
+    </x-ui.page>
 </x-layouts::app>
