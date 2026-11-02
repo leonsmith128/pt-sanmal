@@ -17,7 +17,7 @@ Generic components that can be used by admin, employee, and authentication pages
 | `x-ui.page` | Standard page width and vertical rhythm | Slot + mergeable attributes; default `w-full max-w-7xl`, `gap-4` |
 | `x-ui.page-header` | Responsive page title, description, and action slot | `title`, optional `description`, optional `headingSize`, action slot |
 | `x-ui.section` | Standard vertical grouping for page sections | Slot + mergeable attributes; default vertical gap 3 |
-| `x-ui.card` | Standard content surface | Slot + mergeable attributes; Flux card surface |
+| `x-ui.card` | Standard content surface or linked card | Slot, optional `href`, `padding`, and mergeable attributes; semantic anchor when `href` is supplied |
 | `x-ui.button` | Standard action affordance | Slot, `variant`, `size`, `type`, optional `href`, `icon`, `iconTrailing`, `square`, `disabled`; forwards Livewire/Alpine/HTML attributes |
 
 Button variant policy:
@@ -69,8 +69,11 @@ Page views should compose primitives and domain components, while retaining:
 - The button primitive is now applied to Admin Attendance, Leave Requests, Daily Attendance, Clients, Employees, Audit Logs, Attendance Corrections, Overtime Requests, Projects, Notifications, and selected Employee list/history pages.
 - The generic page header is now the implementation behind the existing `x-admin.page-header` API, preserving current callers while making the layout primitive reusable outside Admin.
 - `x-ui.section` provides a standard vertical section wrapper.
+- Dashboard statistic/action cards, attendance information cards, and Admin daily employee cards now compose `x-ui.card`.
 - `tests/Feature/UiButtonComponentTest.php` covers button semantics, default type, and Alpine-bound links.
 - `tests/Feature/UiLayoutComponentsTest.php` covers the generic page header, page container, and section wrapper.
+- `tests/Feature/UiCardComponentTest.php` covers content and linked-card semantics.
+- These tests have been authored but not yet executed.
 - These tests have been authored but not yet executed.
 
 ## Migration order
