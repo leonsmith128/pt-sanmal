@@ -170,3 +170,34 @@ test('attendance camera preserves the complete photo frame without cropping', fu
         ->assertSee('object-contain', false)
         ->assertSee('watermarkPreview', false);
 });
+
+test('employees receive the mobile-first five-item bottom navigation', function () {
+    $this->actingAs(userWithRole(UserRole::Employee));
+
+    $this->get(route('attendance'))
+        ->assertOk()
+        ->assertSee('aria-label="Navigasi utama"', false)
+        ->assertSee(__('Beranda'))
+        ->assertSee(__('Absensi'))
+        ->assertSee(__('Riwayat'))
+        ->assertSee(__('Pengajuan'))
+        ->assertSee(__('Profil'))
+        ->assertDontSee(__('Operasional'))
+        ->assertDontSee(__('Master Data'));
+});
+
+test('admins retain personal employee navigation alongside grouped administration menus', function () {
+    $this->actingAs(userWithRole(UserRole::Admin));
+
+    $this->get(route('attendance'))
+        ->assertOk()
+        ->assertSee(__('Aktivitas Saya'))
+        ->assertSee(__('Absensi Saya'))
+        ->assertSee(__('Riwayat Absensi Saya'))
+        ->assertSee(__('Pusat Permohonan Saya'))
+        ->assertSee(__('Riwayat Lembur Saya'))
+        ->assertSee(__('Operasional'))
+        ->assertSee(__('Master Data'))
+        ->assertSee(__('Permohonan'))
+        ->assertDontSee('aria-label="Navigasi utama"', false);
+});
