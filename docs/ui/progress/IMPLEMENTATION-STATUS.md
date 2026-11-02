@@ -24,7 +24,7 @@ Do not mark an item Verified based on source inspection alone.
 | Component catalog | Implemented, unverified | Added COMPONENT-CATALOG.md; detailed API reference remains REUSABLE-BLADE-COMPONENTS.md and must be checked against source. |
 | Implementation progress ledger | Implemented, unverified | Added this file; milestone states require reconciliation against current source and QA evidence. |
 | Visual QA evidence ledger | Implemented, unverified | Added VISUAL-QA-LOG.md; no new browser/device runs are claimed. |
-| Documentation links and consistency | In progress | Validate links and confirm all instructions agree. |
+| Documentation links and consistency | Verified | All Markdown links in the updated entry-point/handoff documents resolve to paths present in the branch tree; core Git instructions now agree. |
 
 ## 2. V1 implementation milestones
 
@@ -69,5 +69,15 @@ Keep detailed viewport observations in [Visual QA Log](VISUAL-QA-LOG.md), not du
 - [x] Add component catalog.
 - [x] Add progress and visual QA ledgers.
 - [x] Update root/docs indexes and PR #27 description.
-- [ ] Fetch changed files back and verify links/content.
-- [ ] Record documentation readiness completion evidence.
+- [x] Fetch changed files back and verify links/content.
+- [x] Record documentation readiness completion evidence.
+
+### Documentation readiness completion record
+
+- **Date:** 2026-11-03
+- **Branch:** `docs/ui-v1-scope-and-pr-workflow`
+- **Scope:** consolidated Git workflow instructions; added handoff, page inventory, component catalog, implementation status, and visual QA log; updated repository documentation indexes; marked the legacy view guide as historical.
+- **Verification:** changed entry-point and handoff documents were fetched back from the branch; local Markdown links in those documents resolve to paths present in the branch tree.
+- **Automated application tests:** not run; this milestone changes Markdown documentation only.
+- **Browser/device QA:** not run; no visual implementation changed.
+- **Limitations:** page inventory is based on existing audit records and still requires source/route reconciliation when each page is implemented. Component APIs must still be checked against current source. The visual QA ledger intentionally has no pass records.
