@@ -1,5 +1,5 @@
 <x-layouts::app :title="__('Ubah Client')">
-    <x-ui.page class="max-w-2xl gap-5">
+    <x-ui.page class="!max-w-2xl gap-5">
         <x-ui.page-header
             :title="__('Ubah Client')"
             :description="__('Perbarui identitas client.')"
