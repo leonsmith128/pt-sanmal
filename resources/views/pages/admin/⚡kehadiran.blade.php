@@ -285,10 +285,10 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                         : 'Filter tambahan: tidak ada; seluruh pegawai masuk dalam cakupan laporan.';
                 @endphp
                 <flux:dropdown position="bottom" align="end">
-                    <flux:button size="sm" variant="outline" icon="arrow-down-tray">
+                    <x-ui.button size="sm" variant="outline" icon="arrow-down-tray">
                         {{ __('Export') }}
                         <flux:icon name="chevron-down" variant="micro" />
-                    </flux:button>
+                    </x-ui.button>
                     <flux:menu>
                         <flux:menu.item
                             :href="route('admin.kehadiran.export', [...$exportFilters, 'from' => $today->toDateString(), 'to' => $today->toDateString()])"
@@ -408,7 +408,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                                                 <form method="POST" action="{{ route('admin.attendance.selfie.delete-local', $record) }}" class="mt-2" onsubmit="return confirm('{{ __('Hapus foto lokal setelah backup Drive terverifikasi?') }}')">
                                                     @csrf
                                                     @method('DELETE')
-                                                    <button type="submit" class="inline-flex items-center rounded-md border border-red-300 px-2 py-1 text-xs font-medium text-red-700 transition hover:bg-red-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-950/40">{{ __('Hapus lokal') }}</button>
+                                                    <x-ui.button type="submit" size="xs" variant="danger">{{ __('Hapus lokal') }}</x-ui.button>
                                                 </form>
                                             @endif
                                         @else
@@ -417,7 +417,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                                             @endif
                                             <form method="POST" action="{{ route('admin.attendance.selfie.backup', $record) }}" class="mt-2">
                                                 @csrf
-                                                <button type="submit" class="inline-flex items-center rounded-md border border-zinc-300 px-2 py-1 text-xs font-medium text-zinc-700 transition hover:bg-zinc-50 dark:border-zinc-600 dark:text-zinc-200 dark:hover:bg-zinc-800">{{ __('Backup ke Drive') }}</button>
+                                                <x-ui.button type="submit" size="xs" variant="outline">{{ __('Backup ke Drive') }}</x-ui.button>
                                             </form>
                                         @endif
                                     @else
@@ -438,7 +438,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                                                     <span>{{ __('Alasan wajib') }}</span>
                                                     <textarea name="reason" required minlength="5" maxlength="2000" rows="2" class="rounded-md border-zinc-300 text-sm dark:border-zinc-600 dark:bg-zinc-900"></textarea>
                                                 </label>
-                                                <button type="submit" class="inline-flex min-h-9 items-center justify-center rounded-md bg-blue-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">{{ __('Simpan koreksi') }}</button>
+                                                <x-ui.button type="submit" size="sm" variant="primary">{{ __('Simpan koreksi') }}</x-ui.button>
                                                 <p class="text-xs text-zinc-500">{{ __('Timestamp bukti asli tidak diubah; perubahan dicatat di audit log.') }}</p>
                                             </form>
                                         </details>
@@ -487,9 +487,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
             <div class="flex max-h-full w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-zinc-900">
                 <div class="flex items-center justify-between gap-3 border-b border-zinc-200 px-4 py-3 dark:border-zinc-700">
                     <h2 class="font-semibold">{{ __('Foto absensi') }}</h2>
-                    <button type="button" x-on:click="selfiePreviewOpen = false" class="rounded-lg p-2 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800" aria-label="{{ __('Tutup pratinjau') }}">
-                        <flux:icon name="x-mark" class="size-5" />
-                    </button>
+                    <x-ui.button type="button" variant="ghost" icon="x-mark" square aria-label="{{ __('Tutup pratinjau') }}" x-on:click="selfiePreviewOpen = false" />
                 </div>
                 <div class="min-h-0 overflow-auto bg-zinc-950 p-2">
                     <img :src="selfiePreviewUrl" alt="{{ __('Foto absensi ukuran penuh') }}" class="mx-auto max-h-[75dvh] w-auto max-w-full object-contain">
@@ -515,9 +513,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
             <div class="w-full max-w-lg space-y-4 rounded-2xl bg-white p-5 shadow-xl dark:bg-zinc-900">
                 <div class="flex items-start justify-between gap-3">
                     <h2 id="attendance-export-confirm-title" class="text-lg font-semibold">{{ __('Konfirmasi ekspor rekap absensi') }}</h2>
-                    <button type="button" x-on:click="exportConfirmOpen = false" class="rounded-lg p-1 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800" aria-label="{{ __('Tutup') }}">
-                        <flux:icon name="x-mark" class="size-5" />
-                    </button>
+                    <x-ui.button type="button" variant="ghost" icon="x-mark" square aria-label="{{ __('Tutup') }}" x-on:click="exportConfirmOpen = false" />
                 </div>
                 <p class="text-sm text-zinc-600 dark:text-zinc-300" x-text="exportDescription"></p>
                 <p class="text-sm text-zinc-600 dark:text-zinc-300">{{ $exportFilterSummary }}</p>
