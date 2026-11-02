@@ -114,6 +114,53 @@ it('allows administrators to manage client and internal locations with valid tim
     ]);
 });
 
+it('shows client sites and opens a location form with its client preselected', function () {
+    $admin = clientLocationAdminUser();
+    $client = Client::query()->create([
+        'code' => 'CL-MODULE',
+        'name' => 'Client Modul Terpadu',
+    ]);
+    $site = Location::query()->create([
+        'client_id' => $client->id,
+        'name' => 'Site Klien',
+        'type' => 'site',
+        'timezone' => 'Asia/Makassar',
+        'is_active' => true,
+    ]);
+    $office = Location::query()->create([
+        'client_id' => null,
+        'name' => 'Kantor Internal Modul',
+        'type' => 'office',
+        'timezone' => 'Asia/Makassar',
+        'is_active' => true,
+    ]);
+
+    $this->actingAs($admin)
+        ->get(route('admin.clients.index'))
+        ->assertOk()
+        ->assertSee('Master Data Client')
+        ->assertSee('Site Klien')
+        ->assertSee('Kantor Internal Modul');
+
+    $this->actingAs($admin)
+        ->get(route('admin.clients.show', $client))
+        ->assertOk()
+        ->assertSee($site->name)
+        ->assertSee('Tambah Location');
+
+    $this->actingAs($admin)
+        ->get(route('admin.locations.create', ['client_id' => $client->id]))
+        ->assertOk()
+        ->assertSee($client->name)
+        ->assertSee('name="client_id" value="'.$client->id.'"', false)
+        ->assertSee('name="type" value="site"', false)
+        ->assertDontSee('name="client_id" :label=', false);
+
+    $this->actingAs($admin)
+        ->get(route('admin.locations.index'))
+        ->assertRedirect(route('admin.clients.index'));
+});
+
 it('requires location coordinates to be provided as a pair and validates IANA timezones', function () {
     $admin = clientLocationAdminUser();
 
