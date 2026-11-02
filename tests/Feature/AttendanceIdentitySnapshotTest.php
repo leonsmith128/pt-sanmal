@@ -1,20 +1,20 @@
 <?php
 
-use App\\Actions\\RecordAttendance;
-use App\\Enums\\AttendanceType;
-use App\\Enums\\ProjectStatus;
-use App\\Enums\\ProjectType;
-use App\\Enums\\SelfieSource;
-use App\\Enums\\UserRole;
-use App\\Enums\\WorkType;
-use App\\Models\\Client;
-use App\\Models\\Employee;
-use App\\Models\\Location;
-use App\\Models\\Project;
-use App\\Models\\User;
-use App\\Support\\AttendanceSelfie;
-use Illuminate\\Http\\UploadedFile;
-use Illuminate\\Support\\Facades\\Storage;
+use App\Actions\RecordAttendance;
+use App\Enums\AttendanceType;
+use App\Enums\ProjectStatus;
+use App\Enums\ProjectType;
+use App\Enums\SelfieSource;
+use App\Enums\UserRole;
+use App\Enums\WorkType;
+use App\Models\Client;
+use App\Models\Employee;
+use App\Models\Location;
+use App\Models\Project;
+use App\Models\User;
+use App\Support\AttendanceSelfie;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 
 it('captures master identity at clock in and reuses it after master names change', function () {
     Storage::fake(AttendanceSelfie::DISK);
