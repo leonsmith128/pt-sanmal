@@ -244,3 +244,17 @@ test('admin sidebar collapse control stays visible and sidebar prevents horizont
         ->assertSee('overflow-x-hidden', false)
         ->assertSee('<x-desktop-user-menu class="hidden lg:block"', false);
 });
+
+
+test('collapsed admin sidebar keeps every navigation item visible as an icon', function () {
+    $this->actingAs(userWithRole(UserRole::Admin));
+
+    $response = $this->get(route('admin.daily-attendance'))->assertOk();
+    $document = new DOMDocument();
+    @$document->loadHTML($response->getContent());
+    $xpath = new DOMXPath($document);
+
+    expect($xpath->query('//*[@data-flux-sidebar-item]')->length)->toBe(13)
+        ->and($response->getContent())->toContain('in-data-flux-sidebar-collapsed-desktop:not-in-data-flux-sidebar-group-dropdown:hidden')
+        ->and($response->getContent())->toContain('in-data-flux-sidebar-collapsed-desktop:hidden');
+});
