@@ -42,7 +42,7 @@ it('allows administrators to manage client master data', function () {
             'address' => 'Makassar',
             'phone' => '0411000000',
         ])
-        ->assertRedirect(route('admin.clients.index'));
+        ->assertRedirect(route('admin.clients.show', Client::query()->where('code', 'CL-001')->firstOrFail()));
 
     $client = Client::query()->where('code', 'CL-001')->firstOrFail();
 
@@ -58,7 +58,7 @@ it('allows administrators to manage client master data', function () {
             'address' => 'Gowa',
             'phone' => '0411222222',
         ])
-        ->assertRedirect(route('admin.clients.index'));
+        ->assertRedirect(route('admin.clients.show', $client));
 
     $this->assertDatabaseHas('clients', [
         'id' => $client->id,
@@ -84,7 +84,7 @@ it('allows administrators to manage client and internal locations with valid tim
             'timezone' => 'Asia/Makassar',
             'is_active' => '1',
         ])
-        ->assertRedirect(route('admin.locations.index'));
+        ->assertRedirect(route('admin.clients.show', $client));
 
     $this->assertDatabaseHas('locations', [
         'client_id' => $client->id,
@@ -105,7 +105,7 @@ it('allows administrators to manage client and internal locations with valid tim
             'timezone' => 'Asia/Jakarta',
             'is_active' => '1',
         ])
-        ->assertRedirect(route('admin.locations.index'));
+        ->assertRedirect(route('admin.clients.index'));
 
     $this->assertDatabaseHas('locations', [
         'client_id' => null,
