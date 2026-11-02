@@ -145,7 +145,7 @@
                                     <td class="px-4 py-4">{{ $record->work_type->label() }}</td>
                                     <td class="px-4 py-4">
                                         @if ($record->client_name_snapshot)
-                                            <p class="text-xs text-zinc-500">{{ __('Client') }}: {{ $record->client_name_snapshot }}</p>
+                                            <p class="text-xs text-zinc-500">{{ __('Client') }}: {{ $record->client_code_snapshot ? $record->client_code_snapshot.' · ' : '' }}{{ $record->client_name_snapshot }}</p>
                                         @endif
                                         @if ($record->project_name_snapshot)
                                             <p>{{ $record->project_code_snapshot ? $record->project_code_snapshot.' · ' : '' }}{{ $record->project_name_snapshot }}</p>
