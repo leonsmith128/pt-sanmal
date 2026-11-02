@@ -15,6 +15,7 @@ it('renders a reusable button link and preserves Alpine href binding', function 
     )
         ->assertSee('href="#"', false)
         ->assertSee('x-bind:href="exportUrl"', false)
+        ->assertSee('sanmal-button-primary', false)
         ->assertSee('Konfirmasi dan ekspor');
 });
 
