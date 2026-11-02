@@ -1,45 +1,58 @@
-# Indeks Dokumentasi PT SanMal
+# Dokumentasi PT SanMal
 
-Gunakan halaman ini sebagai titik masuk dokumentasi. Dokumen dipisahkan berdasarkan fungsi agar developer dan AI agent dapat menemukan sumber yang tepat tanpa membaca seluruh catatan proyek.
+Dokumen ini adalah pintu masuk dokumentasi repository. Pilih panduan berdasarkan pekerjaan; jangan membaca seluruh arsip audit jika hanya mengubah satu halaman.
 
-## Dokumen inti
+## Mulai untuk kontributor baru
 
-| Dokumen | Pembaca utama | Isi |
-|---|---|---|
-| [Project Status](PROJECT-STATUS.md) | Semua kontributor | Status branch/main, fase implementasi, CI, risiko, dan next steps |
-| [Architecture & Development Guide](ARCHITECTURE-AND-DEVELOPMENT.md) | Developer dan AI agent | Struktur source, pemilihan Blade/Livewire, domain, UI primitives, test, dan workflow |
-| [AI Agent Rules](../AGENTS.md) | AI coding agent | Batas perubahan dan aturan repository |
-| [Repository README](../README.md) | Semua pembaca | Ringkasan aplikasi dan tautan dokumentasi |
+1. [Repository README](../README.md) — tujuan aplikasi dan stack.
+2. [Project Status](PROJECT-STATUS.md) — milestone repository, risiko, dan status project.
+3. [Architecture & Development](ARCHITECTURE-AND-DEVELOPMENT.md) — struktur Laravel, Blade/Livewire, domain, testing.
+4. [AI Agent Rules](../AGENTS.md) — instruksi wajib untuk coding agent.
+5. [UI/UX Development Handoff](ui/DEVELOPMENT-HANDOFF.md) — alur kerja UI/UX V1, batas scope, dan Definition of Done.
 
-## Design system dan audit UI
+## UI/UX V1 — authoritative references
 
-| Dokumen | Pembaca utama | Isi |
-|---|---|---|
-| [SanMal Design Foundation](ui/DESIGN-FOUNDATION.md) | AI agent, designer, developer | Brand, seamless-first principles, Employee mobile-first, Admin desktop/tablet information-first, responsive rules, component guidelines, dan source-code workflow |
-
-## Audit UI dan standardisasi
-
-| Dokumen | Status/kegunaan |
+| Dokumen | Sumber kebenaran untuk |
 |---|---|
-| [Audit Menyeluruh Halaman Admin](ui/ADMIN-PAGES-AUDIT.md) | Rekap implementasi standardisasi halaman Admin, konsistensi akhir, dan verifikasi |
-| [P1-D Audit](ui/P1-D-audit.md) | Audit awal tabel/list Admin dan prinsip pemilihan pola presentasi |
-| [P1-D3 Expanded Page Audit](ui/P1-D3-expanded-page-audit.md) | Inventarisasi halaman lintas role dan rekomendasi UI/UX; bukan bukti visual QA menyeluruh |
+| [Development Handoff](ui/DEVELOPMENT-HANDOFF.md) | Cara memulai, workflow, batas perubahan, acceptance criteria, dan merge readiness |
+| [Design Foundation](ui/DESIGN-FOUNDATION.md) | Brand, seamless-first, responsive role priorities, dan visual standards |
+| [Page Inventory](ui/PAGE-INVENTORY.md) | Cakupan halaman Employee/Admin/shared dan tautan audit |
+| [Component Catalog](ui/COMPONENT-CATALOG.md) | Peta primitive, aturan adopsi, dan standar dokumentasi komponen |
+| [Reusable Blade Components](ui/REUSABLE-BLADE-COMPONENTS.md) | Detail API/kontrak komponen yang sudah didokumentasikan |
+| [Implementation Status](ui/progress/IMPLEMENTATION-STATUS.md) | Status milestone dan bukti penyelesaian |
+| [Visual QA Log](ui/progress/VISUAL-QA-LOG.md) | Hasil browser/device QA aktual |
+
+## UI audit and historical records
+
+| Dokumen | Kegunaan |
+|---|---|
+| [Admin Pages Audit](ui/ADMIN-PAGES-AUDIT.md) | Audit dan catatan implementasi standardisasi halaman Admin |
+| [P1-D3 Expanded Page Audit](ui/P1-D3-expanded-page-audit.md) | Inventaris dan rekomendasi awal lintas halaman |
+| [P1-A-B Audit](ui/P1-A-B-audit.md) | Audit terdahulu |
+| [P1-D Audit](ui/P1-D-audit.md) | Audit tabel/list Admin |
 | [P1-D1 Spacing & Density](ui/P1-D1-spacing-density.md) | Baseline spacing, density, dan hierarki tombol |
-| [P1-D2 Project Expandable Card](ui/P1-D2-project-expandable-card.md) | Spesifikasi pola expandable card Master Proyek |
+| [P1-D2 Project Expandable Card](ui/P1-D2-project-expandable-card.md) | Catatan pola expandable card Master Proyek |
 
-## Cara membaca status dokumen audit
+Audit adalah catatan berdasarkan baseline saat audit dilakukan. Gunakan source branch terkini untuk memastikan kondisi aktual. Jangan mengubah temuan historis menjadi klaim QA terbaru.
 
-Dokumen audit dapat berisi temuan pada baseline lama dan catatan implementasi yang lebih baru. Gunakan aturan berikut:
+## Other technical documentation
 
-1. Bagian baseline/temuan awal menjelaskan kondisi ketika audit dilakukan; jangan menganggapnya otomatis menggambarkan source main saat ini.
-2. Bagian progress implementasi dan status akhir menunjukkan pekerjaan yang kemudian diterapkan.
-3. Bagian batas verifikasi menentukan apa yang benar-benar diperiksa. Inspeksi source, automated test, CI, browser QA, dan pengujian perangkat adalah jenis bukti yang berbeda.
-4. Jika ada perbedaan, periksa source pada main dan commit terkait sebelum membuat perubahan.
+| Dokumen | Kegunaan |
+|---|---|
+| [View Architecture](view-architecture.md) | Sejarah/pedoman arsitektur view; cek konsistensi dengan panduan arsitektur terkini |
+| [Attendance Phase 2 Spec](attendance-phase-2-spec.md) | Spesifikasi historis domain absensi |
+| [Attendance Phase 2 Audit](attendance-phase-2-audit.md) | Audit implementasi domain absensi |
+| [Attendance Google Drive Backup](attendance-google-drive-backup.md) | Catatan backup Google Drive |
 
-## Urutan membaca untuk kontributor baru
+## Source-of-truth rules
 
-1. [README proyek](../README.md)
-2. [Status proyek](PROJECT-STATUS.md)
-3. [Arsitektur dan panduan development](ARCHITECTURE-AND-DEVELOPMENT.md)
-4. [Instruksi AI agent](../AGENTS.md), jika menggunakan coding agent
-5. Audit spesifik sesuai area yang akan dikerjakan
+When documents or historical notes differ:
+
+1. Current source code on the target branch is authoritative for implementation behavior.
+2. Current automated tests and route definitions are authoritative evidence of tested contracts.
+3. Explicitly approved product/domain decisions remain authoritative unless superseded.
+4. Design Foundation is authoritative for approved visual direction.
+5. Page audits describe the baseline they inspected; they do not automatically describe current source or completed browser QA.
+6. Implementation Status and Visual QA Log must describe only work and checks supported by actual evidence.
+
+If a conflict is discovered, record it, inspect the relevant source/tests, and update the narrowest authoritative document. Do not silently guess.
