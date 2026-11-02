@@ -154,6 +154,9 @@
                                             <p>{{ $record->project_code_snapshot ? $record->project_code_snapshot.' · ' : '' }}{{ $record->project_name_snapshot }}</p>
                                         @endif
                                         <p class="text-xs text-zinc-500">{{ $record->location_name_snapshot ?? '—' }}</p>
+                                        @if ($record->snapshot_source === 'migration_backfill')
+                                            <p class="mt-1 text-xs text-amber-600 dark:text-amber-400">{{ __('Baseline migrasi') }}</p>
+                                        @endif
                                     </td>
                                     <td class="px-4 py-4">
                                         @if ($record->selfie_path)
