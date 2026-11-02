@@ -27,6 +27,7 @@ Generic components that can be used by admin, employee, and authentication pages
 | `x-ui.textarea` | Standard multiline text field with shared label, description, and validation layout | Optional `name`, `id`, `label`, `description`, `rows` (default 4), `resize` (default vertical), and `showError`; content is supplied through the slot and remaining attributes are forwarded to `flux:textarea` |
 | `x-ui.checkbox` | Standard single checkbox with shared description and validation feedback | Optional `name`, `id`, `label`, `description`, `checked`, and `showError`; label remains adjacent to the checkbox as rendered by `flux:checkbox`, and remaining attributes are forwarded to the interactive control |
 | `x-ui.badge` | Consistent status and compact indicator presentation | Slot content, optional Flux badge `color` (default `zinc`), and forwarded presentation attributes |
+| `x-ui.metadata-item` | Semantic label/value pair inside a description list | Required `label`, slot for the value, optional `labelClass` and `valueClass`, and mergeable wrapper attributes |
 
 Form control rules:
 - Keep Flux as the renderer; `x-ui.*` supplies a consistent SanMal contract rather than reimplementing native controls.
@@ -88,6 +89,7 @@ Page views should compose primitives and domain components, while retaining:
 - Generic flash-message and empty-state components now back the existing Admin component names, preserving their call sites.
 - Dashboard statistic/action cards and Admin daily employee cards now compose `x-ui.card`. Attendance information cards retain their semantic section wrapper.
 - `x-ui.field`, `x-ui.input`, `x-ui.select`, `x-ui.textarea`, and `x-ui.checkbox` are now implemented.
+- `x-ui.metadata-item` is implemented for semantic `<dt>`/`<dd>` pairs. It provides default label/value typography while allowing page-specific label/value classes and wrapper attributes. Admin Attendance Correction detail now uses it for request metadata and the Clock In work snapshot; conditional fields and all displayed values remain controlled by the existing page data.
 - `x-ui.badge` is implemented as a thin Flux badge wrapper. Admin employee account status, Admin overtime approval/state indicators, Employee request status, and Employee attendance event indicators now use the shared primitive; the existing `x-admin.request-status-badge` API delegates to it. Admin Employee Create/Edit use `x-ui.input` for text, email, phone, employee number, and date fields, plus `x-ui.select` for job title and account status. Option markup and selected-state expressions remain in the page so existing request values are preserved. Employee leave requests, Admin leave decisions, and Admin overtime finalization/decision/photo-exception forms use `x-ui.textarea`; the authentication login page uses `x-ui.checkbox` for Remember me.
 - `tests/Feature/UiFormControlsTest.php` covers input label/description/error rendering, Livewire/Alpine/native attribute forwarding, and custom field slots.
 - `tests/Feature/UiSelectComponentTest.php` covers select label/description/error rendering, option slots, custom IDs, and Livewire/Alpine/native attribute forwarding.
@@ -98,6 +100,7 @@ Page views should compose primitives and domain components, while retaining:
 - `tests/Feature/UiCardComponentTest.php` covers content and linked-card semantics.
 - `tests/Feature/UiFeedbackComponentsTest.php` covers generic and Admin-compatible empty states.
 - `tests/Feature/UiBadgeComponentTest.php` covers default/explicit color, forwarded presentation attributes, and enum-provided status labels/colors.
+- `tests/Feature/UiMetadataItemComponentTest.php` covers semantic description-list markup, default/custom classes, slot values, and forwarded wrapper attributes.
 - Tests have been authored but not yet executed in this environment; CI status must be checked before considering this migration validated.
 
 ## Migration order
