@@ -69,7 +69,7 @@ Page views should compose primitives and domain components, while retaining:
 - The button primitive is now applied to Admin Attendance, Leave Requests, Daily Attendance, Clients, Employees, Audit Logs, Attendance Corrections, Overtime Requests, Projects, Notifications, and selected Employee list/history pages.
 - The generic page header is now the implementation behind the existing `x-admin.page-header` API, preserving current callers while making the layout primitive reusable outside Admin.
 - `x-ui.section` provides a standard vertical section wrapper.
-- Dashboard statistic/action cards, attendance information cards, and Admin daily employee cards now compose `x-ui.card`.
+- Dashboard statistic/action cards and Admin daily employee cards now compose `x-ui.card`. Attendance information cards retain their semantic section wrapper.
 - `tests/Feature/UiButtonComponentTest.php` covers button semantics, default type, and Alpine-bound links.
 - `tests/Feature/UiLayoutComponentsTest.php` covers the generic page header, page container, and section wrapper.
 - `tests/Feature/UiCardComponentTest.php` covers content and linked-card semantics.
