@@ -5,7 +5,7 @@
                 <flux:heading size="xl">{{ __('Detail Koreksi Absensi') }}</flux:heading>
                 <flux:text>{{ $correction->employee?->user?->name ?? 'Pegawai #'.$correction->employee_id }}</flux:text>
             </div>
-            <flux:button href="{{ route('admin.attendance-corrections.index') }}" variant="ghost">{{ __('Kembali') }}</flux:button>
+            <flux:button href="{{ route('admin.attendance-corrections.index') }}" variant="outline">{{ __('Kembali') }}</flux:button>
         </div>
 
         <x-admin.flash-message />
