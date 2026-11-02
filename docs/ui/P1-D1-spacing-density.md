@@ -55,3 +55,22 @@ Checklist:
 - Teks, badge, dan kontrol tidak bertabrakan pada viewport kecil.
 - Area aksi tetap jelas dan mudah digunakan.
 - Dark mode dan empty state tetap terbaca.
+
+
+## Standar visual tombol aksi
+
+Tombol berlabel harus memiliki affordance yang jelas dan konsisten. Hindari penggunaan varian tanpa latar/border untuk aksi teks yang penting sehingga tampil seperti tautan biasa.
+
+Hierarki varian:
+- `primary`: satu aksi utama dalam konteks, misalnya Tambah, Simpan, Terapkan, atau konfirmasi final.
+- `outline`: aksi sekunder berlabel, misalnya Edit/Ubah, Detail/Buka, Kembali, Reset, Filter, dan Unduh.
+- `danger`: aksi destruktif atau tindakan berisiko yang memerlukan penekanan visual.
+- `ghost`: kontrol ikon, kontrol utilitas berfrekuensi tinggi, atau aksi minor yang memang tidak perlu tampil sebagai tombol berbingkai.
+
+Ketentuan:
+- Jangan menjadikan semua tombol `primary`; pertahankan hierarki aksi.
+- Tombol berlabel yang mengubah halaman atau menjalankan tindakan harus mudah dikenali sebagai tombol.
+- Ukuran `sm` boleh digunakan pada tabel/card yang padat, tetapi teks dan target interaksi tetap terbaca.
+- Aksi destruktif tetap memerlukan konfirmasi sesuai workflow yang sudah ada; perubahan varian tidak menggantikan konfirmasi.
+- Pertahankan icon, label, route, method, loading/disabled state, otorisasi, dan perilaku tombol.
+- Terapkan bertahap per kelompok halaman dan periksa tampilan light/dark serta mobile/desktop.
