@@ -23,14 +23,14 @@ Do not mark an item Verified based on source inspection alone.
 | Employee/Admin/shared page inventory | Implemented, unverified | Added PAGE-INVENTORY.md from existing P1-D3 audit; each route/view still needs source reconciliation during page work. |
 | Component catalog | Implemented, unverified | Added COMPONENT-CATALOG.md; detailed API reference remains REUSABLE-BLADE-COMPONENTS.md and must be checked against source. |
 | Implementation progress ledger | Implemented, unverified | Added this file; milestone states require reconciliation against current source and QA evidence. |
-| Visual QA evidence ledger | Implemented, unverified | Added VISUAL-QA-LOG.md; no new browser/device runs are claimed. |
+| Visual QA evidence ledger | Implemented, unverified | Added VISUAL-QA-LOG.md; browser/device evidence is recorded per milestone as runs occur. |
 | Documentation links and consistency | Verified | All Markdown links in the updated entry-point/handoff documents resolve to paths present in the branch tree; core Git instructions now agree. |
 
 ## 2. V1 implementation milestones
 
 | Milestone | Status | Completion evidence required |
 |---|---|---|
-| Button and action hierarchy | Implemented, unverified | Extended shared-button adoption across audited authentication, Employee, and Admin actions; retained only specialized native controls for calendar selection and photo-preview triggers. CI for the initial button commit passed; latest migration CI and browser/device states remain to be checked. |
+| Button and action hierarchy | **Verified** | Shared-button adoption across audited Admin, Employee, and authentication actions; focused component tests and latest CI passed on commit `00d255c1d5384eb312e7842e85954c8ef7c9ca15`; project owner confirmed visual QA of primary button in light/dark themes at multiple screen sizes. See [Visual QA Log](VISUAL-QA-LOG.md). |
 | Form controls | Implemented, unverified | Shared field/input/select/textarea/checkbox primitives and focused tests are documented; verify source and current test results. |
 | Badge and domain status | Implemented, unverified | Generic badge and domain adapter exist; verify mappings and real-page states. |
 | Card, layout, and typography | In progress | Page/layout/card primitives and Admin standardization exist; review Employee and cross-role consistency and actual typography. |
@@ -80,18 +80,18 @@ Keep detailed viewport observations in [Visual QA Log](VISUAL-QA-LOG.md), not du
 - **Verification:** changed entry-point and handoff documents were fetched back from the branch; local Markdown links in those documents resolve to paths present in the branch tree.
 - **Automated application tests:** not run; this milestone changes Markdown documentation only.
 - **Browser/device QA:** not run; no visual implementation changed.
-- **Limitations:** page inventory is based on existing audit records and still requires source/route reconciliation when each page is implemented. Component APIs must still be checked against current source. The visual QA ledger intentionally has no pass records.
+- **Limitations:** page inventory is based on existing audit records and still requires source/route reconciliation when each page is implemented. Component APIs must still be checked against current source.
 
-
-## 5. Button and action hierarchy implementation — 2026-11-03
+## 5. Button and action hierarchy — verified (2026-11-03)
 
 - **Branch:** `docs/ui-v1-scope-and-pr-workflow`
 - **PR:** [#27](https://github.com/leonsmith128/pt-sanmal/pull/27)
+- **Verified commit:** `00d255c1d5384eb312e7842e85954c8ef7c9ca15`
 - **Scope:** standardize shared navigation/action controls across authentication, Employee, and audited Admin workflows; retain native controls only for specialized calendar-day selection and photo-preview triggers; document action hierarchy and semantics.
-- **Source files:** `resources/views/pages/auth/*.blade.php`, `resources/views/pages/dashboard.blade.php`, `resources/views/pages/employee/leave-requests/create.blade.php`, `resources/views/pages/employee/attendance-corrections/create.blade.php`, `resources/views/pages/employee/overtime-requests/index.blade.php`, `resources/views/pages/employee/attendance-history/index.blade.php`, `resources/views/pages/employee/⚡attendance.blade.php`, `resources/views/pages/employee/⚡employee-profile.blade.php`, `resources/views/pages/settings/⚡security.blade.php`, `resources/views/pages/admin/⚡kehadiran.blade.php`, `tests/Feature/UiButtonComponentTest.php`, and `docs/ui/REUSABLE-BLADE-COMPONENTS.md`.
+- **Source areas:** `resources/views/components/ui/button.blade.php`, `resources/css/app.css`, audited authentication/Employee/Admin Blade and Livewire pages, `tests/Feature/UiButtonComponentTest.php`, and UI documentation.
 - **Behavior/contracts preserved:** route destinations, form methods and actions, CSRF/method spoofing, Livewire actions/loading targets, Alpine callbacks, confirmation flows, disabled states, accessible names, and existing `data-test` hooks.
-- **Automated checks actually run:** GitHub Actions run `41536861078` passed formatting, repository static analysis, changed-code static analysis, MariaDB tests, and SQLite tests for the earlier button commit. The latest wider migration commits require a fresh CI run before this milestone can be considered verified.
-- **Browser/device checks actually run:** none. No visual QA pass is claimed.
-- **Result:** audited button adoption has been expanded; milestone remains **Implemented, unverified**.
-- **Known limitations / follow-up:** continue checking direct controls as pages are revisited; verify the latest CI run and inspect actual button rendering/focus/disabled states in browser QA. The wrapper forwards variants to Flux rather than implementing styling itself.
-- **Status:** Implemented, unverified.
+- **Automated checks:** GitHub Actions CI job `ci` passed for the exact verified commit. [Run 1004](https://github.com/leonsmith128/pt-sanmal/actions/runs/41543440506).
+- **Visual QA:** project owner confirmed that the primary button was checked in both light and dark themes across multiple screen sizes and that the actual appearance passed. Browser/version, exact device, viewport dimensions, and per-state screenshots were not captured in this handoff; see the corresponding transparent entry in [Visual QA Log](VISUAL-QA-LOG.md).
+- **Result:** shared button adoption and primary/outline/danger styling are verified for this milestone.
+- **Known limitations / follow-up:** specialized native controls remain intentionally outside the generic button wrapper. Revisit them only when their page workflows are audited; do not force calendar selection or photo-preview triggers into a generic action component.
+- **Status:** **Verified**.
