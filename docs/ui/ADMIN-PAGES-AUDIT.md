@@ -29,6 +29,7 @@ Pencatatan berikut diperbarui setiap kelompok halaman selesai dikerjakan. Status
 | Leave Requests Queue | Selesai | Page shell dan filter status memakai primitive bersama; tabel, adapter badge domain, reset filter, tautan detail, GET filter, dan pagination dipertahankan | Source telah diperiksa setelah perubahan; test otomatis belum dijalankan |
 | Client Master Data Cards | Selesai | Page shell, field pencarian, dan empty state menggunakan primitive bersama; kartu Client, daftar Site bersarang, Office list, badge, action link, GET query, dan pagination dipertahankan | Source telah diperiksa setelah perubahan; test otomatis belum dijalankan |
 | Project Master Data Cards | Selesai | Page shell, filter input/select, dan empty state menggunakan primitive bersama; expandable `article/details`, metadata, badge, action link, GET filters, grid responsif, dan pagination dipertahankan | Source telah diperiksa setelah perubahan; test otomatis belum dijalankan |
+| Daily Attendance | Selesai | Page shell, filter tanggal, surface ekspor bulan, tombol, dan empty state menggunakan primitive bersama; GET parameter `date`/`month`, kartu pegawai, pagination, dan alur ekspor dipertahankan | Source telah di-fetch kembali dan diperiksa; test otomatis belum dijalankan |
 
 ### Catatan implementasi Master Data Cards — 2026-11-03
 
@@ -364,3 +365,15 @@ Urutan di atas adalah prioritas teknis, bukan izin untuk mengubah perilaku halam
 Fondasi primitive UI SanMal sudah cukup untuk memulai standardisasi Admin secara bertahap. Kesenjangan terbesar saat ini bukan kekurangan komponen baru, melainkan **adopsi komponen yang belum merata** pada form CRUD, badge, tombol, metadata, empty state, dan struktur collection.
 
 Prioritas paling efisien adalah menyelesaikan satu keluarga pola form CRUD terlebih dahulu (Client, Location, Project), lalu antrean review dan halaman detail. Halaman Livewire Kehadiran diletakkan pada tahap monitoring terakhir karena interaksinya paling padat dan harus dijaga secara khusus.
+
+
+### Catatan implementasi Monitoring/Reporting — Rekap Harian — 2026-11-03
+
+- Container halaman berpindah ke `x-ui.page` dengan `!gap-6 p-6` untuk mempertahankan lebar maksimum, padding, dan ritme vertikal sebelumnya.
+- Filter tanggal dan input bulan ekspor menggunakan `x-ui.input`; kedua form tetap menggunakan method `GET`, route/action yang sama, serta nama parameter `date` dan `month`.
+- Surface filter tanggal dan ekspor bulan menggunakan `x-admin.filter-panel`. Keduanya tetap merupakan form terpisah dengan tombol dan tujuan yang berbeda.
+- Header, flash message, kartu pegawai, dan pagination tetap menggunakan komponen/markup sebelumnya. Empty state block berpindah ke `x-ui.empty-state`.
+- Ekspresi bulan tetap diturunkan dari tanggal laporan melalui Carbon dengan format `Y-m`. Ekspor tetap mengarah ke route `admin.daily-attendance.export`; tidak ada perubahan cakupan ekspor.
+- Tidak ada perubahan controller, query, koreksi status, sumber timestamp, status cuti/sakit/izin, authorization, persistence, atau business logic.
+
+**Batas verifikasi Rekap Harian:** file telah di-fetch kembali dari branch dan diperiksa, termasuk namespace Carbon. Test otomatis dan browser visual test belum dijalankan; belum ada klaim kelulusan test.
