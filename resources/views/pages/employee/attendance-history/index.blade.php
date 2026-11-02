@@ -58,9 +58,9 @@
                                 <p class="text-xs text-zinc-500">{{ $record->effectiveRecordedAtLocal()->translatedFormat('d M Y · H:i') }}</p>
                                 <h2 class="mt-1 font-semibold text-zinc-900 dark:text-zinc-100">{{ $record->type->label() }}</h2>
                             </div>
-                            <flux:badge color="{{ $record->type->value === 'clock_in' ? 'green' : ($record->type->value === 'clock_out' ? 'blue' : 'amber') }}">
+                            <x-ui.badge color="{{ $record->type->value === 'clock_in' ? 'green' : ($record->type->value === 'clock_out' ? 'blue' : 'amber') }}">
                                 {{ $record->type->label() }}
-                            </flux:badge>
+                            </x-ui.badge>
                         </div>
 
                         <div class="flex items-start gap-3">
