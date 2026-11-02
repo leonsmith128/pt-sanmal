@@ -67,14 +67,14 @@ select:focus[data-flux-control] {
 
 @layer components {
     .sanmal-button-primary {
-        background-color: #003A6C;
-        border-color: #003A6C;
-        color: #FFFFFF;
+        background-color: #003A6C !important;
+        border-color: #003A6C !important;
+        color: #FFFFFF !important;
     }
 
     .sanmal-button-primary:hover:not(:disabled) {
-        background-color: #00294D;
-        border-color: #00294D;
+        background-color: #00294D !important;
+        border-color: #00294D !important;
     }
 
     .sanmal-button-primary:focus-visible {
