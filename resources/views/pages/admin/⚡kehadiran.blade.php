@@ -184,43 +184,64 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
 
         <x-admin.filter-panel class="!p-3">
             <div class="grid w-full grid-cols-2 items-end gap-2 sm:grid-cols-4 lg:grid-cols-6">
-                <div class="min-w-0">
-                    <flux:input size="sm" type="date" wire:model.live="dateFrom" :label="__('Dari tanggal')" />
-                </div>
-                <div class="min-w-0">
-                    <flux:input size="sm" type="date" wire:model.live="dateTo" :label="__('Sampai tanggal')" />
-                </div>
-                <div class="min-w-0">
-                    <flux:select size="sm" wire:model.live="employeeId" :label="__('Pegawai')">
-                        <flux:select.option value="">{{ __('Semua pegawai') }}</flux:select.option>
-                        @foreach ($this->employees as $employee)
-                            <flux:select.option value="{{ $employee->id }}">{{ $employee->user->name }}</flux:select.option>
-                        @endforeach
-                    </flux:select>
-                </div>
-                <div class="min-w-0">
-                    <flux:input size="sm" wire:model.live.debounce.300ms="search" :label="__('Pencarian')" :placeholder="__('Nama / nomor / catatan')" />
-                </div>
-                <div class="min-w-0">
-                    <flux:select size="sm" wire:model.live="attendanceType" :label="__('Jenis absensi')">
-                        <flux:select.option value="">{{ __('Semua jenis') }}</flux:select.option>
-                        @foreach (AttendanceType::cases() as $type)
-                            <flux:select.option value="{{ $type->value }}">{{ $type->label() }}</flux:select.option>
-                        @endforeach
-                    </flux:select>
-                </div>
-                <div class="min-w-0">
-                    <flux:select size="sm" wire:model.live="workType" :label="__('Jenis kerja')">
-                        <flux:select.option value="">{{ __('Semua jenis kerja') }}</flux:select.option>
-                        @foreach (WorkType::cases() as $type)
-                            <flux:select.option value="{{ $type->value }}">{{ $type->label() }}</flux:select.option>
-                        @endforeach
-                    </flux:select>
-                </div>
+                <x-ui.input
+                    size="sm"
+                    type="date"
+                    wire:model.live="dateFrom"
+                    :label="__('Dari tanggal')"
+                />
+                <x-ui.input
+                    size="sm"
+                    type="date"
+                    wire:model.live="dateTo"
+                    :label="__('Sampai tanggal')"
+                />
+                <x-ui.select
+                    size="sm"
+                    wire:model.live="employeeId"
+                    :label="__('Pegawai')"
+                >
+                    <flux:select.option value="">{{ __('Semua pegawai') }}</flux:select.option>
+                    @foreach ($this->employees as $employee)
+                        <flux:select.option value="{{ $employee->id }}">{{ $employee->user->name }}</flux:select.option>
+                    @endforeach
+                </x-ui.select>
+                <x-ui.input
+                    size="sm"
+                    wire:model.live.debounce.300ms="search"
+                    :label="__('Pencarian')"
+                    :placeholder="__('Nama / nomor / catatan')"
+                />
+                <x-ui.select
+                    size="sm"
+                    wire:model.live="attendanceType"
+                    :label="__('Jenis absensi')"
+                >
+                    <flux:select.option value="">{{ __('Semua jenis') }}</flux:select.option>
+                    @foreach (AttendanceType::cases() as $type)
+                        <flux:select.option value="{{ $type->value }}">{{ $type->label() }}</flux:select.option>
+                    @endforeach
+                </x-ui.select>
+                <x-ui.select
+                    size="sm"
+                    wire:model.live="workType"
+                    :label="__('Jenis kerja')"
+                >
+                    <flux:select.option value="">{{ __('Semua jenis kerja') }}</flux:select.option>
+                    @foreach (WorkType::cases() as $type)
+                        <flux:select.option value="{{ $type->value }}">{{ $type->label() }}</flux:select.option>
+                    @endforeach
+                </x-ui.select>
                 <div class="col-span-2 flex justify-end sm:col-span-4 lg:col-span-6">
-                    <flux:button size="sm" type="button" variant="outline" icon="arrows-up-down" wire:click="resetAdditionalFilters">
+                    <x-ui.button
+                        size="sm"
+                        type="button"
+                        variant="outline"
+                        icon="arrows-up-down"
+                        wire:click="resetAdditionalFilters"
+                    >
                         {{ __('Reset') }}
-                    </flux:button>
+                    </x-ui.button>
                 </div>
             </div>
         </x-admin.filter-panel>
