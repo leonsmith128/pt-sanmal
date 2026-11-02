@@ -64,3 +64,21 @@ select:focus[data-flux-control] {
 /* \[:where(&)\]:size-4 {
     @apply size-4;
 } */
+
+@layer components {
+    .sanmal-button-primary {
+        background-color: #003A6C;
+        border-color: #003A6C;
+        color: #FFFFFF;
+    }
+
+    .sanmal-button-primary:hover:not(:disabled) {
+        background-color: #00294D;
+        border-color: #00294D;
+    }
+
+    .sanmal-button-primary:focus-visible {
+        outline: 2px solid #003A6C;
+        outline-offset: 2px;
+    }
+}
