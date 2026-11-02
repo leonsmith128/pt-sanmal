@@ -57,7 +57,7 @@
                         </dl>
 
                         <div class="flex justify-end border-t border-zinc-100 pt-2 dark:border-zinc-800">
-                            <flux:button size="sm" variant="ghost" href="{{ route('admin.employees.edit', $employee) }}">
+                            <flux:button size="sm" variant="outline" href="{{ route('admin.employees.edit', $employee) }}">
                                 {{ __('Ubah pegawai') }}
                             </flux:button>
                         </div>
@@ -91,7 +91,7 @@
                                     </flux:badge>
                                 </td>
                                 <td class="px-3 py-2 text-right">
-                                    <flux:button size="sm" variant="ghost" href="{{ route('admin.employees.edit', $employee) }}">
+                                    <flux:button size="sm" variant="outline" href="{{ route('admin.employees.edit', $employee) }}">
                                         {{ __('Ubah') }}
                                     </flux:button>
                                 </td>
