@@ -51,15 +51,18 @@
                                 <time class="text-xs text-zinc-500" datetime="{{ $notification->created_at->toISOString() }}" title="{{ $notification->created_at->format('d M Y H:i:s') }}">
                                     {{ __('Masuk') }} {{ $notification->created_at->timezone(config('app.timezone'))->translatedFormat('d M Y, H:i') }}
                                 </time>
-                                @if (is_string($url) && str_starts_with($url, url('/')))
-                                    <form method="POST" action="{{ route('notifications.read', $notification) }}">
-                                        @csrf
-                                        @method('PATCH')
-                                        <flux:button type="submit" size="sm" variant="ghost" icon="arrow-up-right">
-                                            {{ $isResolved ? __('Lihat riwayat lembur') : __('Buka') }}
-                                        </flux:button>
-                                    </form>
+                                @if (! empty($data['resolved_at']))
+                                    <time class="text-xs text-zinc-500" datetime="{{ $data['resolved_at'] }}" title="{{ $data['resolved_at'] }}">
+                                        {{ __('Diperbarui') }} {{ \Illuminate\Support\Carbon::parse($data['resolved_at'])->timezone(config('app.timezone'))->translatedFormat('d M Y, H:i') }}
+                                    </time>
                                 @endif
+                                <form method="POST" action="{{ route('notifications.read', $notification) }}">
+                                    @csrf
+                                    @method('PATCH')
+                                    <flux:button type="submit" size="sm" variant="ghost" icon="arrow-up-right">
+                                        {{ $isResolved ? __('Lihat riwayat lembur') : __('Buka') }}
+                                    </flux:button>
+                                </form>
                             </div>
                         </div>
                     </div>
