@@ -81,16 +81,15 @@ Audit ini tidak mengubah query, state, filter, pagination, sorting, route, otori
 
 ## Prioritas pengerjaan setelah audit
 
-Urutan berikut adalah rekomendasi berdasarkan dampak UX dan kompleksitas; dapat disesuaikan setelah pemeriksaan render langsung:
+Urutan implementasi yang telah disepakati:
 
-1. **Kehadiran Admin** — audit density dan efisiensi tabel; implementasi mengikuti hasil audit.
-2. **Pegawai — daftar** — terapkan hybrid card/table setelah pola Proyek tervalidasi.
-3. **Halaman daftar dan pemantauan admin lain** — Client, Koreksi Absensi, Persetujuan Permohonan, Lembur, Audit Log, dan Rekap Harian sesuai pola masing-masing.
-4. **Riwayat Absensi dan halaman permohonan Pegawai** — selaraskan list, filter, detail ringkas, dan bukti.
+1. **Pegawai — daftar** — terapkan pola hybrid card/table; filter, pagination, route edit, dan otorisasi tetap dipertahankan.
+2. **Kehadiran Admin** — audit dan perbaiki density tabel secara terukur; pertahankan akses foto, GPS, timestamp, koreksi, dan seluruh aksi.
+3. **Halaman pemantauan Admin lainnya** — Client, Koreksi Absensi, Persetujuan Permohonan, Lembur, Audit Log, dan Rekap Harian sesuai pola masing-masing.
+4. **Riwayat dan permohonan Pegawai** — selaraskan list, filter, detail ringkas, dan bukti.
 5. **Dashboard, Notifikasi, Profil, dan Pengaturan** — konsistensi spacing, density, dan hierarchy.
-6. **Form dan halaman detail admin/pegawai** — konsistensi bahasa visual, grouping, field, feedback, dan aksi; tidak dipadatkan secara agresif.
-7. **Auth dan layout global** — konsistensi shell dan responsivitas.
-8. **Implementasi halaman Pegawai /absensi** — dilakukan setelah implementasi halaman lain selesai; audit dan skenario pengujiannya disiapkan lebih awal dalam dokumen ini.
+6. **Form, detail, Auth, serta layout global** — konsistensi bahasa visual, grouping, field, feedback, aksi, dan responsivitas; form tidak dipadatkan secara agresif.
+7. **Implementasi halaman Pegawai /absensi** — baru dilakukan setelah seluruh halaman lainnya di atas selesai. Audit dan skenario pengujiannya disiapkan lebih awal dalam dokumen ini.
 
 ## Aturan implementasi
 
