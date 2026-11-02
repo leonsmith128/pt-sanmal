@@ -83,13 +83,13 @@ select:focus[data-flux-control] {
     }
 
     .dark .sanmal-button-primary {
-        background-color: #2563EB !important;
+        background-color: #006DCC !important;
         border-color: #2563EB !important;
         color: #FFFFFF !important;
     }
 
     .dark .sanmal-button-primary:hover:not(:disabled) {
-        background-color: #1D4ED8 !important;
+        background-color: #005CB8 !important;
         border-color: #1D4ED8 !important;
     }
 
