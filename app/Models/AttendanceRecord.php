@@ -27,6 +27,12 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @property string|null $accuracy_m
  * @property string $location_status
  * @property string|null $address_snapshot
+ * @property string|null $client_code_snapshot
+ * @property string|null $client_name_snapshot
+ * @property string|null $project_code_snapshot
+ * @property string|null $project_name_snapshot
+ * @property string|null $location_name_snapshot
+ * @property string|null $snapshot_source
  * @property string|null $selfie_path
  * @property SelfieSource|null $selfie_source
  * @property string|null $notes
