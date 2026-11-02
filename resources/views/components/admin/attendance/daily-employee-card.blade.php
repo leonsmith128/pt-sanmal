@@ -95,9 +95,9 @@
             </flux:field>
 
             <div class="flex flex-wrap items-center justify-between gap-2 pt-1 sm:col-span-2">
-                <flux:button type="submit" size="sm" variant="primary">
+                <x-ui.button type="submit" size="sm" variant="primary">
                     {{ __('Simpan koreksi') }}
-                </flux:button>
+                </x-ui.button>
 
                 @if ($daily['correction'])
                     <span class="text-xs text-zinc-500">
