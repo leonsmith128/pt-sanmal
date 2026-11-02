@@ -194,16 +194,21 @@ Jangan mengubah test agar sekadar cocok dengan markup internal framework. Assert
 
 ## 8. Alur kerja kontribusi
 
-1. Buat branch terfokus dari main, kecuali pengguna meminta commit langsung.
-2. Audit file dan kontrak yang terdampak.
-3. Catat tujuan dan risiko perubahan.
-4. Implementasikan perubahan kecil.
-5. Tambahkan atau perbarui test.
-6. Jalankan Pint dan test relevan.
-7. Periksa diff dan pastikan tidak ada perubahan di luar scope.
-8. Buat commit dengan pesan yang menjelaskan tujuan.
-9. Buka PR dan tunggu CI/review sebelum merge.
-10. Setelah merge, periksa kembali CI pada commit main.
+### Pekerjaan UI/UX SanMal V1
+
+Ikuti `docs/ui/DEVELOPMENT-HANDOFF.md`. Aturan khusus program ini:
+
+1. Gunakan hanya branch `docs/ui-v1-scope-and-pr-workflow` dan PR #27 ke `main`.
+2. Jangan membuat branch atau PR UI/UX lain untuk pekerjaan komponen/halaman/milestone.
+3. Jangan merge PR #27 sebelum seluruh scope V1 selesai dan terverifikasi.
+4. Audit source, route, kontrak Livewire/HTTP, komponen, dan test sebelum mengubah tampilan.
+5. Pertahankan business logic dan kontrak perilaku kecuali perubahan tersebut disetujui secara eksplisit.
+6. Jalankan test, Pint, dan build yang relevan; lakukan browser/device QA sesuai jenis perubahan.
+7. Catat progres dan bukti aktual di dokumentasi UI progress, lalu update PR #27.
+
+### Pekerjaan non-UI/UX
+
+Untuk pekerjaan di luar program UI/UX V1, gunakan workflow kontribusi repository yang berlaku: branch terfokus, perubahan kecil, test relevan, pemeriksaan diff, dan PR. Jangan menerapkan aturan satu-PR UI/UX ke pekerjaan lain tanpa keputusan eksplisit.
 
 ## 9. Perintah pengembangan
 
