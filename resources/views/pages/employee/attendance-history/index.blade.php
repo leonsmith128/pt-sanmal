@@ -221,9 +221,7 @@
             <div class="flex max-h-full w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-zinc-900">
                 <div class="flex items-center justify-between gap-3 border-b border-zinc-200 px-4 py-3 dark:border-zinc-700">
                     <h2 class="font-semibold">{{ __('Foto absensi') }}</h2>
-                    <button type="button" x-on:click="selfiePreviewOpen = false" class="rounded-lg p-2 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800" aria-label="{{ __('Tutup pratinjau') }}">
-                        <flux:icon name="x-mark" class="size-5" />
-                    </button>
+                    <x-ui.button type="button" variant="ghost" icon="x-mark" square aria-label="{{ __('Tutup pratinjau') }}" x-on:click="selfiePreviewOpen = false" />
                 </div>
                 <div class="min-h-0 overflow-auto bg-zinc-950 p-2">
                     <img :src="selfiePreviewUrl" alt="{{ __('Foto absensi ukuran penuh') }}" class="mx-auto max-h-[75dvh] w-auto max-w-full object-contain">
