@@ -42,6 +42,25 @@
                 </div>
             </dl>
 
+            @php($snapshotRecord = $correction->sessionAnchor ?? $correction->attendanceRecord)
+            @if ($snapshotRecord)
+                <div class="rounded-lg bg-zinc-50 p-3 dark:bg-zinc-800">
+                    <p class="mb-2 text-sm font-medium">{{ __('Identitas pekerjaan saat Clock In') }}</p>
+                    <dl class="grid gap-2 text-sm sm:grid-cols-2">
+                        @if ($snapshotRecord->client_name_snapshot)
+                            <div><dt class="text-zinc-500">{{ __('Client') }}</dt><dd>{{ $snapshotRecord->client_code_snapshot ? $snapshotRecord->client_code_snapshot.' · ' : '' }}{{ $snapshotRecord->client_name_snapshot }}</dd></div>
+                        @endif
+                        @if ($snapshotRecord->project_name_snapshot)
+                            <div><dt class="text-zinc-500">{{ __('Project') }}</dt><dd>{{ $snapshotRecord->project_code_snapshot ? $snapshotRecord->project_code_snapshot.' · ' : '' }}{{ $snapshotRecord->project_name_snapshot }}</dd></div>
+                        @endif
+                        @if ($snapshotRecord->location_name_snapshot)
+                            <div><dt class="text-zinc-500">{{ __('Location') }}</dt><dd>{{ $snapshotRecord->location_name_snapshot }}</dd></div>
+                        @endif
+                        <div><dt class="text-zinc-500">{{ __('Sumber snapshot') }}</dt><dd>{{ $snapshotRecord->snapshot_source === 'migration_backfill' ? __('Backfill migrasi (baseline data master)') : ($snapshotRecord->snapshot_source === 'clock_in' ? __('Diambil saat Clock In') : '—') }}</dd></div>
+                    </dl>
+                </div>
+            @endif
+
             @if ($correction->status === 'approved' && $correction->attendanceRecord)
                 <div>
                     <p class="text-sm text-zinc-500">{{ __('Waktu efektif saat ini') }}</p>
