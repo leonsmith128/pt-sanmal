@@ -11,14 +11,14 @@
     $controlId = $id ?? $name;
 @endphp
 
-<div {{ $attributes->only('class')->class(['min-w-0']) }}>
+<div class="min-w-0">
     <flux:checkbox
         :name="$name"
         :id="$controlId"
         :label="$label"
         :description="$description"
         :checked="$checked"
-        {{ $attributes->except('class') }}
+        {{ $attributes }}
     />
 
     @if ($showError && filled($name))
