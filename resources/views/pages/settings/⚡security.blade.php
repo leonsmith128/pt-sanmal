@@ -126,9 +126,9 @@ new #[Title('Keamanan Akun')] class extends Component {
             />
 
             <div class="flex justify-end">
-                <flux:button variant="primary" type="submit" wire:loading.attr="disabled" wire:target="updateEmail">
+                <x-ui.button variant="primary" type="submit" wire:loading.attr="disabled" wire:target="updateEmail">
                     {{ __('Simpan email') }}
-                </flux:button>
+                </x-ui.button>
             </div>
         </form>
 
@@ -139,9 +139,9 @@ new #[Title('Keamanan Akun')] class extends Component {
                     {{ __('Periksa kotak masuk email baru Anda untuk menyelesaikan verifikasi.') }}
                 </flux:callout.text>
                 <x-slot name="actions">
-                    <flux:button size="sm" variant="ghost" wire:click="resendVerificationNotification">
+                    <x-ui.button size="sm" variant="ghost" wire:click="resendVerificationNotification">
                         {{ __('Kirim ulang tautan verifikasi') }}
-                    </flux:button>
+                    </x-ui.button>
                 </x-slot>
             </flux:callout>
         @endif
@@ -188,9 +188,9 @@ new #[Title('Keamanan Akun')] class extends Component {
             />
 
             <div class="flex justify-end">
-                <flux:button variant="primary" type="submit" wire:loading.attr="disabled" wire:target="updatePassword">
+                <x-ui.button variant="primary" type="submit" wire:loading.attr="disabled" wire:target="updatePassword">
                     {{ __('Perbarui kata sandi') }}
-                </flux:button>
+                </x-ui.button>
             </div>
         </form>
     </div>
