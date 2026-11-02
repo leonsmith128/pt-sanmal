@@ -505,7 +505,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                     <flux:button type="button" variant="outline" x-on:click="exportConfirmOpen = false">{{ __('Batal') }}</flux:button>
                     <flux:button :href="exportUrl" variant="primary" x-on:click="exportConfirmOpen = false">
                         {{ __('Konfirmasi dan ekspor') }}
-                    </a>
+                    </flux:button>
                 </div>
             </div>
         </div>
