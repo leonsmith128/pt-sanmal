@@ -40,9 +40,9 @@
                                     {{ $employee->user->email }}
                                 </p>
                             </div>
-                            <flux:badge :color="$employee->user->is_active ? 'green' : 'zinc'">
+                            <x-ui.badge :color="$employee->user->is_active ? 'green' : 'zinc'">
                                 {{ $employee->user->is_active ? __('Aktif') : __('Nonaktif') }}
-                            </flux:badge>
+                            </x-ui.badge>
                         </div>
 
                         <dl class="grid grid-cols-2 gap-x-3 gap-y-2 border-t border-zinc-100 pt-3 text-sm dark:border-zinc-800">
