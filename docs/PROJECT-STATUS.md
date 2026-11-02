@@ -19,7 +19,7 @@
 | Workflow absensi kamera dan domain Client–Location–Project | [Merge PR #24](https://github.com/leonsmith128/pt-sanmal/commit/0298a8f3fa3725eafb8fd7112f3ffe41cff033fe) | Workflow kamera/GPS, sesi absensi, koreksi, lembur, aturan domain master, dan pengujian lintas database |
 | Standardisasi UI Admin | [Merge PR #25](https://github.com/leonsmith128/pt-sanmal/commit/ea72d26379a5552df8e65ab9da738f98b5b6bdd5) | Standardisasi primitive UI, filter, form, badge, metadata, container/header, dan konsistensi akhir halaman Admin |
 
-HEAD main yang diperiksa saat dokumen ini dibuat adalah ea72d26379a5552df8e65ab9da738f98b5b6bdd5. Periksa ulang sebelum menggunakan SHA ini sebagai acuan pekerjaan berikutnya.
+Commit merge PR #25 (baseline kode untuk catatan standardisasi UI Admin) adalah ea72d26379a5552df8e65ab9da738f98b5b6bdd5. Setelahnya, dokumentasi proyek diperbarui melalui beberapa commit docs-only langsung ke main.
 
 ## 3. Status pekerjaan per area
 
@@ -34,7 +34,33 @@ HEAD main yang diperiksa saat dokumen ini dibuat adalah ea72d26379a5552df8e65ab9
 | UI Pegawai | Sebagian standardisasi dan audit responsif tersedia | Halaman /absensi memiliki audit khusus; perubahan UX kamera/GPS perlu dilakukan terpisah dan diuji pada perangkat |
 | Production deployment | Belum selesai | Hosting/domain, staging, secret management, backup, monitoring, rollback, dan pilot test belum dikonfirmasi |
 
-## 4. Verifikasi CI yang diketahui
+
+## 4. Status standardisasi komponen UI
+
+Primitive berikut sudah tersedia di resources/views/components/ui dan memiliki test komponen yang relevan. Adopsi dilakukan berdasarkan kecocokan semantik; tidak semua halaman harus memakai primitive yang sama.
+
+| Kelompok | Primitive | Status |
+|---|---|---|
+| Button/action | x-ui.button | Tersedia dan memiliki test; digunakan bertahap pada halaman Admin |
+| Layout | x-ui.page, x-ui.page-header, x-ui.section | Tersedia dan memiliki test; container/header Admin telah distandardisasi |
+| Card/surface | x-ui.card | Tersedia dan memiliki test; bukan pengganti universal untuk article, table, atau review list |
+| Feedback | x-ui.flash-message, x-ui.empty-state | Tersedia dan memiliki test; adapter Admin tetap dipertahankan |
+| Form controls | x-ui.field, x-ui.input, x-ui.select, x-ui.textarea, x-ui.checkbox | Tersedia dan memiliki test; dipakai pada form yang kontraknya sesuai |
+| Status | x-ui.badge, x-admin.request-status-badge | Tersedia; status domain tetap dipetakan oleh enum/adapter |
+| Metadata | x-ui.metadata-item | Tersedia dan memiliki test; digunakan untuk pasangan label/nilai yang bersifat deskriptif |
+
+### Strategi komponen data
+
+Belum ada keputusan untuk membuat satu komponen generik bagi semua collection, table, detail, atau form. Halaman menggunakan struktur yang sesuai dengan kontraknya:
+- Native HTML table untuk data kronologis/komparatif yang membutuhkan header kolom.
+- Flux table untuk interaksi Livewire seperti sorting dan pagination.
+- Review list untuk antrean yang berorientasi membuka satu record.
+- Card/article untuk ringkasan record.
+- Expandable card Proyek memakai native details/summary.
+
+Jangan membuat abstraksi tabel/data baru hanya untuk mengurangi markup. Audit kesamaan semantik, aksesibilitas, state, pagination, dan interaksi terlebih dahulu.
+
+## 5. Verifikasi CI yang diketahui
 
 CI terakhir yang terdokumentasi untuk PR #25 dijalankan pada commit branch sebelum merge, yaitu 7d75aad375dbbd23b3d87f26c529bc48ebf1a8f8, melalui [GitHub Actions run #932](https://github.com/leonsmith128/pt-sanmal/actions/runs/41522522835).
 
@@ -57,7 +83,7 @@ Hasil yang tercatat:
 
 Setelah perubahan dokumentasi ini masuk, periksa GitHub Actions pada commit baru di main sebelum menyatakan CI terbaru lulus.
 
-## 5. Risiko dan pekerjaan yang masih terbuka
+## 6. Risiko dan pekerjaan yang masih terbuka
 
 ### Wajib sebelum production
 
@@ -79,7 +105,7 @@ Setelah perubahan dokumentasi ini masuk, periksa GitHub Actions pada commit baru
 - Halaman /absensi adalah alur kritis perangkat; perubahan UI di sana harus menjaga lifecycle kamera, GPS, upload, modal, dan Livewire state.
 - Kebijakan kerja/penggajian yang belum diputuskan tidak boleh diasumsikan atau dihitung otomatis.
 
-## 6. Urutan kerja yang disarankan
+## 7. Urutan kerja yang disarankan
 
 1. Main branch verification — pastikan merge dan CI pada HEAD terbaru.
 2. Regression testing — jalankan test otomatis dan skenario manual berbasis role.
@@ -90,6 +116,6 @@ Setelah perubahan dokumentasi ini masuk, periksa GitHub Actions pada commit baru
 7. Backup/rollback rehearsal — buktikan backup dapat dipulihkan dan rollback dapat dilakukan.
 8. Pilot release — gunakan kelompok kecil sebelum rilis penuh.
 
-## 7. Aturan pembaruan dokumen
+## 8. Aturan pembaruan dokumen
 
 Perbarui dokumen ini ketika milestone di-merge, CI berubah, keputusan production ditetapkan, atau risiko diselesaikan. Cantumkan commit/PR dan bukti verifikasi; jangan mengubah status menjadi selesai hanya karena implementasi source sudah ada.
