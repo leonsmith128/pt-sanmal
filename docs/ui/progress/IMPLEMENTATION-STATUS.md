@@ -71,3 +71,16 @@ Detail viewport dan observasi visual hanya ditulis di [Visual QA Log](VISUAL-QA-
 ## Dokumentasi dan status handoff
 
 Dokumentasi UI aktif terdiri dari Development Handoff, Design Foundation, Page Inventory, Component Catalog, Reusable Blade Components, file status ini, dan Visual QA Log. Audit UI lama yang sudah diserap atau tidak lagi relevan dihapus; jangan membuat ulang audit paralel. Tambahkan keputusan atau temuan baru ke dokumen aktif yang tepat.
+
+
+## Shared component design foundation — batch implementation (2026-11-03)
+
+- **Branch/PR:** `docs/ui-v1-scope-and-pr-workflow`, [PR #27](https://github.com/leonsmith128/pt-sanmal/pull/27).
+- **Scope:** shared design tokens and all 14 existing `x-ui.*` primitives: badge, button, card, checkbox, empty-state, field, flash-message, input, metadata-item, page-header, page, section, select, and textarea.
+- **Design tokens:** centralized SanMal brand blue/dark blue/light blue/bright blue/yellow, focus, and semantic feedback colors in Tailwind v4 theme tokens. Existing Instrument Sans and Flux accent defaults remain unchanged to avoid unintended global restyling.
+- **Interaction and layout foundation:** standardized primary/outline button state styling, focus visibility, disabled affordance, Flux field label/description/error typography, control width, min-width guards, linked-card focus treatment, dark-surface contrast, page/header/section composition, and metadata wrapping.
+- **Compatibility:** retained existing component names and public props. Preserved Flux rendering, form names/IDs, option/slot content, Livewire/Alpine/native attribute forwarding, validation display, link/button semantics, and existing default page/card spacing.
+- **Targeted correction:** table-mode `x-ui.empty-state` now forwards caller attributes to its `td`; a focused regression test was added.
+- **Automated checks:** component source and focused tests updated; no post-change local test execution is available from this GitHub editing session. CI for the new branch head must complete before automated verification can be claimed.
+- **Browser/device checks:** Not run for this batch. Light/dark and viewport visual QA remains outstanding.
+- **Status:** **Implemented, unverified**. Do not begin the all-page adoption pass until CI and component-level visual QA have been reviewed.
