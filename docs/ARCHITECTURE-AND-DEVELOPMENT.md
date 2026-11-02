@@ -156,6 +156,9 @@ Aturan domain yang telah disepakati dan diterapkan pada perubahan PR #24:
 
 ## 6. UI primitives dan aturan presentasi
 
+Baca juga [SanMal Design Foundation](ui/DESIGN-FOUNDATION.md) sebelum mengubah tampilan atau komponen bersama. Dokumen tersebut menetapkan warna brand, prinsip seamless-first, prioritas responsive per role, dan urutan implementasi komponen. Pegang dua strategi: Employee mobile-first; Admin desktop/tablet information-first tetapi tetap mobile-friendly. Implementasi desain tahap ini dilakukan langsung di source code dan diverifikasi di browser; Figma bukan prasyarat.
+
+
 Prinsip desain: **Seamless-First Design System**. Konsistensi tidak berarti semua konten harus dibungkus card, border, atau shadow. Hindari card-in-card dan abstraksi berlebihan.
 
 Primitive yang telah tersedia dan perlu diperiksa sebelum membuat yang baru:

@@ -11,6 +11,12 @@ Gunakan halaman ini sebagai titik masuk dokumentasi. Dokumen dipisahkan berdasar
 | [AI Agent Rules](../AGENTS.md) | AI coding agent | Batas perubahan dan aturan repository |
 | [Repository README](../README.md) | Semua pembaca | Ringkasan aplikasi dan tautan dokumentasi |
 
+## Design system dan audit UI
+
+| Dokumen | Pembaca utama | Isi |
+|---|---|---|
+| [SanMal Design Foundation](ui/DESIGN-FOUNDATION.md) | AI agent, designer, developer | Brand, seamless-first principles, Employee mobile-first, Admin desktop/tablet information-first, responsive rules, component guidelines, dan source-code workflow |
+
 ## Audit UI dan standardisasi
 
 | Dokumen | Status/kegunaan |
