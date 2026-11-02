@@ -154,6 +154,12 @@
                 <flux:spacer />
                 <x-app-logo href="{{ route('dashboard') }}" wire:navigate />
                 <flux:spacer />
+                <a href="{{ route('notifications.index') }}" wire:navigate aria-label="{{ __('Buka notifikasi') }}" class="relative flex size-10 shrink-0 items-center justify-center rounded-full text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800">
+                    <flux:icon name="bell" class="size-5" />
+                    @if ($unreadSystemNotifications > 0)
+                        <span class="absolute right-0.5 top-0.5 flex min-h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-semibold text-white">{{ $unreadSystemNotifications > 99 ? '99+' : $unreadSystemNotifications }}</span>
+                    @endif
+                </a>
                 <flux:dropdown position="top" align="end">
                     <flux:profile
                         :initials="$sidebarUser->initials()"
@@ -185,6 +191,12 @@
             <flux:header class="lg:hidden">
                 <x-app-logo href="{{ route('dashboard') }}" wire:navigate />
                 <flux:spacer />
+                <a href="{{ route('notifications.index') }}" wire:navigate aria-label="{{ __('Buka notifikasi') }}" class="relative flex size-10 shrink-0 items-center justify-center rounded-full text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800">
+                    <flux:icon name="bell" class="size-5" />
+                    @if ($unreadSystemNotifications > 0)
+                        <span class="absolute right-0.5 top-0.5 flex min-h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-semibold text-white">{{ $unreadSystemNotifications > 99 ? '99+' : $unreadSystemNotifications }}</span>
+                    @endif
+                </a>
                 <flux:dropdown position="bottom" align="end">
                     <flux:profile
                         :initials="$sidebarUser->initials()"
