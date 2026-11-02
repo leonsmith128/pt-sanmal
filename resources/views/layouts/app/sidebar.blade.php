@@ -20,7 +20,7 @@
         <flux:sidebar
             sticky
             :collapsible="$isManager"
-            class="h-screen min-h-screen border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 {{ $isEmployee && ! $isManager ? 'hidden lg:flex' : '' }}"
+            class="h-screen min-h-screen overflow-x-hidden border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 {{ $isEmployee && ! $isManager ? 'hidden lg:flex' : '' }}"
         >
             <flux:sidebar.header>
                 <div class="flex w-full items-center justify-between gap-2">
@@ -37,7 +37,7 @@
                     </flux:dropdown>
                 </div>
                 @if ($isManager)
-                    <flux:sidebar.collapse />
+                    <flux:sidebar.collapse class="!opacity-100" />
                 @endif
             </flux:sidebar.header>
 
