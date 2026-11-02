@@ -54,6 +54,8 @@ Button and action hierarchy:
 - Use `href` for navigation so the rendered element remains a link. Use `type="button"` for in-page actions and `type="submit"` only for form submission. The component defaults to `type="button"` to avoid accidental form submission.
 - Icon-only actions must receive an accessible name through the supported Flux/API attributes; an icon is not a replacement for a label when the action is not self-evident.
 - Keep compact actions visually subordinate; do not increase button size merely to fill space.
+- Use `x-ui.button` for shared navigation and action controls, including Flux-backed controls inside Livewire components. Retain a native `<button>` only when the element is a specialized control whose state/content is tightly coupled to custom interaction markup (for example, selectable calendar-day tiles or photo-preview triggers); document the reason rather than keeping one-off button styling by default.
+- The wrapper forwards supported Flux button props and arbitrary HTML/Livewire/Alpine attributes. It does not implement a separate visual system; confirm a variant exists in the installed Flux version before adopting it across the app.
 
 A dynamically assigned Alpine URL must use an anchor rendered on the server (for example, provide a harmless initial `href` and bind the final URL with `x-bind:href`). A plain button cannot become a semantic link merely by adding an Alpine `href` attribute.
 
@@ -95,7 +97,7 @@ Page views should compose primitives and domain components, while retaining:
 ## Current migration status
 
 - `x-ui.page`, `x-ui.card`, and `x-ui.button` primitives exist.
-- The button primitive is applied to Admin Attendance, Leave Requests, Daily Attendance, Clients, Employees, Audit Logs, Attendance Corrections, Overtime Requests, Projects, Notifications, selected Employee list/history pages, the Employee dashboard's primary/secondary navigation actions, and the authentication login submit action. The latter two were standardized in the current V1 UI/UX branch; remaining direct Flux/native buttons still require page-by-page review rather than blanket replacement.
+- The button primitive is applied to the audited Admin Attendance actions (export, evidence backup/deletion, timestamp correction, and modal close), Employee dashboard navigation, Employee Attendance and overtime flows, Employee leave/correction/attendance-history actions, Employee profile/security actions, authentication login/password/verification actions, and existing Admin CRUD/review pages. Specialized native controls remain for calendar-day selection and photo-preview triggers because their custom interaction/content is part of the control itself. Continue auditing any remaining direct Flux/native button usage as pages are revisited.
 - The generic page header is now the implementation behind the existing `x-admin.page-header` API, preserving current callers while making the layout primitive reusable outside Admin.
 - `x-ui.section` provides a standard vertical section wrapper.
 - Generic flash-message and empty-state components now back the existing Admin component names, preserving their call sites.
@@ -107,7 +109,7 @@ Page views should compose primitives and domain components, while retaining:
 - `tests/Feature/UiSelectComponentTest.php` covers select label/description/error rendering, option slots, custom IDs, and Livewire/Alpine/native attribute forwarding.
 - `tests/Feature/UiTextareaComponentTest.php` covers textarea label/description/error rendering, slot content, row/resize options, custom IDs, and Livewire/Alpine/native attribute forwarding.
 - `tests/Feature/UiCheckboxComponentTest.php` covers checkbox label/description/error rendering, checked state, custom IDs, and Livewire/Alpine/native attribute forwarding.
-- `tests/Feature/UiButtonComponentTest.php` covers button semantics, default type, Alpine-bound links, and forwarding of Livewire, accessibility, disabled, and presentation attributes. The expanded test has not yet been executed in the current environment.
+- `tests/Feature/UiButtonComponentTest.php` covers button semantics, default type, Alpine-bound links, and forwarding of Livewire, accessibility, disabled, and presentation attributes. The GitHub Actions run associated with the earlier button commit passed formatting, static analysis, MariaDB tests, and SQLite tests; the latest broader button migration still requires its own CI result.
 - `tests/Feature/UiLayoutComponentsTest.php` covers the generic page header, page container, and section wrapper.
 - `tests/Feature/UiCardComponentTest.php` covers content and linked-card semantics.
 - `tests/Feature/UiFeedbackComponentsTest.php` covers generic and Admin-compatible empty states.
