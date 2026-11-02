@@ -119,8 +119,13 @@
             </div>
 
             <div class="hidden overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900 md:block">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm">
+                <div
+                    class="overflow-x-auto overscroll-x-contain"
+                    role="region"
+                    aria-label="{{ __('Tabel riwayat absensi; geser horizontal untuk melihat seluruh kolom') }}"
+                    tabindex="0"
+                >
+                    <table class="min-w-[60rem] w-full text-left text-sm">
                         <thead class="bg-zinc-50 text-xs uppercase tracking-wide text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
                             <tr>
                                 <th scope="col" class="whitespace-nowrap px-4 py-3">
