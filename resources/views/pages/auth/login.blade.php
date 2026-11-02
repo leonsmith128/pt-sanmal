@@ -6,12 +6,11 @@
                 alt="SanMal"
                 class="h-14 w-auto object-contain"
             />
-        </div>        
+        </div>
         <x-auth-header :title="__('Log in to your account')" :description="__('Enter your email and password below to log in')" />
 
         <!-- Session Status -->
         <x-auth-session-status class="text-center" :status="session('status')" />
-
 
         <form method="POST" action="{{ route('login.store') }}" class="flex flex-col gap-6">
             @csrf
@@ -51,11 +50,10 @@
             <x-ui.checkbox name="remember" :label="__('Remember me')" :checked="old('remember')" />
 
             <div class="flex items-center justify-end">
-                <flux:button variant="primary" type="submit" class="w-full" data-test="login-button">
+                <x-ui.button variant="primary" type="submit" class="w-full" data-test="login-button">
                     {{ __('Log in') }}
-                </flux:button>
+                </x-ui.button>
             </div>
         </form>
-
     </div>
 </x-layouts::auth>
