@@ -6,7 +6,7 @@
         >
             <flux:button
                 href="{{ route('admin.overtime-requests.index') }}"
-                variant="ghost"
+                variant="outline"
                 icon="arrow-left"
             >
                 {{ __('Kembali') }}
