@@ -6,18 +6,22 @@
         />
 
         <x-admin.flash-message />
-        <form method="GET" class="flex flex-wrap items-end gap-3">
-            <flux:field class="min-w-48">
-                <flux:label>{{ __('Status persetujuan') }}</flux:label>
-                <flux:select name="status" :value="request('status')">
-                    <flux:select.option value="">{{ __('Semua status') }}</flux:select.option>
-                    <flux:select.option value="pending">{{ __('Menunggu') }}</flux:select.option>
-                    <flux:select.option value="approved">{{ __('Disetujui') }}</flux:select.option>
-                    <flux:select.option value="rejected">{{ __('Ditolak') }}</flux:select.option>
-                </flux:select>
-            </flux:field>
-            <flux:button type="submit" variant="primary">{{ __('Filter') }}</flux:button>
-        </form>
+
+        <x-admin.filter-panel>
+            <form method="GET" class="flex flex-wrap items-end gap-3">
+                <flux:field class="min-w-48">
+                    <flux:label>{{ __('Status persetujuan') }}</flux:label>
+                    <flux:select name="status" :value="request('status')">
+                        <flux:select.option value="">{{ __('Semua status') }}</flux:select.option>
+                        <flux:select.option value="pending">{{ __('Menunggu') }}</flux:select.option>
+                        <flux:select.option value="approved">{{ __('Disetujui') }}</flux:select.option>
+                        <flux:select.option value="rejected">{{ __('Ditolak') }}</flux:select.option>
+                    </flux:select>
+                </flux:field>
+                <flux:button type="submit" variant="primary">{{ __('Filter') }}</flux:button>
+            </form>
+        </x-admin.filter-panel>
+
         <div class="overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900">
             <div class="divide-y divide-zinc-200 dark:divide-zinc-800">
                 @forelse ($requests as $request)
@@ -27,9 +31,7 @@
                             <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-300">{{ $request->scheduledStartLocal()->format('d M Y, H:i') }} · {{ Str::limit($request->reason ?? 'Alasan tidak dicantumkan', 110) }}</p>
                         </div>
                         <div class="flex flex-wrap gap-2">
-                            <flux:badge
-                                :color="$request->approval_status->badgeColor()"
-                            >
+                            <flux:badge :color="$request->approval_status->badgeColor()">
                                 {{ $request->approval_status->label() }}
                             </flux:badge>
                             <flux:badge :color="$request->state->badgeColor()">{{ $request->state->label() }}</flux:badge>
