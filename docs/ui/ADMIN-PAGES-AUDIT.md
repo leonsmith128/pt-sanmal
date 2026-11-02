@@ -431,4 +431,9 @@ Pemeriksaan akhir difokuskan pada penyelarasan halaman Admin yang masih memakai 
 - Perubahan hanya menyentuh Blade presentation dan dokumentasi audit. Route, controller, query, validasi, authorization, Livewire state/action, persistence, filter semantics, sorting, pagination, ekspor, dan perhitungan absensi tidak diubah.
 - File hasil perubahan di-fetch kembali dari branch untuk pemeriksaan source.
 - Pengguna telah menyatakan halaman berjalan normal selain pekerjaan CI dan formatting. Pernyataan tersebut dicatat sebagai verifikasi penggunaan oleh pengguna, bukan sebagai klaim test otomatis.
-- Pest/browser visual test dan CI belum diklaim lulus pada tahap ini; formatting tetap menjadi pekerjaan terpisah.
+- Validasi setelah formatting selesai pada CI run #931 (commit `04ec04471a2719fa5adcc5b4cd3cae9b3c5309cb`): Pint untuk file PHP yang berubah lulus; langkah static analysis repository dan static analysis kode aplikasi yang berubah berstatus sukses; MariaDB 214 passed/1 skipped (847 assertions); SQLite 213 passed/2 skipped (845 assertions). Total 427 test passed dan 3 skipped, tanpa kegagalan.
+
+### Perbaikan assertion CI
+
+- `AttendancePagesTest` mengharapkan 14 item sidebar Admin karena akun Admin pada test memiliki profil pegawai dan tetap menampilkan empat item Aktivitas Saya.
+- Test modal detail lembur kini menyiapkan satu permohonan lembur, memeriksa tombol yang memanggil `showOvertimeDetails`, dan menguji action Livewire melalui `selectedOvertimeId`. Test tidak lagi mengandalkan atribut `name` yang tidak dirender sebagai atribut HTML oleh Flux modal.
