@@ -1,5 +1,5 @@
 <x-layouts::app :title="__('Master Proyek')">
-    <div class="mx-auto flex w-full max-w-7xl flex-col gap-4">
+    <x-ui.page>
         <x-admin.page-header
             :title="__('Master Proyek')"
             :description="__('Kelola proyek jasa kalibrasi dan pelatihan beserta Client dan lokasi Site-nya.')"
@@ -11,20 +11,20 @@
 
         <x-admin.filter-panel class="!p-3">
             <form method="GET" class="flex flex-wrap items-end gap-2">
-                <flux:input size="sm" name="q" value="{{ request('q') }}" :label="__('Cari proyek')" placeholder="Kode atau nama proyek" />
-                <flux:select size="sm" name="client_id" :label="__('Client')" :value="request('client_id')">
+                <x-ui.input size="sm" name="q" :value="request('q')" :label="__('Cari proyek')" placeholder="Kode atau nama proyek" />
+                <x-ui.select size="sm" name="client_id" :label="__('Client')" :value="request('client_id')">
                     <flux:select.option value="">{{ __('Semua Client') }}</flux:select.option>
                     @foreach ($clients as $client)
                         <flux:select.option value="{{ $client->id }}">{{ $client->name }}</flux:select.option>
                     @endforeach
-                </flux:select>
-                <flux:select size="sm" name="project_type" :label="__('Jenis layanan')" :value="request('project_type')">
+                </x-ui.select>
+                <x-ui.select size="sm" name="project_type" :label="__('Jenis layanan')" :value="request('project_type')">
                     <flux:select.option value="">{{ __('Semua jenis') }}</flux:select.option>
                     @foreach ($projectTypes as $type)
                         <flux:select.option value="{{ $type->value }}">{{ $type->label() }}</flux:select.option>
                     @endforeach
                 </flux:select>
-                <flux:select size="sm" name="status" :label="__('Status')" :value="request('status')">
+                <x-ui.select size="sm" name="status" :label="__('Status')" :value="request('status')">
                     <flux:select.option value="">{{ __('Semua status') }}</flux:select.option>
                     @foreach ($statuses as $status)
                         <flux:select.option value="{{ $status->value }}">{{ $status->label() }}</flux:select.option>
@@ -102,12 +102,13 @@
                     </div>
                 </article>
             @empty
-                <div class="col-span-full rounded-xl border border-zinc-200 bg-white p-6 text-center text-sm text-zinc-500 dark:border-zinc-700 dark:bg-zinc-900">
-                    {{ __('Belum ada data proyek.') }}
-                </div>
+                <x-ui.empty-state
+                    class="col-span-full !p-6"
+                    :message="__('Belum ada data proyek.')"
+                />
             @endforelse
         </div>
 
         {{ $projects->links() }}
-    </div>
+    </x-ui.page>
 </x-layouts::app>
