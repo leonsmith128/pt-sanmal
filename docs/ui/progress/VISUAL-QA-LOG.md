@@ -63,8 +63,7 @@ Viewport emulation alone does not satisfy device QA.
 
 ## 5. Run log
 
-No new browser/device QA is claimed by the creation of this document. Add entries below only after a run has actually occurred.
-
 | Date | Commit | Page/workflow | Browser/device | Viewport | Theme | Scenario | Result | Evidence / notes |
 |---|---|---|---|---:|---|---|---|---|
-| — | — | No new run recorded | — | — | — | — | Not run | This is an empty log, not a pass. |
+| 2026-11-03 | `00d255c1d5384eb312e7842e85954c8ef7c9ca15` | Shared primary button | Not recorded in handoff | Multiple screen sizes; exact dimensions not recorded | Light and dark | Project owner confirmed actual visual review of primary button; appearance passed | **Pass (owner-confirmed)** | Browser/version, exact viewport list, screenshots, and individual interaction states were not included in the confirmation. CI job `ci` passed on this commit: [run 1004](https://github.com/leonsmith128/pt-sanmal/actions/runs/41543440506). |
+| — | — | No other run recorded | — | — | — | — | Not run | This is an empty log for other workflows, not a pass. |
