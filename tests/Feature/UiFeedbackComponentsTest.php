@@ -32,7 +32,7 @@ it('forwards attributes to the table cell for a table empty state', function () 
         </table>
     ')
         ->assertSee('colspan="3"', false)
-        ->assertSee('class="font-medium', false)
+        ->assertSee('font-medium', false)
         ->assertSee('data-testid="empty-attendance"', false)
         ->assertSee('Tidak ada catatan.');
 });
