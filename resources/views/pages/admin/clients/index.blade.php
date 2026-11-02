@@ -27,7 +27,7 @@
                     <flux:heading size="lg">{{ __('Client') }}</flux:heading>
                     <flux:text>{{ __('Setiap Client menampilkan seluruh Site yang terdaftar di bawahnya.') }}</flux:text>
                 </div>
-                <flux:badge>{{ number_format($clients->total()) }} Client</flux:badge>
+                <x-ui.badge>{{ number_format($clients->total()) }} Client</x-ui.badge>
             </div>
 
             @forelse ($clients as $client)
@@ -56,7 +56,7 @@
                                     <p class="text-xs text-zinc-500">{{ $location->address ?: 'Alamat belum diisi' }}</p>
                                 </div>
                                 <div class="flex items-center gap-2">
-                                    <flux:badge :color="$location->is_active ? 'green' : 'zinc'">{{ $location->is_active ? __('Aktif') : __('Nonaktif') }}</flux:badge>
+                                    <x-ui.badge :color="$location->is_active ? 'green' : 'zinc'">{{ $location->is_active ? __('Aktif') : __('Nonaktif') }}</x-ui.badge>
                                     <x-ui.button size="xs" variant="outline" href="{{ route('admin.locations.edit', $location) }}">{{ __('Ubah') }}</x-ui.button>
                                 </div>
                             </div>
@@ -92,7 +92,7 @@
                             <p class="mt-1 text-xs text-zinc-500">{{ $office->timezone }} · {{ $office->attendance_records_count }} catatan absensi</p>
                         </div>
                         <div class="flex items-center gap-2">
-                            <flux:badge :color="$office->is_active ? 'green' : 'zinc'">{{ $office->is_active ? __('Aktif') : __('Nonaktif') }}</flux:badge>
+                            <x-ui.badge :color="$office->is_active ? 'green' : 'zinc'">{{ $office->is_active ? __('Aktif') : __('Nonaktif') }}</x-ui.badge>
                             <x-ui.button size="sm" variant="outline" href="{{ route('admin.locations.edit', $office) }}">{{ __('Ubah') }}</x-ui.button>
                         </div>
                     </div>
