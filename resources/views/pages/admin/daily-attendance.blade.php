@@ -4,13 +4,13 @@
             :title="__('Rekap Absensi Harian')"
             :description="__('Status cuti, sakit, dan izin dihitung dari permohonan yang disetujui tanpa membuat event absensi sintetis.')"
         >
-            <flux:button
+            <x-ui.button
                 href="{{ route('admin.leave-requests.index') }}"
                 variant="outline"
                 icon="calendar"
             >
                 {{ __('Daftar permohonan') }}
-            </flux:button>
+            </x-ui.button>
         </x-admin.page-header>
 
         <x-admin.flash-message />
@@ -27,9 +27,9 @@
                         <flux:input type="date" name="date" value="{{ $date }}" required />
                     </flux:field>
 
-                    <flux:button type="submit" variant="primary">
+                    <x-ui.button type="submit" variant="primary">
                         {{ __('Lihat') }}
-                    </flux:button>
+                    </x-ui.button>
                 </form>
             </x-admin.filter-panel>
 
@@ -48,9 +48,9 @@
                     />
                 </flux:field>
 
-                <flux:button type="submit" variant="outline" icon="arrow-down-tray">
+                <x-ui.button type="submit" variant="outline" icon="arrow-down-tray">
                     {{ __('Unduh CSV') }}
-                </flux:button>
+                </x-ui.button>
             </form>
         </div>
 
