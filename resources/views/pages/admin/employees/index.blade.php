@@ -4,9 +4,9 @@
             :title="__('Manajemen Pegawai')"
             :description="__('Kelola identitas dan status akun pegawai.')"
         >
-            <flux:button href="{{ route('admin.employees.create') }}" variant="primary" icon="plus">
+            <x-ui.button href="{{ route('admin.employees.create') }}" variant="primary" icon="plus">
                 {{ __('Tambah pegawai') }}
-            </flux:button>
+            </x-ui.button>
         </x-admin.page-header>
 
         <x-admin.flash-message />
@@ -23,7 +23,7 @@
                         <flux:select.option value="inactive">{{ __('Nonaktif') }}</flux:select.option>
                     </flux:select>
                 </div>
-                <flux:button type="submit" variant="outline">{{ __('Filter') }}</flux:button>
+                <x-ui.button type="submit" variant="outline">{{ __('Filter') }}</x-ui.button>
             </form>
         </x-admin.filter-panel>
 
@@ -57,9 +57,9 @@
                         </dl>
 
                         <div class="flex justify-end border-t border-zinc-100 pt-2 dark:border-zinc-800">
-                            <flux:button size="sm" variant="outline" href="{{ route('admin.employees.edit', $employee) }}">
+                            <x-ui.button size="sm" variant="outline" href="{{ route('admin.employees.edit', $employee) }}">
                                 {{ __('Ubah pegawai') }}
-                            </flux:button>
+                            </x-ui.button>
                         </div>
                     </article>
                 @endforeach
@@ -91,9 +91,9 @@
                                     </flux:badge>
                                 </td>
                                 <td class="px-3 py-2 text-right">
-                                    <flux:button size="sm" variant="outline" href="{{ route('admin.employees.edit', $employee) }}">
+                                    <x-ui.button size="sm" variant="outline" href="{{ route('admin.employees.edit', $employee) }}">
                                         {{ __('Ubah') }}
-                                    </flux:button>
+                                    </x-ui.button>
                                 </td>
                             </tr>
                         @endforeach
