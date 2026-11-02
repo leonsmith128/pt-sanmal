@@ -17,13 +17,13 @@
 
         <section class="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900">
             <div class="flex flex-wrap gap-2">
-                <flux:badge
+                <x-ui.badge
                     :color="$overtimeRequest->approval_status->badgeColor()"
                 >
                     {{ $overtimeRequest->approval_status->label() }}
-                </flux:badge>
+                </x-ui.badge>
 
-                <flux:badge :color="$overtimeRequest->state->badgeColor()">{{ $overtimeRequest->state->label() }}</flux:badge>
+                <x-ui.badge :color="$overtimeRequest->state->badgeColor()">{{ $overtimeRequest->state->label() }}</x-ui.badge>
             </div>
 
             <dl class="mt-4 grid gap-4 sm:grid-cols-2">
