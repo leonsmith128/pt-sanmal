@@ -23,12 +23,13 @@ class NotificationController extends Controller
     public function read(Request $request, DatabaseNotification $notification): RedirectResponse
     {
         abort_unless($notification->notifiable_id === $request->user()->getKey()
-            && $notification->notifiable_type === $request->user()::class, 404);
+            && $notification->notifiable_type === $request->user()->getMorphClass(), 404);
 
         $notification->markAsRead();
 
         $url = $notification->data['url'] ?? route('dashboard');
-        $target = is_string($url) && Str::startsWith($url, url('/'))
+        $target = is_string($url)
+            && parse_url($url, PHP_URL_HOST) === parse_url(url('/'), PHP_URL_HOST)
             ? $url
             : route('dashboard');
 
