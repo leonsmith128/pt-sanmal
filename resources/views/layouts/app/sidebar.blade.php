@@ -9,6 +9,7 @@
             $sidebarEmployee = $sidebarUser->employee;
             $isManager = $sidebarUser->isManager();
             $isEmployee = $sidebarUser->isEmployee();
+            $unreadSystemNotifications = $sidebarUser->unreadNotifications()->count();
 
             $unseenRequestDecisions = $sidebarEmployee
                 ? $sidebarEmployee->leaveRequests()->whereIn('status', ['approved', 'rejected'])->whereNull('decision_seen_at')->count()
@@ -46,6 +47,17 @@
                     <div class="px-3 py-2 text-sm font-medium leading-none text-zinc-400 in-data-flux-sidebar-collapsed-desktop:hidden">{{ $isEmployee ? __('Navigasi') : __('Platform') }}</div>
                     <flux:sidebar.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
                         {{ $isEmployee ? __('Beranda') : __('Dashboard') }}
+                    </flux:sidebar.item>
+                </div>
+                <div class="flex flex-col">
+                    <flux:sidebar.item
+                        icon="bell"
+                        :href="route('notifications.index')"
+                        :current="request()->routeIs('notifications.*')"
+                        :badge="$unreadSystemNotifications > 0 ? $unreadSystemNotifications : null"
+                        wire:navigate
+                    >
+                        {{ __('Notifikasi') }}
                     </flux:sidebar.item>
                 </div>
 
