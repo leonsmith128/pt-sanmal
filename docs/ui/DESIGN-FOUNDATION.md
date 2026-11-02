@@ -311,37 +311,23 @@ A UI change is complete only when:
 - No unrelated formatting/refactor changes are included.
 - Documentation is updated when a shared component contract or design decision changes.
 
-## 12. V1 UI/UX completion scope and PR workflow
+## 12. V1 UI/UX scope and delivery workflow
 
-The current UI/UX program scope is **finalization of the SanMal web application UI/UX for V1**. This is an end-to-end scope, not only a component-library exercise. It includes the employee experience, admin experience, responsive layouts, shared components, page-level consistency, interaction states, accessibility, and visual regression checks for the existing V1 workflows.
+The SanMal V1 UI/UX program covers the existing web application's Employee and Admin experiences, shared components, page-level consistency, responsive behavior, interaction states, accessibility, and visual QA. It is not permission to add product features or change business/domain behavior.
 
-Do not silently expand this into new product features or domain/business-rule changes. If a discovered UI issue requires a behavior or data-contract change, separate it and obtain explicit scope approval.
+### Single branch and single PR
 
-### Required GitHub workflow
+- Work only on branch `docs/ui-v1-scope-and-pr-workflow`.
+- Use only [PR #27](https://github.com/leonsmith128/pt-sanmal/pull/27), targeting `main`.
+- Do not create another branch or PR for a component, page, milestone, test, or documentation task.
+- Do not merge PR #27 early. Merge once the complete V1 UI/UX scope is finished, reviewed, and verified.
+- Commit focused changes to the same branch and keep the PR description/checklist current.
 
-**Every UI/UX work item must be implemented on its own feature branch and delivered through a Pull Request targeting `main`. Never make UI/UX implementation commits directly to `main`.**
+### Implementation references
 
-For each work item:
-1. Confirm the scope and inspect current `main` before creating the branch.
-2. Create a focused branch with a descriptive name (for example, `ui/button-foundation`, `ui/employee-attendance-mobile`, or `ui/admin-attendance-table`).
-3. Audit the existing page/components, tests, routes, and behavior before changing code.
-4. Implement the agreed visual and interaction changes directly in the Laravel source code.
-5. Run relevant automated tests, formatting, and asset builds as applicable.
-6. Inspect browser rendering at relevant mobile, tablet, and desktop checkpoints; do not claim browser QA if it was not performed.
-7. Update design/component documentation when shared contracts or standards change.
-8. Open a PR to `main` with scope, key files, behavior/contracts preserved, tests and browser viewports checked, screenshots where useful, and known limitations.
-9. Address review feedback and CI failures before merge. Merge only under the repository's normal approval and protection rules.
+- Start with `docs/ui/DEVELOPMENT-HANDOFF.md`.
+- Use `docs/ui/PAGE-INVENTORY.md` for page scope and audit references.
+- Use `docs/ui/COMPONENT-CATALOG.md` and `docs/ui/REUSABLE-BLADE-COMPONENTS.md` for existing component contracts.
+- Track progress in `docs/ui/progress/IMPLEMENTATION-STATUS.md` and evidence in `docs/ui/progress/VISUAL-QA-LOG.md`.
 
-A PR may cover multiple components or pages when they form one coherent deliverable. Do not bundle unrelated UI work into one PR. Keep PRs small enough to review, but do not split a tightly coupled visual change in a way that makes it untestable.
-
-### V1 completion tracking
-
-Track the V1 UI/UX scope across these areas:
-- Employee mobile-first workflows and their larger-screen behavior.
-- Admin desktop/tablet information readability and mobile-friendly behavior.
-- Shared primitives: buttons, form controls, badges/status, cards/surfaces, feedback, tables/data display, and navigation.
-- Page-level layout, hierarchy, density, responsive behavior, and interaction states.
-- Accessibility, keyboard/touch behavior, and visual regression checks.
-- Consistent application of the brand, typography, spacing, and semantic status rules in this document.
-
-A component is not complete merely because its shared primitive is styled. Confirm its real use in relevant Employee and Admin pages. V1 UI/UX is complete only after all in-scope pages and critical states have been reviewed, required PRs are merged, and remaining known limitations are explicitly documented.
+The actual source code, current tests, and rendered browser output remain the implementation truth. If a documented API or page status conflicts with source, inspect and correct the documentation rather than blindly following stale details.
