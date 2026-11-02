@@ -5,10 +5,7 @@
 
 @if ($colspan)
     <tr>
-        <td
-            colspan="{{ $colspan }}"
-            {{ $attributes->class(['px-4 py-8 text-center text-sm text-zinc-500 dark:text-zinc-400']) }}
-        >
+        <td colspan="{{ $colspan }}" {{ $attributes->class(['px-4 py-8 text-center text-sm text-zinc-500 dark:text-zinc-400']) }}>
             {{ $message }}
         </td>
     </tr>
