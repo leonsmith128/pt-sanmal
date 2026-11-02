@@ -13,7 +13,13 @@ use Illuminate\View\View;
 
 class AdminLocationController extends Controller
 {
-    public function index(Request $request): View
+    public function index(Request $request): RedirectResponse
+    {
+        return redirect()->route('admin.clients.index', $request->query());
+    }
+
+    /* Legacy location listing is redirected into the consolidated Client module. */
+    private function legacyIndex(Request $request): View
     {
         $locations = Location::query()
             ->with('client')
@@ -39,18 +45,32 @@ class AdminLocationController extends Controller
         ]);
     }
 
-    public function create(): View
+    public function create(Request $request): View
     {
+        $selectedClient = $request->filled('client_id')
+            ? Client::query()->findOrFail($request->integer('client_id'))
+            : null;
+        $officeMode = $request->input('type') === 'office';
+
+        abort_if($selectedClient !== null && $officeMode, 422, 'Site milik Client tidak dapat dibuat sebagai Office.');
+
         return view('pages::admin.locations.create', [
             'clients' => Client::query()->orderBy('name')->get(),
+            'selectedClient' => $selectedClient,
+            'officeMode' => $officeMode,
         ]);
     }
 
     public function store(Request $request): RedirectResponse
     {
-        Location::create($this->validatedData($request));
+        $data = $this->validatedData($request);
+        $location = Location::create($data);
 
-        return redirect()->route('admin.locations.index')->with('status', 'Lokasi berhasil ditambahkan.');
+        $destination = $location->client_id !== null
+            ? route('admin.clients.show', $location->client_id)
+            : route('admin.clients.index');
+
+        return redirect($destination)->with('status', 'Location berhasil ditambahkan.');
     }
 
     public function edit(Location $location): View
@@ -67,7 +87,11 @@ class AdminLocationController extends Controller
 
         $location->update($data);
 
-        return redirect()->route('admin.locations.index')->with('status', 'Data lokasi berhasil diperbarui.');
+        $destination = $location->client_id !== null
+            ? route('admin.clients.show', $location->client_id)
+            : route('admin.clients.index');
+
+        return redirect($destination)->with('status', 'Data Location berhasil diperbarui.');
     }
 
     /**
