@@ -42,20 +42,17 @@
             </flux:sidebar.header>
 
             <flux:sidebar.nav>
-                <flux:sidebar.group :heading="$isEmployee ? __('Navigasi') : __('Platform')" class="grid">
+                <div class="flex flex-col">
+                    <div class="px-3 py-2 text-sm font-medium leading-none text-zinc-400 in-data-flux-sidebar-collapsed-desktop:hidden">{{ $isEmployee ? __('Navigasi') : __('Platform') }}</div>
                     <flux:sidebar.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
                         {{ $isEmployee ? __('Beranda') : __('Dashboard') }}
                     </flux:sidebar.item>
-                </flux:sidebar.group>
+                </div>
 
                 @if ($isManager)
                     @if ($sidebarEmployee)
-                        <flux:sidebar.group
-                            icon="user-circle"
-                            :heading="__('Aktivitas Saya')"
-                            :expanded="request()->routeIs('attendance', 'attendance-history.*', 'leave-requests.*', 'overtime-requests.*')"
-                            class="grid"
-                        >
+                        <div class="flex flex-col">
+                            <div class="px-3 py-2 text-sm font-medium leading-none text-zinc-400 in-data-flux-sidebar-collapsed-desktop:hidden">{{ __('Aktivitas Saya') }}</div>
                             <flux:sidebar.item icon="clock" :href="route('attendance')" :current="request()->routeIs('attendance')" wire:navigate>
                                 {{ __('Absensi Saya') }}
                             </flux:sidebar.item>
@@ -74,15 +71,11 @@
                             <flux:sidebar.item icon="check" :href="route('overtime-requests.index') . '#riwayat-lembur'" :current="request()->routeIs('overtime-requests.*')" wire:navigate>
                                 {{ __('Riwayat Lembur Saya') }}
                             </flux:sidebar.item>
-                        </flux:sidebar.group>
+                        </div>
                     @endif
 
-                    <flux:sidebar.group
-                        icon="clipboard-document-list"
-                        :heading="__('Operasional')"
-                        :expanded="request()->routeIs('admin.kehadiran', 'admin.daily-attendance*', 'admin.projects.*')"
-                        class="grid"
-                    >
+                    <div class="flex flex-col">
+                        <div class="px-3 py-2 text-sm font-medium leading-none text-zinc-400 in-data-flux-sidebar-collapsed-desktop:hidden">{{ __('Operasional') }}</div>
                         <flux:sidebar.item icon="clipboard-document-list" :href="route('admin.kehadiran')" :current="request()->routeIs('admin.kehadiran')" wire:navigate>
                             {{ __('Kehadiran & Aktivitas Pegawai') }}
                         </flux:sidebar.item>
@@ -92,28 +85,20 @@
                         <flux:sidebar.item icon="briefcase" :href="route('admin.projects.index')" :current="request()->routeIs('admin.projects.*')" wire:navigate>
                             {{ __('Pengelolaan Proyek') }}
                         </flux:sidebar.item>
-                    </flux:sidebar.group>
+                    </div>
 
-                    <flux:sidebar.group
-                        icon="building-office-2"
-                        :heading="__('Master Data')"
-                        :expanded="request()->routeIs('admin.clients.*', 'admin.locations.*', 'admin.employees.*')"
-                        class="grid"
-                    >
+                    <div class="flex flex-col">
+                        <div class="px-3 py-2 text-sm font-medium leading-none text-zinc-400 in-data-flux-sidebar-collapsed-desktop:hidden">{{ __('Master Data') }}</div>
                         <flux:sidebar.item icon="building-office-2" :href="route('admin.clients.index')" :current="request()->routeIs('admin.clients.*', 'admin.locations.*')" wire:navigate>
                             {{ __('Master Data Client') }}
                         </flux:sidebar.item>
                         <flux:sidebar.item icon="users" :href="route('admin.employees.index')" :current="request()->routeIs('admin.employees.*')" wire:navigate>
                             {{ __('Daftar & Akun Pegawai') }}
                         </flux:sidebar.item>
-                    </flux:sidebar.group>
+                    </div>
 
-                    <flux:sidebar.group
-                        icon="calendar"
-                        :heading="__('Permohonan')"
-                        :expanded="request()->routeIs('admin.leave-requests.*', 'admin.overtime-requests.*', 'admin.attendance-corrections.*')"
-                        class="grid"
-                    >
+                    <div class="flex flex-col">
+                        <div class="px-3 py-2 text-sm font-medium leading-none text-zinc-400 in-data-flux-sidebar-collapsed-desktop:hidden">{{ __('Permohonan') }}</div>
                         <flux:sidebar.item icon="calendar" :href="route('admin.leave-requests.index')" :current="request()->routeIs('admin.leave-requests.*')" wire:navigate>
                             {{ __('Izin, Sakit & Cuti') }}
                         </flux:sidebar.item>
@@ -123,9 +108,10 @@
                         <flux:sidebar.item icon="document-check" :href="route('admin.attendance-corrections.index')" :current="request()->routeIs('admin.attendance-corrections.*')" wire:navigate>
                             {{ __('Permohonan Koreksi Absensi') }}
                         </flux:sidebar.item>
-                    </flux:sidebar.group>
+                    </div>
                 @elseif ($sidebarEmployee)
-                    <flux:sidebar.group :heading="__('Aktivitas Pegawai')" class="grid">
+                    <div class="flex flex-col">
+                        <div class="px-3 py-2 text-sm font-medium leading-none text-zinc-400 in-data-flux-sidebar-collapsed-desktop:hidden">{{ __('Aktivitas Pegawai') }}</div>
                         <flux:sidebar.item icon="clock" :href="route('attendance')" :current="request()->routeIs('attendance')" wire:navigate>
                             {{ __('Absensi') }}
                         </flux:sidebar.item>
@@ -141,7 +127,7 @@
                         >
                             {{ __('Pusat Permohonan') }}
                         </flux:sidebar.item>
-                    </flux:sidebar.group>
+                    </div>
                 @endif
             </flux:sidebar.nav>
 
