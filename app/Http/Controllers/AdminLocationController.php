@@ -18,33 +18,6 @@ class AdminLocationController extends Controller
         return redirect()->route('admin.clients.index', $request->query());
     }
 
-    /* Legacy location listing is redirected into the consolidated Client module. */
-    private function legacyIndex(Request $request): View
-    {
-        $locations = Location::query()
-            ->with('client')
-            ->withCount(['projects', 'attendanceRecords'])
-            ->when($request->filled('q'), fn ($query) => $query->where(function ($q) use ($request): void {
-                $term = $request->string('q')->toString();
-                $q->where('name', 'like', "%{$term}%")
-                    ->orWhere('address', 'like', "%{$term}%");
-            }))
-            ->when($request->filled('client_id'), fn ($query) => $request->integer('client_id') === 0
-                ? $query->whereNull('client_id')
-                : $query->where('client_id', $request->integer('client_id')))
-            ->when($request->filled('type'), fn ($query) => $query->where('type', $request->string('type')->toString()))
-            ->when($request->filled('status'), fn ($query) => $query->where('is_active', $request->status === 'active'))
-            ->orderByRaw('client_id IS NULL DESC')
-            ->orderBy('name')
-            ->paginate(20)
-            ->withQueryString();
-
-        return view('pages::admin.locations.index', [
-            'locations' => $locations,
-            'clients' => Client::query()->orderBy('name')->get(),
-        ]);
-    }
-
     public function create(Request $request): View
     {
         $selectedClient = $request->filled('client_id')
