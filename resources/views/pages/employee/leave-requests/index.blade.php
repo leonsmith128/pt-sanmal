@@ -85,7 +85,8 @@
                     <article class="space-y-3 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
                         <div class="flex items-start justify-between gap-3">
                             <div class="min-w-0">
-                                <p class="text-xs font-medium text-zinc-500">{{ $item->reference }} · {{ $item->submitted_at?->format('d/m/Y') }}</p>
+                                <p class="text-xs font-medium text-zinc-500">{{ $item->reference }}</p>
+                                <p class="mt-0.5 text-xs text-zinc-500">{{ __('Diajukan') }}: {{ $item->submitted_at?->format('d/m/Y H:i') ?? '—' }}</p>
                                 <h2 class="mt-1 font-semibold text-zinc-900 dark:text-zinc-100">{{ $item->type_label }}</h2>
                             </div>
                             <x-ui.badge :color="match($item->status) {'approved' => 'green', 'rejected' => 'red', 'cancelled' => 'zinc', default => 'amber'}">{{ $item->status_label }}</x-ui.badge>
@@ -124,25 +125,30 @@
 
             {{-- Desktop/tablet: comparable columns, with operational overtime status kept separate. --}}
             <div class="hidden overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900 md:block">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm">
+                <div
+                    class="overflow-x-auto overscroll-x-contain"
+                    role="region"
+                    aria-label="{{ __('Tabel permohonan; geser horizontal untuk melihat seluruh kolom') }}"
+                    tabindex="0"
+                >
+                    <table class="min-w-[68rem] w-full text-left text-sm">
                         <thead class="sticky top-0 z-10 bg-zinc-50 text-xs uppercase tracking-wide text-zinc-500 shadow-sm dark:bg-zinc-800 dark:text-zinc-400">
                             <tr>
-                                <th class="px-4 py-3">
+                                <th scope="col" class="px-4 py-3">
                                     <x-ui.button size="sm" variant="ghost" icon-trailing="{{ $filters['sort'] === 'reference' ? ($filters['direction'] === 'asc' ? 'arrow-up' : 'arrow-down') : 'arrows-up-down' }}" href="{{ route('leave-requests.index', array_merge(request()->except('page'), ['sort' => 'reference', 'direction' => $filters['sort'] === 'reference' && $filters['direction'] === 'asc' ? 'desc' : 'asc'])) }}">{{ __('Nomor / Jenis') }}</x-ui.button>
                                 </th>
-                                <th class="px-4 py-3">
+                                <th scope="col" class="px-4 py-3">
                                     <x-ui.button size="sm" variant="ghost" icon-trailing="{{ $filters['sort'] === 'submitted' ? ($filters['direction'] === 'asc' ? 'arrow-up' : 'arrow-down') : 'arrows-up-down' }}" href="{{ route('leave-requests.index', array_merge(request()->except('page'), ['sort' => 'submitted', 'direction' => $filters['sort'] === 'submitted' && $filters['direction'] === 'asc' ? 'desc' : 'asc'])) }}">{{ __('Tanggal pengajuan') }}</x-ui.button>
                                 </th>
-                                <th class="px-4 py-3">
+                                <th scope="col" class="px-4 py-3">
                                     <x-ui.button size="sm" variant="ghost" icon-trailing="{{ $filters['sort'] === 'period' ? ($filters['direction'] === 'asc' ? 'arrow-up' : 'arrow-down') : 'arrows-up-down' }}" href="{{ route('leave-requests.index', array_merge(request()->except('page'), ['sort' => 'period', 'direction' => $filters['sort'] === 'period' && $filters['direction'] === 'asc' ? 'desc' : 'asc'])) }}">{{ __('Periode') }}</x-ui.button>
                                 </th>
-                                <th class="px-4 py-3">{{ __('Ringkasan') }}</th>
-                                <th class="px-4 py-3">
+                                <th scope="col" class="px-4 py-3">{{ __('Ringkasan') }}</th>
+                                <th scope="col" class="px-4 py-3">
                                     <x-ui.button size="sm" variant="ghost" icon-trailing="{{ $filters['sort'] === 'status' ? ($filters['direction'] === 'asc' ? 'arrow-up' : 'arrow-down') : 'arrows-up-down' }}" href="{{ route('leave-requests.index', array_merge(request()->except('page'), ['sort' => 'status', 'direction' => $filters['sort'] === 'status' && $filters['direction'] === 'asc' ? 'desc' : 'asc'])) }}">{{ __('Status') }}</x-ui.button>
                                 </th>
-                                <th class="px-4 py-3">{{ __('Keputusan') }}</th>
-                                <th class="px-4 py-3 text-right">{{ __('Aksi') }}</th>
+                                <th scope="col" class="px-4 py-3">{{ __('Keputusan') }}</th>
+                                <th scope="col" class="px-4 py-3 text-right">{{ __('Aksi') }}</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-zinc-200 dark:divide-zinc-700">
