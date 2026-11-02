@@ -269,6 +269,21 @@ it('keeps system notification timestamps and resolves overtime prompts when canc
 
     expect($employee->user->notifications()->count())->toBe(3)
         ->and($employee->user->notifications()->where('data->event', 'cancelled')->exists())->toBeTrue();
+
+    $this->actingAs($employee->user)
+        ->get(route('notifications.index'))
+        ->assertOk()
+        ->assertSee('Notifikasi sistem')
+        ->assertSee('Pengajuan lembur dibatalkan');
+
+    $cancellationNotification = $employee->user->notifications()
+        ->where('data->event', 'cancelled')
+        ->firstOrFail();
+
+    $this->patch(route('notifications.read', $cancellationNotification))
+        ->assertRedirect(route('overtime-requests.index'));
+
+    expect($cancellationNotification->fresh()->read_at)->not->toBeNull();
 });
 
 it('does not send scheduled overtime notifications after cancellation', function () {
