@@ -1,6 +1,5 @@
 @props([
     'variant' => 'primary',
-    'color' => null,
     'size' => 'sm',
     'type' => 'button',
     'href' => null,
@@ -14,13 +13,12 @@
     <flux:button
         :href="$href"
         :variant="$variant"
-        :color="$color ?? ($variant === 'primary' ? 'blue' : null)"
         :size="$size"
         :icon="$icon"
         :icon-trailing="$iconTrailing"
         :disabled="$disabled"
         :square="$square"
-        {{ $attributes }}
+        {{ $attributes->class(['sanmal-button-primary' => $variant === 'primary']) }}
     >
         {{ $slot }}
     </flux:button>
@@ -28,13 +26,12 @@
     <flux:button
         :type="$type"
         :variant="$variant"
-        :color="$color ?? ($variant === 'primary' ? 'blue' : null)"
         :size="$size"
         :icon="$icon"
         :icon-trailing="$iconTrailing"
         :disabled="$disabled"
         :square="$square"
-        {{ $attributes }}
+        {{ $attributes->class(['sanmal-button-primary' => $variant === 'primary']) }}
     >
         {{ $slot }}
     </flux:button>
