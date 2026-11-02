@@ -38,20 +38,17 @@
                 :value="old('phone', $employee->phone)"
             />
 
-            <flux:field>
-                <flux:select name="title_id" :label="__('Jabatan')">
-                    <flux:select.option value="">{{ __('Belum ditentukan') }}</flux:select.option>
-                    @foreach ($titles as $title)
-                        <flux:select.option
-                            value="{{ $title->id }}"
-                            :selected="(string) old('title_id', $employee->title_id) === (string) $title->id"
-                        >
-                            {{ $title->name }}
-                        </flux:select.option>
-                    @endforeach
-                </flux:select>
-                <flux:error name="title_id" />
-            </flux:field>
+            <x-ui.select name="title_id" :label="__('Jabatan')">
+                <flux:select.option value="">{{ __('Belum ditentukan') }}</flux:select.option>
+                @foreach ($titles as $title)
+                    <flux:select.option
+                        value="{{ $title->id }}"
+                        :selected="(string) old('title_id', $employee->title_id) === (string) $title->id"
+                    >
+                        {{ $title->name }}
+                    </flux:select.option>
+                @endforeach
+            </x-ui.select>
 
             <x-ui.input
                 name="joined_at"
@@ -60,13 +57,10 @@
                 :value="old('joined_at', $employee->joined_at?->format('Y-m-d'))"
             />
 
-            <flux:field>
-                <flux:select name="is_active" :label="__('Status akun')">
-                    <flux:select.option value="1" :selected="(string) old('is_active', (int) $employee->user->is_active) === '1'">{{ __('Aktif') }}</flux:select.option>
-                    <flux:select.option value="0" :selected="(string) old('is_active', (int) $employee->user->is_active) === '0'">{{ __('Nonaktif') }}</flux:select.option>
-                </flux:select>
-                <flux:error name="is_active" />
-            </flux:field>
+            <x-ui.select name="is_active" :label="__('Status akun')">
+                <flux:select.option value="1" :selected="(string) old('is_active', (int) $employee->user->is_active) === '1'">{{ __('Aktif') }}</flux:select.option>
+                <flux:select.option value="0" :selected="(string) old('is_active', (int) $employee->user->is_active) === '0'">{{ __('Nonaktif') }}</flux:select.option>
+            </x-ui.select>
 
             <div class="flex justify-end gap-2">
                 <flux:button href="{{ route('admin.employees.index') }}" variant="outline">{{ __('Batal') }}</flux:button>
