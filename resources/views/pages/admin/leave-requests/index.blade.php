@@ -4,7 +4,7 @@
             :title="__('Persetujuan Permohonan')"
             :description="__('Admin dan superadmin menggunakan alur persetujuan yang sama.')"
         >
-            <flux:button href="{{ route('admin.daily-attendance') }}" variant="filled" icon="calendar-days">
+            <flux:button href="{{ route('admin.daily-attendance') }}" variant="outline" icon="calendar-days">
                 {{ __('Rekap harian') }}
             </flux:button>
         </x-admin.page-header>
