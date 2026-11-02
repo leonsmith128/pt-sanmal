@@ -4,7 +4,7 @@
             :title="__('Master Proyek')"
             :description="__('Kelola proyek jasa kalibrasi dan pelatihan beserta Client dan lokasi Site-nya.')"
         >
-            <flux:button href="{{ route('admin.projects.create') }}" variant="primary" icon="plus">{{ __('Tambah proyek') }}</flux:button>
+            <x-ui.button href="{{ route('admin.projects.create') }}" variant="primary" icon="plus">{{ __('Tambah proyek') }}</x-ui.button>
         </x-admin.page-header>
 
         <x-admin.flash-message />
@@ -30,7 +30,7 @@
                         <flux:select.option value="{{ $status->value }}">{{ $status->label() }}</flux:select.option>
                     @endforeach
                 </flux:select>
-                <flux:button size="sm" type="submit" variant="outline">{{ __('Filter') }}</flux:button>
+                <x-ui.button size="sm" type="submit" variant="outline">{{ __('Filter') }}</x-ui.button>
             </form>
         </x-admin.filter-panel>
 
@@ -90,7 +90,7 @@
                     </details>
 
                     <div class="mt-3 flex justify-end border-t border-zinc-100 pt-2 dark:border-zinc-800">
-                        <flux:button size="sm" variant="outline" href="{{ route('admin.projects.edit', $project) }}">{{ __('Ubah proyek') }}</flux:button>
+                        <x-ui.button size="sm" variant="outline" href="{{ route('admin.projects.edit', $project) }}">{{ __('Ubah proyek') }}</x-ui.button>
                     </div>
                 </article>
             @empty
