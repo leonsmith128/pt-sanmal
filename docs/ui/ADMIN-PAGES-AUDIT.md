@@ -17,6 +17,21 @@ Pencatatan berikut diperbarui setiap kelompok halaman selesai dikerjakan. Status
 |---|---|---|---|
 | Client Create | Selesai | Mengadopsi `x-ui.page`, `x-ui.page-header`, `x-ui.input`, `x-ui.textarea`, dan `x-ui.button`; route, method, nama field, old input, serta pesan validasi tetap dipertahankan melalui wrapper field | Source telah diperiksa; test otomatis belum dijalankan |
 | Client Edit | Selesai | Diselaraskan dengan Create; mempertahankan `PUT`, model fallback untuk seluruh field, serta tautan kembali/batal ke detail Client | Source telah diperiksa; test otomatis belum dijalankan |
+| Location Create | Selesai | Mengadopsi page/header, field controls, dan tombol bersama; seluruh cabang Client terpilih, Office mode, serta mode pilihan bebas dipertahankan | Source telah diperiksa; test otomatis belum dijalankan |
+| Location Edit | Selesai | Mengadopsi field controls dan tombol bersama; mempertahankan pilihan Client/Office, selected state, old/model fallback, status aktif, dan `PUT` | Source telah diperiksa; test otomatis belum dijalankan |
+
+### Catatan implementasi Location Create/Edit — 2026-11-03
+
+- Kedua halaman menggunakan `x-ui.page` dengan lebar maksimum yang sama seperti form Client, `x-ui.page-header`, dan `x-ui.button`.
+- Input nama, koordinat, timezone, alamat, serta select Client, jenis lokasi, dan status menggunakan wrapper `x-ui` yang telah tersedia.
+- Create tetap memiliki tiga mode yang berbeda: Client sudah dipilih, Office internal dipaksa, dan pilihan jenis lokasi/Client secara manual.
+- Hidden field `client_id`, `type`, serta `is_active=1` pada Create tetap dipertahankan sesuai cabang aslinya.
+- Edit tetap menggunakan `PUT`; opsi Client, jenis lokasi, dan status tetap mempertahankan kondisi `selected` berdasarkan `old()` dan model.
+- Nilai default timezone Create tetap `Asia/Makassar`; fallback nilai Edit tetap berasal dari `$location`.
+- Route/action, method, nama field, required attribute, koordinat `step="any"`, deskripsi timezone, flash message, dan tujuan navigasi tidak diubah.
+- Tidak ada perubahan backend, validasi, atau business logic.
+
+**Batas verifikasi Location:** source telah diperiksa setelah perubahan. Belum ditemukan test Feature khusus bernama `AdminLocationPageTest`, `AdminLocationTest`, `LocationManagementTest`, `AdminLocationManagementTest`, atau `LocationTest` pada path `tests/Feature` yang diperiksa. Hal ini tidak membuktikan tidak ada coverage melalui test lain. Laravel/Pest dan browser visual test belum dijalankan.
 
 ### Catatan implementasi Client Create/Edit — 2026-11-03
 
