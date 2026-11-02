@@ -6,7 +6,7 @@
         >
             <flux:button
                 href="{{ route('admin.leave-requests.index') }}"
-                variant="filled"
+                variant="outline"
                 icon="calendar"
             >
                 {{ __('Daftar permohonan') }}
