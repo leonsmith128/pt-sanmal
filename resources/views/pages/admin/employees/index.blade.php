@@ -86,9 +86,9 @@
                                 <td class="px-3 py-2">{{ $employee->employee_number ?: '—' }}</td>
                                 <td class="px-3 py-2">{{ $employee->title?->name ?: '—' }}</td>
                                 <td class="px-3 py-2">
-                                    <flux:badge :color="$employee->user->is_active ? 'green' : 'zinc'">
+                                    <x-ui.badge :color="$employee->user->is_active ? 'green' : 'zinc'">
                                         {{ $employee->user->is_active ? __('Aktif') : __('Nonaktif') }}
-                                    </flux:badge>
+                                    </x-ui.badge>
                                 </td>
                                 <td class="px-3 py-2 text-right">
                                     <x-ui.button size="sm" variant="outline" href="{{ route('admin.employees.edit', $employee) }}">
