@@ -98,6 +98,11 @@ class ApproveAttendanceCorrection
                             'work_type' => $anchor->work_type,
                             'location_id' => $anchor->location_id,
                             'project_id' => $anchor->project_id,
+                            ...$anchor->only([
+                                'client_code_snapshot', 'client_name_snapshot',
+                                'project_code_snapshot', 'project_name_snapshot',
+                                'location_name_snapshot', 'snapshot_source',
+                            ]),
                             'recorded_at' => $requestedAt,
                             'timezone' => $anchor->timezone,
                             'attendance_date' => $anchor->effectiveAttendanceDate(),
