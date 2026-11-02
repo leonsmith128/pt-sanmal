@@ -355,7 +355,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                                         @if ($record->accuracy_m !== null)
                                             <p>±{{ round((float) $record->accuracy_m) }} m</p>
                                         @endif
-                                        <a href="https://www.google.com/maps?q={{ $record->latitude }},{{ $record->longitude }}" target="_blank" rel="noopener noreferrer" class="text-blue-600 underline dark:text-blue-400">{{ __('Peta') }}</a>
+                                        <a href="https://www.google.com/maps?q={{ $record->latitude }},{{ $record->longitude }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center rounded-md border border-zinc-300 px-2 py-1 text-xs font-medium text-zinc-700 transition hover:bg-zinc-50 dark:border-zinc-600 dark:text-zinc-200 dark:hover:bg-zinc-800">{{ __('Peta') }}</a>
                                     @else
                                         <span>—</span>
                                     @endif
