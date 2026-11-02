@@ -36,11 +36,17 @@ it('forwards Livewire, accessibility, disabled, and presentation attributes', fu
         ->assertSee('data-test="save-button"', false);
 });
 
-
 it('uses the SanMal brand blue for primary actions by default', function () {
     $this->blade('<x-ui.button variant="primary">Simpan</x-ui.button>')
         ->assertSee('sanmal-button-primary', false)
         ->assertSee('Simpan');
+});
+
+
+it('applies a dedicated secondary button class for dark theme contrast', function () {
+    $this->blade('<x-ui.button variant="outline">Kembali</x-ui.button>')
+        ->assertSee('sanmal-button-secondary', false)
+        ->assertSee('Kembali');
 });
 
 it('supports the Flux destructive variant and explicit semantic colors', function () {
