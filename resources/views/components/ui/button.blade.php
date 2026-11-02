@@ -1,5 +1,6 @@
 @props([
     'variant' => 'primary',
+    'color' => null,
     'size' => 'sm',
     'type' => 'button',
     'href' => null,
@@ -13,6 +14,7 @@
     <flux:button
         :href="$href"
         :variant="$variant"
+        :color="$color ?? ($variant === 'primary' ? 'blue' : null)"
         :size="$size"
         :icon="$icon"
         :icon-trailing="$iconTrailing"
