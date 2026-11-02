@@ -1,9 +1,9 @@
 <x-layouts::app :title="__('Pengelolaan Lembur')">
     <div class="mx-auto flex w-full max-w-6xl flex-col gap-6">
-        <div>
-            <flux:heading size="xl">{{ __('Pengelolaan lembur') }}</flux:heading>
-            <flux:text class="mt-1">{{ __('Tinjau pengajuan, status konfirmasi foto, dan keputusan lembur pegawai.') }}</flux:text>
-        </div>
+        <x-admin.page-header
+            :title="__('Pengelolaan lembur')"
+            :description="__('Tinjau pengajuan, status konfirmasi foto, dan keputusan lembur pegawai.')"
+        />
 
         <x-admin.flash-message />
         <form method="GET" class="flex flex-wrap items-end gap-3">
