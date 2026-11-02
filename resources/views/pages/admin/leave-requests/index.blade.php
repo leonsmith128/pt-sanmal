@@ -4,9 +4,9 @@
             :title="__('Persetujuan Permohonan')"
             :description="__('Admin dan superadmin menggunakan alur persetujuan yang sama.')"
         >
-            <flux:button href="{{ route('admin.daily-attendance') }}" variant="outline" icon="calendar-days">
+            <x-ui.button href="{{ route('admin.daily-attendance') }}" variant="outline" icon="calendar-days">
                 {{ __('Rekap harian') }}
-            </flux:button>
+            </x-ui.button>
         </x-admin.page-header>
 
 
@@ -24,9 +24,9 @@
                     @endforeach
                 </flux:select>
             </div>
-            <flux:button type="submit" variant="primary">{{ __('Terapkan') }}</flux:button>
+            <x-ui.button type="submit" variant="primary">{{ __('Terapkan') }}</x-ui.button>
             @if (request()->filled('status'))
-                <flux:button href="{{ route('admin.leave-requests.index') }}" variant="outline">{{ __('Reset') }}</flux:button>
+                <x-ui.button href="{{ route('admin.leave-requests.index') }}" variant="outline">{{ __('Reset') }}</x-ui.button>
             @endif
         </form>
 </x-admin.filter-panel>
@@ -60,9 +60,9 @@
                                 <x-admin.request-status-badge :status="$item->status" />
                             </td>
                             <td class="whitespace-nowrap px-4 py-3 text-right">
-                                <flux:button href="{{ route('admin.leave-requests.show', $item) }}" size="sm" variant="outline">
+                                <x-ui.button href="{{ route('admin.leave-requests.show', $item) }}" size="sm" variant="outline">
                                     {{ __('Buka') }}
-                                </flux:button>
+                                </x-ui.button>
                             </td>
                         </tr>
                     @empty
