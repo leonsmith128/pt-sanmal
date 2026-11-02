@@ -237,6 +237,18 @@ it('accepts an overtime request scheduled for the current minute and allows phot
         ->and($overtime->fresh()->state)->toBe(OvertimeState::InProgress);
 });
 
+it('shows scheduling business validation in the Livewire overtime form', function () {
+    $employee = overtimeEmployee();
+    overtimeClockIn($employee);
+
+    Livewire::actingAs($employee->user)
+        ->test('pages::employee.attendance')
+        ->set('overtimeStartAt', now('Asia/Makassar')->subMinutes(5)->format('Y-m-d\\TH:i'))
+        ->call('requestOvertime')
+        ->assertHasErrors(['overtimeStartAt'])
+        ->assertSee('Waktu mulai lembur tidak boleh di masa lalu.');
+});
+
 it('keeps system notification timestamps and resolves overtime prompts when cancelled', function () {
     $employee = overtimeEmployee();
     $clockIn = overtimeClockIn($employee);
