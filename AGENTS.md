@@ -69,9 +69,10 @@ Jika source bertentangan dengan dokumen, jangan langsung memilih salah satu. Lap
 
 ## 7. Git workflow
 
-- For the SanMal V1 UI/UX finalization scope, every UI/UX work item must use a dedicated feature branch and a Pull Request targeting `main`. Never commit UI/UX implementation directly to `main`.
-- Keep UI/UX PRs focused and coherent; a PR may contain multiple related components/pages, but must not bundle unrelated work. Include scope, preserved behavior/contracts, tests, browser viewport checks, and known limitations.
-- The UI/UX V1 scope and completion criteria are defined in `docs/ui/DESIGN-FOUNDATION.md`.
+- For the SanMal V1 UI/UX finalization scope, use only the existing long-lived branch `docs/ui-v1-scope-and-pr-workflow` and the single tracking PR #27 targeting `main`.
+- Do not create another branch or PR for any UI/UX milestone, component, page, test, or documentation task. Do not merge PR #27 until the complete V1 UI/UX scope is finished, reviewed, and verified.
+- Commit focused, logically grouped changes to that same branch. Before every write, inspect the current branch HEAD and latest file SHA to avoid overwriting newer work.
+- The authoritative workflow and handoff are documented in `docs/ui/DEVELOPMENT-HANDOFF.md`; design decisions are in `docs/ui/DESIGN-FOUNDATION.md`; scope is tracked in `docs/ui/progress/IMPLEMENTATION-STATUS.md`.
 
 - Secara default, kerjakan di feature branch dari main, buat commit terfokus, lalu buka Pull Request.
 - Commit langsung ke main hanya jika pengguna secara eksplisit memintanya.
