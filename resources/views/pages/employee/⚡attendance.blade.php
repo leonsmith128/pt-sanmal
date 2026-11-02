@@ -339,9 +339,9 @@ new #[Title('Absensi')] class extends Component {
                     <flux:text class="text-sm">{{ __('Pilih tanggal untuk melihat riwayat.') }}</flux:text>
                 </div>
                 <div class="flex gap-1">
-                    <flux:button size="sm" variant="ghost" icon="chevron-left" wire:click="shiftWeek(-1)" aria-label="{{ __('Minggu sebelumnya') }}" />
-                    <flux:button size="sm" variant="ghost" icon="chevron-right" wire:click="shiftWeek(1)" aria-label="{{ __('Minggu berikutnya') }}" />
-                    <flux:button size="sm" variant="ghost" wire:click="selectDate('{{ now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString() }}')">{{ __('Hari ini') }}</flux:button>
+                    <x-ui.button size="sm" variant="ghost" icon="chevron-left" wire:click="shiftWeek(-1)" aria-label="{{ __('Minggu sebelumnya') }}" />
+                    <x-ui.button size="sm" variant="ghost" icon="chevron-right" wire:click="shiftWeek(1)" aria-label="{{ __('Minggu berikutnya') }}" />
+                    <x-ui.button size="sm" variant="ghost" wire:click="selectDate('{{ now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString() }}')">{{ __('Hari ini') }}</x-ui.button>
                 </div>
             </div>
             <div class="grid grid-cols-7 gap-1.5">
@@ -500,7 +500,7 @@ new #[Title('Absensi')] class extends Component {
                         @if (in_array($overtimeItem->state, [OvertimeState::Scheduled, OvertimeState::AwaitingPhoto], true) && $overtimeItem->start_record_id === null)
                             <form method="POST" action="{{ route('overtime-requests.cancel', $overtimeItem) }}" class="mt-3" onsubmit="return confirm('Batalkan jadwal lembur ini? Anda harus membatalkannya sebelum dapat absen pulang.')">
                                 @csrf @method('PATCH')
-                                <flux:button type="submit" variant="primary" color="red" size="sm" icon="x-circle">{{ __('Batalkan Lembur') }}</flux:button>
+                                <x-ui.button type="submit" variant="primary" variant="danger" size="sm" icon="x-circle">{{ __('Batalkan Lembur') }}</x-ui.button>
                             </form>
                         @endif
                         <button
@@ -607,15 +607,15 @@ new #[Title('Absensi')] class extends Component {
 
             <div class="flex items-center gap-2">
                 @if ($mode === 'overtime_locked')
-                    <flux:button type="button" variant="primary" class="min-w-0 flex-1" disabled icon="lock-closed">
+                    <x-ui.button type="button" variant="primary" class="min-w-0 flex-1" disabled icon="lock-closed">
                         {{ __('Absen Lembur') }}
-                    </flux:button>
+                    </x-ui.button>
                 @elseif ($mode === 'clock_in_blocked')
-                    <flux:button type="button" variant="primary" class="min-w-0 flex-1" disabled icon="lock-closed">
+                    <x-ui.button type="button" variant="primary" class="min-w-0 flex-1" disabled icon="lock-closed">
                         {{ __('Sesi hari ini sudah digunakan') }}
-                    </flux:button>
+                    </x-ui.button>
                 @else
-                    <flux:button
+                    <x-ui.button
                         type="submit"
                         variant="primary"
                         class="min-w-0 flex-1"
@@ -623,8 +623,8 @@ new #[Title('Absensi')] class extends Component {
                         wire:target="confirm,submit,selfie"
                     >
                         {{ match ($mode) { 'clock_in' => __('Absen Masuk'), 'overtime_start' => __('Absen Lembur'), default => __('Absen Pulang') } }}
-                    </flux:button>
-                    <flux:button
+                    </x-ui.button>
+                    <x-ui.button
                         type="button"
                         variant="ghost"
                         icon="camera"
@@ -698,17 +698,17 @@ new #[Title('Absensi')] class extends Component {
 
                 <div class="flex justify-end gap-2">
                     <flux:modal.close>
-                        <flux:button variant="filled">{{ __('Batal') }}</flux:button>
+                        <x-ui.button variant="outline">{{ __('Batal') }}</x-ui.button>
                     </flux:modal.close>
 
-                    <flux:button
+                    <x-ui.button
                         variant="primary"
                         wire:click="submit('{{ $mode }}')"
                         wire:loading.attr="disabled"
                         wire:target="submit"
                     >
                         {{ match ($mode) { 'clock_in' => __('Ya, Absen Masuk'), 'overtime_start' => __('Ya, Absen Lembur'), default => __('Ya, Absen Pulang') } }}
-                    </flux:button>
+                    </x-ui.button>
                 </div>
             </div>
         </flux:modal>
@@ -767,7 +767,7 @@ new #[Title('Absensi')] class extends Component {
                     </dl>
                     <div class="flex justify-end">
                         <flux:modal.close>
-                            <flux:button variant="primary">{{ __('Tutup') }}</flux:button>
+                            <x-ui.button variant="primary">{{ __('Tutup') }}</x-ui.button>
                         </flux:modal.close>
                     </div>
                 </div>
@@ -791,8 +791,8 @@ new #[Title('Absensi')] class extends Component {
                 </flux:field>
                 @error('form') <flux:text class="text-sm text-red-600 dark:text-red-400">{{ $message }}</flux:text> @enderror
                 <div class="flex justify-end gap-2">
-                    <flux:modal.close><flux:button variant="ghost">{{ __('Batal') }}</flux:button></flux:modal.close>
-                    <flux:button type="submit" variant="primary" wire:loading.attr="disabled" wire:target="requestOvertime">{{ __('Kirim pengajuan') }}</flux:button>
+                    <flux:modal.close><x-ui.button variant="ghost">{{ __('Batal') }}</x-ui.button></flux:modal.close>
+                    <x-ui.button type="submit" variant="primary" wire:loading.attr="disabled" wire:target="requestOvertime">{{ __('Kirim pengajuan') }}</x-ui.button>
                 </div>
             </form>
         </flux:modal>
