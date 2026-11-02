@@ -202,14 +202,13 @@ test('admins retain personal employee navigation alongside grouped administratio
         ->assertDontSee('aria-label="Navigasi utama"', false);
 });
 
-
 test('Flux main is a direct body child on the key admin and employee pages', function () {
     $admin = userWithRole(UserRole::Admin);
     $employee = userWithRole(UserRole::Employee);
 
     foreach ([route('dashboard'), route('admin.daily-attendance'), route('admin.kehadiran')] as $url) {
         $response = $this->actingAs($admin)->get($url)->assertOk();
-        $document = new DOMDocument();
+        $document = new DOMDocument;
         @$document->loadHTML($response->getContent());
         $xpath = new DOMXPath($document);
 
@@ -217,7 +216,7 @@ test('Flux main is a direct body child on the key admin and employee pages', fun
     }
 
     $response = $this->actingAs($employee)->get(route('attendance'))->assertOk();
-    $document = new DOMDocument();
+    $document = new DOMDocument;
     @$document->loadHTML($response->getContent());
     $xpath = new DOMXPath($document);
 
@@ -234,7 +233,6 @@ test('admin sidebar hides brand and theme controls when collapsed', function () 
         ->assertSee('data-test="sidebar-theme-menu"', false);
 });
 
-
 test('admin sidebar collapse control stays visible and sidebar prevents horizontal overflow', function () {
     $this->actingAs(userWithRole(UserRole::Admin));
 
@@ -245,12 +243,11 @@ test('admin sidebar collapse control stays visible and sidebar prevents horizont
         ->assertSee('<x-desktop-user-menu class="hidden lg:block"', false);
 });
 
-
 test('collapsed admin sidebar keeps every navigation item visible as an icon', function () {
     $this->actingAs(userWithRole(UserRole::Admin));
 
     $response = $this->get(route('admin.daily-attendance'))->assertOk();
-    $document = new DOMDocument();
+    $document = new DOMDocument;
     @$document->loadHTML($response->getContent());
     $xpath = new DOMXPath($document);
 
