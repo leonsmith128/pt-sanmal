@@ -1,5 +1,5 @@
 <x-layouts::app :title="__('Manajemen Pegawai')">
-    <div class="mx-auto flex w-full max-w-7xl flex-col gap-4">
+    <x-ui.page>
         <x-admin.page-header
             :title="__('Manajemen Pegawai')"
             :description="__('Kelola identitas dan status akun pegawai.')"
@@ -14,10 +14,10 @@
         <x-admin.filter-panel>
             <form method="GET" class="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end">
                 <div class="w-full sm:min-w-64 sm:flex-1">
-                    <flux:input name="q" value="{{ request('q') }}" :label="__('Cari pegawai')" placeholder="Nama, email, nomor pegawai" />
+                    <x-ui.input name="q" :value="request('q')" :label="__('Cari pegawai')" placeholder="Nama, email, nomor pegawai" />
                 </div>
                 <div class="w-full sm:w-48">
-                    <flux:select name="status" :label="__('Status akun')" :value="request('status')">
+                    <x-ui.select name="status" :label="__('Status akun')" :value="request('status')">
                         <flux:select.option value="">{{ __('Semua') }}</flux:select.option>
                         <flux:select.option value="active">{{ __('Aktif') }}</flux:select.option>
                         <flux:select.option value="inactive">{{ __('Nonaktif') }}</flux:select.option>
@@ -108,11 +108,9 @@
                 </table>
             </div>
         @else
-            <div class="rounded-xl border border-dashed border-zinc-300 px-4 py-10 text-center text-sm text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
-                {{ __('Belum ada data pegawai yang sesuai dengan filter.') }}
-            </div>
+            <x-ui.empty-state :message="__('Belum ada data pegawai yang sesuai dengan filter.')" />
         @endif
 
         {{ $employees->links() }}
-    </div>
+    </x-ui.page>
 </x-layouts::app>
