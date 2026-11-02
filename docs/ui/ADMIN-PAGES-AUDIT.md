@@ -30,6 +30,7 @@ Pencatatan berikut diperbarui setiap kelompok halaman selesai dikerjakan. Status
 | Client Master Data Cards | Selesai | Page shell, field pencarian, dan empty state menggunakan primitive bersama; kartu Client, daftar Site bersarang, Office list, badge, action link, GET query, dan pagination dipertahankan | Source telah diperiksa setelah perubahan; test otomatis belum dijalankan |
 | Project Master Data Cards | Selesai | Page shell, filter input/select, dan empty state menggunakan primitive bersama; expandable `article/details`, metadata, badge, action link, GET filters, grid responsif, dan pagination dipertahankan | Source telah diperiksa setelah perubahan; test otomatis belum dijalankan |
 | Daily Attendance | Selesai | Page shell, filter tanggal, surface ekspor bulan, tombol, dan empty state menggunakan primitive bersama; GET parameter `date`/`month`, kartu pegawai, pagination, dan alur ekspor dipertahankan | Source telah di-fetch kembali dan diperiksa; test otomatis belum dijalankan |
+| Audit Log | Selesai | Page shell, filter input, dan empty state menggunakan primitive bersama; tabel tetap native dengan scroll region keyboard-accessible dan scoped headers; GET filters dan pagination dipertahankan | Source telah di-fetch kembali dan diperiksa; test otomatis belum dijalankan |
 
 ### Catatan implementasi Master Data Cards — 2026-11-03
 
@@ -377,3 +378,15 @@ Prioritas paling efisien adalah menyelesaikan satu keluarga pola form CRUD terle
 - Tidak ada perubahan controller, query, koreksi status, sumber timestamp, status cuti/sakit/izin, authorization, persistence, atau business logic.
 
 **Batas verifikasi Rekap Harian:** file telah di-fetch kembali dari branch dan diperiksa, termasuk namespace Carbon. Test otomatis dan browser visual test belum dijalankan; belum ada klaim kelulusan test.
+
+
+### Catatan implementasi Monitoring/Reporting — Audit Log — 2026-11-03
+
+- Container halaman menggunakan `x-ui.page` dengan `!gap-5`, mempertahankan lebar maksimum dan jarak vertikal sebelumnya.
+- Filter `action`, `from`, dan `to` menggunakan `x-ui.input`; form tetap menggunakan method `GET`, tanpa mengubah nama parameter, nilai request, placeholder aksi, atau perilaku submit.
+- Tabel tetap native HTML dan read-only. Wrapper overflow diberi `role="region"`, accessible label, dan `tabindex="0"` agar area scroll dapat dicapai keyboard; tabel diberi minimum width untuk mencegah kolom terlalu terkompresi.
+- Header kolom diberi `scope="col"`. Empty state menggunakan `x-ui.empty-state` dalam mode table row dengan `colspan=5`.
+- Sumber data, format waktu, fallback akun yang dihapus, nama aksi, identitas objek, IP address, dan pagination tetap dipertahankan.
+- Tidak ada perubahan controller, query, validasi filter, authorization, audit data, atau business logic.
+
+**Batas verifikasi Audit Log:** file telah di-fetch kembali dari branch dan diperiksa. Test otomatis dan browser visual test belum dijalankan; belum ada klaim kelulusan test.
