@@ -119,3 +119,12 @@ Audit ini berdasarkan Blade view yang dibaca pada baseline branch di atas. Audit
 - Halaman Proyek kini memakai container `max-w-7xl` dengan `gap-4`, filter panel padding 12px, card padding 12px, dan gap antarkartu 12px.
 - Feature test tambahan memverifikasi ringkasan card, detail periode, jumlah absensi nol, dan route edit.
 - CI belum dijalankan sesuai keputusan untuk menunda CI; render visual lintas viewport masih perlu diperiksa pengguna.
+
+
+## Perluasan audit seluruh halaman — P1-D3
+
+Inventarisasi P1-D sebelumnya diperluas ke halaman Admin, Pegawai, Dashboard, Notifikasi, Pengaturan, Auth, dan layout global. Dokumen audit lengkap serta rekomendasi pola per kelompok halaman tersedia di:
+
+- `docs/ui/P1-D3-expanded-page-audit.md`
+
+P1-D3 merupakan audit dan penentuan pola; belum mengubah view selain implementasi Proyek yang sudah ada. Penerapan pola ke Pegawai dan halaman lain dilanjutkan pada P1-D4 secara bertahap setelah audit dan validasi per kelompok. Pengembangan transisi navigasi halaman ditunda ke tahap P berikutnya.
