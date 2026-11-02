@@ -24,6 +24,21 @@ Pencatatan berikut diperbarui setiap kelompok halaman selesai dikerjakan. Status
 | Attendance Correction Detail | Selesai | Page shell/header, field keputusan, catatan, dan tombol memakai primitive `x-ui`; metadata, snapshot, callout, lampiran, dan kondisi pending dipertahankan | Source telah diperiksa; test otomatis belum dijalankan |
 | Leave Request Detail | Selesai | Page shell/header, badge status, select keputusan, textarea catatan, dan tombol memakai primitive `x-ui`; modal konfirmasi dan status non-pending dipertahankan | Source telah diperiksa; test otomatis belum dijalankan |
 | Overtime Request Detail | Selesai | Page shell/header, metadata, badge, seluruh select/input/textarea dan tombol form memakai primitive `x-ui`; dua status lembur dan kondisi tiga alur form dipertahankan | Source telah diperiksa; test otomatis belum dijalankan |
+| Attendance Corrections Queue | Selesai | Page shell, filter status, badge status, dan empty state memakai primitive bersama; review list, pemetaan status, GET filter, tautan detail, dan pagination dipertahankan | Source telah diperiksa setelah perubahan; test otomatis belum dijalankan |
+| Overtime Requests Queue | Selesai | Page shell, filter status, dan empty state memakai primitive bersama; review list serta badge approval dan operational state tetap terpisah, GET filter, tautan detail, dan pagination dipertahankan | Source telah diperiksa setelah perubahan; test otomatis belum dijalankan |
+| Leave Requests Queue | Selesai | Page shell dan filter status memakai primitive bersama; tabel, adapter badge domain, reset filter, tautan detail, GET filter, dan pagination dipertahankan | Source telah diperiksa setelah perubahan; test otomatis belum dijalankan |
+
+### Catatan implementasi Review Queues — 2026-11-03
+
+- Ketiga halaman antrean menggunakan `x-ui.page` dengan lebar maksimum `max-w-6xl`; ritme vertikal masing-masing halaman tetap mengikuti nilai sebelumnya.
+- Antrean Koreksi Absensi dan Lembur tetap berupa review list yang dapat dibuka melalui tautan record. Antrean Permohonan tetap berupa tabel karena memiliki kolom komparatif Pegawai, Jenis, Periode, Diajukan, Status, dan Detail.
+- Ketiga filter tetap menggunakan form `GET`. Nama field `status`, pilihan status, route/action Permohonan, nilai filter saat ini, serta perilaku tombol Terapkan/Filter/Reset dipertahankan.
+- Status Koreksi tetap dipetakan dari nilai status yang sama; badge kini memakai `x-ui.badge`. Lembur tetap menampilkan `approval_status` dan `state` sebagai dua indikator terpisah. Permohonan tetap memakai `x-admin.request-status-badge` agar label dan warna berasal dari enum status domain.
+- Empty state antrean Koreksi dan Lembur menggunakan primitive empty-state yang telah tersedia tanpa menambahkan surface bertumpuk. Empty state tabel Permohonan tetap menggunakan adapter Admin dengan `colspan=6`.
+- Seluruh route detail, data record yang ditampilkan, kondisi fallback, semantik link, struktur tabel, serta pagination (`links()`) dipertahankan.
+- Tidak ada perubahan controller, query, filter semantics, status domain, validasi, authorization, persistence, atau business logic.
+
+**Batas verifikasi Review Queues:** ketiga file telah di-fetch kembali dari branch untuk pemeriksaan source. Test otomatis dan browser visual test belum dijalankan; belum ada klaim kelulusan test.
 
 ### Catatan implementasi Location Create/Edit — 2026-11-03
 
