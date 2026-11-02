@@ -1,5 +1,5 @@
 @props([
-    'variant' => 'outline',
+    'variant' => 'primary',
     'size' => 'sm',
     'type' => 'button',
     'href' => null,
