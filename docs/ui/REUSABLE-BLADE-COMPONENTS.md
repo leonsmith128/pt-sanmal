@@ -17,6 +17,8 @@ Generic components that can be used by admin, employee, and authentication pages
 | `x-ui.page` | Standard page width and vertical rhythm | Slot + mergeable attributes; default `w-full max-w-7xl`, `gap-4` |
 | `x-ui.page-header` | Responsive page title, description, and action slot | `title`, optional `description`, optional `headingSize`, action slot |
 | `x-ui.section` | Standard vertical grouping for page sections | Slot + mergeable attributes; default vertical gap 3 |
+| `x-ui.flash-message` | Session status and validation feedback | Reads Laravel session status and error bag |
+| `x-ui.empty-state` | Empty collection state | Optional `message`, optional table `colspan`, slot, and mergeable attributes |
 | `x-ui.card` | Standard content surface or linked card | Slot, optional `href`, `padding`, and mergeable attributes; semantic anchor when `href` is supplied |
 | `x-ui.button` | Standard action affordance | Slot, `variant` (default `primary`), `size`, `type`, optional `href`, `icon`, `iconTrailing`, `square`, `disabled`; forwards Livewire/Alpine/HTML attributes |
 
@@ -69,11 +71,13 @@ Page views should compose primitives and domain components, while retaining:
 - The button primitive is now applied to Admin Attendance, Leave Requests, Daily Attendance, Clients, Employees, Audit Logs, Attendance Corrections, Overtime Requests, Projects, Notifications, and selected Employee list/history pages.
 - The generic page header is now the implementation behind the existing `x-admin.page-header` API, preserving current callers while making the layout primitive reusable outside Admin.
 - `x-ui.section` provides a standard vertical section wrapper.
+- Generic flash-message and empty-state components now back the existing Admin component names, preserving their call sites.
 - Dashboard statistic/action cards and Admin daily employee cards now compose `x-ui.card`. Attendance information cards retain their semantic section wrapper.
 - `tests/Feature/UiButtonComponentTest.php` covers button semantics, default type, and Alpine-bound links.
 - `tests/Feature/UiLayoutComponentsTest.php` covers the generic page header, page container, and section wrapper.
 - `tests/Feature/UiCardComponentTest.php` covers content and linked-card semantics.
-- These tests have been authored but not yet executed.
+- `tests/Feature/UiFeedbackComponentsTest.php` covers generic and Admin-compatible empty states.
+- These tests have been authored but not yet executed; CI status is tracked separately.
 - These tests have been authored but not yet executed.
 
 ## Migration order
