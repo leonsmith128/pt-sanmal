@@ -1,5 +1,5 @@
 <x-layouts::app :title="__('Tambah Client')">
-    <x-ui.page class="max-w-2xl gap-5">
+    <x-ui.page class="!max-w-2xl gap-5">
         <x-ui.page-header
             :title="__('Tambah Client')"
             :description="__('Masukkan identitas perusahaan atau organisasi.')"
