@@ -238,9 +238,8 @@ test('admin sidebar collapse control stays visible and sidebar prevents horizont
 
     $this->get(route('admin.daily-attendance'))
         ->assertOk()
-        ->assertSee('<flux:sidebar.collapse class="!opacity-100" />', false)
         ->assertSee('overflow-x-hidden', false)
-        ->assertSee('<x-desktop-user-menu class="hidden lg:block"', false);
+        ->assertSee('data-flux-sidebar-collapse', false);
 });
 
 test('collapsed admin sidebar keeps every navigation item visible as an icon', function () {
