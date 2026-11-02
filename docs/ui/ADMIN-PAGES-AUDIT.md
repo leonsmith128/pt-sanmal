@@ -47,7 +47,8 @@ Pencatatan berikut diperbarui setiap kelompok halaman selesai dikerjakan. Status
 - Form action, CSRF, conditional method spoofing `PUT`, tujuan tombol Batal, label tombol submit Create/Edit, serta flash message tidak diubah. Tombol aksi kini tersusun vertikal pada layar sempit dan horizontal mulai breakpoint `sm`.
 - Tidak ada perubahan route, controller, validasi, query, payload, atau business logic.
 
-**Batas verifikasi Project:** source hasil perubahan perlu diperiksa kembali melalui fetch branch. Test otomatis dan browser visual test belum dijalankan pada runtime pengerjaan ini; belum ada klaim kelulusan test.
+**Batas verifikasi Project:** source hasil perubahan telah di-fetch kembali dari branch dan diperiksa. Test otomatis dan browser visual test belum dijalankan pada runtime pengerjaan ini; belum ada klaim kelulusan test.
+
 ### Catatan implementasi Client Create/Edit — 2026-11-03
 
 - Kedua halaman sekarang memakai page shell dengan lebar maksimum yang sama (`max-w-2xl`) dan header bersama.
