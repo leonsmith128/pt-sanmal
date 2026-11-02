@@ -16,7 +16,7 @@
             </div>
             <flux:button type="submit" icon="magnifying-glass">{{ __('Cari') }}</flux:button>
             @if ($term !== '')
-                <flux:button href="{{ route('admin.clients.index') }}" variant="ghost">{{ __('Reset') }}</flux:button>
+                <flux:button href="{{ route('admin.clients.index') }}" variant="outline">{{ __('Reset') }}</flux:button>
             @endif
         </form>
 </x-admin.filter-panel>
@@ -39,7 +39,7 @@
                             <p class="mt-1 text-sm text-zinc-500">{{ $client->phone ?: 'Kontak belum diisi' }} · {{ $client->locations_count }} Location · {{ $client->projects_count }} Project</p>
                         </div>
                         <div class="flex flex-wrap gap-2">
-                            <flux:button size="sm" variant="ghost" href="{{ route('admin.clients.edit', $client) }}">{{ __('Ubah Client') }}</flux:button>
+                            <flux:button size="sm" variant="outline" href="{{ route('admin.clients.edit', $client) }}">{{ __('Ubah Client') }}</flux:button>
                             <flux:button size="sm" variant="filled" href="{{ route('admin.clients.show', $client) }}">{{ __('Detail Client') }}</flux:button>
                         </div>
                     </div>
@@ -47,7 +47,7 @@
                     <div class="mt-4 border-t border-zinc-100 pt-3 dark:border-zinc-800">
                         <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
                             <p class="text-sm font-medium">{{ __('Site Location') }}</p>
-                            <flux:button size="sm" variant="subtle" icon="plus" href="{{ route('admin.locations.create', ['client_id' => $client->id]) }}">{{ __('Tambah Location') }}</flux:button>
+                            <flux:button size="sm" variant="outline" icon="plus" href="{{ route('admin.locations.create', ['client_id' => $client->id]) }}">{{ __('Tambah Location') }}</flux:button>
                         </div>
                         @forelse ($client->locations as $location)
                             <div class="flex flex-wrap items-center justify-between gap-2 rounded-lg px-2 py-2 odd:bg-zinc-50 dark:odd:bg-zinc-800/50">
@@ -57,7 +57,7 @@
                                 </div>
                                 <div class="flex items-center gap-2">
                                     <flux:badge :color="$location->is_active ? 'green' : 'zinc'">{{ $location->is_active ? __('Aktif') : __('Nonaktif') }}</flux:badge>
-                                    <flux:button size="xs" variant="ghost" href="{{ route('admin.locations.edit', $location) }}">{{ __('Ubah') }}</flux:button>
+                                    <flux:button size="xs" variant="outline" href="{{ route('admin.locations.edit', $location) }}">{{ __('Ubah') }}</flux:button>
                                 </div>
                             </div>
                         @empty
@@ -93,7 +93,7 @@
                         </div>
                         <div class="flex items-center gap-2">
                             <flux:badge :color="$office->is_active ? 'green' : 'zinc'">{{ $office->is_active ? __('Aktif') : __('Nonaktif') }}</flux:badge>
-                            <flux:button size="sm" variant="ghost" href="{{ route('admin.locations.edit', $office) }}">{{ __('Ubah') }}</flux:button>
+                            <flux:button size="sm" variant="outline" href="{{ route('admin.locations.edit', $office) }}">{{ __('Ubah') }}</flux:button>
                         </div>
                     </div>
                 @empty
