@@ -23,6 +23,20 @@
     --color-zinc-900: #171717;
     --color-zinc-950: #0a0a0a;
 
+    /* SanMal brand palette */
+    --color-sanmal-brand-blue: #003A6C;
+    --color-sanmal-brand-blue-dark: #00294D;
+    --color-sanmal-brand-blue-light: #EAF1F7;
+    --color-sanmal-brand-blue-bright: #006DCC;
+    --color-sanmal-brand-yellow: #FDBE01;
+    --color-sanmal-focus: #2563EB;
+
+    /* Semantic feedback palette */
+    --color-sanmal-success: #15803d;
+    --color-sanmal-warning: #a16207;
+    --color-sanmal-danger: #b91c1c;
+    --color-sanmal-info: #0369a1;
+
     --color-accent: var(--color-neutral-800);
     --color-accent-content: var(--color-neutral-800);
     --color-accent-foreground: var(--color-white);
@@ -37,7 +51,6 @@
 }
 
 @layer base {
-
     *,
     ::after,
     ::before,
@@ -47,43 +60,64 @@
     }
 }
 
+/* Flux field primitives: shared rhythm and readable labels without changing control behavior. */
 [data-flux-field]:not(ui-radio, ui-checkbox) {
-    @apply grid gap-2;
+    @apply grid min-w-0 gap-2;
 }
 
 [data-flux-label] {
-    @apply  !mb-0 !leading-tight;
+    @apply !mb-0 !text-sm !font-medium !leading-tight !text-zinc-700 dark:!text-zinc-200;
+}
+
+[data-flux-description] {
+    @apply !text-sm !leading-relaxed !text-zinc-500 dark:!text-zinc-400;
+}
+
+[data-flux-error] {
+    @apply !text-sm !leading-relaxed !text-red-600 dark:!text-red-400;
 }
 
 input:focus[data-flux-control],
 textarea:focus[data-flux-control],
 select:focus[data-flux-control] {
-    @apply outline-hidden ring-2 ring-accent ring-offset-2 ring-offset-accent-foreground;
+    @apply outline-hidden ring-2 ring-offset-2;
+    --tw-ring-color: var(--color-sanmal-focus);
+    --tw-ring-offset-color: var(--color-white);
 }
 
-/* \[:where(&)\]:size-4 {
-    @apply size-4;
-} */
+.dark input:focus[data-flux-control],
+.dark textarea:focus[data-flux-control],
+.dark select:focus[data-flux-control] {
+    --tw-ring-offset-color: var(--color-zinc-900);
+}
 
 @layer components {
     .sanmal-button-primary {
-        background-color: #003A6C !important;
-        border-color: #003A6C !important;
+        background-color: var(--color-sanmal-brand-blue) !important;
+        border-color: var(--color-sanmal-brand-blue) !important;
         color: #FFFFFF !important;
+        transition: background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
     }
 
     .sanmal-button-primary:hover:not(:disabled) {
-        background-color: #00294D !important;
-        border-color: #00294D !important;
+        background-color: var(--color-sanmal-brand-blue-dark) !important;
+        border-color: var(--color-sanmal-brand-blue-dark) !important;
     }
 
-    .sanmal-button-primary:focus-visible {
-        outline: 2px solid #003A6C;
+    .sanmal-button-primary:focus-visible,
+    .sanmal-button-secondary:focus-visible {
+        outline: 2px solid var(--color-sanmal-focus);
         outline-offset: 2px;
     }
 
+    .sanmal-button-primary:disabled,
+    .sanmal-button-secondary:disabled {
+        cursor: not-allowed;
+        opacity: 0.55;
+    }
+
     .dark .sanmal-button-primary {
-        background-color: #006DCC !important;
+        background-color: var(--color-sanmal-brand-blue-bright) !important;
         border-color: #2563EB !important;
         color: #FFFFFF !important;
     }
@@ -93,7 +127,8 @@ select:focus[data-flux-control] {
         border-color: #1D4ED8 !important;
     }
 
-    .dark .sanmal-button-primary:focus-visible {
+    .dark .sanmal-button-primary:focus-visible,
+    .dark .sanmal-button-secondary:focus-visible {
         outline-color: #BFDBFE;
     }
 
@@ -107,10 +142,5 @@ select:focus[data-flux-control] {
         background-color: #404040;
         border-color: #737373;
         color: #FFFFFF;
-    }
-
-    .dark .sanmal-button-secondary:focus-visible {
-        outline: 2px solid #93C5FD;
-        outline-offset: 2px;
     }
 }
