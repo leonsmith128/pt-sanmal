@@ -81,4 +81,21 @@ select:focus[data-flux-control] {
         outline: 2px solid #003A6C;
         outline-offset: 2px;
     }
+
+    .dark .sanmal-button-secondary {
+        background-color: #262626;
+        border-color: #525252;
+        color: #E5E7EB;
+    }
+
+    .dark .sanmal-button-secondary:hover:not(:disabled) {
+        background-color: #404040;
+        border-color: #737373;
+        color: #FFFFFF;
+    }
+
+    .dark .sanmal-button-secondary:focus-visible {
+        outline: 2px solid #93C5FD;
+        outline-offset: 2px;
+    }
 }
