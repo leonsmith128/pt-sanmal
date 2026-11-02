@@ -30,7 +30,7 @@ Do not mark an item Verified based on source inspection alone.
 
 | Milestone | Status | Completion evidence required |
 |---|---|---|
-| Button and action hierarchy | Implemented, unverified | Audited `x-ui.button` API and real call sites; standardized Employee dashboard navigation and authentication login submit through the shared primitive; expanded focused attribute/state coverage. Tests and browser states remain unverified. |
+| Button and action hierarchy | Implemented, unverified | Extended shared-button adoption across audited authentication, Employee, and Admin actions; retained only specialized native controls for calendar selection and photo-preview triggers. CI for the initial button commit passed; latest migration CI and browser/device states remain to be checked. |
 | Form controls | Implemented, unverified | Shared field/input/select/textarea/checkbox primitives and focused tests are documented; verify source and current test results. |
 | Badge and domain status | Implemented, unverified | Generic badge and domain adapter exist; verify mappings and real-page states. |
 | Card, layout, and typography | In progress | Page/layout/card primitives and Admin standardization exist; review Employee and cross-role consistency and actual typography. |
@@ -87,11 +87,11 @@ Keep detailed viewport observations in [Visual QA Log](VISUAL-QA-LOG.md), not du
 
 - **Branch:** `docs/ui-v1-scope-and-pr-workflow`
 - **PR:** [#27](https://github.com/leonsmith128/pt-sanmal/pull/27)
-- **Scope:** standardize the Employee dashboard's two navigation actions and the authentication login submit action on `x-ui.button`; extend the focused button component test; document action hierarchy and semantic usage.
-- **Source files:** `resources/views/pages/dashboard.blade.php`, `resources/views/pages/auth/login.blade.php`, `tests/Feature/UiButtonComponentTest.php`, `docs/ui/REUSABLE-BLADE-COMPONENTS.md`.
-- **Behavior/contracts preserved:** dashboard route destinations and link semantics; login POST route, CSRF form, submit type, input names, validation behavior, and `data-test="login-button"`; existing component API and forwarded attributes.
-- **Automated checks actually run:** none in this environment. The test was updated but not executed; Pint/build/CI were not run.
+- **Scope:** standardize shared navigation/action controls across authentication, Employee, and audited Admin workflows; retain native controls only for specialized calendar-day selection and photo-preview triggers; document action hierarchy and semantics.
+- **Source files:** `resources/views/pages/auth/*.blade.php`, `resources/views/pages/dashboard.blade.php`, `resources/views/pages/employee/leave-requests/create.blade.php`, `resources/views/pages/employee/attendance-corrections/create.blade.php`, `resources/views/pages/employee/overtime-requests/index.blade.php`, `resources/views/pages/employee/attendance-history/index.blade.php`, `resources/views/pages/employee/⚡attendance.blade.php`, `resources/views/pages/employee/⚡employee-profile.blade.php`, `resources/views/pages/settings/⚡security.blade.php`, `resources/views/pages/admin/⚡kehadiran.blade.php`, `tests/Feature/UiButtonComponentTest.php`, and `docs/ui/REUSABLE-BLADE-COMPONENTS.md`.
+- **Behavior/contracts preserved:** route destinations, form methods and actions, CSRF/method spoofing, Livewire actions/loading targets, Alpine callbacks, confirmation flows, disabled states, accessible names, and existing `data-test` hooks.
+- **Automated checks actually run:** GitHub Actions run `41536861078` passed formatting, repository static analysis, changed-code static analysis, MariaDB tests, and SQLite tests for the earlier button commit. The latest wider migration commits require a fresh CI run before this milestone can be considered verified.
 - **Browser/device checks actually run:** none. No visual QA pass is claimed.
-- **Result:** implementation changes are present on the tracking branch; milestone remains **Implemented, unverified**.
-- **Known limitations / follow-up:** continue auditing direct Flux/native button usage across remaining Employee/Admin/auth pages; verify Flux destructive variant support against the installed version before applying it; run focused Pest test, Pint, CI, and browser checks at the next available repository runtime.
+- **Result:** audited button adoption has been expanded; milestone remains **Implemented, unverified**.
+- **Known limitations / follow-up:** continue checking direct controls as pages are revisited; verify the latest CI run and inspect actual button rendering/focus/disabled states in browser QA. The wrapper forwards variants to Flux rather than implementing styling itself.
 - **Status:** Implemented, unverified.
