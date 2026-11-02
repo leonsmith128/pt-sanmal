@@ -254,3 +254,15 @@ test('collapsed admin sidebar keeps every navigation item visible as an icon', f
         ->and($response->getContent())->toContain('in-data-flux-sidebar-collapsed-desktop:not-in-data-flux-sidebar-group-dropdown:hidden')
         ->and($response->getContent())->toContain('in-data-flux-sidebar-collapsed-desktop:hidden');
 });
+
+test('attendance status and overtime cards use a responsive two-column grid with overtime details modal', function () {
+    $employee = userWithRole(UserRole::Employee);
+
+    $this->actingAs($employee)
+        ->get(route('attendance'))
+        ->assertOk()
+        ->assertSee('grid grid-cols-1 items-stretch gap-3 sm:grid-cols-2', false)
+        ->assertSee('name="overtime-details"', false)
+        ->assertSee('showOvertimeDetails', false)
+        ->assertSee('name="request-overtime"', false);
+});
