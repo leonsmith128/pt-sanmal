@@ -33,7 +33,7 @@ class RecordAttendance
             ->whereColumn('session_anchor_id', 'id')
             ->whereDoesntHave('sessionEvents', fn (Builder $query) => $query
                 ->where('type', AttendanceType::ClockOut))
-            ->with(['location', 'project', 'approvedCorrection'])
+            ->with(['location', 'project.client', 'approvedCorrection'])
             ->orderByDesc('recorded_at')
             ->orderByDesc('id')
             ->first();
@@ -156,6 +156,21 @@ class RecordAttendance
                     $this->fail('form', 'Jenis event absensi tidak valid untuk proses ini.');
                 }
 
+                $identitySnapshot = $type === AttendanceType::ClockIn
+                    ? [
+                        'client_code_snapshot' => $project?->client?->code,
+                        'client_name_snapshot' => $project?->client?->name,
+                        'project_code_snapshot' => $project?->code,
+                        'project_name_snapshot' => $project?->name,
+                        'location_name_snapshot' => $location?->name,
+                        'snapshot_source' => 'clock_in',
+                    ]
+                    : $open->only([
+                        'client_code_snapshot', 'client_name_snapshot',
+                        'project_code_snapshot', 'project_name_snapshot',
+                        'location_name_snapshot', 'snapshot_source',
+                    ]);
+
                 $timezone = $location?->timezone ?? self::DEFAULT_TIMEZONE;
                 $now = now();
 
@@ -168,6 +183,7 @@ class RecordAttendance
                     'work_type' => $workType,
                     'location_id' => $location?->id,
                     'project_id' => $project?->id,
+                    ...$identitySnapshot,
                     'recorded_at' => $now,
                     'captured_at' => $capturedAt,
                     'timezone' => $timezone,
