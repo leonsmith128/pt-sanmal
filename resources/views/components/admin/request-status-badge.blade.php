@@ -1,5 +1,5 @@
 @props(['status'])
 
-<flux:badge :color="$status->badgeColor()">
+<x-ui.badge :color="$status->badgeColor()">
     {{ $status->label() }}
-</flux:badge>
+</x-ui.badge>
