@@ -104,7 +104,7 @@
                 :value="old('timezone', 'Asia/Makassar')"
                 placeholder="Asia/Makassar"
                 required
-                description="{{ __('Gunakan identifier zona waktu IANA, misalnya Asia/Makassar atau Asia/Jakarta.') }}"
+                :description="__('Gunakan identifier zona waktu IANA, misalnya Asia/Makassar atau Asia/Jakarta.')"
             />
 
             <input type="hidden" name="is_active" value="1">
