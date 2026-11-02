@@ -97,7 +97,7 @@
                         href="{{ route('admin.attendance.selfie', $overtimeRequest->startRecord) }}"
                         target="_blank"
                         rel="noopener noreferrer"
-                        variant="filled"
+                        variant="outline"
                         icon="image"
                     >
                         {{ __('Lihat foto tersimpan') }}
