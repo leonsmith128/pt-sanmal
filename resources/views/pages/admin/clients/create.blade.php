@@ -1,7 +1,8 @@
 <x-layouts::app :title="__('Tambah Client')">
     <div class="mx-auto max-w-2xl space-y-5">
         <div>
-            <flux:heading size="xl">{{ __('Tambah Client') }}</flux:heading>
+            <flux:button size="sm" variant="ghost" icon="arrow-left" href="{{ route('admin.clients.index') }}">{{ __('Kembali ke Master Data Client') }}</flux:button>
+            <flux:heading size="xl" class="mt-3">{{ __('Tambah Client') }}</flux:heading>
             <flux:text>{{ __('Masukkan identitas perusahaan atau organisasi.') }}</flux:text>
         </div>
         <x-admin.flash-message />
