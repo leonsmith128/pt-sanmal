@@ -166,7 +166,7 @@
                                         @endif
                                     </td>
                                     <td class="whitespace-nowrap px-4 py-4">
-                                        <flux:badge :color="match($item->status) {'approved' => 'green', 'rejected' => 'red', 'cancelled' => 'zinc', default => 'amber'}">{{ $item->status_label }}</flux:badge>
+                                        <x-ui.badge :color="match($item->status) {'approved' => 'green', 'rejected' => 'red', 'cancelled' => 'zinc', default => 'amber'}">{{ $item->status_label }}</x-ui.badge>
                                     </td>
                                     <td class="min-w-48 px-4 py-4 text-sm">
                                         @if ($item->reviewer)<p class="font-medium">{{ $item->reviewer }}</p>@endif
