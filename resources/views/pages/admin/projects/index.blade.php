@@ -23,13 +23,13 @@
                     @foreach ($projectTypes as $type)
                         <flux:select.option value="{{ $type->value }}">{{ $type->label() }}</flux:select.option>
                     @endforeach
-                </flux:select>
+                </x-ui.select>
                 <x-ui.select size="sm" name="status" :label="__('Status')" :value="request('status')">
                     <flux:select.option value="">{{ __('Semua status') }}</flux:select.option>
                     @foreach ($statuses as $status)
                         <flux:select.option value="{{ $status->value }}">{{ $status->label() }}</flux:select.option>
                     @endforeach
-                </flux:select>
+                </x-ui.select>
                 <x-ui.button size="sm" type="submit" variant="outline">{{ __('Filter') }}</x-ui.button>
             </form>
         </x-admin.filter-panel>
