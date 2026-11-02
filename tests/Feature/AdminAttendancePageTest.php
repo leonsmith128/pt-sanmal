@@ -191,7 +191,6 @@ it('exports filtered admin attendance as spreadsheet-safe CSV', function () {
         ->not->toContain('2026-11-03');
 });
 
-
 it('renders the admin attendance page with a full-width responsive container and mobile-first header', function () {
     $admin = attendancePageAdmin();
 
