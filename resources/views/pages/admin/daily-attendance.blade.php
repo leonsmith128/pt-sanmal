@@ -46,7 +46,7 @@
                         type="month"
                         name="month"
                         :label="__('Ekspor bulan')"
-                        :value="\\Illuminate\\Support\\Carbon::parse($date)->format('Y-m')"
+                        :value="\Illuminate\Support\Carbon::parse($date)->format('Y-m')"
                         required
                     />
 
