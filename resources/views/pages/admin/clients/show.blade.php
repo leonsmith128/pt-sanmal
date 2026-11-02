@@ -42,7 +42,10 @@
                         </div>
                     </article>
                 @empty
-                    <x-ui.empty-state :message="__('Client ini belum memiliki Site Location.')" />
+                    <x-ui.empty-state
+                        class="!border-dashed !border-zinc-300 !bg-transparent dark:!border-zinc-700"
+                        :message="__('Client ini belum memiliki Site Location.')"
+                    />
                 @endforelse
             </div>
         </section>
