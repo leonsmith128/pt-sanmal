@@ -377,7 +377,7 @@ Prioritas paling efisien adalah menyelesaikan satu keluarga pola form CRUD terle
 - Ekspresi bulan tetap diturunkan dari tanggal laporan melalui Carbon dengan format `Y-m`. Ekspor tetap mengarah ke route `admin.daily-attendance.export`; tidak ada perubahan cakupan ekspor.
 - Tidak ada perubahan controller, query, koreksi status, sumber timestamp, status cuti/sakit/izin, authorization, persistence, atau business logic.
 
-**Batas verifikasi Rekap Harian:** file telah di-fetch kembali dari branch dan diperiksa, termasuk namespace Carbon. Test otomatis dan browser visual test belum dijalankan; belum ada klaim kelulusan test.
+**Batas verifikasi Rekap Harian:** file telah di-fetch kembali dari branch dan diperiksa, termasuk namespace Carbon. Test render yang sudah ada diperluas untuk memastikan field GET `date` dan `month` tetap dirender; test otomatis dan browser visual test belum dijalankan, sehingga belum ada klaim kelulusan test.
 
 
 ### Catatan implementasi Monitoring/Reporting — Audit Log — 2026-11-03
@@ -389,4 +389,4 @@ Prioritas paling efisien adalah menyelesaikan satu keluarga pola form CRUD terle
 - Sumber data, format waktu, fallback akun yang dihapus, nama aksi, identitas objek, IP address, dan pagination tetap dipertahankan.
 - Tidak ada perubahan controller, query, validasi filter, authorization, audit data, atau business logic.
 
-**Batas verifikasi Audit Log:** file telah di-fetch kembali dari branch dan diperiksa. Test otomatis dan browser visual test belum dijalankan; belum ada klaim kelulusan test.
+**Batas verifikasi Audit Log:** file telah di-fetch kembali dari branch dan diperiksa. Feature test ditambahkan untuk memeriksa render filter, region tabel yang dapat diakses keyboard, dan empty state; test otomatis dan browser visual test belum dijalankan, sehingga belum ada klaim kelulusan test.
