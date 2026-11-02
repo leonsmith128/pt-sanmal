@@ -12,7 +12,7 @@
         <x-admin.filter-panel>
             <form method="GET" action="{{ route('admin.clients.index') }}" class="flex flex-wrap items-end gap-3">
                 <div class="min-w-64 flex-1">
-                <x-ui.input name="q" :value="$term" :label="__('Pencarian')" placeholder="Kode/nama Client, nama/alamat Location" />
+                    <x-ui.input name="q" :value="$term" :label="__('Pencarian')" placeholder="Kode/nama Client, nama/alamat Location" />
                 </div>
                 <x-ui.button type="submit" icon="magnifying-glass">{{ __('Cari') }}</x-ui.button>
                 @if ($term !== '')
