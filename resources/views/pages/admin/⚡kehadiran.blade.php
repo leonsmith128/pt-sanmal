@@ -162,7 +162,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
 }; ?>
 
 <section x-data="{ selfiePreviewOpen: false, selfiePreviewUrl: null, selfieDownloadUrl: null, exportConfirmOpen: false, exportUrl: '', exportDescription: '' }" x-on:keydown.escape.window="selfiePreviewOpen = false; exportConfirmOpen = false" class="w-full">
-    <div class="mx-auto flex w-full max-w-7xl flex-col gap-4">
+    <x-ui.page>
         <x-admin.page-header
             :title="__('Kehadiran Pegawai')"
             :description="__('Pantau dan telusuri catatan absensi seluruh pegawai.')"
@@ -225,7 +225,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
             </div>
         </x-admin.filter-panel>
 
-        <flux:card class="space-y-4">
+        <x-ui.card class="space-y-4">
             <div class="flex flex-wrap items-center justify-between gap-3">
                 <div>
                     <flux:heading size="lg">{{ __('Aktivitas terbaru') }}</flux:heading>
@@ -452,7 +452,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                     </flux:table.rows>
                 </flux:table>
             </div>
-        </flux:card>
+        </x-ui.card>
         <div
             x-show="selfiePreviewOpen"
             x-cloak
@@ -502,12 +502,12 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                 <p class="text-sm text-zinc-600 dark:text-zinc-300">{{ $exportFilterSummary }}</p>
                 <p class="text-sm text-amber-700 dark:text-amber-300">{{ __('Ekspor menggunakan satu baris per pegawai per tanggal. Tanggal tanpa event absensi tetap disertakan. Periksa kembali cakupan sebelum melanjutkan.') }}</p>
                 <div class="flex justify-end gap-2">
-                    <flux:button type="button" variant="outline" x-on:click="exportConfirmOpen = false">{{ __('Batal') }}</flux:button>
-                    <flux:button :href="exportUrl" variant="primary" x-on:click="exportConfirmOpen = false">
+                    <x-ui.button type="button" variant="outline" x-on:click="exportConfirmOpen = false">{{ __('Batal') }}</x-ui.button>
+                    <x-ui.button x-bind:href="exportUrl" variant="primary" x-on:click="exportConfirmOpen = false">
                         {{ __('Konfirmasi dan ekspor') }}
-                    </flux:button>
+                    </x-ui.button>
                 </div>
             </div>
         </div>
-    </div>
+    </x-ui.page>
 </section>
