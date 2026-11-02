@@ -4,7 +4,7 @@
             :title="__('Master Data Client')"
             :description="__('Kelola Client, Site milik Client, dan kantor internal SanMal dalam satu halaman.')"
         >
-            <flux:button href="{{ route('admin.clients.create') }}" variant="primary" icon="plus">{{ __('Tambah Client') }}</flux:button>
+            <x-ui.button href="{{ route('admin.clients.create') }}" variant="primary" icon="plus">{{ __('Tambah Client') }}</x-ui.button>
         </x-admin.page-header>
 
         <x-admin.flash-message />
@@ -14,9 +14,9 @@
             <div class="min-w-64 flex-1">
                 <flux:input name="q" value="{{ $term }}" :label="__('Pencarian')" placeholder="Kode/nama Client, nama/alamat Location" />
             </div>
-            <flux:button type="submit" icon="magnifying-glass">{{ __('Cari') }}</flux:button>
+            <x-ui.button type="submit" icon="magnifying-glass">{{ __('Cari') }}</x-ui.button>
             @if ($term !== '')
-                <flux:button href="{{ route('admin.clients.index') }}" variant="outline">{{ __('Reset') }}</flux:button>
+                <x-ui.button href="{{ route('admin.clients.index') }}" variant="outline">{{ __('Reset') }}</x-ui.button>
             @endif
         </form>
 </x-admin.filter-panel>
@@ -39,15 +39,15 @@
                             <p class="mt-1 text-sm text-zinc-500">{{ $client->phone ?: 'Kontak belum diisi' }} · {{ $client->locations_count }} Location · {{ $client->projects_count }} Project</p>
                         </div>
                         <div class="flex flex-wrap gap-2">
-                            <flux:button size="sm" variant="outline" href="{{ route('admin.clients.edit', $client) }}">{{ __('Ubah Client') }}</flux:button>
-                            <flux:button size="sm" variant="outline" href="{{ route('admin.clients.show', $client) }}">{{ __('Detail Client') }}</flux:button>
+                            <x-ui.button size="sm" variant="outline" href="{{ route('admin.clients.edit', $client) }}">{{ __('Ubah Client') }}</x-ui.button>
+                            <x-ui.button size="sm" variant="outline" href="{{ route('admin.clients.show', $client) }}">{{ __('Detail Client') }}</x-ui.button>
                         </div>
                     </div>
 
                     <div class="mt-4 border-t border-zinc-100 pt-3 dark:border-zinc-800">
                         <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
                             <p class="text-sm font-medium">{{ __('Site Location') }}</p>
-                            <flux:button size="sm" variant="outline" icon="plus" href="{{ route('admin.locations.create', ['client_id' => $client->id]) }}">{{ __('Tambah Location') }}</flux:button>
+                            <x-ui.button size="sm" variant="outline" icon="plus" href="{{ route('admin.locations.create', ['client_id' => $client->id]) }}">{{ __('Tambah Location') }}</x-ui.button>
                         </div>
                         @forelse ($client->locations as $location)
                             <div class="flex flex-wrap items-center justify-between gap-2 rounded-lg px-2 py-2 odd:bg-zinc-50 dark:odd:bg-zinc-800/50">
@@ -57,7 +57,7 @@
                                 </div>
                                 <div class="flex items-center gap-2">
                                     <flux:badge :color="$location->is_active ? 'green' : 'zinc'">{{ $location->is_active ? __('Aktif') : __('Nonaktif') }}</flux:badge>
-                                    <flux:button size="xs" variant="outline" href="{{ route('admin.locations.edit', $location) }}">{{ __('Ubah') }}</flux:button>
+                                    <x-ui.button size="xs" variant="outline" href="{{ route('admin.locations.edit', $location) }}">{{ __('Ubah') }}</x-ui.button>
                                 </div>
                             </div>
                         @empty
@@ -80,7 +80,7 @@
                     <flux:heading size="lg">{{ __('Office Internal SanMal') }}</flux:heading>
                     <flux:text>{{ __('Lokasi kantor internal tidak terikat pada Client.') }}</flux:text>
                 </div>
-                <flux:button href="{{ route('admin.locations.create', ['type' => 'office']) }}" variant="primary" icon="plus">{{ __('Tambah Office') }}</flux:button>
+                <x-ui.button href="{{ route('admin.locations.create', ['type' => 'office']) }}" variant="primary" icon="plus">{{ __('Tambah Office') }}</x-ui.button>
             </div>
 
             <div class="overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-700">
@@ -93,7 +93,7 @@
                         </div>
                         <div class="flex items-center gap-2">
                             <flux:badge :color="$office->is_active ? 'green' : 'zinc'">{{ $office->is_active ? __('Aktif') : __('Nonaktif') }}</flux:badge>
-                            <flux:button size="sm" variant="outline" href="{{ route('admin.locations.edit', $office) }}">{{ __('Ubah') }}</flux:button>
+                            <x-ui.button size="sm" variant="outline" href="{{ route('admin.locations.edit', $office) }}">{{ __('Ubah') }}</x-ui.button>
                         </div>
                     </div>
                 @empty
