@@ -48,6 +48,21 @@ it('validates audit log date filters before querying', function () {
         ->assertSessionHasErrors('to');
 });
 
+it('renders the audit log with accessible table navigation and shared filters', function () {
+    $admin = reportingUser(UserRole::Admin);
+
+    $this->actingAs($admin)
+        ->get(route('admin.audit-logs.index'))
+        ->assertOk()
+        ->assertSee('Audit Log')
+        ->assertSee('name="action"', false)
+        ->assertSee('name="from"', false)
+        ->assertSee('name="to"', false)
+        ->assertSee('role="region"', false)
+        ->assertSee('aria-label="Daftar catatan audit"', false)
+        ->assertSee('Belum ada catatan audit.');
+});
+
 it('exports spreadsheet-safe daily attendance CSV values', function () {
     $admin = reportingUser(UserRole::Admin);
     $employeeUser = User::factory()->create([
@@ -90,7 +105,9 @@ it('renders the daily attendance report with a reusable employee card', function
         ->assertOk()
         ->assertSee('Rekap Absensi Harian')
         ->assertSee('Pegawai Uji')
-        ->assertSee('Koreksi status harian');
+        ->assertSee('Koreksi status harian')
+        ->assertSee('name="date"', false)
+        ->assertSee('name="month"', false);
 });
 
 it('logs out inactive users before they can access authenticated pages', function () {
