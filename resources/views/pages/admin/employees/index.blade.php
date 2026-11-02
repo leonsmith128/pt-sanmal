@@ -1,14 +1,13 @@
 <x-layouts::app :title="__('Manajemen Pegawai')">
     <div class="mx-auto flex w-full max-w-6xl flex-col gap-5">
-        <div class="flex flex-wrap items-center justify-between gap-3">
-            <div>
-                <flux:heading size="xl">{{ __('Manajemen Pegawai') }}</flux:heading>
-                <flux:text>{{ __('Kelola identitas dan status akun pegawai.') }}</flux:text>
-            </div>
+        <x-admin.page-header
+            :title="__('Manajemen Pegawai')"
+            :description="__('Kelola identitas dan status akun pegawai.')"
+        >
             <flux:button href="{{ route('admin.employees.create') }}" variant="primary" icon="plus">
                 {{ __('Tambah pegawai') }}
             </flux:button>
-        </div>
+        </x-admin.page-header>
 
 
         <x-admin.flash-message />
