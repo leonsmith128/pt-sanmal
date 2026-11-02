@@ -43,7 +43,7 @@
                     <flux:input
                         type="month"
                         name="month"
-                        value="{{ \\Illuminate\\Support\\Carbon::parse($date)->format('Y-m') }}"
+                        value="{{ \Illuminate\Support\Carbon::parse($date)->format('Y-m') }}"
                         required
                     />
                 </flux:field>
