@@ -35,7 +35,7 @@
                                 {{ $request->approval_status->label() }}
                             </flux:badge>
                             <flux:badge :color="$request->state->badgeColor()">{{ $request->state->label() }}</flux:badge>
-                            <flux:icon name="chevron-right" class="size-4 text-zinc-400" />
+                            <span class="inline-flex items-center gap-1 rounded-md border border-zinc-300 px-2.5 py-1 text-xs font-medium text-zinc-700 dark:border-zinc-600 dark:text-zinc-200">{{ __('Tinjau') }} <flux:icon name="chevron-right" class="size-3.5" /></span>
                         </div>
                     </a>
                 @empty
