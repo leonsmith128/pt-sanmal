@@ -88,4 +88,27 @@ it('captures master identity at clock in and reuses it after master names change
         ->and($client->fresh()->name)->toBe('Client Sesudah')
         ->and($project->fresh()->name)->toBe('Project Sesudah')
         ->and($location->fresh()->name)->toBe('Site Sesudah');
+
+    $this->actingAs($user)
+        ->get(route('attendance-history.index'))
+        ->assertOk()
+        ->assertSee('Client Sebelum')
+        ->assertSee('Project Sebelum')
+        ->assertSee('Site Sebelum')
+        ->assertDontSee('Client Sesudah')
+        ->assertDontSee('Project Sesudah')
+        ->assertDontSee('Site Sesudah');
+
+    $admin = User::factory()->create();
+    $admin->forceFill(['role' => UserRole::Admin, 'is_active' => true])->save();
+
+    $this->actingAs($admin)
+        ->get(route('admin.kehadiran'))
+        ->assertOk()
+        ->assertSee('Client Sebelum')
+        ->assertSee('Project Sebelum')
+        ->assertSee('Site Sebelum')
+        ->assertDontSee('Client Sesudah')
+        ->assertDontSee('Project Sesudah')
+        ->assertDontSee('Site Sesudah');
 });
