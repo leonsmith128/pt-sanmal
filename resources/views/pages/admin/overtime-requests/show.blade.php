@@ -168,11 +168,12 @@
                         </flux:field>
                     </div>
 
-                    <flux:field>
-                        <flux:label>{{ __('Alasan finalisasi (wajib)') }}</flux:label>
-                        <flux:textarea name="finalization_reason" rows="3" required>{{ old('finalization_reason', $overtimeRequest->finalization_reason) }}</flux:textarea>
-                        <flux:error name="finalization_reason" />
-                    </flux:field>
+                    <x-ui.textarea
+                        name="finalization_reason"
+                        :label="__('Alasan finalisasi (wajib)')"
+                        rows="3"
+                        required
+                    >{{ old('finalization_reason', $overtimeRequest->finalization_reason) }}</x-ui.textarea>
 
                     <div>
                         <x-ui.button type="submit" variant="primary">{{ __('Simpan rentang final') }}</x-ui.button>
@@ -202,11 +203,11 @@
                         <flux:error name="decision" />
                     </flux:field>
 
-                    <flux:field>
-                        <flux:label>{{ __('Catatan (opsional)') }}</flux:label>
-                        <flux:textarea name="decision_note" rows="2">{{ old('decision_note') }}</flux:textarea>
-                        <flux:error name="decision_note" />
-                    </flux:field>
+                    <x-ui.textarea
+                        name="decision_note"
+                        :label="__('Catatan (opsional)')"
+                        rows="2"
+                    >{{ old('decision_note') }}</x-ui.textarea>
 
                     <div>
                         <x-ui.button type="submit" variant="primary">
@@ -231,16 +232,13 @@
                 >
                     @csrf
 
-                    <flux:field>
-                        <flux:label>{{ __('Alasan pengecualian (wajib)') }}</flux:label>
-                        <flux:textarea
-                            name="photo_exception_reason"
-                            required
-                            minlength="5"
-                            rows="3"
-                        >{{ old('photo_exception_reason') }}</flux:textarea>
-                        <flux:error name="photo_exception_reason" />
-                    </flux:field>
+                    <x-ui.textarea
+                        name="photo_exception_reason"
+                        :label="__('Alasan pengecualian (wajib)')"
+                        required
+                        minlength="5"
+                        rows="3"
+                    >{{ old('photo_exception_reason') }}</x-ui.textarea>
 
                     <div>
                         <x-ui.button type="submit" variant="danger">
