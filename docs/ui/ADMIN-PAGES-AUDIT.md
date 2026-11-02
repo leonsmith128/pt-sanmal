@@ -1,5 +1,17 @@
 # Audit Menyeluruh Halaman Admin — UI Standardization
 
+## Status terkini setelah merge PR #25
+
+- Status implementasi standardisasi halaman Admin: **selesai pada source dan sudah masuk ke `main` melalui PR #25**.
+- Acuan merge: `ea72d26379a5552df8e65ab9da738f98b5b6bdd5`.
+- Cakupan baseline audit: 22 file Blade Admin (21 halaman dan 1 partial form Proyek); catatan implementasi berikutnya memperbarui progres per kelompok halaman.
+- Catatan verifikasi per halaman di bawah adalah catatan historis saat masing-masing perubahan dikerjakan. Hasil validasi terintegrasi terakhir yang tercatat adalah CI run #932 pada commit sebelum merge: 427 passed, 3 skipped.
+- Repository-wide PHPStan masih memiliki baseline issue dan workflow menoleransinya dengan `continue-on-error: true`; jangan menafsirkan status step sebagai repository bebas error.
+- Browser visual QA lintas viewport, browser, dark mode, dan pengujian perangkat nyata belum diklaim selesai.
+- Dokumen ini mencatat audit serta perubahan UI; bukan bukti bahwa aplikasi sudah siap production.
+
+## Status dan batas audit
+
 ## Status dan batas audit
 
 - Baseline branch: `feature/ui-standardization-p1-ab`
@@ -437,3 +449,10 @@ Pemeriksaan akhir difokuskan pada penyelarasan halaman Admin yang masih memakai 
 
 - `AttendancePagesTest` mengharapkan 14 item sidebar Admin karena akun Admin pada test memiliki profil pegawai dan tetap menampilkan empat item Aktivitas Saya.
 - Test modal detail lembur kini menyiapkan satu permohonan lembur, memeriksa tombol yang memanggil `showOvertimeDetails`, dan menguji action Livewire melalui `selectedOvertimeId`. Test tidak lagi mengandalkan atribut `name` yang tidak dirender sebagai atribut HTML oleh Flux modal.
+
+
+## Penutupan audit setelah merge
+
+Standardisasi halaman Admin yang tercantum dalam progress implementasi telah diselesaikan dan digabungkan melalui PR #25. Final consistency pass mencakup daftar/form Pegawai, detail Client, badge detail Koreksi Absensi, serta pemeriksaan variasi halaman yang sengaja tetap menggunakan struktur khusus. Tidak ada perubahan business logic sebagai bagian dari pekerjaan UI ini.
+
+Untuk membaca status proyek secara keseluruhan, gunakan `docs/PROJECT-STATUS.md`. Untuk aturan struktur dan kontribusi, gunakan `docs/ARCHITECTURE-AND-DEVELOPMENT.md` serta `AGENTS.md`.
