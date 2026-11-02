@@ -37,6 +37,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 #[Fillable([
     'employee_id', 'session_anchor_id', 'attendance_correction_id', 'source', 'type', 'work_type', 'location_id', 'project_id',
     'recorded_at', 'captured_at', 'timezone', 'attendance_date',
+    'client_code_snapshot', 'client_name_snapshot', 'project_code_snapshot', 'project_name_snapshot', 'location_name_snapshot', 'snapshot_source',
     'latitude', 'longitude', 'accuracy_m', 'location_status', 'address_snapshot',
     'drive_backup_status', 'drive_file_id', 'drive_md5_checksum', 'drive_size_bytes',
     'drive_backed_up_at', 'local_deleted_at',
