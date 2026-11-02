@@ -337,11 +337,14 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                                 </flux:table.cell>
                                 <flux:table.cell>
                                     {{ $record->work_type->label() }}
-                                    @if ($record->project)
-                                        <span class="text-zinc-500">· {{ $record->project->code }}</span>
+                                    @if ($record->client_name_snapshot)
+                                        <span class="block text-xs text-zinc-500">{{ __('Client') }}: {{ $record->client_name_snapshot }}</span>
                                     @endif
-                                    @if ($record->location)
-                                        <span class="block text-xs text-zinc-500">{{ $record->location->name }}</span>
+                                    @if ($record->project_name_snapshot)
+                                        <span class="block text-xs text-zinc-500">{{ __('Project') }}: {{ $record->project_code_snapshot ? $record->project_code_snapshot.' · ' : '' }}{{ $record->project_name_snapshot }}</span>
+                                    @endif
+                                    @if ($record->location_name_snapshot)
+                                        <span class="block text-xs text-zinc-500">{{ __('Location') }}: {{ $record->location_name_snapshot }}</span>
                                     @endif
                                 </flux:table.cell>
                                 <flux:table.cell class="whitespace-nowrap">
