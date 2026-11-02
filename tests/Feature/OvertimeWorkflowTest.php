@@ -13,6 +13,7 @@ use App\Models\AttendanceRecord;
 use App\Models\Employee;
 use App\Models\OvertimeRequest;
 use App\Models\User;
+use App\Notifications\OvertimeScheduleNotification;
 use App\Services\DailyAttendanceStatusService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -205,6 +206,108 @@ it('blocks clock out before a future scheduled overtime until the request is can
 
     expect($overtime->fresh()->state)->toBe(OvertimeState::Scheduled)
         ->and($overtime->fresh()->cancelled_at)->toBeNull();
+});
+
+it('accepts an overtime request scheduled for the current minute and allows photo confirmation', function () {
+    Storage::fake('local');
+    $employee = overtimeEmployee();
+    $clockIn = overtimeClockIn($employee);
+    $start = now('Asia/Makassar')->startOfMinute();
+
+    $overtime = app(CreateOvertimeRequest::class)->handle(
+        employee: $employee,
+        reason: null,
+        scheduledStartLocal: $start->format('Y-m-d\\TH:i'),
+    );
+
+    expect($overtime->state)->toBe(OvertimeState::AwaitingPhoto)
+        ->and($overtime->clock_in_record_id)->toBe($clockIn->id);
+
+    $record = app(ConfirmOvertimeStart::class)->handle(
+        employee: $employee,
+        overtime: $overtime,
+        latitude: -5.14,
+        longitude: 119.41,
+        accuracy: 25,
+        addressSnapshot: 'Makassar',
+        selfie: UploadedFile::fake()->image('overtime-current-minute.jpg'),
+    );
+
+    expect($record->type)->toBe(AttendanceType::OvertimeStart)
+        ->and($overtime->fresh()->state)->toBe(OvertimeState::InProgress);
+});
+
+it('shows scheduling business validation in the Livewire overtime form', function () {
+    $employee = overtimeEmployee();
+    overtimeClockIn($employee);
+
+    Livewire::actingAs($employee->user)
+        ->test('pages::employee.attendance')
+        ->set('overtimeStartAt', now('Asia/Makassar')->subMinutes(5)->format('Y-m-d\\TH:i'))
+        ->call('requestOvertime')
+        ->assertHasErrors(['overtimeStartAt'])
+        ->assertSee('Waktu mulai lembur tidak boleh di masa lalu.');
+});
+
+it('keeps system notification timestamps and resolves overtime prompts when cancelled', function () {
+    $employee = overtimeEmployee();
+    $clockIn = overtimeClockIn($employee);
+    $overtime = overtimeRequest($employee, $clockIn, now()->addMinute()->toDateTimeString());
+
+    $employee->user->notify(new OvertimeScheduleNotification($overtime, 'reminder'));
+    $employee->user->notify(new OvertimeScheduleNotification($overtime, 'due'));
+
+    $originalNotifications = $employee->user->notifications()->orderBy('created_at')->get();
+    $originalCreatedAt = $originalNotifications->mapWithKeys(fn ($notification) => [
+        $notification->id => $notification->created_at->toISOString(),
+    ]);
+
+    $response = $this->actingAs($employee->user)->patch(route('overtime-requests.cancel', $overtime));
+
+    $response->assertRedirect(route('overtime-requests.index'));
+
+    $resolved = $employee->user->notifications()
+        ->whereIn('id', $originalNotifications->pluck('id'))
+        ->get();
+
+    expect($resolved)->toHaveCount(2);
+
+    foreach ($resolved as $notification) {
+        expect($notification->read_at)->not->toBeNull()
+            ->and($notification->data['event_status'])->toBe('cancelled')
+            ->and($notification->data['url'])->toBe(route('overtime-requests.index'))
+            ->and($notification->created_at->toISOString())->toBe($originalCreatedAt[$notification->id]);
+    }
+
+    expect($employee->user->notifications()->count())->toBe(3)
+        ->and($employee->user->notifications()->where('data->event', 'cancelled')->exists())->toBeTrue();
+
+    $this->actingAs($employee->user)
+        ->get(route('notifications.index'))
+        ->assertOk()
+        ->assertSee('Notifikasi sistem')
+        ->assertSee('Pengajuan lembur dibatalkan');
+
+    $cancellationNotification = $employee->user->notifications()
+        ->where('data->event', 'cancelled')
+        ->firstOrFail();
+
+    $this->patch(route('notifications.read', $cancellationNotification))
+        ->assertRedirect(route('overtime-requests.index'));
+
+    expect($cancellationNotification->fresh()->read_at)->not->toBeNull();
+});
+
+it('does not send scheduled overtime notifications after cancellation', function () {
+    $employee = overtimeEmployee();
+    $clockIn = overtimeClockIn($employee);
+    $overtime = overtimeRequest($employee, $clockIn, now()->subMinute()->toDateTimeString());
+    $overtime->update(['state' => OvertimeState::Cancelled, 'cancelled_at' => now()]);
+
+    $this->artisan('overtime:refresh-states')->assertExitCode(0);
+
+    expect($employee->user->notifications()->count())->toBe(0)
+        ->and($overtime->fresh()->start_due_notified_at)->toBeNull();
 });
 
 it('allows cancellation after the scheduled start while actual start is not confirmed', function () {

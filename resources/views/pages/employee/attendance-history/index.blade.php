@@ -6,12 +6,12 @@
                 <flux:text class="mt-1">{{ __('Lihat catatan masuk, mulai lembur, dan pulang yang tercatat pada akun Anda.') }}</flux:text>
             </div>
             <div class="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
-                <flux:button href="{{ route('attendance-history.export', request()->query()) }}" variant="outline" icon="arrow-down-tray" class="w-full sm:w-auto">
+                <x-ui.button href="{{ route('attendance-history.export', request()->query()) }}" variant="outline" icon="arrow-down-tray" class="w-full sm:w-auto">
                     {{ __('Ekspor rekap harian (CSV)') }}
-                </flux:button>
-                <flux:button href="{{ route('attendance') }}" variant="primary" icon="clock" class="w-full sm:w-auto">
+                </x-ui.button>
+                <x-ui.button href="{{ route('attendance') }}" variant="primary" icon="clock" class="w-full sm:w-auto">
                     {{ __('Buka halaman absensi') }}
-                </flux:button>
+                </x-ui.button>
             </div>
         </header>
 
@@ -28,12 +28,12 @@
                     <flux:error name="to" />
                 </flux:field>
                 <div class="flex flex-col gap-2 sm:col-span-2 sm:flex-row sm:items-end lg:col-span-3 lg:justify-end">
-                    <flux:button href="{{ route('attendance-history.index') }}" variant="ghost" class="w-full sm:w-auto">
+                    <x-ui.button href="{{ route('attendance-history.index') }}" variant="ghost" class="w-full sm:w-auto">
                         {{ __('Reset') }}
-                    </flux:button>
-                    <flux:button type="submit" variant="primary" icon="funnel" class="w-full sm:w-auto">
+                    </x-ui.button>
+                    <x-ui.button type="submit" variant="primary" icon="funnel" class="w-full sm:w-auto">
                         {{ __('Terapkan filter') }}
-                    </flux:button>
+                    </x-ui.button>
                 </div>
             </form>
         </section>
@@ -58,9 +58,9 @@
                                 <p class="text-xs text-zinc-500">{{ $record->effectiveRecordedAtLocal()->translatedFormat('d M Y · H:i') }}</p>
                                 <h2 class="mt-1 font-semibold text-zinc-900 dark:text-zinc-100">{{ $record->type->label() }}</h2>
                             </div>
-                            <flux:badge color="{{ $record->type->value === 'clock_in' ? 'green' : ($record->type->value === 'clock_out' ? 'blue' : 'amber') }}">
+                            <x-ui.badge color="{{ $record->type->value === 'clock_in' ? 'green' : ($record->type->value === 'clock_out' ? 'blue' : 'amber') }}">
                                 {{ $record->type->label() }}
-                            </flux:badge>
+                            </x-ui.badge>
                         </div>
 
                         <div class="flex items-start gap-3">
@@ -119,8 +119,13 @@
             </div>
 
             <div class="hidden overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900 md:block">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm">
+                <div
+                    class="overflow-x-auto overscroll-x-contain"
+                    role="region"
+                    aria-label="{{ __('Tabel riwayat absensi; geser horizontal untuk melihat seluruh kolom') }}"
+                    tabindex="0"
+                >
+                    <table class="min-w-[60rem] w-full text-left text-sm">
                         <thead class="bg-zinc-50 text-xs uppercase tracking-wide text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
                             <tr>
                                 <th scope="col" class="whitespace-nowrap px-4 py-3">
@@ -141,9 +146,9 @@
                                 <tr class="align-top">
                                     <td class="whitespace-nowrap px-4 py-4">{{ $record->effectiveRecordedAtLocal()->translatedFormat('d M Y · H:i') }}</td>
                                     <td class="px-4 py-4">
-                                        <flux:badge color="{{ $record->type->value === 'clock_in' ? 'green' : ($record->type->value === 'clock_out' ? 'blue' : 'amber') }}">
+                                        <x-ui.badge color="{{ $record->type->value === 'clock_in' ? 'green' : ($record->type->value === 'clock_out' ? 'blue' : 'amber') }}">
                                             {{ $record->type->label() }}
-                                        </flux:badge>
+                                        </x-ui.badge>
                                     </td>
                                     <td class="px-4 py-4">{{ $record->work_type->label() }}</td>
                                     <td class="px-4 py-4">

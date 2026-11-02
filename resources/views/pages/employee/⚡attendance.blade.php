@@ -38,6 +38,15 @@ new #[Title('Absensi')] class extends Component {
     public string $selectedDate = '';
     public string $overtimeReason = '';
     public string $overtimeStartAt = '';
+    public ?int $selectedOvertimeId = null;
+
+    public function showOvertimeDetails(int $overtimeId): void
+    {
+        abort_unless($this->selectedDateOvertimeRequests->contains('id', $overtimeId), 404);
+
+        $this->selectedOvertimeId = $overtimeId;
+        Flux::modal('overtime-details')->show();
+    }
 
     public function mount(): void
     {
@@ -135,11 +144,23 @@ new #[Title('Absensi')] class extends Component {
             'overtimeStartAt' => ['required', 'date_format:Y-m-d\\TH:i'],
         ]);
 
-        app(CreateOvertimeRequest::class)->handle(
-            employee: $this->employee,
-            reason: $validated['overtimeReason'] ?: null,
-            scheduledStartLocal: $validated['overtimeStartAt'],
-        );
+        try {
+            app(CreateOvertimeRequest::class)->handle(
+                employee: $this->employee,
+                reason: $validated['overtimeReason'] ?: null,
+                scheduledStartLocal: $validated['overtimeStartAt'],
+            );
+        } catch (ValidationException $exception) {
+            foreach ($exception->errors() as $field => $messages) {
+                $componentField = $field === 'scheduled_start_at' ? 'overtimeStartAt' : $field;
+
+                foreach ($messages as $message) {
+                    $this->addError($componentField, $message);
+                }
+            }
+
+            return;
+        }
 
         $this->reset('overtimeReason', 'overtimeStartAt');
         unset($this->overtimeRequest, $this->selectedDateOvertimeRequests);
@@ -298,9 +319,16 @@ new #[Title('Absensi')] class extends Component {
                     {{ $this->employee->title?->name ?? __('Jabatan belum diatur') }}
                 </p>
             </div>
-            <button type="button" disabled aria-label="{{ __('Notifikasi akan tersedia') }}" title="{{ __('Notifikasi akan tersedia') }}" class="flex size-10 shrink-0 items-center justify-center rounded-full text-zinc-400 disabled:cursor-not-allowed dark:text-zinc-500">
+            @php
+                $unreadCount = Auth::user()->unreadNotifications()->count();
+            @endphp
+                    
+            <a href="{{ route('notifications.index') }}" wire:navigate aria-label="{{ __('Buka notifikasi') }}" title="{{ __('Notifikasi') }}" class="relative flex size-10 shrink-0 items-center justify-center rounded-full text-zinc-600 transition hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800">
                 <flux:icon name="bell" variant="outline" class="size-5" />
-            </button>
+                @if ($unreadCount > 0)
+                    <span class="absolute right-0.5 top-0.5 flex min-h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-semibold text-white">{{ $unreadCount > 99 ? '99+' : $unreadCount }}</span>
+                @endif
+            </a>            
         </header>
 
 
@@ -397,7 +425,7 @@ new #[Title('Absensi')] class extends Component {
             </div>
         </div>
 
-        <div class="flex flex-wrap items-stretch gap-3">
+        <div class="grid grid-cols-1 items-stretch gap-3 sm:grid-cols-2">
             <x-attendance.info-card class="min-w-0 flex-1 basis-64"
                 :title="__('Status kehadiran')"
                 :status="$attendanceStatus"
@@ -475,9 +503,13 @@ new #[Title('Absensi')] class extends Component {
                                 <flux:button type="submit" variant="primary" color="red" size="sm" icon="x-circle">{{ __('Batalkan Lembur') }}</flux:button>
                             </form>
                         @endif
-                        <a href="{{ route('overtime-requests.index') }}" class="mt-3 inline-flex items-center gap-1 text-sm font-medium text-blue-600 underline underline-offset-4 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
-                            {{ __('Detail lembur') }} <span aria-hidden="true">↗</span>
-                        </a>
+                        <button
+                            type="button"
+                            wire:click="showOvertimeDetails({{ $overtimeItem->id }})"
+                            class="mt-3 inline-flex min-h-9 items-center gap-1 rounded-lg px-2 text-sm font-medium text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-950/40"
+                        >
+                            {{ __('Lihat detail') }}
+                        </button>
                     </div>
                 @empty
                     <p class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('Belum ada pengajuan lembur untuk tanggal ini.') }}</p>
@@ -679,6 +711,67 @@ new #[Title('Absensi')] class extends Component {
                     </flux:button>
                 </div>
             </div>
+        </flux:modal>
+        @php
+            $selectedOvertime = $overtimeRequestsForDate->firstWhere('id', $selectedOvertimeId);
+        @endphp
+        <flux:modal name="overtime-details" class="max-w-lg">
+            @if ($selectedOvertime)
+                <div class="space-y-4">
+                    <div>
+                        <flux:heading size="lg">{{ __('Detail lembur') }}</flux:heading>
+                        <flux:subheading>{{ __('Rincian pengajuan pada :date', ['date' => $selectedOvertime->scheduledStartLocal()->translatedFormat('d M Y')]) }}</flux:subheading>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <flux:badge :color="$selectedOvertime->state->badgeColor()">{{ $selectedOvertime->state->label() }}</flux:badge>
+                        <flux:badge :color="$selectedOvertime->approval_status->badgeColor()">{{ $selectedOvertime->approval_status->label() }}</flux:badge>
+                    </div>
+                    <dl class="grid gap-3 rounded-xl bg-zinc-50 p-4 text-sm dark:bg-zinc-800">
+                        <div>
+                            <dt class="text-zinc-500">{{ __('Mulai terjadwal') }}</dt>
+                            <dd class="mt-1 font-medium">{{ $selectedOvertime->scheduledStartLocal()->format('d M Y, H:i T') }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-zinc-500">{{ __('Mulai aktual') }}</dt>
+                            <dd class="mt-1 font-medium">{{ $selectedOvertime->startRecord?->effectiveRecordedAtLocal()->format('d M Y, H:i T') ?? '—' }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-zinc-500">{{ __('Selesai aktual') }}</dt>
+                            <dd class="mt-1 font-medium">{{ $selectedOvertime->clockOutRecord?->effectiveRecordedAtLocal()->format('d M Y, H:i T') ?? '—' }}</dd>
+                        </div>
+                        @if ($selectedOvertime->reason)
+                            <div>
+                                <dt class="text-zinc-500">{{ __('Alasan') }}</dt>
+                                <dd class="mt-1 whitespace-pre-line">{{ $selectedOvertime->reason }}</dd>
+                            </div>
+                        @endif
+                        @if ($selectedOvertime->decision_note)
+                            <div>
+                                <dt class="text-zinc-500">{{ __('Catatan admin') }}</dt>
+                                <dd class="mt-1 whitespace-pre-line">{{ $selectedOvertime->decision_note }}</dd>
+                            </div>
+                        @endif
+                        @if ($selectedOvertime->finalized_at)
+                            <div>
+                                <dt class="text-zinc-500">{{ __('Waktu final admin') }}</dt>
+                                <dd class="mt-1 font-medium">
+                                    {{ $selectedOvertime->final_start_at?->copy()->setTimezone($selectedOvertime->timezone)->format('d M Y, H:i') ?? '—' }}
+                                    – {{ $selectedOvertime->final_end_at?->copy()->setTimezone($selectedOvertime->timezone)->format('d M Y, H:i') ?? '—' }}
+                                </dd>
+                                <dd class="mt-1 text-zinc-500">{{ __('Sumber') }}: {{ $selectedOvertime->finalization_source }}</dd>
+                                @if ($selectedOvertime->finalization_reason)
+                                    <dd class="mt-1 whitespace-pre-line text-zinc-500">{{ $selectedOvertime->finalization_reason }}</dd>
+                                @endif
+                            </div>
+                        @endif
+                    </dl>
+                    <div class="flex justify-end">
+                        <flux:modal.close>
+                            <flux:button variant="primary">{{ __('Tutup') }}</flux:button>
+                        </flux:modal.close>
+                    </div>
+                </div>
+            @endif
         </flux:modal>
         <flux:modal name="request-overtime" class="max-w-lg">
             <form wire:submit="requestOvertime" class="flex flex-col gap-5">

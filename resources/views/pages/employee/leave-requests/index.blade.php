@@ -6,9 +6,9 @@
                 <flux:text class="mt-1">{{ __('Pantau izin, sakit, cuti, lembur, dan koreksi absensi dari satu tempat.') }}</flux:text>
             </div>
             <div class="grid grid-cols-2 gap-2 sm:flex">
-                <flux:button href="{{ route('overtime-requests.index') }}" variant="ghost" icon="clock">{{ __('Lembur') }}</flux:button>
-                <flux:button href="{{ route('leave-requests.create') }}" variant="primary" icon="plus">{{ __('Buat permohonan') }}</flux:button>
-                <flux:button href="{{ route('attendance-corrections.create') }}" variant="outline" icon="clock">{{ __('Ajukan koreksi absensi') }}</flux:button>
+                <x-ui.button href="{{ route('overtime-requests.index') }}" variant="ghost" icon="clock">{{ __('Lembur') }}</x-ui.button>
+                <x-ui.button href="{{ route('leave-requests.create') }}" variant="primary" icon="plus">{{ __('Buat permohonan') }}</x-ui.button>
+                <x-ui.button href="{{ route('attendance-corrections.create') }}" variant="outline" icon="clock">{{ __('Ajukan koreksi absensi') }}</x-ui.button>
             </div>
         </div>
 
@@ -64,9 +64,9 @@
                     <flux:input type="date" name="to" value="{{ $filters['to'] }}" />
                 </flux:field>
                 <div class="flex flex-col gap-2 sm:col-span-2 lg:col-span-6 sm:flex-row sm:justify-end">
-                    <flux:button href="{{ route('leave-requests.index') }}" variant="ghost" class="w-full sm:w-auto">{{ __('Reset filter') }}</flux:button>
-                    <flux:button type="submit" variant="primary" icon="funnel" class="w-full sm:w-auto">{{ __('Terapkan filter') }}</flux:button>
-                    <flux:button href="{{ route('leave-requests.export', request()->query()) }}" variant="outline" icon="arrow-down-tray" class="w-full sm:w-auto">{{ __('Ekspor CSV') }}</flux:button>
+                    <x-ui.button href="{{ route('leave-requests.index') }}" variant="ghost" class="w-full sm:w-auto">{{ __('Reset filter') }}</x-ui.button>
+                    <x-ui.button type="submit" variant="primary" icon="funnel" class="w-full sm:w-auto">{{ __('Terapkan filter') }}</x-ui.button>
+                    <x-ui.button href="{{ route('leave-requests.export', request()->query()) }}" variant="outline" icon="arrow-down-tray" class="w-full sm:w-auto">{{ __('Ekspor CSV') }}</x-ui.button>
                 </div>
             </form>
         </section>
@@ -76,7 +76,7 @@
                 <flux:icon name="inbox" class="mx-auto size-9 text-zinc-400" />
                 <flux:heading size="md" class="mt-3">{{ __('Tidak ada permohonan yang cocok') }}</flux:heading>
                 <flux:text class="mt-1">{{ __('Coba ubah filter atau buat permohonan baru.') }}</flux:text>
-                <div class="mt-4"><flux:button href="{{ route('leave-requests.index') }}" variant="ghost">{{ __('Hapus semua filter') }}</flux:button></div>
+                <div class="mt-4"><x-ui.button href="{{ route('leave-requests.index') }}" variant="ghost">{{ __('Hapus semua filter') }}</x-ui.button></div>
             </div>
         @else
             {{-- Mobile: cards avoid horizontal scrolling and keep primary status visible. --}}
@@ -85,10 +85,11 @@
                     <article class="space-y-3 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
                         <div class="flex items-start justify-between gap-3">
                             <div class="min-w-0">
-                                <p class="text-xs font-medium text-zinc-500">{{ $item->reference }} · {{ $item->submitted_at?->format('d/m/Y') }}</p>
+                                <p class="text-xs font-medium text-zinc-500">{{ $item->reference }}</p>
+                                <p class="mt-0.5 text-xs text-zinc-500">{{ __('Diajukan') }}: {{ $item->submitted_at?->format('d/m/Y H:i') ?? '—' }}</p>
                                 <h2 class="mt-1 font-semibold text-zinc-900 dark:text-zinc-100">{{ $item->type_label }}</h2>
                             </div>
-                            <flux:badge :color="match($item->status) {'approved' => 'green', 'rejected' => 'red', 'cancelled' => 'zinc', default => 'amber'}">{{ $item->status_label }}</flux:badge>
+                            <x-ui.badge :color="match($item->status) {'approved' => 'green', 'rejected' => 'red', 'cancelled' => 'zinc', default => 'amber'}">{{ $item->status_label }}</x-ui.badge>
                         </div>
                         <div class="text-sm text-zinc-600 dark:text-zinc-300">
                             <p><span class="font-medium text-zinc-800 dark:text-zinc-100">{{ __('Periode') }}:</span>
@@ -115,7 +116,7 @@
                         @if ($item->cancelable && $item->cancel_route)
                             <form method="POST" action="{{ $item->cancel_route }}" onsubmit="return confirm('Batalkan permohonan ini?')">
                                 @csrf @method('PATCH')
-                                <flux:button type="submit" variant="ghost" size="sm" icon="x-circle" class="w-full">{{ __('Batalkan permohonan') }}</flux:button>
+                                <x-ui.button type="submit" variant="ghost" size="sm" icon="x-circle" class="w-full">{{ __('Batalkan permohonan') }}</x-ui.button>
                             </form>
                         @endif
                     </article>
@@ -124,25 +125,30 @@
 
             {{-- Desktop/tablet: comparable columns, with operational overtime status kept separate. --}}
             <div class="hidden overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900 md:block">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm">
+                <div
+                    class="overflow-x-auto overscroll-x-contain"
+                    role="region"
+                    aria-label="{{ __('Tabel permohonan; geser horizontal untuk melihat seluruh kolom') }}"
+                    tabindex="0"
+                >
+                    <table class="min-w-[68rem] w-full text-left text-sm">
                         <thead class="sticky top-0 z-10 bg-zinc-50 text-xs uppercase tracking-wide text-zinc-500 shadow-sm dark:bg-zinc-800 dark:text-zinc-400">
                             <tr>
-                                <th class="px-4 py-3">
-                                    <flux:button size="sm" variant="ghost" icon-trailing="{{ $filters['sort'] === 'reference' ? ($filters['direction'] === 'asc' ? 'arrow-up' : 'arrow-down') : 'arrows-up-down' }}" href="{{ route('leave-requests.index', array_merge(request()->except('page'), ['sort' => 'reference', 'direction' => $filters['sort'] === 'reference' && $filters['direction'] === 'asc' ? 'desc' : 'asc'])) }}">{{ __('Nomor / Jenis') }}</flux:button>
+                                <th scope="col" class="px-4 py-3">
+                                    <x-ui.button size="sm" variant="ghost" icon-trailing="{{ $filters['sort'] === 'reference' ? ($filters['direction'] === 'asc' ? 'arrow-up' : 'arrow-down') : 'arrows-up-down' }}" href="{{ route('leave-requests.index', array_merge(request()->except('page'), ['sort' => 'reference', 'direction' => $filters['sort'] === 'reference' && $filters['direction'] === 'asc' ? 'desc' : 'asc'])) }}">{{ __('Nomor / Jenis') }}</x-ui.button>
                                 </th>
-                                <th class="px-4 py-3">
-                                    <flux:button size="sm" variant="ghost" icon-trailing="{{ $filters['sort'] === 'submitted' ? ($filters['direction'] === 'asc' ? 'arrow-up' : 'arrow-down') : 'arrows-up-down' }}" href="{{ route('leave-requests.index', array_merge(request()->except('page'), ['sort' => 'submitted', 'direction' => $filters['sort'] === 'submitted' && $filters['direction'] === 'asc' ? 'desc' : 'asc'])) }}">{{ __('Tanggal pengajuan') }}</flux:button>
+                                <th scope="col" class="px-4 py-3">
+                                    <x-ui.button size="sm" variant="ghost" icon-trailing="{{ $filters['sort'] === 'submitted' ? ($filters['direction'] === 'asc' ? 'arrow-up' : 'arrow-down') : 'arrows-up-down' }}" href="{{ route('leave-requests.index', array_merge(request()->except('page'), ['sort' => 'submitted', 'direction' => $filters['sort'] === 'submitted' && $filters['direction'] === 'asc' ? 'desc' : 'asc'])) }}">{{ __('Tanggal pengajuan') }}</x-ui.button>
                                 </th>
-                                <th class="px-4 py-3">
-                                    <flux:button size="sm" variant="ghost" icon-trailing="{{ $filters['sort'] === 'period' ? ($filters['direction'] === 'asc' ? 'arrow-up' : 'arrow-down') : 'arrows-up-down' }}" href="{{ route('leave-requests.index', array_merge(request()->except('page'), ['sort' => 'period', 'direction' => $filters['sort'] === 'period' && $filters['direction'] === 'asc' ? 'desc' : 'asc'])) }}">{{ __('Periode') }}</flux:button>
+                                <th scope="col" class="px-4 py-3">
+                                    <x-ui.button size="sm" variant="ghost" icon-trailing="{{ $filters['sort'] === 'period' ? ($filters['direction'] === 'asc' ? 'arrow-up' : 'arrow-down') : 'arrows-up-down' }}" href="{{ route('leave-requests.index', array_merge(request()->except('page'), ['sort' => 'period', 'direction' => $filters['sort'] === 'period' && $filters['direction'] === 'asc' ? 'desc' : 'asc'])) }}">{{ __('Periode') }}</x-ui.button>
                                 </th>
-                                <th class="px-4 py-3">{{ __('Ringkasan') }}</th>
-                                <th class="px-4 py-3">
-                                    <flux:button size="sm" variant="ghost" icon-trailing="{{ $filters['sort'] === 'status' ? ($filters['direction'] === 'asc' ? 'arrow-up' : 'arrow-down') : 'arrows-up-down' }}" href="{{ route('leave-requests.index', array_merge(request()->except('page'), ['sort' => 'status', 'direction' => $filters['sort'] === 'status' && $filters['direction'] === 'asc' ? 'desc' : 'asc'])) }}">{{ __('Status') }}</flux:button>
+                                <th scope="col" class="px-4 py-3">{{ __('Ringkasan') }}</th>
+                                <th scope="col" class="px-4 py-3">
+                                    <x-ui.button size="sm" variant="ghost" icon-trailing="{{ $filters['sort'] === 'status' ? ($filters['direction'] === 'asc' ? 'arrow-up' : 'arrow-down') : 'arrows-up-down' }}" href="{{ route('leave-requests.index', array_merge(request()->except('page'), ['sort' => 'status', 'direction' => $filters['sort'] === 'status' && $filters['direction'] === 'asc' ? 'desc' : 'asc'])) }}">{{ __('Status') }}</x-ui.button>
                                 </th>
-                                <th class="px-4 py-3">{{ __('Keputusan') }}</th>
-                                <th class="px-4 py-3 text-right">{{ __('Aksi') }}</th>
+                                <th scope="col" class="px-4 py-3">{{ __('Keputusan') }}</th>
+                                <th scope="col" class="px-4 py-3 text-right">{{ __('Aksi') }}</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-zinc-200 dark:divide-zinc-700">
@@ -166,7 +172,7 @@
                                         @endif
                                     </td>
                                     <td class="whitespace-nowrap px-4 py-4">
-                                        <flux:badge :color="match($item->status) {'approved' => 'green', 'rejected' => 'red', 'cancelled' => 'zinc', default => 'amber'}">{{ $item->status_label }}</flux:badge>
+                                        <x-ui.badge :color="match($item->status) {'approved' => 'green', 'rejected' => 'red', 'cancelled' => 'zinc', default => 'amber'}">{{ $item->status_label }}</x-ui.badge>
                                     </td>
                                     <td class="min-w-48 px-4 py-4 text-sm">
                                         @if ($item->reviewer)<p class="font-medium">{{ $item->reviewer }}</p>@endif
@@ -178,7 +184,7 @@
                                         @if ($item->cancelable && $item->cancel_route)
                                             <form method="POST" action="{{ $item->cancel_route }}" onsubmit="return confirm('Batalkan permohonan ini?')">
                                                 @csrf @method('PATCH')
-                                                <flux:button type="submit" variant="ghost" size="sm">{{ __('Batalkan') }}</flux:button>
+                                                <x-ui.button type="submit" variant="ghost" size="sm">{{ __('Batalkan') }}</x-ui.button>
                                             </form>
                                         @else
                                             <span class="text-zinc-400">—</span>

@@ -1,14 +1,16 @@
 <x-layouts::app :title="__('Tambah Proyek')">
-    <div class="mx-auto max-w-3xl space-y-5">
-        <div>
-            <flux:heading size="xl">{{ __('Tambah Proyek') }}</flux:heading>
-            <flux:text>{{ __('Daftarkan pekerjaan kalibrasi atau pelatihan untuk satu Client dan satu lokasi Site.') }}</flux:text>
-        </div>
+    <x-ui.page class="!max-w-3xl gap-5">
+        <x-ui.page-header
+            :title="__('Tambah Proyek')"
+            :description="__('Daftarkan pekerjaan kalibrasi atau pelatihan untuk satu Client dan satu lokasi Site.')"
+        />
+
         <x-admin.flash-message />
+
         @include('pages::admin.projects._form', [
             'action' => route('admin.projects.store'),
             'method' => 'POST',
             'project' => null,
         ])
-    </div>
+    </x-ui.page>
 </x-layouts::app>

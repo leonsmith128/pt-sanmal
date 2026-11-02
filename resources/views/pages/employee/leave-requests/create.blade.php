@@ -47,13 +47,15 @@
                 </flux:field>
             </div>
 
-            <flux:field>
-                <flux:label>{{ __('Alasan permohonan') }}</flux:label>
-                <flux:textarea name="reason" rows="4" required maxlength="5000"
-                    placeholder="{{ __('Tuliskan alasan permohonan secara jelas...') }}">{{ old('reason') }}</flux:textarea>
-                <flux:description>{{ __('Maksimal 5.000 karakter.') }}</flux:description>
-                <flux:error name="reason" />
-            </flux:field>
+            <x-ui.textarea
+                name="reason"
+                :label="__('Alasan permohonan')"
+                :description="__('Maksimal 5.000 karakter.')"
+                rows="4"
+                required
+                maxlength="5000"
+                :placeholder="__('Tuliskan alasan permohonan secara jelas...')"
+            >{{ old('reason') }}</x-ui.textarea>
 
             <flux:field>
                 <flux:label>{{ __('Lampiran (opsional)') }}</flux:label>

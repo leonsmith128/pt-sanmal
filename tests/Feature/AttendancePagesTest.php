@@ -1,13 +1,17 @@
 <?php
 
 use App\Enums\AttendanceType;
+use App\Enums\OvertimeApprovalStatus;
+use App\Enums\OvertimeState;
 use App\Enums\UserRole;
 use App\Enums\WorkType;
 use App\Models\AttendanceRecord;
 use App\Models\Employee;
+use App\Models\OvertimeRequest;
 use App\Models\User;
 use App\Support\AttendanceSelfie;
 use Illuminate\Support\Facades\Storage;
+use Livewire\Livewire;
 
 function userWithRole(UserRole $role, bool $withEmployee = true): User
 {
@@ -250,7 +254,43 @@ test('collapsed admin sidebar keeps every navigation item visible as an icon', f
     @$document->loadHTML($response->getContent());
     $xpath = new DOMXPath($document);
 
-    expect($xpath->query('//*[@data-flux-sidebar-item]')->length)->toBe(13)
+    expect($xpath->query('//*[@data-flux-sidebar-item]')->length)->toBe(14)
         ->and($response->getContent())->toContain('in-data-flux-sidebar-collapsed-desktop:not-in-data-flux-sidebar-group-dropdown:hidden')
         ->and($response->getContent())->toContain('in-data-flux-sidebar-collapsed-desktop:hidden');
+});
+
+test('attendance status and overtime cards use a responsive two-column grid with overtime details modal', function () {
+    $employee = userWithRole(UserRole::Employee);
+
+    $clockIn = AttendanceRecord::create([
+        'employee_id' => $employee->employee->id,
+        'type' => AttendanceType::ClockIn,
+        'work_type' => WorkType::Office,
+        'recorded_at' => now(),
+        'timezone' => 'Asia/Makassar',
+        'attendance_date' => now('Asia/Makassar')->toDateString(),
+    ]);
+
+    $overtime = OvertimeRequest::create([
+        'employee_id' => $employee->employee->id,
+        'session_date' => $clockIn->attendance_date->toDateString(),
+        'clock_in_record_id' => $clockIn->id,
+        'reason' => 'Penyelesaian pekerjaan kalibrasi.',
+        'scheduled_start_at' => now('Asia/Makassar')->addHour(),
+        'timezone' => 'Asia/Makassar',
+        'state' => OvertimeState::AwaitingPhoto,
+        'approval_status' => OvertimeApprovalStatus::Pending,
+    ]);
+
+    $this->actingAs($employee)
+        ->get(route('attendance'))
+        ->assertOk()
+        ->assertSee('grid grid-cols-1 items-stretch gap-3 sm:grid-cols-2', false)
+        ->assertSee('showOvertimeDetails('.$overtime->id.')', false)
+        ->assertSee('wire:submit="requestOvertime"', false);
+
+    Livewire::actingAs($employee)
+        ->test('pages::employee.attendance')
+        ->call('showOvertimeDetails', $overtime->id)
+        ->assertSet('selectedOvertimeId', $overtime->id);
 });

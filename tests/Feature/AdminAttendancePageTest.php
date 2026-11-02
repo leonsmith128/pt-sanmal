@@ -190,3 +190,31 @@ it('exports filtered admin attendance as spreadsheet-safe CSV', function () {
         ->toContain('2026-11-02')
         ->not->toContain('2026-11-03');
 });
+
+it('renders the admin attendance page with a full-width responsive container and mobile-first header', function () {
+    $admin = attendancePageAdmin();
+
+    Livewire::actingAs($admin)
+        ->test('pages::admin.kehadiran')
+        ->assertSee('mx-auto flex w-full max-w-7xl flex-col gap-4', false)
+        ->assertSee('flex flex-col gap-3 md:flex-row md:items-start md:justify-between', false);
+});
+
+it('renders page header actions in a responsive wrapper when provided', function () {
+    $admin = attendancePageAdmin();
+
+    $this->actingAs($admin)
+        ->get(route('admin.leave-requests.index'))
+        ->assertOk()
+        ->assertSee('md:w-auto md:shrink-0 md:justify-end', false)
+        ->assertSee(__('Rekap harian'));
+});
+
+it('renders the attendance export confirmation with an Alpine-bound link', function () {
+    $admin = attendancePageAdmin();
+
+    Livewire::actingAs($admin)
+        ->test('pages::admin.kehadiran')
+        ->assertSee('x-bind:href="exportUrl"', false)
+        ->assertSee('Konfirmasi dan ekspor');
+});

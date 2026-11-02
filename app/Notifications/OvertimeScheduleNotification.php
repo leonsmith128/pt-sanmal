@@ -19,17 +19,27 @@ class OvertimeScheduleNotification extends Notification
 
     public function toDatabase(object $notifiable): array
     {
-        $isReminder = $this->event === 'reminder';
+        $message = match ($this->event) {
+            'reminder' => 'Lembur Anda dijadwalkan sekitar 15 menit lagi. Siapkan diri dan perangkat untuk konfirmasi foto.',
+            'due' => 'Jadwal lembur Anda telah tiba. Ambil foto Absen Lembur untuk mengonfirmasi pelaksanaan.',
+            'cancelled' => 'Pengajuan lembur ini telah dibatalkan. Anda tidak perlu lagi melakukan konfirmasi foto untuk jadwal ini.',
+            default => 'Ada pembaruan pada pengajuan lembur Anda.',
+        };
 
         return [
-            'title' => $isReminder ? 'Pengingat lembur' : 'Waktu lembur telah tiba',
-            'message' => $isReminder
-                ? 'Lembur Anda dijadwalkan sekitar 15 menit lagi. Siapkan diri dan perangkat untuk konfirmasi foto.'
-                : 'Jadwal lembur Anda telah tiba. Ambil foto Absen Lembur untuk mengonfirmasi pelaksanaan.',
+            'title' => match ($this->event) {
+                'reminder' => 'Pengingat lembur',
+                'due' => 'Waktu lembur telah tiba',
+                'cancelled' => 'Pengajuan lembur dibatalkan',
+                default => 'Pembaruan lembur',
+            },
+            'message' => $message,
             'event' => $this->event,
             'overtime_request_id' => $this->overtimeRequest->id,
             'scheduled_start_at' => $this->overtimeRequest->scheduled_start_at->toISOString(),
-            'url' => route('attendance'),
+            'url' => $this->event === 'cancelled'
+                ? route('overtime-requests.index')
+                : route('attendance'),
         ];
     }
 }

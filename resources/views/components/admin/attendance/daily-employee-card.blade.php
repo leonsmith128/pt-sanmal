@@ -10,7 +10,7 @@
     $badgeColor = $status?->badgeColor() ?? 'zinc';
 @endphp
 
-<section class="rounded-xl border border-neutral-200 bg-white p-5 dark:border-neutral-700 dark:bg-zinc-900">
+<x-ui.card padding="p-5">
     <div class="flex flex-wrap items-start justify-between gap-3">
         <div>
             <flux:heading level="2" size="base">
@@ -95,9 +95,9 @@
             </flux:field>
 
             <div class="flex flex-wrap items-center justify-between gap-2 pt-1 sm:col-span-2">
-                <flux:button type="submit" size="sm" variant="primary">
+                <x-ui.button type="submit" size="sm" variant="primary">
                     {{ __('Simpan koreksi') }}
-                </flux:button>
+                </x-ui.button>
 
                 @if ($daily['correction'])
                     <span class="text-xs text-zinc-500">
@@ -109,4 +109,4 @@
             </div>
         </form>
     </details>
-</section>
+</x-ui.card>
