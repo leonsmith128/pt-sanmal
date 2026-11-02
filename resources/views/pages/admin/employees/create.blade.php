@@ -37,17 +37,14 @@
                 :value="old('phone')"
             />
 
-            <flux:field>
-                <flux:select name="title_id" :label="__('Jabatan')">
-                    <flux:select.option value="">{{ __('Belum ditentukan') }}</flux:select.option>
-                    @foreach ($titles as $title)
-                        <flux:select.option value="{{ $title->id }}" :selected="(string) old('title_id') === (string) $title->id">
-                            {{ $title->name }}
-                        </flux:select.option>
-                    @endforeach
-                </flux:select>
-                <flux:error name="title_id" />
-            </flux:field>
+            <x-ui.select name="title_id" :label="__('Jabatan')">
+                <flux:select.option value="">{{ __('Belum ditentukan') }}</flux:select.option>
+                @foreach ($titles as $title)
+                    <flux:select.option value="{{ $title->id }}" :selected="(string) old('title_id') === (string) $title->id">
+                        {{ $title->name }}
+                    </flux:select.option>
+                @endforeach
+            </x-ui.select>
 
             <x-ui.input
                 name="joined_at"
