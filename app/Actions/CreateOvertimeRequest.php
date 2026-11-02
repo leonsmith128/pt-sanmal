@@ -43,7 +43,13 @@ class CreateOvertimeRequest
             }
 
             // Jadwal hanya ditautkan ke sesi aktif bila mulai berada dalam jendela sesi teknis.
-            if ($openSession && $scheduledStart->utc()->lt($openSession->recorded_at)) {
+            // datetime-local accepts minute precision only. Compare at the same
+            // precision so a request for the current minute is not rejected merely
+            // because the clock-in timestamp contains seconds within that minute.
+            if (
+                $openSession
+                && $scheduledStart->copy()->startOfMinute()->utc()->lt($openSession->recorded_at->copy()->startOfMinute())
+            ) {
                 $this->fail('scheduled_start_at', 'Waktu mulai lembur tidak boleh sebelum waktu clock-in.');
             }
 
