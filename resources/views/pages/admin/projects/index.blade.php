@@ -1,12 +1,11 @@
 <x-layouts::app :title="__('Master Proyek')">
     <div class="mx-auto flex w-full max-w-7xl flex-col gap-5">
-        <div class="flex flex-wrap items-center justify-between gap-3">
-            <div>
-                <flux:heading size="xl">{{ __('Master Proyek') }}</flux:heading>
-                <flux:text>{{ __('Kelola proyek jasa kalibrasi dan pelatihan beserta Client dan lokasi Site-nya.') }}</flux:text>
-            </div>
+        <x-admin.page-header
+            :title="__('Master Proyek')"
+            :description="__('Kelola proyek jasa kalibrasi dan pelatihan beserta Client dan lokasi Site-nya.')"
+        >
             <flux:button href="{{ route('admin.projects.create') }}" variant="primary" icon="plus">{{ __('Tambah proyek') }}</flux:button>
-        </div>
+        </x-admin.page-header>
 
         <x-admin.flash-message />
 
