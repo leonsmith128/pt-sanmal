@@ -55,6 +55,23 @@ test('employees can visit their own attendance history', function () {
         ->assertSee(__('Belum ada catatan absensi'));
 });
 
+test('attendance history date filters use shared controls and retain submitted values', function () {
+    $employee = userWithRole(UserRole::Employee);
+
+    $this->actingAs($employee)
+        ->get(route('attendance-history.index', [
+            'from' => '2026-11-01',
+            'to' => '2026-11-03',
+        ]))
+        ->assertOk()
+        ->assertSee('name="from"', false)
+        ->assertSee('value="2026-11-01"', false)
+        ->assertSee('name="to"', false)
+        ->assertSee('value="2026-11-03"', false)
+        ->assertSee(__('Terapkan filter'))
+        ->assertSee(__('Reset'));
+});
+
 test('saved address snapshots are visible to employees and admins', function () {
     $employee = userWithRole(UserRole::Employee);
     $admin = userWithRole(UserRole::Admin);
