@@ -1,5 +1,5 @@
 <x-layouts::app :title="'Persetujuan Permohonan'">
-    <div class="mx-auto max-w-6xl space-y-6 p-6">
+    <x-ui.page class="!max-w-6xl !gap-6 p-6">
         <x-admin.page-header
             :title="__('Persetujuan Permohonan')"
             :description="__('Admin dan superadmin menggunakan alur persetujuan yang sama.')"
@@ -9,27 +9,26 @@
             </x-ui.button>
         </x-admin.page-header>
 
-
         <x-admin.flash-message />
 
         <x-admin.filter-panel>
-<form method="GET" action="{{ route('admin.leave-requests.index') }}" class="flex flex-wrap items-end gap-3">
-            <div class="w-full sm:w-64">
-                <flux:select name="status" :label="__('Filter status')">
-                    <flux:select.option value="">{{ __('Semua status') }}</flux:select.option>
-                    @foreach (\App\Enums\LeaveRequestStatus::cases() as $case)
-                        <flux:select.option value="{{ $case->value }}" :selected="request('status') === $case->value">
-                            {{ $case->label() }}
-                        </flux:select.option>
-                    @endforeach
-                </flux:select>
-            </div>
-            <x-ui.button type="submit" variant="primary">{{ __('Terapkan') }}</x-ui.button>
-            @if (request()->filled('status'))
-                <x-ui.button href="{{ route('admin.leave-requests.index') }}" variant="outline">{{ __('Reset') }}</x-ui.button>
-            @endif
-        </form>
-</x-admin.filter-panel>
+            <form method="GET" action="{{ route('admin.leave-requests.index') }}" class="flex flex-wrap items-end gap-3">
+                <div class="w-full sm:w-64">
+                    <x-ui.select name="status" :label="__('Filter status')">
+                        <flux:select.option value="">{{ __('Semua status') }}</flux:select.option>
+                        @foreach (\App\Enums\LeaveRequestStatus::cases() as $case)
+                            <flux:select.option value="{{ $case->value }}" :selected="request('status') === $case->value">
+                                {{ $case->label() }}
+                            </flux:select.option>
+                        @endforeach
+                    </x-ui.select>
+                </div>
+                <x-ui.button type="submit" variant="primary">{{ __('Terapkan') }}</x-ui.button>
+                @if (request()->filled('status'))
+                    <x-ui.button href="{{ route('admin.leave-requests.index') }}" variant="outline">{{ __('Reset') }}</x-ui.button>
+                @endif
+            </form>
+        </x-admin.filter-panel>
 
         <div class="overflow-x-auto rounded-xl border border-neutral-200 dark:border-neutral-700">
             <table class="w-full text-left text-sm">
@@ -75,5 +74,5 @@
         <div class="mt-4">
             {{ $requests->links() }}
         </div>
-    </div>
+    </x-ui.page>
 </x-layouts::app>
