@@ -190,3 +190,13 @@ it('exports filtered admin attendance as spreadsheet-safe CSV', function () {
         ->toContain('2026-11-02')
         ->not->toContain('2026-11-03');
 });
+
+
+it('renders the admin page header with mobile-first and tablet-aware layout classes', function () {
+    $admin = attendancePageAdmin();
+
+    Livewire::actingAs($admin)
+        ->test('pages::admin.kehadiran')
+        ->assertSee('flex flex-col gap-3 md:flex-row md:items-start md:justify-between', false)
+        ->assertSee('md:w-auto md:shrink-0 md:justify-end', false);
+});
