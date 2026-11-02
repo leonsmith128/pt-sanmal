@@ -139,9 +139,10 @@ Density means removing decorative whitespace, not shrinking everything. Do not h
 
 ## 6. Button foundation
 
-The source already contains `x-ui.button`, which wraps Flux UI's button component. Reuse it before adding another button implementation. Its current Blade API includes:
-- `variant` (default `primary`)
-- `size` (default `sm`)
+The source already contains `x-ui.button`, which wraps Flux UI 2.13's button component. Reuse it before adding another button implementation. Its current Blade API includes:
+- `variant` (default `primary`; supported values include `primary`, `outline`, `ghost`, `subtle`, `filled`, and `danger`)
+- `color` (optional; primary defaults to SanMal blue, explicit semantic colors remain available)
+- `size` (default `sm`; supported sizes are `xs`, `sm`, and `base`)
 - `type`
 - `href`
 - `icon` and `iconTrailing`
@@ -155,11 +156,10 @@ Inspect the component and Flux version in the target branch before changing its 
 
 | Variant | Use |
 |---|---|
-| Primary | One dominant action in a context: Save, Add, Apply, or final confirmation |
-| Secondary | Supporting action that should remain visibly actionable |
-| Outline | Labeled secondary action: Edit, Detail, Back, Reset, Filter, Export |
-| Ghost | Minor utility action or icon control that does not need a filled surface |
-| Danger | Destructive or high-risk action |
+| Primary | Flux `primary` with SanMal brand blue; one dominant action such as Save, Add, Apply, or final confirmation |
+| Secondary | Flux `outline` with neutral styling; supporting actions such as Edit, Detail, Back, Reset, Filter, and Export |
+| Ghost | Flux `ghost`; minor utility action or icon control that does not need a filled surface |
+| Danger | Flux `danger`; destructive or high-risk actions such as Delete, Remove, or Cancel when the action is destructive |
 
 Do not make every button primary. Destructive actions must retain the workflow's existing confirmation; styling does not replace confirmation.
 
@@ -169,11 +169,11 @@ The agreed design direction is **compact by default, comfortable when needed**. 
 
 | Design size | Target height | Horizontal padding target | Use |
 |---|---:|---:|---|
-| Small | 32 px | 12 px | Dense table actions and compact toolbar |
-| Medium | 40 px | 16 px | Standard Admin action |
-| Large | 48 px | 20 px | Employee primary action on mobile |
+| Small | 32 px | 12 px | Dense table actions and compact toolbar; Flux `sm` |
+| Medium | 40 px | 16 px | Standard Admin action; Flux `base` |
+| Large touch action | 48 px minimum | Context-dependent | Employee's most important mobile action; use a deliberate minimum-height utility only where the workflow needs the larger target |
 
-These are design acceptance targets, not a claim that Flux's `sm`/default/`lg` maps to these exact pixel values. Verify actual browser rendering before changing the shared component. Keep the target interaction area comfortable on touch devices; icon-only controls need an adequate hit area even if the visible icon is small.
+Flux 2.13 button sizes are `xs`, `sm`, and `base`; do not pass unsupported values such as `md` or `lg`. The shared component defaults to `sm` for compact operational density. Use `base` for standard actions and add a 48 px minimum touch height only to the most important mobile action after checking its rendered alignment. Icon-only controls need an adequate hit area even if the visible icon is small.
 
 ### 6.3 Button states
 
