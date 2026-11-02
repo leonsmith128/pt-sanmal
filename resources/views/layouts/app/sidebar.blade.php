@@ -20,7 +20,7 @@
         <flux:sidebar
             sticky
             :collapsible="$isManager"
-            class="border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 {{ $isEmployee && ! $isManager ? 'hidden lg:flex' : '' }}"
+            class="h-screen min-h-screen border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 {{ $isEmployee && ! $isManager ? 'hidden lg:flex' : '' }}"
         >
             <flux:sidebar.header>
                 <div class="flex w-full items-center justify-between gap-2">
@@ -51,7 +51,6 @@
                 @if ($isManager)
                     @if ($sidebarEmployee)
                         <flux:sidebar.group
-                            expandable
                             icon="user-circle"
                             :heading="__('Aktivitas Saya')"
                             :expanded="request()->routeIs('attendance', 'attendance-history.*', 'leave-requests.*', 'overtime-requests.*')"
@@ -79,7 +78,6 @@
                     @endif
 
                     <flux:sidebar.group
-                        expandable
                         icon="clipboard-document-list"
                         :heading="__('Operasional')"
                         :expanded="request()->routeIs('admin.kehadiran', 'admin.daily-attendance*', 'admin.projects.*')"
@@ -97,7 +95,6 @@
                     </flux:sidebar.group>
 
                     <flux:sidebar.group
-                        expandable
                         icon="building-office-2"
                         :heading="__('Master Data')"
                         :expanded="request()->routeIs('admin.clients.*', 'admin.locations.*', 'admin.employees.*')"
@@ -112,7 +109,6 @@
                     </flux:sidebar.group>
 
                     <flux:sidebar.group
-                        expandable
                         icon="calendar"
                         :heading="__('Permohonan')"
                         :expanded="request()->routeIs('admin.leave-requests.*', 'admin.overtime-requests.*', 'admin.attendance-corrections.*')"
@@ -229,11 +225,11 @@
                         <span>{{ __('Riwayat') }}</span>
                     </a>
                     <a href="{{ route('leave-requests.index') }}" wire:navigate @class(['flex min-w-0 flex-1 flex-col items-center justify-center gap-1 px-1 py-2 text-[11px] font-medium', 'text-accent' => request()->routeIs('leave-requests.*', 'overtime-requests.*', 'attendance-corrections.*'), 'text-zinc-500 dark:text-zinc-400' => ! request()->routeIs('leave-requests.*', 'overtime-requests.*', 'attendance-corrections.*')]) @if (request()->routeIs('leave-requests.*', 'overtime-requests.*', 'attendance-corrections.*')) aria-current="page" @endif>
-                        <flux:icon name="clipboard-list" class="size-5" />
+                        <flux:icon name="clipboard-document-list" class="size-5" />
                         <span>{{ __('Pengajuan') }}</span>
                     </a>
                     <a href="{{ route('profile.edit') }}" wire:navigate @class(['flex min-w-0 flex-1 flex-col items-center justify-center gap-1 px-1 py-2 text-[11px] font-medium', 'text-accent' => request()->routeIs('profile.edit', 'security.edit'), 'text-zinc-500 dark:text-zinc-400' => ! request()->routeIs('profile.edit', 'security.edit')]) @if (request()->routeIs('profile.edit', 'security.edit')) aria-current="page" @endif>
-                        <flux:icon name="user-round" class="size-5" />
+                        <flux:icon name="user-circle" class="size-5" />
                         <span>{{ __('Profil') }}</span>
                     </a>
                 </div>
