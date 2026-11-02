@@ -1,7 +1,8 @@
 <x-layouts::app :title="__('Ubah Client')">
     <div class="mx-auto max-w-2xl space-y-5">
         <div>
-            <flux:heading size="xl">{{ __('Ubah Client') }}</flux:heading>
+            <flux:button size="sm" variant="ghost" icon="arrow-left" href="{{ route('admin.clients.show', $client) }}">{{ __('Kembali ke Detail Client') }}</flux:button>
+            <flux:heading size="xl" class="mt-3">{{ __('Ubah Client') }}</flux:heading>
             <flux:text>{{ __('Perbarui identitas client.') }}</flux:text>
         </div>
         <x-admin.flash-message />
@@ -25,7 +26,7 @@
                 <flux:error name="phone" />
             </flux:field>
             <div class="flex justify-end gap-2">
-                <flux:button href="{{ route('admin.clients.index') }}" variant="ghost">{{ __('Batal') }}</flux:button>
+                <flux:button href="{{ route('admin.clients.show', $client) }}" variant="ghost">{{ __('Batal') }}</flux:button>
                 <flux:button type="submit" variant="primary">{{ __('Simpan perubahan') }}</flux:button>
             </div>
         </form>
