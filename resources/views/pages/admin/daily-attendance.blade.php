@@ -48,7 +48,7 @@
                     />
                 </flux:field>
 
-                <flux:button type="submit" variant="filled" icon="arrow-down-tray">
+                <flux:button type="submit" variant="outline" icon="arrow-down-tray">
                     {{ __('Unduh CSV') }}
                 </flux:button>
             </form>
