@@ -117,14 +117,14 @@ new #[Title('Profil Pegawai')] class extends Component {
             @enderror
 
             <div class="flex flex-wrap gap-2">
-                <flux:button type="submit" variant="primary" wire:loading.attr="disabled" wire:target="photo,saveProfilePhoto">
+                <x-ui.button type="submit" variant="primary" wire:loading.attr="disabled" wire:target="photo,saveProfilePhoto">
                     Simpan foto
-                </flux:button>
+                </x-ui.button>
 
                 @if (auth()->user()->profile_photo_path)
-                    <flux:button type="button" variant="ghost" wire:click="removeProfilePhoto" wire:confirm="Hapus foto profil Anda?">
+                    <x-ui.button type="button" variant="ghost" wire:click="removeProfilePhoto" wire:confirm="Hapus foto profil Anda?">
                         Hapus foto
-                    </flux:button>
+                    </x-ui.button>
                 @endif
             </div>
 
@@ -172,9 +172,9 @@ new #[Title('Profil Pegawai')] class extends Component {
             @endif
 
             <div class="flex justify-end">
-                <flux:button type="submit" variant="primary" :disabled="! auth()->user()->employee">
+                <x-ui.button type="submit" variant="primary" :disabled="! auth()->user()->employee">
                     Simpan perubahan
-                </flux:button>
+                </x-ui.button>
             </div>
         </form>
     </div>
