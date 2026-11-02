@@ -12,34 +12,28 @@
 
         <section class="space-y-3 rounded-xl border border-zinc-200 p-5 dark:border-zinc-700">
             <dl class="grid gap-3 sm:grid-cols-2">
-                <div>
-                    <dt class="text-sm text-zinc-500">{{ __('Tanggal') }}</dt>
-                    <dd>{{ $correction->attendance_date->format('d M Y') }}</dd>
-                </div>
-                <div>
-                    <dt class="text-sm text-zinc-500">{{ __('Jenis') }}</dt>
-                    <dd>{{ $correction->requested_type }}</dd>
-                </div>
+                <x-ui.metadata-item :label="__('Tanggal')">
+                    {{ $correction->attendance_date->format('d M Y') }}
+                </x-ui.metadata-item>
+                <x-ui.metadata-item :label="__('Jenis')">
+                    {{ $correction->requested_type }}
+                </x-ui.metadata-item>
                 @if ($correction->sessionAnchor)
-                    <div>
-                        <dt class="text-sm text-zinc-500">{{ __('Anchor sesi Clock In') }}</dt>
-                        <dd>#{{ $correction->sessionAnchor->id }} · {{ $correction->sessionAnchor->recordedAtLocal()->format('d M Y H:i T') }}</dd>
-                    </div>
+                    <x-ui.metadata-item :label="__('Anchor sesi Clock In')">
+                        #{{ $correction->sessionAnchor->id }} · {{ $correction->sessionAnchor->recordedAtLocal()->format('d M Y H:i T') }}
+                    </x-ui.metadata-item>
                 @endif
                 @if ($correction->attendanceRecord)
-                    <div>
-                        <dt class="text-sm text-zinc-500">{{ __('Waktu bukti asli (immutable)') }}</dt>
-                        <dd>{{ $correction->attendanceRecord->recordedAtLocal()->format('d M Y H:i T') }}</dd>
-                    </div>
+                    <x-ui.metadata-item :label="__('Waktu bukti asli (immutable)')">
+                        {{ $correction->attendanceRecord->recordedAtLocal()->format('d M Y H:i T') }}
+                    </x-ui.metadata-item>
                 @endif
-                <div>
-                    <dt class="text-sm text-zinc-500">{{ __('Waktu yang diminta') }}</dt>
-                    <dd>{{ $correction->requested_recorded_at->setTimezone($correction->sessionAnchor?->timezone ?? $correction->attendanceRecord?->timezone ?? config('app.timezone'))->format('d M Y H:i T') }}</dd>
-                </div>
-                <div>
-                    <dt class="text-sm text-zinc-500">{{ __('Status') }}</dt>
-                    <dd>{{ ucfirst($correction->status) }}</dd>
-                </div>
+                <x-ui.metadata-item :label="__('Waktu yang diminta')">
+                    {{ $correction->requested_recorded_at->setTimezone($correction->sessionAnchor?->timezone ?? $correction->attendanceRecord?->timezone ?? config('app.timezone'))->format('d M Y H:i T') }}
+                </x-ui.metadata-item>
+                <x-ui.metadata-item :label="__('Status')">
+                    {{ ucfirst($correction->status) }}
+                </x-ui.metadata-item>
             </dl>
 
             @php($snapshotRecord = $correction->sessionAnchor ?? $correction->attendanceRecord)
@@ -48,15 +42,23 @@
                     <p class="mb-2 text-sm font-medium">{{ __('Identitas pekerjaan saat Clock In') }}</p>
                     <dl class="grid gap-2 text-sm sm:grid-cols-2">
                         @if ($snapshotRecord->client_name_snapshot)
-                            <div><dt class="text-zinc-500">{{ __('Client') }}</dt><dd>{{ $snapshotRecord->client_code_snapshot ? $snapshotRecord->client_code_snapshot.' · ' : '' }}{{ $snapshotRecord->client_name_snapshot }}</dd></div>
+                            <x-ui.metadata-item :label="__('Client')" label-class="text-zinc-500" value-class="text-zinc-900 dark:text-zinc-100">
+                                {{ $snapshotRecord->client_code_snapshot ? $snapshotRecord->client_code_snapshot.' · ' : '' }}{{ $snapshotRecord->client_name_snapshot }}
+                            </x-ui.metadata-item>
                         @endif
                         @if ($snapshotRecord->project_name_snapshot)
-                            <div><dt class="text-zinc-500">{{ __('Proyek') }}</dt><dd>{{ $snapshotRecord->project_code_snapshot ? $snapshotRecord->project_code_snapshot.' · ' : '' }}{{ $snapshotRecord->project_name_snapshot }}</dd></div>
+                            <x-ui.metadata-item :label="__('Proyek')" label-class="text-zinc-500" value-class="text-zinc-900 dark:text-zinc-100">
+                                {{ $snapshotRecord->project_code_snapshot ? $snapshotRecord->project_code_snapshot.' · ' : '' }}{{ $snapshotRecord->project_name_snapshot }}
+                            </x-ui.metadata-item>
                         @endif
                         @if ($snapshotRecord->location_name_snapshot)
-                            <div><dt class="text-zinc-500">{{ __('Lokasi') }}</dt><dd>{{ $snapshotRecord->location_name_snapshot }}</dd></div>
+                            <x-ui.metadata-item :label="__('Lokasi')" label-class="text-zinc-500" value-class="text-zinc-900 dark:text-zinc-100">
+                                {{ $snapshotRecord->location_name_snapshot }}
+                            </x-ui.metadata-item>
                         @endif
-                        <div><dt class="text-zinc-500">{{ __('Sumber snapshot') }}</dt><dd>{{ $snapshotRecord->snapshot_source === 'migration_backfill' ? __('Backfill migrasi (baseline data master)') : ($snapshotRecord->snapshot_source === 'clock_in' ? __('Diambil saat Clock In') : '—') }}</dd></div>
+                        <x-ui.metadata-item :label="__('Sumber snapshot')" label-class="text-zinc-500" value-class="text-zinc-900 dark:text-zinc-100">
+                            {{ $snapshotRecord->snapshot_source === 'migration_backfill' ? __('Backfill migrasi (baseline data master)') : ($snapshotRecord->snapshot_source === 'clock_in' ? __('Diambil saat Clock In') : '—') }}
+                        </x-ui.metadata-item>
                     </dl>
                 </div>
             @endif
