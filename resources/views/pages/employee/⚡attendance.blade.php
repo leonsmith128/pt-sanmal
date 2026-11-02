@@ -144,11 +144,23 @@ new #[Title('Absensi')] class extends Component {
             'overtimeStartAt' => ['required', 'date_format:Y-m-d\\TH:i'],
         ]);
 
-        app(CreateOvertimeRequest::class)->handle(
-            employee: $this->employee,
-            reason: $validated['overtimeReason'] ?: null,
-            scheduledStartLocal: $validated['overtimeStartAt'],
-        );
+        try {
+            app(CreateOvertimeRequest::class)->handle(
+                employee: $this->employee,
+                reason: $validated['overtimeReason'] ?: null,
+                scheduledStartLocal: $validated['overtimeStartAt'],
+            );
+        } catch (ValidationException $exception) {
+            foreach ($exception->errors() as $field => $messages) {
+                $componentField = $field === 'scheduled_start_at' ? 'overtimeStartAt' : $field;
+
+                foreach ($messages as $message) {
+                    $this->addError($componentField, $message);
+                }
+            }
+
+            return;
+        }
 
         $this->reset('overtimeReason', 'overtimeStartAt');
         unset($this->overtimeRequest, $this->selectedDateOvertimeRequests);
