@@ -253,11 +253,14 @@ Choose based on data relationships:
 ### Navigation
 
 - Use Flux sidebar and header primitives for the shared application shell; do not build a parallel navigation system.
-- Apply `<flux:main inset>` for the bordered, rounded content surface. Keep sidebar, header, and main as direct layout siblings; use `lg:ms-0 lg:mt-0` on the main region to avoid double offsets.
+- Apply `<flux:main inset>` for the bordered, rounded content surface. Keep sidebar, header, and main as direct layout siblings; use `lg:ms-0 lg:mt-0` on the main region to avoid double offsets. Keep the outer page background visible around the panel.
+- Treat the inset main as the full-width surface. Let `x-ui.page` own the page-specific content width; do not add Flux `container` at the main level as well as another page max-width unless the double constraint is intentional. Use narrower page widths for forms/details and wider widths for operational data pages.
+- The inset main already establishes the shell's content spacing. Avoid adding another padding utility to the root `x-ui.page` (for example `p-6` or `px-4 py-4 sm:px-6 sm:py-6`); use spacing inside the page's own sections/cards instead. This prevents the inset gutter and page padding from accumulating.
 - Employee navigation is one ungrouped list: Beranda, Absensi, Riwayat, Permohonan, and Lembur. On phones, use the top header with a drawer toggle; do not use a fixed bottom navigation bar.
 - Manager personal links reuse the Employee labels (Absensi, Riwayat, Permohonan, Lembur). Keep Admin operational sections grouped because they represent separate administration scopes; keep item labels concise (prefer one word, at most two when needed).
+- Group headings must not disappear and collapse the vertical rhythm when the desktop sidebar is collapsed. Use `x-ui.sidebar-section`: the expanded state shows the heading, while the collapsed state replaces it with a subtle separator in the same fixed-height row. Employee navigation remains ungrouped and does not render separators.
 - Sidebar navigation icons use a consistent 20px square size and do not change size between expanded and collapsed states. Preserve the icon's aspect ratio, alignment, and non-shrinking behavior.
-- Responsive behavior follows the available width: drawer on phone, collapsible sidebar where appropriate on tablet, and persistent sidebar on desktop. Do not create separate role-specific navigation implementations.
+- Responsive behavior follows the available width: drawer on phone, collapsible sidebar where appropriate on tablet, and persistent sidebar on desktop. Use viewport-relative `dvh` sizing for the shell. Do not create separate role-specific navigation implementations.
 
 ### Single branch and single PR
 
