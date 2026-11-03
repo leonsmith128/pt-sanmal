@@ -21,7 +21,7 @@ class DailyAttendanceExportService
 
         fwrite($stream, "\xEF\xBB\xBF");
         fputcsv($stream, [
-            'ID Pegawai', 'Nomor Pegawai', 'Nama Pegawai', 'Tanggal', 'Status Akhir',
+            'ID Pegawai', 'Nomor Pegawai', 'Nama Pegawai', 'Tanggal Laporan (WITA)', 'Status Akhir',
             'Clock In Efektif', 'Clock Out Efektif', 'Total Durasi',
             'Waktu Asli Clock In', 'Waktu Asli Clock Out',
             'Detail Sesi', 'Event Lain (efektif / asli)', 'Jenis Kerja',
