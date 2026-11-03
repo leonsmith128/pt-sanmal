@@ -164,7 +164,6 @@
                         <x-ui.button
                             :href="route('attendance')"
                             variant="primary"
-                            size="lg"
                             class="w-full shrink-0 sm:w-auto"
                         >
                             {{ __('Buka halaman absensi') }}
