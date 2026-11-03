@@ -16,6 +16,22 @@ use Illuminate\View\View;
 
 class AdminDashboardController extends Controller
 {
+    public function myDashboard(EmployeeDashboardAggregationService $employeeDashboardService): View
+    {
+        $user = auth()->user();
+        $employee = $user->employee;
+
+        abort_unless($user->isManager() && $employee, 404);
+
+        return view('pages::dashboard', [
+            'isManager' => false,
+            'today' => now()->translatedFormat('l, d F Y'),
+            'employeeDashboard' => $employeeDashboardService->forEmployee($employee),
+            'notifications' => $user->notifications()->latest()->limit(5)->get(),
+            'unreadNotificationCount' => $user->unreadNotifications()->count(),
+        ]);
+    }
+
     public function __invoke(
         DailyAttendanceStatusService $statusService,
         EmployeeDashboardAggregationService $employeeDashboardService,
