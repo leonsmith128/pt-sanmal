@@ -669,7 +669,7 @@ test('employee dashboard aggregates multiple approved overtime intervals within 
         Carbon::parse('2026-11-03 19:00:00', 'UTC'),
     );
 
-    expect($dashboard['todayStatus']['status'])->toBe(DailyAttendanceStatus::Present->value)
+    expect($dashboard['monthly']['presentDays'])->toBe(1)
         ->and($dashboard['monthly']['workMinutes'])->toBe(480)
         ->and($dashboard['monthly']['overtimeMinutes'])->toBe(120);
 });
