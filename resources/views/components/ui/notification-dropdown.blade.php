@@ -3,7 +3,7 @@
     'unreadCount' => 0,
 ])
 
-<details class="group relative">
+<details {{ $attributes->class(['group relative']) }}>
     <summary
         aria-label="{{ __('Buka notifikasi') }}"
         class="flex size-10 cursor-pointer list-none items-center justify-center rounded-full text-zinc-600 transition hover:bg-zinc-100 hover:text-zinc-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sanmal-600 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-white [&::-webkit-details-marker]:hidden"
