@@ -25,7 +25,7 @@ class EmployeeDashboardAggregationService
      * Build dashboard data for exactly one employee. The caller must resolve the
      * employee through the authenticated user; this service never accepts an ID.
      */
-    public function forEmployee(Employee $employee, ?Carbon $now = null): array
+    public function forEmployee(Employee $employee, ?CarbonInterface $now = null): array
     {
         // Keep the dashboard's display date in the employee's latest session timezone,
         // but evaluate each historical/current session against its own Clock In timezone.
@@ -250,7 +250,7 @@ class EmployeeDashboardAggregationService
      */
     private function isInCurrentMonthForSession(
         AttendanceRecord $record,
-        Carbon $now,
+        CarbonInterface $now,
         string $fallbackTimezone,
     ): bool {
         $anchor = $record->type === AttendanceType::ClockIn
@@ -278,7 +278,7 @@ class EmployeeDashboardAggregationService
     /**
      * @return array{start:Carbon,end:Carbon,provisional:bool,sessionAnchorId:int}|null
      */
-    private function overtimeInterval(OvertimeRequest $request, Carbon $now): ?array
+    private function overtimeInterval(OvertimeRequest $request, CarbonInterface $now): ?array
     {
         if ($request->state === OvertimeState::Cancelled || ! $request->startRecord || ! $request->clockInRecord) {
             return null;
