@@ -372,3 +372,61 @@ test('employee dashboard does not display a duration for an attendance day requi
         ->and($dashboard['todayIsRunning'])->toBeFalse()
         ->and($dashboard['monthly']['workMinutes'])->toBe(0);
 });
+
+
+test('employee dashboard flags finalized overtime that extends beyond its attendance session', function () {
+    $user = User::factory()->create();
+    $user->forceFill(['role' => UserRole::Employee])->save();
+    $employee = Employee::create(['user_id' => $user->id]);
+
+    $clockIn = AttendanceRecord::create([
+        'employee_id' => $employee->id,
+        'type' => AttendanceType::ClockIn,
+        'work_type' => WorkType::Office,
+        'recorded_at' => Carbon::parse('2026-11-03 00:00:00', 'UTC'),
+        'timezone' => 'Asia/Makassar',
+        'attendance_date' => '2026-11-03',
+    ]);
+    $overtimeStart = AttendanceRecord::create([
+        'employee_id' => $employee->id,
+        'session_anchor_id' => $clockIn->id,
+        'type' => AttendanceType::OvertimeStart,
+        'work_type' => WorkType::Office,
+        'recorded_at' => Carbon::parse('2026-11-03 08:00:00', 'UTC'),
+        'timezone' => 'Asia/Makassar',
+        'attendance_date' => '2026-11-03',
+    ]);
+    $clockOut = AttendanceRecord::create([
+        'employee_id' => $employee->id,
+        'session_anchor_id' => $clockIn->id,
+        'type' => AttendanceType::ClockOut,
+        'work_type' => WorkType::Office,
+        'recorded_at' => Carbon::parse('2026-11-03 09:00:00', 'UTC'),
+        'timezone' => 'Asia/Makassar',
+        'attendance_date' => '2026-11-03',
+    ]);
+
+    OvertimeRequest::create([
+        'employee_id' => $employee->id,
+        'session_date' => '2026-11-03',
+        'clock_in_record_id' => $clockIn->id,
+        'start_record_id' => $overtimeStart->id,
+        'clock_out_record_id' => $clockOut->id,
+        'scheduled_start_at' => Carbon::parse('2026-11-03 08:00:00', 'UTC'),
+        'timezone' => 'Asia/Makassar',
+        'state' => OvertimeState::Completed,
+        'approval_status' => OvertimeApprovalStatus::Approved,
+        'finalization_source' => 'manual',
+        'final_start_at' => Carbon::parse('2026-11-03 08:00:00', 'UTC'),
+        'final_end_at' => Carbon::parse('2026-11-03 10:00:00', 'UTC'),
+    ]);
+
+    $dashboard = app(EmployeeDashboardAggregationService::class)->forEmployee(
+        $employee,
+        Carbon::parse('2026-11-03 11:00:00', 'UTC'),
+    );
+
+    expect($dashboard['monthly']['workMinutes'])->toBe(480)
+        ->and($dashboard['monthly']['overtimeMinutes'])->toBe(120)
+        ->and($dashboard['monthly']['overtimeNeedsReview'])->toBeTrue();
+});
