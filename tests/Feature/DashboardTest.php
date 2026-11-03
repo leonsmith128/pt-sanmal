@@ -755,3 +755,19 @@ test('employee dashboard excludes a session with a non-positive effective time i
         ->and($dashboard['todayDurationMinutes'])->toBeNull()
         ->and($dashboard['monthly']['workMinutes'])->toBe(0);
 });
+
+
+test('personal admin dashboard is unavailable without a linked employee profile', function () {
+    $user = User::factory()->create();
+    $user->forceFill(['role' => UserRole::Admin])->save();
+
+    $this->actingAs($user)->get(route('my-dashboard'))->assertNotFound();
+});
+
+test('employee accounts cannot access the personal admin dashboard route', function () {
+    $user = User::factory()->create();
+    $user->forceFill(['role' => UserRole::Employee])->save();
+    Employee::create(['user_id' => $user->id]);
+
+    $this->actingAs($user)->get(route('my-dashboard'))->assertNotFound();
+});
