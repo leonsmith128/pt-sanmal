@@ -1,6 +1,6 @@
 # Employee Dashboard Data Contract
 
-> Status: domain policy approved; the current attendance resolver, `timezone_source` migration, session-based dashboard aggregation, and covered date-boundary behavior passed full CI run 1294 on MariaDB and SQLite ([commit `ab8dfb8`](https://github.com/leonsmith128/pt-sanmal/commit/ab8dfb854ce8f5a5894dcf1f07f003a8fb9a26f7)). Broader calendar/timezone matrices and browser/device QA remain pending.
+> Status: domain policy approved; the current attendance resolver, `timezone_source` migration, session-based dashboard aggregation, and covered date-boundary behavior passed full CI run 1297 on MariaDB and SQLite ([commit `e85558f`](https://github.com/leonsmith128/pt-sanmal/commit/e85558fa29a5050d42a3b609ccac4442d29ae665)). MariaDB: 272 passed, 1 skipped (1,072 assertions); SQLite: 271 passed, 2 skipped (1,070 assertions). Broader calendar/timezone matrices and browser/device QA remain pending.
 
 ## Purpose and consistency
 
