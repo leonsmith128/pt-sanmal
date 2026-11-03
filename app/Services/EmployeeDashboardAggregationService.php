@@ -12,6 +12,7 @@ use App\Models\Employee;
 use App\Models\LeaveRequest;
 use App\Models\OvertimeRequest;
 use Carbon\Carbon;
+use Carbon\CarbonInterface;
 use Illuminate\Support\Collection;
 
 class EmployeeDashboardAggregationService
@@ -310,9 +311,9 @@ class EmployeeDashboardAggregationService
      * Merge overlap windows before subtraction so overlapping overtime cannot
      * subtract the same ordinary-work seconds more than once.
      *
-     * @param  Collection<int, array{start:Carbon,end:Carbon,provisional:bool,sessionAnchorId:int}>  $intervals
+     * @param  Collection<int, array{start:CarbonInterface,end:CarbonInterface,provisional:bool,sessionAnchorId:int}>  $intervals
      */
-    private function mergedOverlapSeconds(Carbon $sessionStart, Carbon $sessionEnd, Collection $intervals): int
+    private function mergedOverlapSeconds(CarbonInterface $sessionStart, CarbonInterface $sessionEnd, Collection $intervals): int
     {
         $windows = $intervals
             ->map(function (array $interval) use ($sessionStart, $sessionEnd): ?array {
