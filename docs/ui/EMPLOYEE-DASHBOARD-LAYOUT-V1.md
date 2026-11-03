@@ -18,8 +18,8 @@ Use a single-column page flow with a responsive two-column lower content area on
 
 - Greeting based on the current local time where the application already provides a reliable timezone-aware clock; otherwise use a neutral greeting.
 - Display authenticated employee name and current date.
-- Avatar is optional. Do not invent initials, profile images, or verification badges if the existing user/profile data does not support them.
-- Notification control belongs to the application shell, not a duplicate dashboard-only control.
+- Place the existing notification link and the employee avatar/profile image immediately before the greeting, in one compact header row. The notification control must link to the existing `notifications.index` route; do not add notification behavior or duplicate notification data.
+- Avatar is optional. Use the existing profile image or the established initials fallback; do not invent a profile image or verification badge.
 
 ### B. Today's attendance hero
 
@@ -48,7 +48,7 @@ At desktop width, use a four-column row. At tablet, allow two columns. At mobile
 
 ### D. Lower content grid
 
-On wide screens, use a larger left column and a narrower right column. Stack in this order on mobile.
+On wide screens, use a narrower left column and a wider right column. The left column contains **Pengajuan Saya** followed by **Akses Cepat**; the right column contains **Aktivitas Terbaru**. On mobile, stack in this order: Pengajuan Saya, Akses Cepat, Aktivitas Terbaru.
 
 **Pengajuan Saya**
 - One combined card, not separate cards per request category.
@@ -65,7 +65,7 @@ On wide screens, use a larger left column and a narrower right column. Stack in 
 
 ### E. Akses Cepat
 
-Provide compact links to existing employee destinations:
+Place this card directly below Pengajuan Saya in the left column. Provide compact links to existing employee destinations:
 - Riwayat Absensi
 - Pusat Pengajuan
 - Lembur
@@ -91,7 +91,7 @@ The mockup includes a decorative encouragement card. This is lowest priority. In
 - **360–390 px:** no horizontal page overflow; hero content and CTA stack cleanly; statistic cards remain readable; lower sections stack; no tiny tap targets.
 - **414–430 px:** no clipping of long employee names, status labels, duration values, or request breakdowns.
 - **768 px:** statistics may form two columns; lower sections may remain stacked or move to a balanced grid only when content fits.
-- **1280–1440 px:** hero remains the dominant first section; four statistics fit in one row; lower content uses a larger request/quick-access column and a narrower activity column.
+- **1280–1440 px:** hero remains the dominant first section; four statistics fit in one row; lower content uses a left request/quick-access column and a wider right activity column.
 - All layouts preserve keyboard focus visibility and readable contrast in light/dark themes.
 
 ## 5. Data and behavior constraints
