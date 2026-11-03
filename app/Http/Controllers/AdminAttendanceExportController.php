@@ -61,10 +61,14 @@ class AdminAttendanceExportController extends Controller
 
     private function earliestAvailableDate(): string
     {
-        $attendance = AttendanceRecord::query()
+        $earliestAttendanceAt = AttendanceRecord::query()
             ->where(fn (Builder $query) => $query->whereNull('session_anchor_id')->orWhereColumn('session_anchor_id', 'id'))
-            ->selectRaw("MIN(COALESCE((SELECT ac.attendance_date FROM attendance_corrections ac WHERE ac.attendance_record_id = attendance_records.id AND ac.status = 'approved' ORDER BY ac.reviewed_at DESC LIMIT 1), attendance_records.attendance_date)) AS earliest_date")
-            ->value('earliest_date');
+            ->selectRaw("MIN(COALESCE((SELECT ac.requested_recorded_at FROM attendance_corrections ac WHERE ac.attendance_record_id = attendance_records.id AND ac.status = 'approved' ORDER BY ac.reviewed_at DESC LIMIT 1), attendance_records.recorded_at)) AS earliest_at")
+            ->value('earliest_at');
+
+        $attendance = $earliestAttendanceAt
+            ? Carbon::parse($earliestAttendanceAt, 'UTC')->setTimezone('Asia/Makassar')->toDateString()
+            : null;
 
         $leave = LeaveRequest::query()->where('status', 'approved')->min('start_date');
         $correction = DailyStatusCorrection::query()->min('attendance_date');
