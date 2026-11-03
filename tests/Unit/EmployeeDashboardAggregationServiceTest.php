@@ -3,7 +3,6 @@
 use App\Services\DailyAttendanceStatusService;
 use App\Services\EmployeeDashboardAggregationService;
 use Carbon\Carbon;
-use Illuminate\Support\Collection;
 
 it('subtracts overlapping approved overtime windows only once', function () {
     $service = new EmployeeDashboardAggregationService(new DailyAttendanceStatusService());
@@ -13,7 +12,7 @@ it('subtracts overlapping approved overtime windows only once', function () {
         $service,
         Carbon::parse('2026-11-03 08:00:00', 'UTC'),
         Carbon::parse('2026-11-03 17:00:00', 'UTC'),
-        new Collection([
+        collect([
             [
                 'start' => Carbon::parse('2026-11-03 12:00:00', 'UTC'),
                 'end' => Carbon::parse('2026-11-03 14:00:00', 'UTC'),
@@ -38,7 +37,7 @@ it('clips overtime subtraction to the attendance session and merges adjacent win
         $service,
         Carbon::parse('2026-11-03 09:00:00', 'UTC'),
         Carbon::parse('2026-11-03 17:00:00', 'UTC'),
-        new Collection([
+        collect([
             [
                 'start' => Carbon::parse('2026-11-03 08:00:00', 'UTC'),
                 'end' => Carbon::parse('2026-11-03 12:00:00', 'UTC'),
