@@ -64,7 +64,6 @@ it('clips overtime subtraction to the attendance session and merges adjacent win
     expect($seconds)->toBe(14_400);
 });
 
-
 function dashboardOvertimeEvent(string $time, int $id): AttendanceRecord
 {
     $record = new AttendanceRecord;
@@ -163,7 +162,6 @@ it('uses now for running overtime intervals and excludes cancelled or invalid in
         ->and(dashboardOvertimeInterval($service, $invalid, $now))->toBeNull();
 });
 
-
 it('evaluates the current month independently in each Clock In session timezone', function () {
     $service = new EmployeeDashboardAggregationService(new DailyAttendanceStatusService);
     $method = new ReflectionMethod($service, 'isInCurrentMonthForSession');
@@ -209,7 +207,6 @@ it('does not reinterpret a session month using the employee latest timezone', fu
     expect($method->invoke($service, $previousMonthInMakassar, $now, 'Asia/Makassar'))->toBeFalse()
         ->and($method->invoke($service, $futureLocalDateInJakarta, $now, 'Asia/Makassar'))->toBeFalse();
 });
-
 
 it('uses the Clock In anchor timezone and date for a later session event', function () {
     $service = new EmployeeDashboardAggregationService(new DailyAttendanceStatusService);
