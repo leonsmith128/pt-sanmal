@@ -26,28 +26,59 @@ class EmployeeDashboardAggregationService
      */
     public function forEmployee(Employee $employee, ?Carbon $now = null): array
     {
+        // Keep the dashboard's display date in the employee's latest session timezone,
+        // but evaluate each historical/current session against its own Clock In timezone.
+        $now = ($now ?? now())->copy();
         $timezone = $this->attendanceTimezone($employee);
-        $now = ($now ?? now())->copy()->setTimezone($timezone);
-        $today = $now->toDateString();
-        $monthStart = $now->copy()->startOfMonth()->toDateString();
+        $displayNow = $now->copy()->setTimezone($timezone);
+        $today = $displayNow->toDateString();
 
-        $daily = $this->dailyStatusService->forEmployeesDateRange(
+        $sessionTimezones = AttendanceRecord::query()
+            ->where('employee_id', $employee->id)
+            ->where('type', AttendanceType::ClockIn)
+            ->whereColumn('session_anchor_id', 'id')
+            ->whereNotNull('timezone')
+            ->distinct()
+            ->pluck('timezone')
+            ->push($timezone)
+            ->filter()
+            ->unique()
+            ->values();
+
+        $periods = $sessionTimezones->mapWithKeys(function (string $sessionTimezone) use ($now): array {
+            $sessionNow = $now->copy()->setTimezone($sessionTimezone);
+
+            return [$sessionTimezone => [
+                'start' => $sessionNow->copy()->startOfMonth()->toDateString(),
+                'end' => $sessionNow->toDateString(),
+            ]];
+        });
+        $monthStart = $periods->min('start');
+        $periodEnd = $periods->max('end');
+
+        $dailyRange = $this->dailyStatusService->forEmployeesDateRange(
             collect([$employee]),
             $monthStart,
-            $today,
+            $periodEnd,
         )[$employee->id] ?? [];
 
-        $statusCounts = collect($daily)->countBy(
-            fn (array $day) => $day['status'],
-        );
+        // A date's events are retained only when their Clock In anchor belongs
+        // to the current month in that session's own timezone.
+        $daily = collect($dailyRange)->map(function (array $day) use ($now, $timezone): array {
+            $events = $day['events']
+                ->filter(fn (AttendanceRecord $event) => $this->isInCurrentMonthForSession($event, $now, $timezone))
+                ->values();
+
+            return $this->dailyStatusService->resolveStatus($events, $day['leaveRequests'], $day['correction']);
+        })->all();
 
         $anchors = AttendanceRecord::query()
             ->where('employee_id', $employee->id)
             ->where('type', AttendanceType::ClockIn)
             ->whereColumn('session_anchor_id', 'id')
-            ->where(function ($query) use ($monthStart, $today): void {
-                $query->whereBetween('attendance_date', [$monthStart, $today])
-                    ->orWhereHas('approvedCorrection', fn ($correction) => $correction->whereBetween('attendance_date', [$monthStart, $today]));
+            ->where(function ($query) use ($monthStart, $periodEnd): void {
+                $query->whereBetween('attendance_date', [$monthStart, $periodEnd])
+                    ->orWhereHas('approvedCorrection', fn ($correction) => $correction->whereBetween('attendance_date', [$monthStart, $periodEnd]));
             })
             ->with([
                 'approvedCorrection',
@@ -55,21 +86,21 @@ class EmployeeDashboardAggregationService
                 'sessionEvents.sessionAnchor.approvedCorrection',
             ])
             ->get()
-            ->filter(fn (AttendanceRecord $anchor) => $anchor->effectiveAttendanceDate() >= $monthStart
-                && $anchor->effectiveAttendanceDate() <= $today)
+            ->filter(fn (AttendanceRecord $anchor) => $this->isInCurrentMonthForSession($anchor, $now, $timezone))
             ->values();
 
         $approvedOvertime = OvertimeRequest::query()
             ->where('employee_id', $employee->id)
             ->where('approval_status', OvertimeApprovalStatus::Approved)
-            ->whereDate('session_date', '>=', $monthStart)
-            ->whereDate('session_date', '<=', $today)
+            ->whereBetween('session_date', [$monthStart, $periodEnd])
             ->with([
                 'startRecord.approvedCorrection',
                 'clockOutRecord.approvedCorrection',
                 'clockInRecord.approvedCorrection',
             ])
-            ->get();
+            ->get()
+            ->filter(fn (OvertimeRequest $request) => $request->clockInRecord
+                && $this->isInCurrentMonthForSession($request->clockInRecord, $now, $timezone));
 
         $overtimeIntervals = $approvedOvertime
             ->map(fn (OvertimeRequest $request) => $this->overtimeInterval($request, $now))
@@ -176,7 +207,7 @@ class EmployeeDashboardAggregationService
 
         return [
             'timezone' => $timezone,
-            'today' => $now->translatedFormat('l, d F Y'),
+            'today' => $displayNow->translatedFormat('l, d F Y'),
             'todayStatus' => $todayStatus,
             'todayClockIn' => $todayClockIn,
             'todayClockOut' => $todayClockOut,
@@ -202,6 +233,27 @@ class EmployeeDashboardAggregationService
             ],
             'recentAttendance' => $recentAttendance,
         ];
+    }
+
+    /**
+     * Determine whether an event/session belongs to the current calendar month
+     * in the timezone established by its Clock In anchor.
+     */
+    private function isInCurrentMonthForSession(
+        AttendanceRecord $record,
+        Carbon $now,
+        string $fallbackTimezone,
+    ): bool {
+        $anchor = $record->type === AttendanceType::ClockIn
+            ? $record
+            : $record->sessionAnchor;
+        $session = $anchor ?? $record;
+        $sessionTimezone = $session->timezone ?: $fallbackTimezone;
+        $sessionNow = $now->copy()->setTimezone($sessionTimezone);
+        $date = $session->effectiveAttendanceDate();
+
+        return $date >= $sessionNow->copy()->startOfMonth()->toDateString()
+            && $date <= $sessionNow->toDateString();
     }
 
     private function attendanceTimezone(Employee $employee): string
