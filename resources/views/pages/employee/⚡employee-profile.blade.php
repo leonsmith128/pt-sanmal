@@ -87,7 +87,7 @@ new #[Title('Profil Pegawai')] class extends Component {
         </flux:subheading>
     </div>
 
-    <div class="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
+    <x-ui.card padding="p-6">
         <div class="flex flex-col gap-5 sm:flex-row sm:items-center">
             <flux:avatar
                 :src="$photo?->isPreviewable() ? $photo->temporaryUrl() : auth()->user()->profilePhotoUrl()"
@@ -103,10 +103,10 @@ new #[Title('Profil Pegawai')] class extends Component {
                     JPG, PNG, atau WebP. Maksimal 2 MB.
                 </flux:text>
             </div>
-        </div>
+        </x-ui.card>
 
         <form wire:submit="saveProfilePhoto" class="mt-5 space-y-4">
-            <flux:input
+            <x-ui.input
                 type="file"
                 wire:model="photo"
                 :label="__('Foto profil')"
@@ -132,12 +132,12 @@ new #[Title('Profil Pegawai')] class extends Component {
         </form>
     </div>
 
-    <div class="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
+    <x-ui.card padding="p-6">
         <flux:heading size="lg">Informasi pribadi</flux:heading>
         <flux:subheading class="mt-1">Nomor telepon dapat Anda perbarui sendiri.</flux:subheading>
 
         <form wire:submit="saveContactDetails" class="mt-5 space-y-5">
-            <flux:input
+            <x-ui.input
                 :label="__('Nomor telepon')"
                 wire:model="phone"
                 type="tel"
@@ -164,7 +164,7 @@ new #[Title('Profil Pegawai')] class extends Component {
                         <flux:label>Tanggal bergabung</flux:label>
                         <flux:text class="mt-1">{{ auth()->user()->employee->joined_at?->format('d M Y') ?? 'Belum diatur' }}</flux:text>
                     </div>
-                </div>
+                </x-ui.card>
             @else
                 <flux:callout icon="information-circle" variant="warning">
                     Data profil kepegawaian belum terhubung ke akun ini. Hubungi admin jika Anda memerlukan data tersebut.
