@@ -18,7 +18,8 @@ class EmployeeDashboardAggregationService
 {
     public function __construct(
         private readonly DailyAttendanceStatusService $dailyStatusService,
-    ) {}
+    ) {
+    }
 
     /**
      * Build dashboard data for exactly one employee. The caller must resolve the
