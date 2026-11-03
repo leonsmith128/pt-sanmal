@@ -21,8 +21,8 @@
 
         <flux:sidebar
             sticky
-            :collapsible="$isManager"
-            class="h-screen min-h-screen overflow-x-hidden border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 {{ $isEmployee && ! $isManager ? 'hidden lg:flex' : '' }}"
+            collapsible
+            class="h-screen min-h-screen overflow-x-hidden border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 "
         >
             <flux:sidebar.header>
                 <div class="flex w-full items-center justify-between gap-2">
@@ -55,10 +55,10 @@
                         <div class="flex flex-col">
                             <div class="px-3 py-2 text-sm font-medium leading-none text-zinc-400 in-data-flux-sidebar-collapsed-desktop:hidden">{{ __('Aktivitas Saya') }}</div>
                             <flux:sidebar.item icon="clock" :href="route('attendance')" :current="request()->routeIs('attendance')" wire:navigate>
-                                {{ __('Absensi Saya') }}
+                                {{ __('Absensi') }}
                             </flux:sidebar.item>
                             <flux:sidebar.item icon="calendar" :href="route('attendance-history.index')" :current="request()->routeIs('attendance-history.*')" wire:navigate>
-                                {{ __('Riwayat Absensi Saya') }}
+                                {{ __('Riwayat') }}
                             </flux:sidebar.item>
                             <flux:sidebar.item
                                 icon="clipboard-document-list"
@@ -67,10 +67,10 @@
                                 :badge="$unseenRequestDecisions > 0 ? $unseenRequestDecisions : null"
                                 wire:navigate
                             >
-                                {{ __('Pusat Permohonan Saya') }}
+                                {{ __('Permohonan') }}
                             </flux:sidebar.item>
                             <flux:sidebar.item icon="check" :href="route('overtime-requests.index') . '#riwayat-lembur'" :current="request()->routeIs('overtime-requests.*')" wire:navigate>
-                                {{ __('Riwayat Lembur Saya') }}
+                                {{ __('Lembur') }}
                             </flux:sidebar.item>
                         </div>
                     @endif
@@ -78,57 +78,57 @@
                     <div class="flex flex-col">
                         <div class="px-3 py-2 text-sm font-medium leading-none text-zinc-400 in-data-flux-sidebar-collapsed-desktop:hidden">{{ __('Operasional') }}</div>
                         <flux:sidebar.item icon="clipboard-document-list" :href="route('admin.kehadiran')" :current="request()->routeIs('admin.kehadiran')" wire:navigate>
-                            {{ __('Kehadiran & Aktivitas Pegawai') }}
+                            {{ __('Kehadiran') }}
                         </flux:sidebar.item>
                         <flux:sidebar.item icon="calendar-days" :href="route('admin.daily-attendance')" :current="request()->routeIs('admin.daily-attendance*')" wire:navigate>
                             {{ __('Rekap Harian') }}
                         </flux:sidebar.item>
                         <flux:sidebar.item icon="briefcase" :href="route('admin.projects.index')" :current="request()->routeIs('admin.projects.*')" wire:navigate>
-                            {{ __('Pengelolaan Proyek') }}
+                            {{ __('Proyek') }}
                         </flux:sidebar.item>
                     </div>
 
                     <div class="flex flex-col">
                         <div class="px-3 py-2 text-sm font-medium leading-none text-zinc-400 in-data-flux-sidebar-collapsed-desktop:hidden">{{ __('Master Data') }}</div>
                         <flux:sidebar.item icon="building-office-2" :href="route('admin.clients.index')" :current="request()->routeIs('admin.clients.*', 'admin.locations.*')" wire:navigate>
-                            {{ __('Master Data Client') }}
+                            {{ __('Klien') }}
                         </flux:sidebar.item>
                         <flux:sidebar.item icon="users" :href="route('admin.employees.index')" :current="request()->routeIs('admin.employees.*')" wire:navigate>
-                            {{ __('Daftar & Akun Pegawai') }}
+                            {{ __('Pegawai') }}
                         </flux:sidebar.item>
                     </div>
 
                     <div class="flex flex-col">
                         <div class="px-3 py-2 text-sm font-medium leading-none text-zinc-400 in-data-flux-sidebar-collapsed-desktop:hidden">{{ __('Permohonan') }}</div>
                         <flux:sidebar.item icon="calendar" :href="route('admin.leave-requests.index')" :current="request()->routeIs('admin.leave-requests.*')" wire:navigate>
-                            {{ __('Izin, Sakit & Cuti') }}
+                            {{ __('Izin & Cuti') }}
                         </flux:sidebar.item>
                         <flux:sidebar.item icon="clock" :href="route('admin.overtime-requests.index')" :current="request()->routeIs('admin.overtime-requests.*')" wire:navigate>
-                            {{ __('Permohonan Lembur') }}
+                            {{ __('Lembur') }}
                         </flux:sidebar.item>
                         <flux:sidebar.item icon="document-check" :href="route('admin.attendance-corrections.index')" :current="request()->routeIs('admin.attendance-corrections.*')" wire:navigate>
-                            {{ __('Permohonan Koreksi Absensi') }}
+                            {{ __('Koreksi') }}
                         </flux:sidebar.item>
                     </div>
                 @elseif ($sidebarEmployee)
-                    <div class="flex flex-col">
-                        <div class="px-3 py-2 text-sm font-medium leading-none text-zinc-400 in-data-flux-sidebar-collapsed-desktop:hidden">{{ __('Aktivitas Pegawai') }}</div>
-                        <flux:sidebar.item icon="clock" :href="route('attendance')" :current="request()->routeIs('attendance')" wire:navigate>
-                            {{ __('Absensi') }}
-                        </flux:sidebar.item>
-                        <flux:sidebar.item icon="calendar" :href="route('attendance-history.index')" :current="request()->routeIs('attendance-history.*')" wire:navigate>
-                            {{ __('Riwayat Absensi') }}
-                        </flux:sidebar.item>
-                        <flux:sidebar.item
-                            icon="clipboard-document-list"
-                            :href="route('leave-requests.index')"
-                            :current="request()->routeIs('leave-requests.*')"
-                            :badge="$unseenRequestDecisions > 0 ? $unseenRequestDecisions : null"
-                            wire:navigate
-                        >
-                            {{ __('Pusat Permohonan') }}
-                        </flux:sidebar.item>
-                    </div>
+                    <flux:sidebar.item icon="clock" :href="route('attendance')" :current="request()->routeIs('attendance')" wire:navigate>
+                        {{ __('Absensi') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="calendar" :href="route('attendance-history.index')" :current="request()->routeIs('attendance-history.*')" wire:navigate>
+                        {{ __('Riwayat') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item
+                        icon="clipboard-document-list"
+                        :href="route('leave-requests.index')"
+                        :current="request()->routeIs('leave-requests.*')"
+                        :badge="$unseenRequestDecisions > 0 ? $unseenRequestDecisions : null"
+                        wire:navigate
+                    >
+                        {{ __('Permohonan') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="clock" :href="route('overtime-requests.index') . '#riwayat-lembur'" :current="request()->routeIs('overtime-requests.*')" wire:navigate>
+                        {{ __('Lembur') }}
+                    </flux:sidebar.item>
                 @endif
             </flux:sidebar.nav>
 
@@ -177,6 +177,7 @@
             </flux:header>
         @elseif ($isEmployee)
             <flux:header class="lg:hidden">
+                <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" />
                 <x-app-logo href="{{ route('dashboard') }}" wire:navigate />
                 <flux:spacer />
                 <div class="flex shrink-0 items-center gap-1">                <flux:dropdown position="bottom" align="start">
@@ -205,33 +206,6 @@
                 </div>
             </flux:header>
 
-            <nav
-                class="fixed inset-x-0 bottom-0 z-40 border-t border-zinc-200 bg-white pb-[env(safe-area-inset-bottom)] dark:border-zinc-700 dark:bg-zinc-900 lg:hidden"
-                aria-label="{{ __('Navigasi utama') }}"
-            >
-                <div class="mx-auto flex min-h-16 max-w-xl items-stretch justify-around px-2">
-                    <a href="{{ route('dashboard') }}" wire:navigate @class(['flex min-w-0 flex-1 flex-col items-center justify-center gap-1 px-1 py-2 text-[11px] font-medium', 'text-accent' => request()->routeIs('dashboard'), 'text-zinc-500 dark:text-zinc-400' => ! request()->routeIs('dashboard')]) @if (request()->routeIs('dashboard')) aria-current="page" @endif>
-                        <flux:icon name="home" class="size-5" />
-                        <span>{{ __('Beranda') }}</span>
-                    </a>
-                    <a href="{{ route('attendance') }}" wire:navigate @class(['flex min-w-0 flex-1 flex-col items-center justify-center gap-1 px-1 py-2 text-[11px] font-medium', 'text-accent' => request()->routeIs('attendance'), 'text-zinc-500 dark:text-zinc-400' => ! request()->routeIs('attendance')]) @if (request()->routeIs('attendance')) aria-current="page" @endif>
-                        <flux:icon name="clock" class="size-5" />
-                        <span>{{ __('Absensi') }}</span>
-                    </a>
-                    <a href="{{ route('attendance-history.index') }}" wire:navigate @class(['flex min-w-0 flex-1 flex-col items-center justify-center gap-1 px-1 py-2 text-[11px] font-medium', 'text-accent' => request()->routeIs('attendance-history.*'), 'text-zinc-500 dark:text-zinc-400' => ! request()->routeIs('attendance-history.*')]) @if (request()->routeIs('attendance-history.*')) aria-current="page" @endif>
-                        <flux:icon name="calendar-days" class="size-5" />
-                        <span>{{ __('Riwayat') }}</span>
-                    </a>
-                    <a href="{{ route('leave-requests.index') }}" wire:navigate @class(['flex min-w-0 flex-1 flex-col items-center justify-center gap-1 px-1 py-2 text-[11px] font-medium', 'text-accent' => request()->routeIs('leave-requests.*', 'overtime-requests.*', 'attendance-corrections.*'), 'text-zinc-500 dark:text-zinc-400' => ! request()->routeIs('leave-requests.*', 'overtime-requests.*', 'attendance-corrections.*')]) @if (request()->routeIs('leave-requests.*', 'overtime-requests.*', 'attendance-corrections.*')) aria-current="page" @endif>
-                        <flux:icon name="clipboard-document-list" class="size-5" />
-                        <span>{{ __('Pengajuan') }}</span>
-                    </a>
-                    <a href="{{ route('profile.edit') }}" wire:navigate @class(['flex min-w-0 flex-1 flex-col items-center justify-center gap-1 px-1 py-2 text-[11px] font-medium', 'text-accent' => request()->routeIs('profile.edit', 'security.edit'), 'text-zinc-500 dark:text-zinc-400' => ! request()->routeIs('profile.edit', 'security.edit')]) @if (request()->routeIs('profile.edit', 'security.edit')) aria-current="page" @endif>
-                        <flux:icon name="user-circle" class="size-5" />
-                        <span>{{ __('Profil') }}</span>
-                    </a>
-                </div>
-            </nav>
         @endif
 
         {{ $slot }}
