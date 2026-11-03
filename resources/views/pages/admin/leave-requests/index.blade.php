@@ -1,5 +1,5 @@
 <x-layouts::app :title="'Persetujuan Permohonan'">
-    <x-ui.page class="!max-w-6xl !gap-6 p-6">
+    <x-ui.page class="!max-w-6xl !gap-6">
         <x-admin.page-header
             :title="__('Persetujuan Permohonan')"
             :description="__('Admin dan superadmin menggunakan alur persetujuan yang sama.')"
