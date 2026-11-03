@@ -621,24 +621,27 @@ new #[Title('Absensi')] class extends Component {
                         {{ __('Sesi hari ini sudah digunakan') }}
                     </x-ui.button>
                 @else
-                    <x-ui.button
-                        type="submit"
-                        variant="primary"
-                        class="min-w-0 flex-1"
-                        wire:loading.attr="disabled"
-                        wire:target="confirm,submit,selfie"
-                    >
-                        {{ match ($mode) { 'clock_in' => __('Absen Masuk'), 'overtime_start' => __('Konfirmasi Lembur'), default => __('Absen Pulang') } }}
-                    </x-ui.button>
-                    <x-ui.button
-                        type="button"
-                        variant="ghost"
-                        icon="camera"
-                        square
-                        aria-label="{{ __('Buka kamera') }}"
-                        title="{{ __('Buka kamera') }}"
-                        x-on:click="$dispatch('attendance-camera-open')"
-                    />
+                    @if ($selfie)
+                        <x-ui.button
+                            type="submit"
+                            variant="primary"
+                            class="min-w-0 flex-1"
+                            wire:loading.attr="disabled"
+                            wire:target="confirm,submit,selfie"
+                        >
+                            {{ __('Lanjutkan') }}
+                        </x-ui.button>
+                    @else
+                        <x-ui.button
+                            type="button"
+                            variant="primary"
+                            class="min-w-0 flex-1"
+                            x-on:click="$dispatch('attendance-camera-open')"
+                            x-bind:disabled="starting || busy"
+                        >
+                            {{ match ($mode) { 'clock_in' => __('Absen Masuk'), 'overtime_start' => __('Konfirmasi Lembur'), default => __('Absen Pulang') } }}
+                        </x-ui.button>
+                    @endif
                 @endif
             </div>
         </form>
