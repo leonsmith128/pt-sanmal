@@ -141,11 +141,13 @@ Density means removing decorative whitespace, not shrinking everything. Do not h
 
 Keep the application shell visually continuous: the `body` and desktop sidebar use the same background surface (`bg-zinc-50 dark:bg-zinc-900`). The sidebar has no separating border; spacing and surface contrast should define the layout instead.
 
-The main content is a distinct panel on that shell (`bg-white dark:bg-zinc-800`) with rounded corners and **outer margin**, not outer padding. Use a smaller margin on mobile and a wider margin on desktop. Remove Flux's `inset` behavior for this layout and explicitly neutralize default main padding with `p-0`; do not add padding to the main layout to simulate the inset. Preserve constrained desktop scrolling with `min-h-0 lg:overflow-y-auto lg:overscroll-contain`.
+The main content uses Flux's `<flux:main inset>` as a distinct panel on the shell. Keep the sidebar, optional header, and main as direct siblings. Flux owns the inset panel's rounded surface, desktop outer gutter, constrained viewport layout, and internal desktop scrolling; on smaller screens the panel becomes full width and the document scrolls normally. Do not recreate these behaviors with manual margin or overflow utilities.
+
+Keep `p-0` on the main region to neutralize Flux's default inset padding because page content owns its internal spacing. Use `lg:ms-0` to remove the extra start offset beside the sidebar. Add `lg:mt-0` only when a desktop-visible Flux header is also present. Do not manually add `overflow-y-auto`, `overscroll-contain`, or duplicate desktop margin classes; these are already supplied by Flux inset.
 
 Page content owns its own internal spacing. `x-ui.page` provides width, vertical flow, and section gap; do not add blanket horizontal padding to it or duplicate spacing already provided by a page-specific surface. When a page needs inner padding, apply it to the relevant page section/card, not the application shell.
 
-Preserve the employee mobile header and fixed bottom navigation. Ensure the main panel's margin and page content's bottom clearance do not overlap that navigation.
+Preserve the employee mobile header and drawer toggle. Do not add a fixed bottom navigation bar.
 
 ## 6. Button foundation
 
