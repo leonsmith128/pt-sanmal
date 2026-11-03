@@ -182,7 +182,7 @@
                     <flux:profile
                         :initials="$sidebarUser->initials()"
                         :avatar="$sidebarUser->profilePhotoUrl()"
-                        icon-trailing="chevron-down"
+                        class="rounded-full [&_img]:rounded-full"
                     />
                     <flux:menu>
                         <flux:menu.item :href="route('profile.edit')" icon="user-circle" wire:navigate>{{ __('Profil') }}</flux:menu.item>
