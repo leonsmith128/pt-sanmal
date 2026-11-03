@@ -168,7 +168,7 @@ it('uses now for running overtime intervals and excludes cancelled or invalid in
 it('evaluates the current month independently in each Clock In session timezone', function () {
     $service = new EmployeeDashboardAggregationService(new DailyAttendanceStatusService);
     $method = new ReflectionMethod($service, 'isInCurrentMonthForSession');
-    $now = Carbon::parse('2026-11-01 00:30:00', 'UTC');
+    $now = Carbon::parse('2026-10-31 16:30:00', 'UTC');
 
     $jakartaClockIn = new AttendanceRecord;
     $jakartaClockIn->forceFill([
@@ -191,7 +191,7 @@ it('evaluates the current month independently in each Clock In session timezone'
 it('does not reinterpret a session month using the employee latest timezone', function () {
     $service = new EmployeeDashboardAggregationService(new DailyAttendanceStatusService);
     $method = new ReflectionMethod($service, 'isInCurrentMonthForSession');
-    $now = Carbon::parse('2026-11-01 00:30:00', 'UTC');
+    $now = Carbon::parse('2026-10-31 16:30:00', 'UTC');
 
     $previousMonthInMakassar = new AttendanceRecord;
     $previousMonthInMakassar->forceFill([
@@ -214,7 +214,7 @@ it('does not reinterpret a session month using the employee latest timezone', fu
 it('uses the Clock In anchor timezone and date for a later session event', function () {
     $service = new EmployeeDashboardAggregationService(new DailyAttendanceStatusService);
     $method = new ReflectionMethod($service, 'isInCurrentMonthForSession');
-    $now = Carbon::parse('2026-11-01 00:30:00', 'UTC');
+    $now = Carbon::parse('2026-10-31 16:30:00', 'UTC');
 
     $clockIn = new AttendanceRecord;
     $clockIn->forceFill([
