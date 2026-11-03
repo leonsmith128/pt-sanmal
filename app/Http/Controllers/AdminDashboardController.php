@@ -79,6 +79,7 @@ class AdminDashboardController extends Controller
             'pendingOvertime' => OvertimeRequest::query()->where('approval_status', OvertimeApprovalStatus::Pending)->count(),
             'recentAttendance' => $recentAttendance,
             'today' => Carbon::parse($today)->translatedFormat('l, d F Y'),
+            'todayDate' => $today,
         ]);
     }
 }
