@@ -80,8 +80,11 @@ class EmployeeDashboardAggregationService
             ->where('type', AttendanceType::ClockIn)
             ->whereColumn('session_anchor_id', 'id')
             ->where(function ($query) use ($monthStart, $periodEnd): void {
-                $query->whereBetween('attendance_date', [$monthStart, $periodEnd])
-                    ->orWhereHas('approvedCorrection', fn ($correction) => $correction->whereBetween('attendance_date', [$monthStart, $periodEnd]));
+                $query->whereDate('attendance_date', '>=', $monthStart)
+                    ->whereDate('attendance_date', '<=', $periodEnd)
+                    ->orWhereHas('approvedCorrection', fn ($correction) => $correction
+                        ->whereDate('attendance_date', '>=', $monthStart)
+                        ->whereDate('attendance_date', '<=', $periodEnd));
             })
             ->with([
                 'approvedCorrection',
@@ -95,7 +98,8 @@ class EmployeeDashboardAggregationService
         $approvedOvertime = OvertimeRequest::query()
             ->where('employee_id', $employee->id)
             ->where('approval_status', OvertimeApprovalStatus::Approved)
-            ->whereBetween('session_date', [$monthStart, $periodEnd])
+            ->whereDate('session_date', '>=', $monthStart)
+            ->whereDate('session_date', '<=', $periodEnd)
             ->with([
                 'startRecord.approvedCorrection',
                 'clockOutRecord.approvedCorrection',
