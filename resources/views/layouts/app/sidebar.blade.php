@@ -151,7 +151,7 @@
                     />
                     <flux:menu>
                         <div class="flex items-center gap-2 px-1 py-1.5 text-start text-sm">
-                            <flux:avatar class="rounded-full" :name="$sidebarUser->name" :initials="$sidebarUser->initials()" />
+                            <x-ui.avatar :name="$sidebarUser->name" :initials="$sidebarUser->initials()" size="sm" />
                             <div class="grid flex-1 text-start text-sm leading-tight">
                                 <flux:heading class="truncate">{{ $sidebarUser->name }}</flux:heading>
                                 <flux:text class="truncate">{{ $sidebarUser->email }}</flux:text>
