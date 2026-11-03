@@ -73,6 +73,21 @@ test('employee dashboard does not expose administrative summary when no employee
         ->assertDontSee('Permohonan menunggu');
 });
 
+test('employee monthly summary centers metrics and separates stacked values horizontally', function () {
+    $user = User::factory()->create();
+    $user->forceFill(['role' => UserRole::Employee])->save();
+    Employee::create(['user_id' => $user->id]);
+
+    $this->actingAs($user)
+        ->get(route('dashboard'))
+        ->assertOk()
+        ->assertSee('Ringkasan bulan ini')
+        ->assertSee('divide-y divide-sanmal-border', false)
+        ->assertSee('xl:divide-x xl:divide-y-0', false)
+        ->assertSee('text-center', false)
+        ->assertSee('items-center', false);
+});
+
 test('employee dashboard shows pending leave request breakdown for the authenticated employee and keeps notifications visible on mobile', function () {
     $user = User::factory()->create();
     $user->forceFill(['role' => UserRole::Employee])->save();
