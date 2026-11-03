@@ -53,7 +53,13 @@ When a shared component is created or its public contract changes, update the de
 9. Focused tests and actual browser QA evidence.
 10. Known limitations and non-use cases.
 
-## 5. Completion criteria
+## 5. Current milestone boundary
+
+The 14 shared `x-ui.*` primitives listed in this catalog have been implemented and adopted on selected pages. This closes the reusable-component standardization phase; it does not mean all pages are visually finalized or have passed responsive/accessibility QA.
+
+For current evidence and the next page-level design/layouting phase, see [Implementation Status](progress/IMPLEMENTATION-STATUS.md). Do not add generic components without a demonstrated repeated pattern and stable interaction contract.
+
+## 6. Completion criteria
 
 A component milestone is complete only when:
 
