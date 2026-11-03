@@ -473,6 +473,14 @@ new #[Title('Absensi')] class extends Component {
                             <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-300">
                                 {{ __('Mulai aktual') }}: {{ $overtimeItem->startRecord->effectiveRecordedAtLocal()->format('d M Y, H:i') }}
                             </p>
+                            @if ($overtimeItem->isInProgress() && ! $overtimeItem->clockOutRecord)
+                                @php
+                                    $actualOvertimeSeconds = max(0, (int) $overtimeItem->startRecord->recorded_at->copy()->setTimezone($overtimeItem->timezone)->diffInSeconds(now($overtimeItem->timezone)));
+                                @endphp
+                                <p class="mt-1 text-sm font-medium text-blue-700 dark:text-blue-300">
+                                    {{ __('Durasi aktual') }}: {{ intdiv($actualOvertimeSeconds, 3600) }}j {{ intdiv($actualOvertimeSeconds % 3600, 60) }}m
+                                </p>
+                            @endif
                         @else
                             <p class="mt-2 text-sm text-zinc-500 dark:text-zinc-400">{{ __('Mulai aktual') }}: —</p>
                         @endif
@@ -495,7 +503,7 @@ new #[Title('Absensi')] class extends Component {
                             </div>
                         @endif
                         @if ($overtimeItem->start_record_id === null && $overtimeItem->scheduled_start_at->lte(now()) && $overtimeItem->state !== OvertimeState::NeedsReview)
-                            <p class="mt-2 text-sm text-amber-700 dark:text-amber-300">{{ __('Waktu lembur telah tiba. Ambil foto mulai lembur sebelum absen pulang.') }}</p>
+                            <p class="mt-2 text-sm text-amber-700 dark:text-amber-300">{{ __('Waktu sejak jadwal mulai') }}: {{ intdiv(max(0, (int) $overtimeItem->scheduledStartLocal()->diffInSeconds(now($overtimeItem->timezone))), 3600) }}j {{ intdiv(max(0, (int) $overtimeItem->scheduledStartLocal()->diffInSeconds(now($overtimeItem->timezone))) % 3600, 60) }}m. {{ __('Segera konfirmasi lembur dengan foto.') }}</p>
                         @endif
                         @if (in_array($overtimeItem->state, [OvertimeState::Scheduled, OvertimeState::AwaitingPhoto], true) && $overtimeItem->start_record_id === null)
                             <form method="POST" action="{{ route('overtime-requests.cancel', $overtimeItem) }}" class="mt-3" onsubmit="return confirm('Batalkan jadwal lembur ini? Anda harus membatalkannya sebelum dapat absen pulang.')">
@@ -542,7 +550,7 @@ new #[Title('Absensi')] class extends Component {
                 <flux:callout variant="warning" icon="lock-closed">
                     <flux:callout.heading>{{ __('Menunggu jadwal lembur') }}</flux:callout.heading>
                     <flux:callout.text>
-                        {{ __('Tombol Absen Lembur dikunci sampai jadwal mulai:') }}
+                        {{ __('Konfirmasi Lembur tersedia setelah jadwal mulai:') }}
                         <strong>{{ $sessionOvertime->scheduledStartLocal()->format('d M Y, H:i') }}</strong>.
                         {{ __('Tombol Clock Out tidak tersedia selama pengajuan ini masih aktif. Jika tidak jadi lembur, batalkan pengajuan terlebih dahulu.') }}
                     </flux:callout.text>
@@ -606,7 +614,7 @@ new #[Title('Absensi')] class extends Component {
             <div class="flex items-center gap-2">
                 @if ($mode === 'overtime_locked')
                     <x-ui.button type="button" variant="primary" class="min-w-0 flex-1" disabled icon="lock-closed">
-                        {{ __('Absen Lembur') }}
+                        {{ __('Konfirmasi Lembur') }}
                     </x-ui.button>
                 @elseif ($mode === 'clock_in_blocked')
                     <x-ui.button type="button" variant="primary" class="min-w-0 flex-1" disabled icon="lock-closed">
@@ -620,7 +628,7 @@ new #[Title('Absensi')] class extends Component {
                         wire:loading.attr="disabled"
                         wire:target="confirm,submit,selfie"
                     >
-                        {{ match ($mode) { 'clock_in' => __('Absen Masuk'), 'overtime_start' => __('Absen Lembur'), default => __('Absen Pulang') } }}
+                        {{ match ($mode) { 'clock_in' => __('Absen Masuk'), 'overtime_start' => __('Konfirmasi Lembur'), default => __('Absen Pulang') } }}
                     </x-ui.button>
                     <x-ui.button
                         type="button"
@@ -651,7 +659,7 @@ new #[Title('Absensi')] class extends Component {
             <div class="space-y-5">
                 <div>
                     <flux:heading size="lg">
-                        {{ match ($mode) { 'clock_in' => __('Konfirmasi Absen Masuk'), 'overtime_start' => __('Konfirmasi Absen Lembur'), 'overtime_start', 'overtime_locked' => __('Konfirmasi Absen Lembur'), default => __('Konfirmasi Absen Pulang') } }}
+                        {{ match ($mode) { 'clock_in' => __('Konfirmasi Absen Masuk'), 'overtime_start' => __('Konfirmasi Lembur'), 'overtime_locked' => __('Konfirmasi Lembur'), default => __('Konfirmasi Absen Pulang') } }}
                     </flux:heading>
                     <flux:subheading>{{ __('Periksa data berikut sebelum mengirim absensi.') }}</flux:subheading>
                 </div>
@@ -659,7 +667,7 @@ new #[Title('Absensi')] class extends Component {
                 <dl class="space-y-2 text-sm">
                     <div class="flex justify-between gap-4">
                         <dt class="text-zinc-500">{{ __('Jenis absensi') }}</dt>
-                        <dd class="font-medium">{{ match ($mode) { 'clock_in' => __('Masuk'), 'overtime_start' => __('Mulai lembur'), 'overtime_start', 'overtime_locked' => __('Mulai lembur'), default => __('Pulang') } }}</dd>
+                        <dd class="font-medium">{{ match ($mode) { 'clock_in' => __('Masuk'), 'overtime_start' => __('Mulai lembur'), 'overtime_locked' => __('Mulai lembur'), default => __('Pulang') } }}</dd>
                     </div>
                     <div class="flex justify-between gap-4">
                         <dt class="text-zinc-500">{{ __('Lokasi kerja') }}</dt>
@@ -705,7 +713,7 @@ new #[Title('Absensi')] class extends Component {
                         wire:loading.attr="disabled"
                         wire:target="submit"
                     >
-                        {{ match ($mode) { 'clock_in' => __('Ya, Absen Masuk'), 'overtime_start' => __('Ya, Absen Lembur'), default => __('Ya, Absen Pulang') } }}
+                        {{ match ($mode) { 'clock_in' => __('Ya, Absen Masuk'), 'overtime_start' => __('Ya, Konfirmasi Lembur'), default => __('Ya, Absen Pulang') } }}
                     </x-ui.button>
                 </div>
             </div>
