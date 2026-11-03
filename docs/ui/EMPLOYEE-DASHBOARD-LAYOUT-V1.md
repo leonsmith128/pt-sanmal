@@ -1,6 +1,6 @@
 # Employee Dashboard V1 — Layout Specification
 
-> Status: layout direction approved; implementation not yet complete.
+> Status: implemented in the current UI/UX V1 branch; automated coverage is present, browser/device QA remains pending.
 > Visual baseline: the SanMal Employee Dashboard mockup approved in the project conversation on 3 November 2026.
 > Data source: [Employee Dashboard Data Contract](EMPLOYEE-DASHBOARD-DATA-CONTRACT.md).
 
