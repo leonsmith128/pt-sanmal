@@ -81,7 +81,8 @@ The primary action is theme-aware: blue in light theme and yellow in dark theme.
 |---|---|---|---|
 | `surface/page` | `#E5EBF1` | `#0B1623` | Inset main page container |
 | `surface/primary` | `#F8FCFF` | `#122235` | Main content panel |
-| `surface/card` | `#F8FCFF` | `#192B40` | Standard and linked cards; distinct from the dark main panel |\n| `surface/sidebar` | `#CAD6E2` | `#0B1623` | Body/shell and sidebar navigation surface; dark theme stays integrated |
+| `surface/card` | `#F8FCFF` | `#192B40` | Standard and linked cards; distinct from the dark main panel |
+| `surface/sidebar` | `#CAD6E2` | `#0B1623` | Body/shell and sidebar navigation surface; dark theme stays integrated |
 | `surface/secondary` | `#EAF0F6` | `#122235` | Secondary grouping and light-theme hover surfaces |
 | `surface/inset` | `#E3EBF3` | `#20354B` | Inset controls and recessed areas |
 | `surface/elevated` | — | `#263D55` | Elevated dark-theme controls and linked-card hover state |
