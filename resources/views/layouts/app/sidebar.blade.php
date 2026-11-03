@@ -116,7 +116,7 @@
                     </x-ui.sidebar-section>
 
                     <x-ui.sidebar-section :heading="__('Sistem')">
-                        <flux:sidebar.item icon="scroll-text" :href="route('admin.audit-logs.index')" :current="request()->routeIs('admin.audit-logs.*')" wire:navigate>
+                        <flux:sidebar.item icon="clipboard-document-list" :href="route('admin.audit-logs.index')" :current="request()->routeIs('admin.audit-logs.*')" wire:navigate>
                             {{ __('Audit Log') }}
                         </flux:sidebar.item>
                     </x-ui.sidebar-section>
