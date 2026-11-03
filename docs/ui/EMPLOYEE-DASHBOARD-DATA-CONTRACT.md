@@ -44,10 +44,11 @@ This policy is the approved domain decision for attendance recording and dashboa
 
 ### Session and reporting rules
 
-- The Clock In event establishes the session timezone snapshot. Clock Out and all other events attached to that session use the anchor's timezone and attendance date, even if the device or GPS later reports another timezone.
-- A new session resolves its timezone independently. A person can therefore have sessions in different timezones over time.
-- Attribute cross-midnight sessions and their overtime to the Clock In anchor's local `attendance_date` / overtime `session_date`; do not split a session at UTC midnight or at a later event's local date.
-- Calculate current local day/month boundaries using the applicable session timezone. Do not select one employee-wide timezone from the latest attendance record to reinterpret every historical session.
+- **Clock In is the sole anchor for a session's attendance date, calendar month, and timezone.** Clock Out and all other events attached to that session remain assigned to the Clock In anchor, even when they occur after midnight, cross a month boundary, or later GPS/device data reports another timezone.
+- A new Clock In resolves its timezone independently. A person can therefore have sessions in different timezones over time; never use the latest session timezone to reinterpret an earlier session.
+- Attribute cross-midnight sessions and their overtime to the Clock In anchor's local `attendance_date` / overtime `session_date`; do not split a session at UTC midnight, local midnight, or a later event's date.
+- Evaluate whether a session belongs to the current month using the current calendar month in that session's stored Clock In timezone. A session in Jakarta may therefore belong to October while a separate session in Makassar belongs to November at the same absolute instant near a month boundary.
+- The dashboard may use the latest session timezone to present its current-day header, but this display context must not change the date/month attribution of any session.
 - Admin date filters and dashboard summaries must have an explicit company-date policy. Until that policy is implemented consistently, do not claim employee/admin parity for dates around local/UTC midnight.
 - Approved timestamp corrections may change effective timestamps and effective local dates according to the correction workflow, but must not overwrite original UTC evidence or the stored timezone snapshot.
 
@@ -65,9 +66,10 @@ This policy is the approved domain decision for attendance recording and dashboa
 
 - Default period: current calendar month, from its first date through today (not future dates).
 - Include every calendar date. Do not exclude weekends or holidays.
-- Resolve each session's local date and its month attribution using that session's stored timezone snapshot. Do not infer one employee-wide timezone from the latest attendance record.
-- Attribute an attendance session and its overtime to the session's effective Clock In anchor date (`effectiveAttendanceDate()` / overtime `session_date`), not the date on which a cross-midnight Clock Out occurs.
-- A session anchored in the month remains attributed to that month even when it ends after midnight. Do not split one session across two monthly totals.
+- Resolve each session's local date and its month attribution using that session's stored Clock In timezone snapshot. Do not infer one employee-wide timezone from the latest attendance record.
+- Determine current-month membership independently for each session: compare the effective Clock In anchor date (`effectiveAttendanceDate()`) with the current month and current date in that anchor's timezone.
+- Attribute an attendance session and its overtime to the effective Clock In anchor date / overtime `session_date`, not the date on which a cross-midnight Clock Out occurs.
+- A session anchored in a month remains attributed to that month even when it ends after midnight or after the calendar month changes. Do not split one session across two monthly totals.
 
 ## Daily status counters
 
