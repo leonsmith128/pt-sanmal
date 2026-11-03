@@ -16,7 +16,7 @@
         @endif
     </summary>
 
-    <div class="fixed right-2 top-16 z-[100] w-[min(22rem,calc(100vw-1rem))] origin-top-right rounded-xl border sm:absolute sm:right-0 sm:top-full sm:mt-2 sm:w-[min(22rem,calc(100vw-2rem))]" border-zinc-200 bg-white shadow-xl ring-1 ring-black/5 dark:border-zinc-700 dark:bg-zinc-900">
+    <div class="fixed right-2 top-16 z-[100] w-[min(22rem,calc(100vw-1rem))] origin-top-right rounded-xl border border-zinc-200 bg-white shadow-xl ring-1 ring-black/5 dark:border-zinc-700 dark:bg-zinc-900 sm:absolute sm:right-0 sm:top-full sm:mt-2 sm:w-[min(22rem,calc(100vw-2rem))]"">
         <div class="flex items-center justify-between gap-3 border-b border-zinc-100 px-4 py-3 dark:border-zinc-800">
             <h2 class="font-semibold text-zinc-900 dark:text-zinc-100">{{ __('Notifikasi') }}</h2>
             @if ($unreadCount > 0)
