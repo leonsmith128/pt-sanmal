@@ -144,6 +144,21 @@ For the first Dashboard iteration, show the 3–5 most recent attendance events 
 - Share the same aggregation service between employee/admin views where possible so both dashboards cannot drift.
 - Keep the existing Admin Dashboard definitions as the baseline where they already express the same metric. If its current values are raw counts rather than the semantics above, align the admin aggregation to this contract in the same implementation scope; do not present inconsistent labels for different calculations.
 
+## Admin reporting calendar
+
+Admin reports use the fixed company reporting timezone `Asia/Makassar` (WITA), independent of the application/server timezone, administrator device timezone, and employee session timezone.
+
+- The Admin Dashboard's "today" counts and recent attendance activity use the current WITA calendar date.
+- Admin daily attendance, attendance monitoring date filters, and Admin CSV exports use WITA calendar dates.
+- A session is assigned to an Admin report date using the session anchor's effective timestamp converted to WITA. For an approved timestamp correction, the corrected effective timestamp is authoritative.
+- The report-day window is the WITA calendar day converted to UTC bounds for database filtering. Event timestamps remain stored as UTC; no event timestamp or employee-local `attendance_date` is rewritten for reporting.
+- Once a session is assigned to a WITA report date, all events linked to that session remain grouped with its Clock In anchor, including Clock Out and overtime-start events that occur after midnight.
+- Approved leave requests and administrative daily-status corrections continue to use the selected WITA report date.
+- Employee-facing history and dashboard calendars continue to use each session's stored timezone and `attendance_date`. A WITA report date can therefore differ from an onsite employee's local attendance date near a timezone boundary; this is intentional and must be clear in Admin reporting labels/help text.
+- The Admin export's default starting date is derived from the earliest effective attendance timestamp converted to WITA, so no first-day records are omitted for WIT sessions.
+
+This is a reporting view only. It does not change the timezone snapshot, local attendance date, or UTC evidence stored for an attendance event.
+
 ## Required automated coverage before UI implementation is considered complete
 
 - Calendar-month boundaries, weekends, holidays, and current-month-to-today range.
