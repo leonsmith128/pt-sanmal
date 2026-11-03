@@ -5,7 +5,8 @@ use App\Enums\LeaveRequestStatus;
 it('renders a reusable badge with its semantic color', function () {
     $this->blade('<x-ui.badge color="green">Aktif</x-ui.badge>')
         ->assertSee('Aktif')
-        ->assertSee('green', false);
+        ->assertSee('green', false)
+        ->assertSee('sanmal-badge-success', false);
 });
 
 it('uses a neutral color by default and forwards presentation attributes', function () {
