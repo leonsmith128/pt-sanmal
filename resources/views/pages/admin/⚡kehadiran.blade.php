@@ -166,7 +166,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
     <x-ui.page>
         <x-admin.page-header
             :title="__('Kehadiran Pegawai')"
-            :description="__('Pantau dan telusuri catatan absensi seluruh pegawai.')"
+            :description="__('Pantau dan telusuri catatan absensi seluruh pegawai. Filter tanggal mengikuti kalender perusahaan (WITA).')"
         />
         @if (session('status'))
             <div role="status" class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-200">
