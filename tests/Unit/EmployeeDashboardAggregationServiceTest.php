@@ -8,6 +8,8 @@ use App\Models\OvertimeRequest;
 use App\Services\DailyAttendanceStatusService;
 use App\Services\EmployeeDashboardAggregationService;
 use Carbon\Carbon;
+use Carbon\CarbonImmutable;
+use Carbon\CarbonInterface;
 use Tests\TestCase;
 
 uses(TestCase::class);
@@ -79,7 +81,7 @@ function dashboardOvertimeEvent(string $time, int $id): AttendanceRecord
     return $record;
 }
 
-function dashboardOvertimeInterval(EmployeeDashboardAggregationService $service, OvertimeRequest $request, Carbon $now): ?array
+function dashboardOvertimeInterval(EmployeeDashboardAggregationService $service, OvertimeRequest $request, CarbonInterface $now): ?array
 {
     $method = new ReflectionMethod($service, 'overtimeInterval');
 
@@ -136,7 +138,7 @@ it('keeps scheduled and manual overtime finalization timestamps authoritative', 
 
 it('uses now for running overtime intervals and excludes cancelled or invalid intervals', function () {
     $service = new EmployeeDashboardAggregationService(new DailyAttendanceStatusService);
-    $now = Carbon::parse('2026-11-03 20:00:00', 'UTC');
+    $now = CarbonImmutable::parse('2026-11-03 20:00:00', 'UTC');
 
     $running = new OvertimeRequest(['state' => OvertimeState::InProgress]);
     $running->setRelation('clockInRecord', dashboardOvertimeEvent('2026-11-03 08:00:00', 61));
@@ -168,7 +170,7 @@ it('uses now for running overtime intervals and excludes cancelled or invalid in
 it('evaluates the current month independently in each Clock In session timezone', function () {
     $service = new EmployeeDashboardAggregationService(new DailyAttendanceStatusService);
     $method = new ReflectionMethod($service, 'isInCurrentMonthForSession');
-    $now = Carbon::parse('2026-10-31 16:30:00', 'UTC');
+    $now = CarbonImmutable::parse('2026-10-31 16:30:00', 'UTC');
 
     $jakartaClockIn = new AttendanceRecord;
     $jakartaClockIn->forceFill([
