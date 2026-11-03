@@ -224,7 +224,6 @@ it('flags an onsite session for admin review when it uses the WITA fallback', fu
         ->and($status['reason'])->toContain('fallback Asia/Makassar');
 });
 
-
 it('flags office attendance for review when GPS evidence is unavailable even though WITA is fixed', function () {
     Storage::fake(AttendanceSelfie::DISK);
 
