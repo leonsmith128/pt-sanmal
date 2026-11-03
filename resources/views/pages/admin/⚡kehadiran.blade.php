@@ -352,9 +352,9 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                                 </flux:table.cell>
                                 <flux:table.cell class="px-3 py-2">{{ $record->employee->user->name }}</flux:table.cell>
                                 <flux:table.cell class="px-3 py-2">
-                                    <flux:badge :color="$record->type === AttendanceType::ClockIn ? 'green' : 'blue'">
+                                    <x-ui.badge :color="$record->type === AttendanceType::ClockIn ? 'green' : 'blue'">
                                         {{ $record->type->label() }}
-                                    </flux:badge>
+                                    </x-ui.badge>
                                 </flux:table.cell>
                                 <flux:table.cell class="px-3 py-2">
                                     {{ $record->work_type->label() }}
@@ -385,7 +385,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                                         {{ $record->address_snapshot ?: __('Alamat belum tersedia') }}
                                     </p>
                                     @if ($record->location_status === 'unavailable')
-                                        <flux:badge color="amber" size="sm" class="ml-1">{{ __('Perlu ditinjau') }}</flux:badge>
+                                        <x-ui.badge color="amber" size="sm" class="ml-1">{{ __('Perlu ditinjau') }}</x-ui.badge>
                                     @endif
                                 </flux:table.cell>
                                 <flux:table.cell class="whitespace-nowrap px-3 py-2">
@@ -398,12 +398,12 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                                             class="inline-flex items-center rounded-md border border-zinc-300 px-2.5 py-1 text-xs font-medium text-zinc-700 transition hover:bg-zinc-50 dark:border-zinc-600 dark:text-zinc-200 dark:hover:bg-zinc-800"
                                         >{{ __('Pratinjau') }}</button>
                                         @if ($record->selfie_source === SelfieSource::Upload)
-                                            <flux:badge color="amber" size="sm" class="ml-1">{{ __('Unggahan') }}</flux:badge>
+                                            <x-ui.badge color="amber" size="sm" class="ml-1">{{ __('Unggahan') }}</x-ui.badge>
                                         @endif
                                         @if ($record->drive_backup_status === 'verified')
-                                            <flux:badge color="green" size="sm" class="ml-1">{{ __('Drive terverifikasi') }}</flux:badge>
+                                            <x-ui.badge color="green" size="sm" class="ml-1">{{ __('Drive terverifikasi') }}</x-ui.badge>
                                             @if ($record->local_deleted_at)
-                                                <flux:badge color="zinc" size="sm" class="ml-1">{{ __('Lokal dihapus') }}</flux:badge>
+                                                <x-ui.badge color="zinc" size="sm" class="ml-1">{{ __('Lokal dihapus') }}</x-ui.badge>
                                             @else
                                                 <form method="POST" action="{{ route('admin.attendance.selfie.delete-local', $record) }}" class="mt-2" onsubmit="return confirm('{{ __('Hapus foto lokal setelah backup Drive terverifikasi?') }}')">
                                                     @csrf
@@ -413,7 +413,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                                             @endif
                                         @else
                                             @if ($record->drive_backup_status === 'failed')
-                                                <flux:badge color="red" size="sm" class="ml-1">{{ __('Backup gagal') }}</flux:badge>
+                                                <x-ui.badge color="red" size="sm" class="ml-1">{{ __('Backup gagal') }}</x-ui.badge>
                                             @endif
                                             <form method="POST" action="{{ route('admin.attendance.selfie.backup', $record) }}" class="mt-2">
                                                 @csrf
@@ -462,7 +462,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                                 <flux:table.cell class="whitespace-nowrap px-3 py-2">—</flux:table.cell>
                                 <flux:table.cell class="px-3 py-2">{{ $employee->user->name }}</flux:table.cell>
                                 <flux:table.cell class="px-3 py-2">
-                                    <flux:badge color="amber">{{ __('Belum ada absensi') }}</flux:badge>
+                                    <x-ui.badge color="amber">{{ __('Belum ada absensi') }}</x-ui.badge>
                                 </flux:table.cell>
                                 <flux:table.cell class="px-3 py-2">—</flux:table.cell>
                                 <flux:table.cell class="px-3 py-2">—</flux:table.cell>
