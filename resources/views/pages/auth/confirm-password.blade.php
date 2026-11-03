@@ -11,7 +11,7 @@
         <form method="POST" action="{{ route('password.confirm.store') }}" class="flex flex-col gap-6">
             @csrf
 
-            <flux:input
+            <x-ui.input
                 name="password"
                 :label="__('Password')"
                 type="password"
