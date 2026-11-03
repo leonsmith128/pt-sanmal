@@ -8,8 +8,9 @@ use App\Models\OvertimeRequest;
 use App\Services\DailyAttendanceStatusService;
 use App\Services\EmployeeDashboardAggregationService;
 use Carbon\Carbon;
+use Tests\TestCase;
 
-uses(Tests\TestCase::class);
+uses(TestCase::class);
 
 it('subtracts overlapping approved overtime windows only once', function () {
     $service = new EmployeeDashboardAggregationService(new DailyAttendanceStatusService);
