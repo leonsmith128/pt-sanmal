@@ -14,11 +14,7 @@
             @endif
         </header>
 
-        @if (session('status'))
-            <flux:callout variant="success" icon="check-circle">
-                <flux:callout.text>{{ session('status') }}</flux:callout.text>
-            </flux:callout>
-        @endif
+        <x-ui.flash-message />
 
         <section class="flex flex-col gap-3">
             @forelse ($notifications as $notification)
@@ -40,7 +36,7 @@
                             <div class="flex flex-wrap items-start justify-between gap-2">
                                 <h2 class="font-semibold text-zinc-900 dark:text-zinc-100">{{ $data['title'] ?? __('Notifikasi sistem') }}</h2>
                                 @if (! $notification->read_at)
-                                    <flux:badge color="sky">{{ __('Baru') }}</flux:badge>
+                                    <x-ui.badge color="sky">{{ __('Baru') }}</x-ui.badge>
                                 @endif
                             </div>
                             <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-300">{{ $data['message'] ?? __('Ada pembaruan pada akun Anda.') }}</p>
