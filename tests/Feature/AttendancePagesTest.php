@@ -209,7 +209,7 @@ test('employees receive an ungrouped sidebar and mobile header drawer without bo
 
     $response = $this->get(route('attendance'))
         ->assertOk()
-        ->assertSee('data-flux-sidebar-collapse', false)
+        ->assertSee('data-flux-sidebar-toggle', false)
         ->assertSee('aria-label="Navigasi utama"', false)
         ->assertSee(__('Beranda'))
         ->assertSee(__('Absensi'))
