@@ -1,6 +1,9 @@
 <?php
 
 use App\Enums\UserRole;
+use App\Models\Employee;
+use App\Models\LeaveRequest;
+use App\Models\LeaveType;
 use App\Models\User;
 
 test('guests are redirected to the login page', function () {
