@@ -110,6 +110,18 @@
     color: var(--color-sanmal-danger);
 }
 
+[data-flux-control] {
+    background-color: var(--color-sanmal-surface-primary);
+    border-color: var(--color-sanmal-border);
+    color: var(--sanmal-text-primary);
+}
+
+.dark [data-flux-control] {
+    background-color: var(--color-sanmal-surface-inset-dark);
+    border-color: var(--color-sanmal-border-dark);
+    color: var(--sanmal-text-primary);
+}
+
 input:focus[data-flux-control],
 textarea:focus[data-flux-control],
 select:focus[data-flux-control] {
