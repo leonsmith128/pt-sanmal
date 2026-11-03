@@ -5,7 +5,7 @@ use App\Services\EmployeeDashboardAggregationService;
 use Carbon\Carbon;
 
 it('subtracts overlapping approved overtime windows only once', function () {
-    $service = new EmployeeDashboardAggregationService(new DailyAttendanceStatusService());
+    $service = new EmployeeDashboardAggregationService(new DailyAttendanceStatusService);
     $method = new ReflectionMethod($service, 'mergedOverlapSeconds');
 
     $seconds = $method->invoke(
@@ -30,7 +30,7 @@ it('subtracts overlapping approved overtime windows only once', function () {
 });
 
 it('clips overtime subtraction to the attendance session and merges adjacent windows', function () {
-    $service = new EmployeeDashboardAggregationService(new DailyAttendanceStatusService());
+    $service = new EmployeeDashboardAggregationService(new DailyAttendanceStatusService);
     $method = new ReflectionMethod($service, 'mergedOverlapSeconds');
 
     $seconds = $method->invoke(
