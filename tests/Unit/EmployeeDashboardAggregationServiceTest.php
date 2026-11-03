@@ -1,7 +1,5 @@
 <?php
 
-uses(Tests\TestCase::class);
-
 use App\Enums\AttendanceType;
 use App\Enums\OvertimeState;
 use App\Models\AttendanceCorrection;
@@ -10,6 +8,8 @@ use App\Models\OvertimeRequest;
 use App\Services\DailyAttendanceStatusService;
 use App\Services\EmployeeDashboardAggregationService;
 use Carbon\Carbon;
+
+uses(Tests\TestCase::class);
 
 it('subtracts overlapping approved overtime windows only once', function () {
     $service = new EmployeeDashboardAggregationService(new DailyAttendanceStatusService);
