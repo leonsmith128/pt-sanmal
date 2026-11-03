@@ -1,16 +1,15 @@
 <x-layouts::app :title="'Pusat Permohonan'">
-    <div class="mx-auto w-full max-w-6xl space-y-5 px-4 py-4 sm:px-6 sm:py-6">
-        <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-                <flux:heading size="xl" level="1">{{ __('Pusat Permohonan') }}</flux:heading>
-                <flux:text class="mt-1">{{ __('Pantau izin, sakit, cuti, lembur, dan koreksi absensi dari satu tempat.') }}</flux:text>
-            </div>
+    <x-ui.page max-width="6xl" gap="5" class="px-4 py-4 sm:px-6 sm:py-6">
+        <x-ui.page-header
+            :title="__('Pusat Permohonan')"
+            :description="__('Pantau izin, sakit, cuti, lembur, dan koreksi absensi dari satu tempat.')"
+        >
             <div class="grid grid-cols-2 gap-2 sm:flex">
                 <x-ui.button href="{{ route('overtime-requests.index') }}" variant="ghost" icon="clock">{{ __('Lembur') }}</x-ui.button>
                 <x-ui.button href="{{ route('leave-requests.create') }}" variant="primary" icon="plus">{{ __('Buat permohonan') }}</x-ui.button>
                 <x-ui.button href="{{ route('attendance-corrections.create') }}" variant="outline" icon="clock">{{ __('Ajukan koreksi absensi') }}</x-ui.button>
             </div>
-        </div>
+        </x-ui.page-header>
 
         <x-ui.flash-message />
 
@@ -196,5 +195,5 @@
             </div>
             <div>{{ $requests->links() }}</div>
         @endif
-    </div>
+    </x-ui.page>
 </x-layouts::app>
