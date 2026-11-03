@@ -142,7 +142,7 @@
                 <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" />
                 <x-app-logo href="{{ route('dashboard') }}" wire:navigate />
                 <flux:spacer />
-                <flux:dropdown position="top" align="start">
+                <div class="flex shrink-0 items-center gap-1">                <flux:dropdown position="top" align="start">
                     <flux:profile
                         :initials="$sidebarUser->initials()"
                         :avatar="$sidebarUser->profilePhotoUrl()"
@@ -172,12 +172,13 @@
                     :notifications="$latestSystemNotifications"
                     :unread-count="$unreadSystemNotifications"
                 />
+                </div>
             </flux:header>
         @elseif ($isEmployee)
             <flux:header class="lg:hidden">
                 <x-app-logo href="{{ route('dashboard') }}" wire:navigate />
                 <flux:spacer />
-                <flux:dropdown position="bottom" align="start">
+                <div class="flex shrink-0 items-center gap-1">                <flux:dropdown position="bottom" align="start">
                     <flux:profile
                         :initials="$sidebarUser->initials()"
                         :avatar="$sidebarUser->profilePhotoUrl()"
@@ -199,6 +200,7 @@
                     :notifications="$latestSystemNotifications"
                     :unread-count="$unreadSystemNotifications"
                 />
+                </div>
             </flux:header>
 
             <nav
