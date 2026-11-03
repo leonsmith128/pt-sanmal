@@ -1,6 +1,6 @@
 # Employee Dashboard Data Contract
 
-> Status: domain policy approved; the attendance write-path resolver is implemented but not yet verified. Dashboard aggregation and date-boundary behavior remain incomplete.
+> Status: domain policy approved; the current attendance resolver, `timezone_source` migration, session-based dashboard aggregation, and covered date-boundary behavior passed full CI run 1294 on MariaDB and SQLite ([commit `ab8dfb8`](https://github.com/leonsmith128/pt-sanmal/commit/ab8dfb854ce8f5a5894dcf1f07f003a8fb9a26f7)). Broader calendar/timezone matrices and browser/device QA remain pending.
 
 ## Purpose and consistency
 
