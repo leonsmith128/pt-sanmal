@@ -146,6 +146,7 @@
                     <flux:profile
                         :initials="$sidebarUser->initials()"
                         :avatar="$sidebarUser->profilePhotoUrl()"
+                        :chevron="false"
                         class="rounded-full [&_img]:rounded-full"
                     />
                     <flux:menu>
@@ -182,6 +183,7 @@
                     <flux:profile
                         :initials="$sidebarUser->initials()"
                         :avatar="$sidebarUser->profilePhotoUrl()"
+                        :chevron="false"
                         class="rounded-full [&_img]:rounded-full"
                     />
                     <flux:menu>
