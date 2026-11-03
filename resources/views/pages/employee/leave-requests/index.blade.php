@@ -4,10 +4,10 @@
             :title="__('Pusat Permohonan')"
             :description="__('Pantau izin, sakit, cuti, lembur, dan koreksi absensi dari satu tempat.')"
         >
-            <div class="grid grid-cols-2 gap-2 sm:flex">
-                <x-ui.button href="{{ route('overtime-requests.index') }}" variant="ghost" icon="clock">{{ __('Lembur') }}</x-ui.button>
-                <x-ui.button href="{{ route('leave-requests.create') }}" variant="primary" icon="plus">{{ __('Buat permohonan') }}</x-ui.button>
-                <x-ui.button href="{{ route('attendance-corrections.create') }}" variant="outline" icon="clock">{{ __('Ajukan koreksi absensi') }}</x-ui.button>
+            <div class="flex w-full min-w-0 flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap sm:justify-end">
+                <x-ui.button href="{{ route('overtime-requests.index') }}" variant="ghost" icon="clock" class="w-full min-w-0 justify-center whitespace-normal text-center sm:w-auto">{{ __('Lembur') }}</x-ui.button>
+                <x-ui.button href="{{ route('leave-requests.create') }}" variant="primary" icon="plus" class="w-full min-w-0 justify-center whitespace-normal text-center sm:w-auto">{{ __('Buat permohonan') }}</x-ui.button>
+                <x-ui.button href="{{ route('attendance-corrections.create') }}" variant="outline" icon="clock" class="w-full min-w-0 justify-center whitespace-normal text-center sm:w-auto">{{ __('Ajukan koreksi absensi') }}</x-ui.button>
             </div>
         </x-ui.page-header>
 
