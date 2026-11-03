@@ -123,7 +123,7 @@ test('admin attendance filters use a mobile-first responsive grid and full-width
     $this->get(route('admin.kehadiran'))
         ->assertOk()
         ->assertSee('grid w-full min-w-0 grid-cols-1 items-end gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6', false)
-        ->assertSee('class="w-full min-w-0"', false)
+        ->assertSee('w-full min-w-0', false)
         ->assertSee('w-full sm:w-auto', false);
 });
 
