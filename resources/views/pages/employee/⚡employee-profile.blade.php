@@ -107,6 +107,7 @@ new #[Title('Profil Pegawai')] class extends Component {
 
         <form wire:submit="saveProfilePhoto" class="mt-5 space-y-4">
             <x-ui.input
+                name="photo"
                 type="file"
                 wire:model="photo"
                 :label="__('Foto profil')"
@@ -138,6 +139,7 @@ new #[Title('Profil Pegawai')] class extends Component {
 
         <form wire:submit="saveContactDetails" class="mt-5 space-y-5">
             <x-ui.input
+                name="phone"
                 :label="__('Nomor telepon')"
                 wire:model="phone"
                 type="tel"
