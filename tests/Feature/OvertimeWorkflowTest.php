@@ -621,6 +621,18 @@ it('shows a locked concise overtime confirmation action instead of clock out bef
         ->assertSee('Tombol Clock Out tidak tersedia selama pengajuan ini masih aktif.');
 });
 
+it('shows the overtime confirmation action when a scheduled start is due', function () {
+    $employee = overtimeEmployee();
+    $clockIn = overtimeClockIn($employee);
+    overtimeRequest($employee, $clockIn, now()->subMinute()->toDateTimeString());
+
+    Livewire::actingAs($employee->user)
+        ->test('pages::employee.attendance')
+        ->assertSee('Konfirmasi Lembur')
+        ->assertDontSee('Absen Pulang')
+        ->assertSee('Segera konfirmasi lembur dengan foto.');
+});
+
 it('rejects a second clock-in after clock-out on the same local calendar date', function () {
     Storage::fake('local');
     $employee = overtimeEmployee();
