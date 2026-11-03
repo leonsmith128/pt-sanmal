@@ -12,11 +12,7 @@
             </div>
         </div>
 
-        @if (session('status'))
-            <flux:callout variant="success" icon="check-circle">
-                <flux:callout.text>{{ session('status') }}</flux:callout.text>
-            </flux:callout>
-        @endif
+        <x-ui.flash-message />
 
         <section class="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900 sm:p-5">
             <div class="mb-4 flex items-center justify-between gap-3">
