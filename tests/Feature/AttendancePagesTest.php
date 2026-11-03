@@ -343,7 +343,6 @@ test('attendance status and overtime cards use a responsive two-column grid with
         ->assertSet('selectedOvertimeId', $overtime->id);
 });
 
-
 test('attendance action is presented before the historical date selector', function () {
     $this->actingAs(userWithRole(UserRole::Employee));
 
