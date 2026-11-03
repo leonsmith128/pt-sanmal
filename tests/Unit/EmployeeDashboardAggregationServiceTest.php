@@ -208,3 +208,28 @@ it('does not reinterpret a session month using the employee latest timezone', fu
     expect($method->invoke($service, $previousMonthInMakassar, $now, 'Asia/Makassar'))->toBeFalse()
         ->and($method->invoke($service, $futureLocalDateInJakarta, $now, 'Asia/Makassar'))->toBeFalse();
 });
+
+
+it('uses the Clock In anchor timezone and date for a later session event', function () {
+    $service = new EmployeeDashboardAggregationService(new DailyAttendanceStatusService);
+    $method = new ReflectionMethod($service, 'isInCurrentMonthForSession');
+    $now = Carbon::parse('2026-11-01 00:30:00', 'UTC');
+
+    $clockIn = new AttendanceRecord;
+    $clockIn->forceFill([
+        'id' => 101,
+        'type' => \App\Enums\AttendanceType::ClockIn,
+        'timezone' => 'Asia/Jakarta',
+        'attendance_date' => '2026-10-31',
+    ]);
+
+    $clockOut = new AttendanceRecord;
+    $clockOut->forceFill([
+        'type' => \App\Enums\AttendanceType::ClockOut,
+        'timezone' => 'Asia/Makassar',
+        'attendance_date' => '2026-11-01',
+    ]);
+    $clockOut->setRelation('sessionAnchor', $clockIn);
+
+    expect($method->invoke($service, $clockOut, $now, 'Asia/Makassar'))->toBeTrue();
+});
