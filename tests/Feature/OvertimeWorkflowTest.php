@@ -667,6 +667,8 @@ it('rejects a second clock-in after clock-out on the same local calendar date', 
 });
 
 it('keeps a closed session overtime request counted after cancellation', function () {
+    $this->travelTo(now('Asia/Makassar')->setTime(10, 0));
+
     $employee = overtimeEmployee();
     $clockIn = overtimeClockIn($employee);
     $first = overtimeRequest($employee, $clockIn, now()->addHour()->toDateTimeString());
@@ -774,6 +776,8 @@ it('flags historical duplicate attendance sessions on one date for admin review'
 });
 
 it('rejects an overtime request created after the target date session has already closed', function () {
+    $this->travelTo(now('Asia/Makassar')->setTime(10, 0));
+
     $employee = overtimeEmployee();
     $clockIn = overtimeClockIn($employee);
 
