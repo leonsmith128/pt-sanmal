@@ -20,7 +20,7 @@ class AdminDailyAttendanceController extends Controller
 {
     public function daily(Request $request, DailyAttendanceStatusService $statusService): View
     {
-        $date = $request->query('date', now()->toDateString());
+        $date = $request->query('date', now('Asia/Makassar')->toDateString());
         validator(['date' => $date], ['date' => ['required', 'date_format:Y-m-d']])->validate();
 
         $rows = Employee::query()
@@ -31,7 +31,7 @@ class AdminDailyAttendanceController extends Controller
 
         /** @var Collection<int, Employee> $employeePage */
         $employeePage = $rows->getCollection();
-        $statuses = $statusService->forEmployeesDateRange($employeePage, $date, $date);
+        $statuses = $statusService->forEmployeesDateRange($employeePage, $date, $date, 'Asia/Makassar');
 
         $rows->setCollection(
             $employeePage->map(fn (Employee $employee) => [
@@ -102,10 +102,10 @@ class AdminDailyAttendanceController extends Controller
 
     public function exportMonth(Request $request, DailyAttendanceStatusService $statusService): StreamedResponse
     {
-        $month = $request->query('month', now()->format('Y-m'));
+        $month = $request->query('month', now('Asia/Makassar')->format('Y-m'));
         validator(['month' => $month], ['month' => ['required', 'date_format:Y-m']])->validate();
 
-        $start = Carbon::parse($month.'-01')->startOfMonth();
+        $start = Carbon::parse($month.'-01', 'Asia/Makassar')->startOfMonth();
         $end = $start->copy()->endOfMonth();
 
         return response()->streamDownload(function () use ($start, $end, $statusService): void {
