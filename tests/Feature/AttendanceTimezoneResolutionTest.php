@@ -223,3 +223,40 @@ it('flags an onsite session for admin review when it uses the WITA fallback', fu
         ->and($status['status'])->toBe('needs_review')
         ->and($status['reason'])->toContain('fallback Asia/Makassar');
 });
+
+
+it('flags office attendance for review when GPS evidence is unavailable even though WITA is fixed', function () {
+    Storage::fake(AttendanceSelfie::DISK);
+
+    $employee = timezoneResolutionEmployee();
+    $office = Location::query()->create([
+        'name' => 'Kantor tanpa GPS',
+        'type' => 'office',
+        'timezone' => 'Asia/Jakarta',
+        'is_active' => true,
+    ]);
+
+    $record = app(RecordAttendance::class)->handle(
+        employee: $employee,
+        type: AttendanceType::ClockIn,
+        workType: WorkType::Office,
+        locationId: $office->id,
+        projectId: null,
+        latitude: null,
+        longitude: null,
+        accuracy: null,
+        selfie: timezoneResolutionPhoto(),
+        selfieSource: SelfieSource::Camera,
+    );
+
+    $status = app(DailyAttendanceStatusService::class)->forEmployeeDate(
+        $employee,
+        $record->attendance_date->toDateString(),
+    );
+
+    expect($record->timezone)->toBe('Asia/Makassar')
+        ->and($record->timezone_source)->toBe('office_fixed')
+        ->and($record->location_status)->toBe('unavailable')
+        ->and($status['status'])->toBe('needs_review')
+        ->and($status['reason'])->toContain('Bukti GPS');
+});
