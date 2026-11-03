@@ -473,7 +473,7 @@ new #[Title('Absensi')] class extends Component {
                             <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-300">
                                 {{ __('Mulai aktual') }}: {{ $overtimeItem->startRecord->effectiveRecordedAtLocal()->format('d M Y, H:i') }}
                             </p>
-                            @if ($overtimeItem->isInProgress() && ! $overtimeItem->clockOutRecord)
+                            @if ($session && $overtimeItem->id === $sessionOvertime?->id && $overtimeItem->isInProgress() && ! $overtimeItem->clockOutRecord)
                                 @php
                                     $actualOvertimeSeconds = max(0, (int) $overtimeItem->startRecord->recorded_at->copy()->setTimezone($overtimeItem->timezone)->diffInSeconds(now($overtimeItem->timezone)));
                                 @endphp
@@ -502,7 +502,7 @@ new #[Title('Absensi')] class extends Component {
                                 @endif
                             </div>
                         @endif
-                        @if ($overtimeItem->start_record_id === null && $overtimeItem->scheduled_start_at->lte(now()) && $overtimeItem->state !== OvertimeState::NeedsReview)
+                        @if ($session && $overtimeItem->id === $sessionOvertime?->id && $overtimeItem->start_record_id === null && $overtimeItem->scheduled_start_at->lte(now()) && $overtimeItem->state !== OvertimeState::NeedsReview)
                             <p class="mt-2 text-sm text-amber-700 dark:text-amber-300">{{ __('Waktu sejak jadwal mulai') }}: {{ intdiv(max(0, (int) $overtimeItem->scheduledStartLocal()->diffInSeconds(now($overtimeItem->timezone))), 3600) }}j {{ intdiv(max(0, (int) $overtimeItem->scheduledStartLocal()->diffInSeconds(now($overtimeItem->timezone))) % 3600, 60) }}m. {{ __('Segera konfirmasi lembur dengan foto.') }}</p>
                         @endif
                         @if (in_array($overtimeItem->state, [OvertimeState::Scheduled, OvertimeState::AwaitingPhoto], true) && $overtimeItem->start_record_id === null)
