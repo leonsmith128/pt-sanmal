@@ -278,6 +278,15 @@ it('groups onsite sessions by the WITA company reporting date without changing t
         ->set('dateTo', '2026-11-01')
         ->assertSee('data-record-count="0"', false);
 
+    $adminCsv = $this->actingAs(dateFilterAdmin())->get(route('admin.kehadiran.export', [
+        'from' => '2026-11-02',
+        'to' => '2026-11-02',
+    ]))->streamedContent();
+
+    expect($adminCsv)
+        ->toContain('2026-11-02')
+        ->toContain('Pegawai Batas WITA');
+
     expect($employeeLocal['events'])->toHaveCount(2)
         ->and($companyCalendar[$employee->id]['2026-11-02']['events'])->toHaveCount(2)
         ->and($companyCalendar[$employee->id]['2026-11-02']['status'])->toBe('present')
