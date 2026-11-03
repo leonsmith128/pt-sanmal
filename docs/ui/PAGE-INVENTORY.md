@@ -13,7 +13,8 @@
 
 | Halaman / workflow | Fokus review |
 |---|---|
-| Dashboard | Hierarki statistik dan aktivitas, density, ritme section, wrapping di tablet/mobile |
+| Dashboard Admin | Monitoring seluruh pegawai, hierarki statistik/aktivitas, density, ritme section, wrapping di tablet/mobile |
+| Dashboard Pribadi Admin | Halaman terpisah untuk Admin/Superadmin dengan profil pegawai; employee-scoped attendance, work duration, overtime, requests, dan recent activity |
 | Client list dan detail | Hierarki Client–Site–Office, ringkasan, list, navigasi, dan aksi |
 | Client create/edit | Grouping field, label, validasi, lebar form, dan hierarki aksi |
 | Location create/edit | Kondisi Office/Site, ownership Client, koordinat/timezone, error mobile |
