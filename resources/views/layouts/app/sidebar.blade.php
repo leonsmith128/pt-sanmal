@@ -140,14 +140,9 @@
         @if ($isManager)
             <flux:header class="lg:hidden">
                 <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" />
-                <flux:spacer />
                 <x-app-logo href="{{ route('dashboard') }}" wire:navigate />
                 <flux:spacer />
-                <x-ui.notification-dropdown
-                    :notifications="$latestSystemNotifications"
-                    :unread-count="$unreadSystemNotifications"
-                />
-                <flux:dropdown position="top" align="end">
+                <flux:dropdown position="top" align="start">
                     <flux:profile
                         :initials="$sidebarUser->initials()"
                         :avatar="$sidebarUser->profilePhotoUrl()"
@@ -173,16 +168,16 @@
                         </form>
                     </flux:menu>
                 </flux:dropdown>
+                <x-ui.notification-dropdown
+                    :notifications="$latestSystemNotifications"
+                    :unread-count="$unreadSystemNotifications"
+                />
             </flux:header>
         @elseif ($isEmployee)
             <flux:header class="lg:hidden">
                 <x-app-logo href="{{ route('dashboard') }}" wire:navigate />
                 <flux:spacer />
-                <x-ui.notification-dropdown
-                    :notifications="$latestSystemNotifications"
-                    :unread-count="$unreadSystemNotifications"
-                />
-                <flux:dropdown position="bottom" align="end">
+                <flux:dropdown position="bottom" align="start">
                     <flux:profile
                         :initials="$sidebarUser->initials()"
                         :avatar="$sidebarUser->profilePhotoUrl()"
@@ -200,6 +195,10 @@
                         </form>
                     </flux:menu>
                 </flux:dropdown>
+                <x-ui.notification-dropdown
+                    :notifications="$latestSystemNotifications"
+                    :unread-count="$unreadSystemNotifications"
+                />
             </flux:header>
 
             <nav
