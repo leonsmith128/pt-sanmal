@@ -21,7 +21,8 @@ Source inspection bukan browser QA. Component test bukan bukti seluruh workflow 
 | Standardisasi token dan styling dasar | **Implemented** | Token brand/semantic serta fondasi button, field, focus, disabled, dark-surface, page/layout, dan metadata telah diterapkan. |
 | Adopsi komponen pada halaman | **Implemented, partial coverage** | Komponen telah diadopsi pada sejumlah halaman Admin, Employee, Shared, dan Authentication. Tidak berarti seluruh halaman telah didesain ulang atau semua markup satu-off harus diekstrak. Periksa source dan [Page Inventory](../PAGE-INVENTORY.md). |
 | Koreksi responsivitas temuan terakhir | **CI verified; visual pending** | Filter Admin Kehadiran, icon pada detail lembur, dan susunan tombol Pusat Permohonan telah diperbaiki. CI terbaru lulus pada commit `6da6b96ee1e8be19126cba43a62d6ec51aaf22ca`, [run 1065](https://github.com/leonsmith128/pt-sanmal/actions/runs/41566842563). Owner/browser visual recheck belum dicatat. |
-| Desain dan layouting halaman | **Not started** | Tahap berikutnya: evaluasi hierarki, komposisi, density, spacing, responsive behavior, dan konsistensi halaman berdasarkan Design Foundation dan Page Inventory. |
+| Kontrak data Employee Dashboard | **Specified** | Definisi agregasi status harian, jam kerja non-lembur, lembur disetujui, pengajuan tertunda, aktivitas terbaru, timezone, dan konsistensi Employee/Admin telah ditetapkan di [Employee Dashboard Data Contract](../EMPLOYEE-DASHBOARD-DATA-CONTRACT.md). Implementasi service, test, dan UI belum dimulai. |
+| Desain dan layouting halaman | **Not started** | Tahap berikutnya: finalisasi layout Employee Dashboard dan Employee Attendance berdasarkan Design Foundation, Page Inventory, serta kontrak data Dashboard. |
 | Responsive audit menyeluruh | Not started | Audit per halaman/viewport setelah desain dan layouting diterapkan. |
 | Accessibility dan interaction-state audit | Not started | Keyboard, focus, semantics, touch target, loading/error/empty, dan theme. |
 | Final V1 review | Not started | Rekonsiliasi scope, test, visual QA, limitations, dan review PR sebelum merge. |
@@ -54,7 +55,7 @@ Daftar ini adalah ringkasan adopsi yang tercatat, bukan klaim seluruh halaman te
 
 ## Handoff ke tahap berikutnya
 
-Tahap standardisasi reusable component ditutup sebagai fondasi implementasi. Jangan mengulang audit komponen generik kecuali ditemukan gap konkret dari penggunaan nyata.
+Tahap standardisasi reusable component ditutup sebagai fondasi implementasi. Kontrak data Employee Dashboard sudah ditetapkan di [Employee Dashboard Data Contract](../EMPLOYEE-DASHBOARD-DATA-CONTRACT.md); kontrak ini belum diimplementasikan atau diuji. Jangan mengulang audit komponen generik kecuali ditemukan gap konkret dari penggunaan nyata.
 
 Langkah berikutnya adalah **desain dan layouting halaman**:
 1. Pilih kelompok halaman berdasarkan [Page Inventory](../PAGE-INVENTORY.md) dan prioritas Employee/Admin.
