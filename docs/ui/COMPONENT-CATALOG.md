@@ -25,6 +25,8 @@ Do not copy a documented API into a page without checking the implementation on 
 | Feedback | `x-ui.flash-message`, `x-ui.empty-state`, Admin adapters | Flash and empty-state presentation | [Reusable components](REUSABLE-BLADE-COMPONENTS.md) |
 | Status | `x-ui.badge`, `x-admin.request-status-badge` | Generic indicator vs domain-specific status mapping | [Reusable components](REUSABLE-BLADE-COMPONENTS.md) |
 | Metadata | `x-ui.metadata-item` | Semantic label/value pair inside a description list | [Reusable components](REUSABLE-BLADE-COMPONENTS.md) |
+| Identity utility | `x-ui.avatar` | Consistent avatar with image/initials fallback | [Reusable components](REUSABLE-BLADE-COMPONENTS.md) |
+| Notification utility | `x-ui.notification-dropdown` | User-scoped notification preview; data is supplied by the caller | [Reusable components](REUSABLE-BLADE-COMPONENTS.md) |
 | Admin patterns | `x-admin.filter-panel`, `x-admin.page-header`, domain adapters | Repeated Admin composition and domain presentation | [Architecture guide](../ARCHITECTURE-AND-DEVELOPMENT.md) |
 | Data presentation | Native table, Flux table, review list, article/card | Match semantics and interaction to the data, not a universal visual wrapper | [Design Foundation](DESIGN-FOUNDATION.md) |
 
@@ -56,7 +58,7 @@ When a shared component is created or its public contract changes, update the de
 
 ## 5. Current milestone boundary
 
-The 14 shared `x-ui.*` primitives listed in this catalog have been implemented and adopted on selected pages. `x-ui.sidebar-section` is a shell-specific navigation composition helper, not an additional generic primitive. This closes the reusable-component standardization phase; it does not mean all pages are visually finalized or have passed responsive/accessibility QA.
+The 14 core `x-ui.*` primitives have been implemented and adopted on selected pages. Two additional shared `x-ui.*` utilities (`x-ui.avatar` and `x-ui.notification-dropdown`) are also implemented; `x-ui.sidebar-section` is a shell-specific navigation composition helper, not a generic primitive. This closes the reusable-component standardization phase; it does not mean all pages are visually finalized or have passed responsive/accessibility QA.
 
 For current evidence and the next page-level design/layouting phase, see [Implementation Status](progress/IMPLEMENTATION-STATUS.md). Do not add generic components without a demonstrated repeated pattern and stable interaction contract.
 
