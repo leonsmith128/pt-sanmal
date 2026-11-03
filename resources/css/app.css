@@ -144,3 +144,11 @@ select:focus[data-flux-control] {
         color: #FFFFFF;
     }
 }
+
+
+/* Keep Flux sidebar navigation icons visually consistent in expanded and collapsed states. */
+[data-flux-sidebar-item] svg {
+    width: 1.25rem !important;
+    height: 1.25rem !important;
+    flex: 0 0 1.25rem;
+}
