@@ -58,7 +58,7 @@
                 @if ($isManager)
                     @if ($sidebarEmployee)
                         <x-ui.sidebar-section :heading="__('Aktivitas Saya')">
-                            <flux:sidebar.item icon="layout-dashboard" :href="route('my-dashboard')" :current="request()->routeIs('my-dashboard')" wire:navigate>
+                            <flux:sidebar.item icon="home" :href="route('my-dashboard')" :current="request()->routeIs('my-dashboard')" wire:navigate>
                                 {{ __('Dashboard Pribadi') }}
                             </flux:sidebar.item>
                             <flux:sidebar.item icon="clock" :href="route('attendance')" :current="request()->routeIs('attendance')" wire:navigate>
