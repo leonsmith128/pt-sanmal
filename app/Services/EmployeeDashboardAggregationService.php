@@ -45,6 +45,10 @@ class EmployeeDashboardAggregationService
             ->where('employee_id', $employee->id)
             ->where('type', AttendanceType::ClockIn)
             ->whereColumn('session_anchor_id', 'id')
+            ->where(function ($query) use ($monthStart, $today): void {
+                $query->whereBetween('attendance_date', [$monthStart, $today])
+                    ->orWhereHas('approvedCorrection', fn ($correction) => $correction->whereBetween('attendance_date', [$monthStart, $today]));
+            })
             ->with([
                 'approvedCorrection',
                 'sessionEvents.approvedCorrection',
@@ -142,6 +146,8 @@ class EmployeeDashboardAggregationService
         $recentAttendance = AttendanceRecord::query()
             ->where('employee_id', $employee->id)
             ->with(['approvedCorrection'])
+            ->latest('recorded_at')
+            ->limit(30)
             ->get()
             ->sortByDesc(fn (AttendanceRecord $record) => $record->effectiveRecordedAt())
             ->take(5)
@@ -153,6 +159,10 @@ class EmployeeDashboardAggregationService
         $todayClockIn = $todayEvents->first(fn (AttendanceRecord $record) => $record->type === AttendanceType::ClockIn);
         $todayClockOut = $todayEvents->first(fn (AttendanceRecord $record) => $record->type === AttendanceType::ClockOut);
         $todayOpen = $todayClockIn && ! $todayClockOut && $todayStatus['status'] === DailyAttendanceStatus::Incomplete->value;
+        $todayEnd = $todayClockOut?->effectiveRecordedAt() ?? ($todayOpen ? $now : null);
+        $todayDuration = $todayClockIn && $todayEnd && $todayEnd->gt($todayClockIn->effectiveRecordedAt())
+            ? (int) floor($todayClockIn->effectiveRecordedAt()->diffInSeconds($todayEnd) / 60)
+            : null;
 
         return [
             'timezone' => $timezone,
@@ -160,9 +170,7 @@ class EmployeeDashboardAggregationService
             'todayStatus' => $todayStatus,
             'todayClockIn' => $todayClockIn,
             'todayClockOut' => $todayClockOut,
-            'todayDurationMinutes' => $todayOpen
-                ? (int) floor($todayClockIn->effectiveRecordedAt()->diffInSeconds($now) / 60)
-                : null,
+            'todayDurationMinutes' => $todayDuration,
             'todayIsRunning' => (bool) $todayOpen,
             'monthly' => [
                 'presentDays' => $statusCounts->get(DailyAttendanceStatus::Present->value, 0),
@@ -200,7 +208,7 @@ class EmployeeDashboardAggregationService
      */
     private function overtimeInterval(OvertimeRequest $request, Carbon $now): ?array
     {
-        if ($request->state === OvertimeState::Cancelled) {
+        if ($request->state === OvertimeState::Cancelled || ! $request->startRecord) {
             return null;
         }
 
