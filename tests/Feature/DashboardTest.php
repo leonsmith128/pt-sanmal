@@ -73,7 +73,6 @@ test('employee dashboard does not expose administrative summary when no employee
         ->assertDontSee('Permohonan menunggu');
 });
 
-
 test('employee dashboard shows pending leave request breakdown for the authenticated employee and keeps notifications visible on mobile', function () {
     $user = User::factory()->create();
     $user->forceFill(['role' => UserRole::Employee])->save();
@@ -122,7 +121,6 @@ test('employee dashboard shows pending leave request breakdown for the authentic
         ->assertSee('class="group relative"', false);
 });
 
-
 test('employee dashboard aggregation counts corrected present dates and calculates a closed session duration', function () {
     $user = User::factory()->create();
     $user->forceFill(['role' => UserRole::Employee])->save();
@@ -167,7 +165,6 @@ test('employee dashboard aggregation counts corrected present dates and calculat
         ->and($dashboard['todayStatus']['status'])->toBe(DailyAttendanceStatus::Present->value)
         ->and($dashboard['todayIsRunning'])->toBeFalse();
 });
-
 
 test('employee dashboard separates approved overtime from net ordinary work duration', function () {
     $user = User::factory()->create();
@@ -227,7 +224,6 @@ test('employee dashboard separates approved overtime from net ordinary work dura
         ->and($dashboard['monthly']['overtimeIsProvisional'])->toBeFalse();
 });
 
-
 test('employee dashboard includes an open attendance session as provisional work duration', function () {
     $user = User::factory()->create();
     $user->forceFill(['role' => UserRole::Employee])->save();
@@ -253,7 +249,6 @@ test('employee dashboard includes an open attendance session as provisional work
         ->and($dashboard['todayDurationMinutes'])->toBe(240)
         ->and($dashboard['todayIsRunning'])->toBeTrue();
 });
-
 
 test('employee dashboard duration follows approved effective clock timestamps', function () {
     $user = User::factory()->create();
@@ -340,7 +335,6 @@ test('employee dashboard attributes a cross-midnight session to its clock-in dat
         ->and($dashboard['todayStatus']['status'])->toBe(DailyAttendanceStatus::NoRecord->value);
 });
 
-
 test('employee dashboard does not display a duration for an attendance day requiring review', function () {
     $user = User::factory()->create();
     $user->forceFill(['role' => UserRole::Employee])->save();
@@ -388,7 +382,6 @@ test('employee dashboard does not display a duration for an attendance day requi
         ->and($dashboard['todayIsRunning'])->toBeFalse()
         ->and($dashboard['monthly']['workMinutes'])->toBe(0);
 });
-
 
 test('employee dashboard flags finalized overtime that extends beyond its attendance session', function () {
     $user = User::factory()->create();
@@ -446,7 +439,6 @@ test('employee dashboard flags finalized overtime that extends beyond its attend
         ->and($dashboard['monthly']['overtimeMinutes'])->toBe(120)
         ->and($dashboard['monthly']['overtimeNeedsReview'])->toBeTrue();
 });
-
 
 test('employee dashboard excludes a session with duplicate clock-out events from duration', function () {
     $user = User::factory()->create();
@@ -619,8 +611,6 @@ test('employee monthly attendance classification matches the admin daily summary
         ->and($adminView->getData()['presentToday'])->toBe(1);
 });
 
-
-
 test('employee dashboard aggregates multiple approved overtime intervals within one session', function () {
     $user = User::factory()->create();
     $user->forceFill(['role' => UserRole::Employee])->save();
@@ -683,7 +673,6 @@ test('employee dashboard aggregates multiple approved overtime intervals within 
         ->and($dashboard['monthly']['workMinutes'])->toBe(480)
         ->and($dashboard['monthly']['overtimeMinutes'])->toBe(120);
 });
-
 
 test('employee dashboard marks ambiguous unanchored session events for review', function () {
     $user = User::factory()->create();
@@ -755,7 +744,6 @@ test('employee dashboard excludes a session with a non-positive effective time i
         ->and($dashboard['todayDurationMinutes'])->toBeNull()
         ->and($dashboard['monthly']['workMinutes'])->toBe(0);
 });
-
 
 test('personal admin dashboard is unavailable without a linked employee profile', function () {
     $user = User::factory()->create();
