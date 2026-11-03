@@ -199,6 +199,9 @@
                             @if ($monthly['overtimeIsProvisional'])
                                 <p class="mt-1 text-xs text-amber-700 dark:text-amber-300">{{ __('Termasuk lembur berjalan') }}</p>
                             @endif
+                            @if ($monthly['overtimeNeedsReview'])
+                                <p class="mt-1 text-xs font-medium text-red-700 dark:text-red-300">{{ __('Ada interval lembur di luar sesi absensi dan perlu ditinjau admin') }}</p>
+                            @endif
                         </x-ui.card>
                     </div>
                 </section>
