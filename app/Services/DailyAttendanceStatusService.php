@@ -223,6 +223,22 @@ class DailyAttendanceStatusService
 
         $hasIn = $clockInCount === 1;
         $hasOut = $clockOutCount === 1;
+
+        if ($hasIn && $hasOut) {
+            $clockIn = $events->first(fn (AttendanceRecord $event) => $event->type->value === 'clock_in');
+            $clockOut = $events->first(fn (AttendanceRecord $event) => $event->type->value === 'clock_out');
+
+            if (! $clockIn->effectiveRecordedAt() || ! $clockOut->effectiveRecordedAt()
+                || $clockOut->effectiveRecordedAt()->lte($clockIn->effectiveRecordedAt())) {
+                return $this->reviewResult(
+                    $events,
+                    $leaveRequests,
+                    null,
+                    'Waktu Clock Out tidak lebih akhir dari Clock In. Riwayat perlu ditinjau admin.',
+                );
+            }
+        }
+
         $status = $hasIn && $hasOut ? DailyAttendanceStatus::Present : DailyAttendanceStatus::Incomplete;
 
         return [
