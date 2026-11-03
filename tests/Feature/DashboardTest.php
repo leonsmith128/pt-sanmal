@@ -113,7 +113,7 @@ test('employee dashboard shows pending leave request breakdown for the authentic
         ->get(route('dashboard'))
         ->assertOk()
         ->assertSee('Pengajuan Saya')
-        ->assertSee('Belum ada data')
+        ->assertSee('Belum ada aktivitas absensi.')
         ->assertDontSee('Tidak hadir')
         ->assertSee('Cuti Tahunan:')
         ->assertSee('Sakit:')
