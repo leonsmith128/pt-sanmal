@@ -23,27 +23,71 @@
     --color-zinc-900: #171717;
     --color-zinc-950: #0a0a0a;
 
-    --color-accent: var(--color-neutral-800);
-    --color-accent-content: var(--color-neutral-800);
-    --color-accent-foreground: var(--color-white);
+    /* SanMal brand palette */
+    --color-sanmal-brand-blue: #0e3b6b;
+    --color-sanmal-brand-blue-dark: #0c315b;
+    --color-sanmal-brand-blue-light: #b4c8dc;
+    --color-sanmal-brand-yellow: #e7a007;
+    --color-sanmal-brand-yellow-dark: #d9a72e;
+    --color-sanmal-brand-yellow-dark-hover: #c49320;
+
+    /* SanMal semantic feedback palette */
+    --color-sanmal-success: #258640;
+    --color-sanmal-warning: #b2640a;
+    --color-sanmal-danger: #bd1f1f;
+    --color-sanmal-info: #145985;
+
+    /* SanMal light surfaces */
+    --color-sanmal-surface-page: #e5ebf1;
+    --color-sanmal-surface-primary: #f8fcff;
+    --color-sanmal-surface-secondary: #eaf0f6;
+    --color-sanmal-surface-inset: #e3ebf3;
+    --color-sanmal-border: #d3ddea;
+
+    /* SanMal dark surfaces */
+    --color-sanmal-surface-page-dark: #0b1623;
+    --color-sanmal-surface-primary-dark: #122235;
+    --color-sanmal-surface-secondary-dark: #192b40;
+    --color-sanmal-surface-inset-dark: #20354b;
+    --color-sanmal-surface-elevated-dark: #263d55;
+    --color-sanmal-border-dark: #344b63;
+
+    --color-accent: #0e3b6b;
+    --color-accent-content: #0e3b6b;
+    --color-accent-foreground: #ffffff;
 }
 
-@layer theme {
-    .dark {
-        --color-accent: var(--color-white);
-        --color-accent-content: var(--color-white);
-        --color-accent-foreground: var(--color-neutral-800);
-    }
+:root {
+    color-scheme: light;
+    --sanmal-focus: #0e3b6b;
+    --sanmal-text-primary: #172033;
+    --sanmal-text-secondary: #526579;
+    --sanmal-text-muted: #64748b;
+}
+
+.dark {
+    color-scheme: dark;
+    --sanmal-focus: #b4c8dc;
+    --sanmal-text-primary: #f1f5f9;
+    --sanmal-text-secondary: #cbd5e1;
+    --sanmal-text-muted: #94a3b8;
+
+    --color-accent: #b4c8dc;
+    --color-accent-content: #b4c8dc;
+    --color-accent-foreground: #0b1623;
 }
 
 @layer base {
-
     *,
     ::after,
     ::before,
     ::backdrop,
     ::file-selector-button {
-        border-color: var(--color-gray-200, currentColor);
+        border-color: var(--color-sanmal-border, currentColor);
+    }
+
+    body {
+        color: var(--sanmal-text-primary);
     }
 }
 
@@ -52,15 +96,120 @@
 }
 
 [data-flux-label] {
-    @apply  !mb-0 !leading-tight;
+    @apply !mb-0 !leading-tight;
+}
+
+[data-flux-description] {
+    @apply text-sm leading-relaxed;
+    color: var(--sanmal-text-muted);
+}
+
+[data-flux-error] {
+    @apply text-sm leading-relaxed;
+    color: var(--color-sanmal-danger);
 }
 
 input:focus[data-flux-control],
 textarea:focus[data-flux-control],
 select:focus[data-flux-control] {
-    @apply outline-hidden ring-2 ring-accent ring-offset-2 ring-offset-accent-foreground;
+    outline: 2px solid transparent;
+    --tw-ring-color: var(--sanmal-focus);
+    @apply outline-hidden ring-2 ring-offset-2;
 }
 
-/* \[:where(&)\]:size-4 {
-    @apply size-4;
-} */
+.dark input:focus[data-flux-control],
+.dark textarea:focus[data-flux-control],
+.dark select:focus[data-flux-control] {
+    --tw-ring-offset-color: #122235;
+}
+
+/* SanMal primary and secondary button treatments */
+.sanmal-button-primary {
+    background-color: var(--color-sanmal-brand-yellow) !important;
+    border-color: var(--color-sanmal-brand-yellow) !important;
+    color: #172033 !important;
+    transition: background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.sanmal-button-primary:hover:not(:disabled, [disabled]) {
+    background-color: #d89500 !important;
+    border-color: #d89500 !important;
+    color: #172033 !important;
+}
+
+.sanmal-button-primary:focus-visible {
+    outline: 2px solid var(--sanmal-focus) !important;
+    outline-offset: 2px;
+}
+
+.sanmal-button-primary:disabled,
+.sanmal-button-primary[disabled] {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.dark .sanmal-button-primary {
+    background-color: var(--color-sanmal-brand-yellow-dark) !important;
+    border-color: var(--color-sanmal-brand-yellow-dark) !important;
+    color: #172033 !important;
+}
+
+.dark .sanmal-button-primary:hover:not(:disabled, [disabled]) {
+    background-color: var(--color-sanmal-brand-yellow-dark-hover) !important;
+    border-color: var(--color-sanmal-brand-yellow-dark-hover) !important;
+}
+
+.sanmal-button-secondary {
+    background-color: var(--color-sanmal-surface-primary) !important;
+    border-color: var(--color-sanmal-border) !important;
+    color: #0e3b6b !important;
+}
+
+.sanmal-button-secondary:hover:not(:disabled, [disabled]) {
+    background-color: var(--color-sanmal-surface-secondary) !important;
+}
+
+.dark .sanmal-button-secondary {
+    background-color: var(--color-sanmal-surface-secondary-dark) !important;
+    border-color: var(--color-sanmal-border-dark) !important;
+    color: #e2e8f0 !important;
+}
+
+.dark .sanmal-button-secondary:hover:not(:disabled, [disabled]) {
+    background-color: var(--color-sanmal-surface-elevated-dark) !important;
+}
+
+/* Semantic badge colors: soft surfaces with readable foregrounds */
+.sanmal-badge-success {
+    background-color: #e8f3ea !important;
+    color: #1d6b32 !important;
+}
+.sanmal-badge-warning {
+    background-color: #fff3df !important;
+    color: #8a4b08 !important;
+}
+.sanmal-badge-danger {
+    background-color: #fceaea !important;
+    color: #991b1b !important;
+}
+.sanmal-badge-info {
+    background-color: #e8f1f7 !important;
+    color: #10496d !important;
+}
+
+.dark .sanmal-badge-success {
+    background-color: #193d31 !important;
+    color: #75d394 !important;
+}
+.dark .sanmal-badge-warning {
+    background-color: #49351f !important;
+    color: #f2bb65 !important;
+}
+.dark .sanmal-badge-danger {
+    background-color: #48272b !important;
+    color: #f18a8a !important;
+}
+.dark .sanmal-badge-info {
+    background-color: #19364d !important;
+    color: #7abde5 !important;
+}
