@@ -176,6 +176,7 @@ it('evaluates the current month independently in each Clock In session timezone'
         'timezone' => 'Asia/Jakarta',
         'attendance_date' => '2026-10-31',
     ]);
+    $jakartaClockIn->setRelation('approvedCorrection', null);
 
     $makassarClockIn = new AttendanceRecord;
     $makassarClockIn->forceFill([
@@ -183,6 +184,7 @@ it('evaluates the current month independently in each Clock In session timezone'
         'timezone' => 'Asia/Makassar',
         'attendance_date' => '2026-11-01',
     ]);
+    $makassarClockIn->setRelation('approvedCorrection', null);
 
     expect($method->invoke($service, $jakartaClockIn, $now, 'Asia/Makassar'))->toBeTrue()
         ->and($method->invoke($service, $makassarClockIn, $now, 'Asia/Makassar'))->toBeTrue();
@@ -199,6 +201,7 @@ it('does not reinterpret a session month using the employee latest timezone', fu
         'timezone' => 'Asia/Makassar',
         'attendance_date' => '2026-10-31',
     ]);
+    $previousMonthInMakassar->setRelation('approvedCorrection', null);
 
     $futureLocalDateInJakarta = new AttendanceRecord;
     $futureLocalDateInJakarta->forceFill([
@@ -206,6 +209,7 @@ it('does not reinterpret a session month using the employee latest timezone', fu
         'timezone' => 'Asia/Jakarta',
         'attendance_date' => '2026-11-01',
     ]);
+    $futureLocalDateInJakarta->setRelation('approvedCorrection', null);
 
     expect($method->invoke($service, $previousMonthInMakassar, $now, 'Asia/Makassar'))->toBeFalse()
         ->and($method->invoke($service, $futureLocalDateInJakarta, $now, 'Asia/Makassar'))->toBeFalse();
@@ -223,6 +227,7 @@ it('uses the Clock In anchor timezone and date for a later session event', funct
         'timezone' => 'Asia/Jakarta',
         'attendance_date' => '2026-10-31',
     ]);
+    $clockIn->setRelation('approvedCorrection', null);
 
     $clockOut = new AttendanceRecord;
     $clockOut->forceFill([
@@ -230,6 +235,7 @@ it('uses the Clock In anchor timezone and date for a later session event', funct
         'timezone' => 'Asia/Makassar',
         'attendance_date' => '2026-11-01',
     ]);
+    $clockOut->setRelation('approvedCorrection', null);
     $clockOut->setRelation('sessionAnchor', $clockIn);
 
     expect($method->invoke($service, $clockOut, $now, 'Asia/Makassar'))->toBeTrue();
