@@ -4,7 +4,7 @@
 
 @if($sidebar)
     <flux:sidebar.brand {{ $attributes }}>
-        <x-slot name="logo" class="flex h-9 w-full min-w-0 items-center justify-center rounded-md">
+        <x-slot name="logo" class="flex h-9 w-auto min-w-0 items-center justify-center rounded-md">
             <img
                 src="{{ asset('images/logo-sanmal.png') }}"
                 alt="SanMal"
