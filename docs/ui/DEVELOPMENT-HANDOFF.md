@@ -14,7 +14,8 @@ Baca berurutan:
 6. [Page Inventory](PAGE-INVENTORY.md) — cakupan halaman dan fokus review.
 7. [Component Catalog](COMPONENT-CATALOG.md) — peta primitive bersama.
 8. [Reusable Blade Components](REUSABLE-BLADE-COMPONENTS.md) — detail API/kontrak komponen.
-9. [Implementation Status](progress/IMPLEMENTATION-STATUS.md) dan [Visual QA Log](progress/VISUAL-QA-LOG.md) — status dan bukti yang tercatat.
+9. [Employee Dashboard Data Contract](EMPLOYEE-DASHBOARD-DATA-CONTRACT.md) — definisi agregasi status, jam kerja, lembur, pengajuan, dan aktivitas.
+10. [Implementation Status](progress/IMPLEMENTATION-STATUS.md) dan [Visual QA Log](progress/VISUAL-QA-LOG.md) — status dan bukti yang tercatat.
 
 Tidak perlu membaca audit lama. Dokumen aktif di atas adalah panduan; source, route, test, dan hasil browser aktual adalah kebenaran implementasi.
 
