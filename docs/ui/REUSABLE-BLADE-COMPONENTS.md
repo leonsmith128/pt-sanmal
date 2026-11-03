@@ -95,29 +95,36 @@ Page views should compose primitives and domain components, while retaining:
 9. Do not put business logic, database access, authorization decisions, or route construction inside presentational components.
 10. Migrate a small page group at a time and add/update focused tests for rendered contracts.
 
-## Current migration status
+## Current standardization status
 
-- `x-ui.page`, `x-ui.card`, and `x-ui.button` primitives exist.
-- `x-ui.page`, `x-ui.page-header`, `x-ui.section`, and `x-ui.card` are reusable layout primitives. The page shell now supports role/page-specific max-width and vertical-gap presets while retaining the original `max-w-7xl gap-4` default.
-- The button primitive is applied to the audited Admin Attendance actions (export, evidence backup/deletion, timestamp correction, and modal close), Employee dashboard navigation, Employee Attendance and overtime flows, Employee leave/correction/attendance-history actions, Employee profile/security actions, authentication login/password/verification actions, and existing Admin CRUD/review pages. Specialized native controls remain for calendar-day selection and photo-preview triggers because their custom interaction/content is part of the control itself. Continue auditing any remaining direct Flux/native button usage as pages are revisited.
-- The generic page header is now the implementation behind the existing `x-admin.page-header` API, preserving current callers while making the layout primitive reusable outside Admin.
-- `x-ui.section` provides a standard vertical section wrapper.
-- Generic flash-message and empty-state components now back the existing Admin component names, preserving their call sites.
-- Dashboard statistic/action cards and Admin daily employee cards now compose `x-ui.card`. Attendance information cards retain their semantic section wrapper.
-- `x-ui.field`, `x-ui.input`, `x-ui.select`, `x-ui.textarea`, and `x-ui.checkbox` are now implemented.
-- `x-ui.metadata-item` is implemented for semantic `<dt>`/`<dd>` pairs. It provides default label/value typography while allowing page-specific label/value classes and wrapper attributes. Admin Attendance Correction detail, Admin Leave Request detail, Admin Employee cards, and Admin Project summary/detail now use it for repeated label/value pairs; conditional fields and all displayed values remain controlled by the existing page data.
-- `x-ui.badge` is implemented as a thin Flux badge wrapper. Admin employee account status, Admin overtime approval/state indicators, Admin Client location/office status, Admin Project type/status/site warning, Employee request status, and Employee attendance event indicators now use the shared primitive; the existing `x-admin.request-status-badge` API delegates to it. Admin Employee Create/Edit use `x-ui.input` for text, email, phone, employee number, and date fields, plus `x-ui.select` for job title and account status. Option markup and selected-state expressions remain in the page so existing request values are preserved. Employee leave requests, Admin leave decisions, and Admin overtime finalization/decision/photo-exception forms use `x-ui.textarea`; the authentication login page uses `x-ui.checkbox` for Remember me.
-- `tests/Feature/UiFormControlsTest.php` covers input label/description/error rendering, Livewire/Alpine/native attribute forwarding, and custom field slots.
-- `tests/Feature/UiSelectComponentTest.php` covers select label/description/error rendering, option slots, custom IDs, and Livewire/Alpine/native attribute forwarding.
-- `tests/Feature/UiTextareaComponentTest.php` covers textarea label/description/error rendering, slot content, row/resize options, custom IDs, and Livewire/Alpine/native attribute forwarding.
-- `tests/Feature/UiCheckboxComponentTest.php` covers checkbox label/description/error rendering, checked state, custom IDs, and Livewire/Alpine/native attribute forwarding.
-- `tests/Feature/UiButtonComponentTest.php` covers button semantics, default type, Alpine-bound links, and forwarding of Livewire, accessibility, disabled, and presentation attributes. The GitHub Actions run associated with the earlier button commit passed formatting, static analysis, MariaDB tests, and SQLite tests; the latest broader button migration still requires its own CI result.
-- `tests/Feature/UiLayoutComponentsTest.php` covers the generic page header, page container, and section wrapper.
-- `tests/Feature/UiCardComponentTest.php` covers content and linked-card semantics.
-- `tests/Feature/UiFeedbackComponentsTest.php` covers generic and Admin-compatible empty states.
-- `tests/Feature/UiBadgeComponentTest.php` covers default/explicit color, forwarded presentation attributes, and enum-provided status labels/colors.
-- `tests/Feature/UiMetadataItemComponentTest.php` covers semantic description-list markup, default/custom classes, slot values, and forwarded wrapper attributes.
-- Tests have been authored but not yet executed in this environment; CI status must be checked before considering this migration validated.
+The shared reusable component foundation is implemented. The current `x-ui.*` inventory contains 14 primitives:
+
+- Layout: `page`, `page-header`, `section`.
+- Action: `button`.
+- Surface: `card`.
+- Form: `field`, `input`, `select`, `textarea`, `checkbox`.
+- Feedback: `flash-message`, `empty-state`.
+- Status/metadata: `badge`, `metadata-item`.
+
+The primitives are used across selected Admin, Employee, Shared, and Authentication pages. Adoption is intentionally based on semantic fit; it does not require converting every page wrapper, native control, table, or one-off markup into a generic component.
+
+Focused component tests exist for the layout, button, card, feedback, form controls, badge, and metadata components. CI has passed on the latest responsive-fix commit `6da6b96ee1e8be19126cba43a62d6ec51aaf22ca` ([run 1065](https://github.com/leonsmith128/pt-sanmal/actions/runs/41566842563)). This is not a claim that all focused tests were run in one latest aggregate suite or that every page passed visual QA.
+
+The latest targeted page fixes cover:
+- Admin Attendance filter width and mobile-first control layout.
+- Overtime detail's invalid image icon name.
+- Employee request-center header action wrapping.
+
+These changes passed CI, but the corresponding browser/viewport recheck remains pending owner confirmation. See [Implementation Status](progress/IMPLEMENTATION-STATUS.md) and [Visual QA Log](progress/VISUAL-QA-LOG.md).
+
+### Standardization boundary
+
+- Reuse the existing primitives where their semantics and API fit.
+- Keep domain-specific status mapping and business decisions outside generic primitives.
+- Do not extract one-off markup without a demonstrated repeated pattern and shared interaction contract.
+- Do not treat reusable component standardization as completion of page design, layouting, responsive audit, accessibility audit, or final visual QA.
+
+The next work phase is page-level design and layouting using the existing primitives. New component work should be driven by a concrete gap discovered during that phase, not by a goal of abstracting every remaining class or element.
 
 ## Responsive data presentation
 
@@ -146,14 +153,9 @@ Use the presentation pattern that matches the data's purpose; do not force every
 - Admin Employees: use one-column cards below `lg`, two-column cards from `lg` through `xl`, and the comparison table from `xl`. These are CSS viewport-width decisions, not device-orientation detection: narrower tablet viewports retain one column, while wider tablet viewports can use two columns. Preserve the established desktop table breakpoint. Card and table fields stay equivalent: employee name/email, employee number, job title, account status, and edit action. The table has a 52rem content minimum, a named keyboard-focusable scroll region, and scoped column headers.
 - Admin review queues such as Attendance Corrections and Overtime Requests remain responsive lists; a table is not required when the primary interaction is opening an individual request.
 
-## Migration order
+## Next phase
 
-1. UI primitives: page, button, card.
-2. Shared feedback and navigation patterns: flash message, empty state, page header, filter panel.
-3. Form controls: field, input, select, textarea, checkbox.
-4. Repeated data presentation: badges, table wrappers, list/card rows, metadata groups.
-5. Apply components to Admin pages, then employee pages and auth.
-6. Consolidate remaining one-off utility classes only after usage has been audited.
+The reusable component standardization phase is complete. Do not repeat the primitive implementation sequence unless page-level work exposes a concrete missing reusable pattern. The next phase is page design and layouting, tracked in [Implementation Status](progress/IMPLEMENTATION-STATUS.md).
 
 ## Validation checklist
 
