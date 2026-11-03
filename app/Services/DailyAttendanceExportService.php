@@ -40,7 +40,7 @@ class DailyAttendanceExportService
                 $statusService, $rangeStart, $rangeEnd, $filters, $stream
             ): void {
                 /** @var Collection<int, Employee> $employees */
-                $statuses = $statusService->forEmployeesDateRange($employees, $rangeStart, $rangeEnd);
+                $statuses = $statusService->forEmployeesDateRange($employees, $rangeStart, $rangeEnd, 'Asia/Makassar');
 
                 foreach ($employees as $employee) {
                     for ($day = $rangeStart->copy(); $day->lte($rangeEnd); $day->addDay()) {
