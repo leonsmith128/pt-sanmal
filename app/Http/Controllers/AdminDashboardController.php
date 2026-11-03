@@ -9,13 +9,30 @@ use App\Models\Employee;
 use App\Models\LeaveRequest;
 use App\Models\OvertimeRequest;
 use App\Services\DailyAttendanceStatusService;
+use App\Services\EmployeeDashboardAggregationService;
 use Illuminate\Support\Carbon;
 use Illuminate\View\View;
 
 class AdminDashboardController extends Controller
 {
-    public function __invoke(DailyAttendanceStatusService $statusService): View
-    {
+    public function __invoke(
+        DailyAttendanceStatusService $statusService,
+        EmployeeDashboardAggregationService $employeeDashboardService,
+    ): View {
+        $user = auth()->user();
+
+        if (! $user->isManager()) {
+            $employee = $user->employee;
+
+            return view('pages::dashboard', [
+                'isManager' => false,
+                'today' => now()->translatedFormat('l, d F Y'),
+                'employeeDashboard' => $employee
+                    ? $employeeDashboardService->forEmployee($employee)
+                    : null,
+            ]);
+        }
+
         $today = now()->toDateString();
         $employees = Employee::query()
             ->whereHas('user', fn ($query) => $query->where('is_active', true))
@@ -26,7 +43,7 @@ class AdminDashboardController extends Controller
         $counts = collect($daily)->map(fn ($days) => $days[$today]['status'] ?? 'no_record')->countBy();
 
         return view('pages::dashboard', [
-            'isManager' => auth()->user()->isManager(),
+            'isManager' => true,
             'activeEmployees' => $employees->count(),
             'presentToday' => $counts->get('present', 0),
             'incompleteToday' => $counts->get('incomplete', 0),
