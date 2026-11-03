@@ -42,7 +42,7 @@ Render four equal-priority cards beneath the hero:
 3. **Belum Lengkap** — count of resolved `incomplete` dates.
 4. **Total Lembur** — approved overtime duration only.
 
-The period is the current calendar month from day one through today, in the employee's attendance timezone. Every calendar date is included in the denominator/context; weekends and holidays are not excluded. Do not add a lateness metric or an absence count.
+Current-month attribution is evaluated independently for each attendance session using the timezone snapshot established by that session's Clock In anchor. Sessions belonging to different local months at the same absolute instant remain attributed to their own Clock In month; a cross-midnight or cross-month Clock Out never moves the session. Every calendar date in each applicable session-local month is included in the period/context; weekends and holidays are not excluded. Do not add a lateness metric or an absence count.
 
 At desktop width, use a four-column row. At tablet, allow two columns. At mobile, use a compact two-column grid if labels and values remain readable; otherwise stack.
 
