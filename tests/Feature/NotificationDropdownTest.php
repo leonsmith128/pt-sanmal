@@ -1,6 +1,5 @@
 <?php
 
-use Illuminate\\Notifications\\DatabaseNotification;
 use Illuminate\\Support\\Facades\\Blade;
 use Illuminate\\Support\\Str;
 use App\\Models\\User;
