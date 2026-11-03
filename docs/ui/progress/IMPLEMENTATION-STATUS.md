@@ -33,7 +33,10 @@ Source inspection bukan browser QA. Component test bukan bukti seluruh workflow 
 - Backend sudah menegakkan larangan konfirmasi sebelum `scheduled_start_at`, validasi state pengajuan, dan pemblokiran Clock Out untuk pengajuan aktif yang belum dikonfirmasi. Pembatalan pegawai dibatasi pada state `scheduled`/`awaiting_photo` tanpa `start_record_id`.
 - Overtime card menampilkan waktu sejak jadwal tiba sebelum konfirmasi dan durasi aktual dari `startRecord.recorded_at` setelah konfirmasi. Tampilan timer hanya berjalan untuk pengajuan pada sesi yang masih terbuka; finalisasi admin tetap menjadi sumber durasi yang diakui.
 - Tombol pembatalan pengajuan tetap berada di overtime card sebagai satu-satunya jalan pegawai membuka blokir Clock Out.
-- **Status: Implemented, unverified.** Feature test untuk state terkunci diperbarui, tetapi test suite, Pint, build, CI head terbaru, serta browser/device QA belum dijalankan/dikonfirmasi pada tahap ini. Penyatuan trigger GPS → kamera otomatis dan regression test lintas state masih perlu diselesaikan.
+- Alur satu tombol: ketika belum ada foto, tombol utama memicu kamera; setelah foto berhasil diunggah, tombol berubah menjadi **Lanjutkan** untuk membuka modal konfirmasi. Tombol kamera sekunder dihapus dari halaman.
+- Kamera baru dibuka setelah izin lokasi diperiksa, koordinat segar didapatkan, dan reverse geocoding menghasilkan alamat snapshot. Shutter tetap manual; preview menyediakan foto ulang/gunakan foto; upload tetap melalui Livewire; pencatatan tetap menunggu konfirmasi dan validasi server.
+- Feature test menegaskan pemicu kamera dari tombol utama dan tahap **Lanjutkan**. Pengujian browser/device untuk urutan GPS, izin kamera, shutter, preview, upload, dan error handling masih diperlukan.
+- **Status: Implemented, unverified.** Test suite, Pint, build, dan CI head terbaru belum lulus/terverifikasi. Regression coverage backend untuk pemblokiran clock-out dan konfirmasi lembur sudah ada, tetapi perlu dijalankan ulang bersama test UI yang diperbarui. Browser/device QA tetap ditunda sampai seluruh halaman pegawai selesai.
 
 ## Cakupan fondasi reusable yang sudah tersedia
 
