@@ -232,3 +232,89 @@ it('includes forgotten clock-out correction status and note in the daily export'
         ->toContain('Menunggu')
         ->toContain('Lupa melakukan Clock Out karena pekerjaan lapangan.');
 });
+
+
+it('groups onsite sessions by the WITA company reporting date without changing the employee local date', function () {
+    $employee = dateFilterEmployee('Pegawai Batas WITA');
+
+    $clockIn = AttendanceRecord::query()->create([
+        'employee_id' => $employee->id,
+        'type' => AttendanceType::ClockIn,
+        'work_type' => WorkType::Onsite,
+        'recorded_at' => '2026-11-01 16:30:00',
+        'timezone' => 'Asia/Jakarta',
+        'timezone_source' => 'gps_resolved',
+        'attendance_date' => '2026-11-01',
+    ]);
+
+    AttendanceRecord::query()->create([
+        'employee_id' => $employee->id,
+        'session_anchor_id' => $clockIn->id,
+        'type' => AttendanceType::ClockOut,
+        'work_type' => WorkType::Onsite,
+        'recorded_at' => '2026-11-01 17:30:00',
+        'timezone' => 'Asia/Jakarta',
+        'timezone_source' => 'session_anchor',
+        'attendance_date' => '2026-11-01',
+    ]);
+
+    $service = app(DailyAttendanceStatusService::class);
+    $employeeLocal = $service->forEmployeeDate($employee, '2026-11-01');
+    $companyCalendar = $service->forEmployeesDateRange(
+        collect([$employee]),
+        '2026-11-02',
+        '2026-11-02',
+        'Asia/Makassar',
+    );
+
+    expect($employeeLocal['events'])->toHaveCount(2)
+        ->and($companyCalendar[$employee->id]['2026-11-02']['events'])->toHaveCount(2)
+        ->and($companyCalendar[$employee->id]['2026-11-02']['status'])->toBe('present')
+        ->and($companyCalendar[$employee->id]['2026-11-01']['events'] ?? collect())->toBeEmpty();
+});
+
+it('uses the approved effective timestamp when assigning a session to the WITA report date', function () {
+    $employee = dateFilterEmployee('Pegawai Koreksi WITA');
+    $clockIn = AttendanceRecord::query()->create([
+        'employee_id' => $employee->id,
+        'type' => AttendanceType::ClockIn,
+        'work_type' => WorkType::Onsite,
+        'recorded_at' => '2026-11-01 15:30:00',
+        'timezone' => 'Asia/Jakarta',
+        'attendance_date' => '2026-11-01',
+    ]);
+
+    AttendanceRecord::query()->create([
+        'employee_id' => $employee->id,
+        'session_anchor_id' => $clockIn->id,
+        'type' => AttendanceType::ClockOut,
+        'work_type' => WorkType::Onsite,
+        'recorded_at' => '2026-11-01 17:00:00',
+        'timezone' => 'Asia/Jakarta',
+        'attendance_date' => '2026-11-01',
+    ]);
+
+    AttendanceCorrection::query()->create([
+        'employee_id' => $employee->id,
+        'attendance_record_id' => $clockIn->id,
+        'session_anchor_id' => $clockIn->id,
+        'requested_type' => AttendanceType::ClockIn->value,
+        'requested_recorded_at' => '2026-11-01 16:30:00',
+        'attendance_date' => '2026-11-01',
+        'reason' => 'Timestamp disesuaikan dengan bukti.',
+        'status' => 'approved',
+        'reviewed_by' => dateFilterAdmin()->id,
+        'reviewed_at' => now(),
+    ]);
+
+    $service = app(DailyAttendanceStatusService::class);
+    $companyCalendar = $service->forEmployeesDateRange(
+        collect([$employee]),
+        '2026-11-02',
+        '2026-11-02',
+        'Asia/Makassar',
+    );
+
+    expect($companyCalendar[$employee->id]['2026-11-02']['events'])->toHaveCount(2)
+        ->and($companyCalendar[$employee->id]['2026-11-02']['status'])->toBe('present');
+});
