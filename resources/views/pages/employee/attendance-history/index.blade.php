@@ -1,10 +1,15 @@
 <x-layouts::app :title="__('Riwayat Absensi')">
-    <div x-data="{ selfiePreviewOpen: false, selfiePreviewUrl: null, selfieDownloadUrl: null }" x-on:keydown.escape.window="selfiePreviewOpen = false" class="mx-auto w-full max-w-5xl space-y-5 px-4 py-4 sm:px-6 sm:py-6">
-        <header class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-                <flux:heading size="xl" level="1">{{ __('Riwayat Absensi') }}</flux:heading>
-                <flux:text class="mt-1">{{ __('Lihat catatan masuk, mulai lembur, dan pulang yang tercatat pada akun Anda.') }}</flux:text>
-            </div>
+    <x-ui.page
+        max-width="5xl"
+        gap="5"
+        x-data="{ selfiePreviewOpen: false, selfiePreviewUrl: null, selfieDownloadUrl: null }"
+        x-on:keydown.escape.window="selfiePreviewOpen = false"
+        class="px-4 py-4 sm:px-6 sm:py-6"
+    >
+        <x-ui.page-header
+            :title="__('Riwayat Absensi')"
+            :description="__('Lihat catatan masuk, mulai lembur, dan pulang yang tercatat pada akun Anda.')"
+        >
             <div class="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
                 <x-ui.button href="{{ route('attendance-history.export', request()->query()) }}" variant="outline" icon="arrow-down-tray" class="w-full sm:w-auto">
                     {{ __('Ekspor rekap harian (CSV)') }}
@@ -13,7 +18,7 @@
                     {{ __('Buka halaman absensi') }}
                 </x-ui.button>
             </div>
-        </header>
+        </x-ui.page-header>
 
         <section class="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900 sm:p-5">
             <form method="GET" action="{{ route('attendance-history.index') }}" class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
@@ -236,5 +241,5 @@
                 </div>
             </div>
         </div>
-    </div>
+    </x-ui.page>
 </x-layouts::app>
