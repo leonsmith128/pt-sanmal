@@ -178,19 +178,19 @@
                 <x-ui.card>
                     <h2 id="monthly-summary-heading" class="text-base font-semibold">{{ __('Ringkasan bulan ini') }}</h2>
 
-                    <div class="mt-4 grid grid-cols-1 divide-y divide-sanmal-border text-center dark:divide-sanmal-border-dark xl:grid-cols-4 xl:divide-x xl:divide-y-0">
-                        <div class="flex flex-col items-center justify-center px-3 py-3 xl:py-2">
+                    <div class="mt-4 grid grid-cols-2 text-center">
+                        <div class="flex flex-col items-center justify-center border-e border-b border-sanmal-border px-3 py-3 dark:border-sanmal-border-dark xl:border-b-0 xl:py-2">
                             <p class="text-sm text-zinc-600 dark:text-zinc-400">{{ __('Hari hadir') }}</p>
                             <p class="mt-2 text-2xl font-semibold tabular-nums">{{ $monthly['presentDays'] }}</p>
                         </div>
-                        <div class="flex flex-col items-center justify-center px-3 py-3 xl:py-2">
+                        <div class="flex flex-col items-center justify-center border-b border-sanmal-border px-3 py-3 dark:border-sanmal-border-dark xl:border-e xl:border-b-0 xl:py-2">
                             <p class="text-sm text-zinc-600 dark:text-zinc-400">{{ __('Total jam kerja') }}</p>
                             <p class="mt-2 text-2xl font-semibold tabular-nums">{{ $formatDuration($monthly['workMinutes']) }}</p>
                             @if ($monthly['workIsProvisional'])
                                 <p class="mt-1 text-xs text-amber-700 dark:text-amber-300">{{ __('Termasuk sesi berjalan') }}</p>
                             @endif
                         </div>
-                        <div class="flex flex-col items-center justify-center px-3 py-3 xl:py-2">
+                        <div class="flex flex-col items-center justify-center border-e border-sanmal-border px-3 py-3 dark:border-sanmal-border-dark xl:border-b-0 xl:py-2">
                             <p class="text-sm text-zinc-600 dark:text-zinc-400">{{ __('Belum lengkap') }}</p>
                             <p class="mt-2 text-2xl font-semibold tabular-nums">{{ $monthly['incompleteDays'] }}</p>
                         </div>
