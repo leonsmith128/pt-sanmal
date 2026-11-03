@@ -16,8 +16,8 @@
         @endif
     </summary>
 
-    <div class="fixed right-2 top-16 z-[100] max-h-[calc(100dvh-5rem)] w-[min(22rem,calc(100vw-1rem))] overflow-y-auto origin-top-right rounded-xl border border-zinc-200 bg-white shadow-xl ring-1 ring-black/5 dark:border-zinc-700 dark:bg-zinc-900 lg:absolute lg:right-0 lg:top-full lg:mt-2 lg:max-h-[min(32rem,calc(100dvh-6rem))] lg:w-[min(22rem,calc(100vw-2rem))]">
-        <div class="flex items-center justify-between gap-3 border-b border-zinc-100 px-4 py-3 dark:border-zinc-800">
+    <div class="fixed right-2 top-16 z-[100] max-h-[calc(100dvh-5rem)] w-[min(22rem,calc(100vw-1rem))] overflow-y-auto origin-top-right rounded-xl border border-sanmal-border bg-sanmal-surface-primary shadow-xl ring-1 ring-black/5 dark:border-sanmal-border-dark dark:bg-sanmal-surface-primary-dark lg:absolute lg:right-0 lg:top-full lg:mt-2 lg:max-h-[min(32rem,calc(100dvh-6rem))] lg:w-[min(22rem,calc(100vw-2rem))]">
+        <div class="flex items-center justify-between gap-3 border-b border-sanmal-border px-4 py-3 dark:border-sanmal-border-dark">
             <h2 class="font-semibold text-zinc-900 dark:text-zinc-100">{{ __('Notifikasi') }}</h2>
             @if ($unreadCount > 0)
                 <x-ui.badge color="sky">{{ __(':count belum dibaca', ['count' => $unreadCount]) }}</x-ui.badge>
@@ -34,9 +34,9 @@
                 @method('PATCH')
                 <button
                     type="submit"
-                    class="flex w-full items-start gap-3 border-b border-zinc-100 px-4 py-3 text-left transition last:border-b-0 hover:bg-zinc-50 focus-visible:bg-zinc-50 focus-visible:outline-none dark:border-zinc-800 dark:hover:bg-zinc-800/70 dark:focus-visible:bg-zinc-800/70 {{ $notification->read_at ? '' : 'bg-sky-50/70 dark:bg-sky-950/20' }}"
+                    class="flex w-full items-start gap-3 border-b border-zinc-100 px-4 py-3 text-left transition last:border-b-0 hover:bg-zinc-50 focus-visible:bg-zinc-50 focus-visible:outline-none dark:border-zinc-800 dark:hover:bg-sanmal-surface-secondary-dark dark:focus-visible:bg-sanmal-surface-secondary-dark {{ $notification->read_at ? '' : 'bg-sky-50/70 dark:bg-sky-950/20' }}"
                 >
-                    <span class="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full {{ $notification->read_at ? 'bg-zinc-100 text-zinc-500 dark:bg-zinc-800' : 'bg-sky-100 text-sky-700 dark:bg-sky-900 dark:text-sky-300' }}">
+                    <span class="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full {{ $notification->read_at ? 'bg-zinc-100 text-zinc-500 dark:bg-sanmal-surface-elevated-dark' : 'bg-sky-100 text-sky-700 dark:bg-sky-900 dark:text-sky-300' }}">
                         <flux:icon name="{{ $isResolved ? 'x-circle' : 'bell' }}" class="size-4" />
                     </span>
                     <span class="min-w-0 flex-1">
@@ -61,7 +61,7 @@
 
         <a
             href="{{ route('notifications.index') }}"
-            class="block border-t border-zinc-100 px-4 py-3 text-center text-sm font-semibold text-sanmal-700 transition hover:bg-zinc-50 hover:underline dark:border-zinc-800 dark:text-sanmal-300 dark:hover:bg-zinc-800/70"
+            class="block border-t border-zinc-100 px-4 py-3 text-center text-sm font-semibold text-sanmal-700 transition hover:bg-zinc-50 hover:underline dark:border-sanmal-border-dark dark:text-sanmal-brand-blue-light dark:hover:bg-sanmal-surface-secondary-dark"
         >
             {{ __('Lihat semua notifikasi') }}
         </a>
