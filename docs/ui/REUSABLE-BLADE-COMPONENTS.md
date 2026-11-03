@@ -70,6 +70,12 @@ Components that encode a repeated page pattern or domain-specific presentation:
 - status badge;
 - attendance evidence and record metadata when repeated across pages.
 
+Shell-specific navigation composition:
+- `x-ui.sidebar-section` wraps a group of Flux sidebar items and requires a `heading` prop plus the navigation items in its slot.
+- The heading row keeps a fixed height in both states. Expanded desktop shows the section heading; collapsed desktop replaces it with a subtle Flux separator in the same row so following icons do not shift vertically.
+- Use it only for grouped Admin/Manager navigation. Employee navigation is intentionally ungrouped and must not use this component.
+- The component does not create navigation items, routes, authorization, or role decisions; those remain in the application layout.
+
 Keep these separate from generic primitives when they contain domain terminology or business-specific presentation.
 
 ### 3. Page composition
@@ -97,7 +103,7 @@ Page views should compose primitives and domain components, while retaining:
 
 ## Current standardization status
 
-The shared reusable component foundation is implemented. The current `x-ui.*` inventory contains 14 primitives:
+The shared reusable component foundation is implemented. The current generic `x-ui.*` inventory contains 14 primitives. The shell-specific `x-ui.sidebar-section` navigation composition helper is documented separately below and is not counted as a generic primitive:
 
 - Layout: `page`, `page-header`, `section`.
 - Action: `button`.
