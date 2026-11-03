@@ -208,6 +208,38 @@ it('blocks clock out before a future scheduled overtime until the request is can
         ->and($overtime->fresh()->cancelled_at)->toBeNull();
 });
 
+it('allows clock out after cancelling a future scheduled overtime request', function () {
+    Storage::fake('local');
+    $employee = overtimeEmployee();
+    $clockIn = overtimeClockIn($employee);
+    $overtime = overtimeRequest($employee, $clockIn, now()->addHour()->toDateTimeString());
+    $overtime->update(['state' => OvertimeState::Scheduled]);
+
+    $this->actingAs($employee->user)
+        ->patch(route('overtime-requests.cancel', $overtime))
+        ->assertRedirect(route('overtime-requests.index'));
+
+    expect($overtime->fresh()->state)->toBe(OvertimeState::Cancelled)
+        ->and($overtime->fresh()->cancelled_at)->not->toBeNull();
+
+    $clockOut = app(RecordAttendance::class)->handle(
+        employee: $employee,
+        type: AttendanceType::ClockOut,
+        workType: null,
+        locationId: null,
+        projectId: null,
+        latitude: -5.14,
+        longitude: 119.41,
+        accuracy: 25,
+        selfie: UploadedFile::fake()->image('clock-out-after-cancellation.jpg'),
+        selfieSource: SelfieSource::Camera,
+    );
+
+    expect($clockOut->type)->toBe(AttendanceType::ClockOut)
+        ->and($overtime->fresh()->state)->toBe(OvertimeState::Cancelled)
+        ->and($overtime->fresh()->clock_out_record_id)->toBeNull();
+});
+
 it('accepts an overtime request scheduled for the current minute and allows photo confirmation', function () {
     Storage::fake('local');
     $employee = overtimeEmployee();
