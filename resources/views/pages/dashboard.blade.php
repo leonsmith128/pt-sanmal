@@ -139,13 +139,9 @@
                         </p>
                     </div>
 
-                    <flux:button
-                        href="{{ route('notifications.index') }}"
-                        variant="ghost"
-                        icon="bell"
-                        :aria-label="__('Notifikasi')"
-                        tooltip="{{ __('Notifikasi') }}"
-                        class="shrink-0"
+                    <x-ui.notification-dropdown
+                        :notifications="$notifications"
+                        :unread-count="$unreadNotificationCount"
                     />
                 </header>
 
