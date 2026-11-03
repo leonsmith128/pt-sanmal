@@ -576,7 +576,7 @@ it('allows only one overtime request for a work session even after the first req
     expect(OvertimeRequest::query()->where('clock_in_record_id', $clockIn->id)->count())->toBe(1);
 });
 
-it('shows a disabled overtime attendance button instead of clock out before the scheduled start', function () {
+it('shows a locked concise overtime confirmation action instead of clock out before the scheduled start', function () {
     $employee = overtimeEmployee();
     $clockIn = overtimeClockIn($employee);
     $overtime = overtimeRequest($employee, $clockIn, now()->addHour()->toDateTimeString());
@@ -584,7 +584,7 @@ it('shows a disabled overtime attendance button instead of clock out before the 
 
     Livewire::actingAs($employee->user)
         ->test('pages::employee.attendance')
-        ->assertSee('Absen Lembur')
+        ->assertSee('Konfirmasi Lembur')
         ->assertSee('Menunggu jadwal lembur')
         ->assertSee('Tombol Clock Out tidak tersedia selama pengajuan ini masih aktif.');
 });
