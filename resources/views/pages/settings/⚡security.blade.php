@@ -118,6 +118,7 @@ new #[Title('Keamanan Akun')] class extends Component {
 
         <form wire:submit="updateEmail" class="mt-5 space-y-4">
             <x-ui.input
+                name="email"
                 wire:model="email"
                 :label="__('Email login')"
                 type="email"
@@ -161,6 +162,7 @@ new #[Title('Keamanan Akun')] class extends Component {
 
         <form wire:submit="updatePassword" class="mt-5 space-y-5">
             <x-ui.input
+                name="current_password"
                 wire:model="current_password"
                 :label="__('Kata sandi saat ini')"
                 type="password"
@@ -169,6 +171,7 @@ new #[Title('Keamanan Akun')] class extends Component {
                 viewable
             />
             <x-ui.input
+                name="password"
                 wire:model="password"
                 :label="__('Kata sandi baru')"
                 type="password"
@@ -178,6 +181,7 @@ new #[Title('Keamanan Akun')] class extends Component {
                 viewable
             />
             <x-ui.input
+                name="password_confirmation"
                 wire:model="password_confirmation"
                 :label="__('Konfirmasi kata sandi baru')"
                 type="password"
