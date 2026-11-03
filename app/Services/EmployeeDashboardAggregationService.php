@@ -35,8 +35,6 @@ class EmployeeDashboardAggregationService
 
         $sessionTimezones = AttendanceRecord::query()
             ->where('employee_id', $employee->id)
-            ->where('type', AttendanceType::ClockIn)
-            ->whereColumn('session_anchor_id', 'id')
             ->whereNotNull('timezone')
             ->distinct()
             ->pluck('timezone')
