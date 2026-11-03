@@ -142,6 +142,7 @@
                     <x-ui.notification-dropdown
                         :notifications="$notifications"
                         :unread-count="$unreadNotificationCount"
+                        class="hidden sm:block"
                     />
                 </header>
 
