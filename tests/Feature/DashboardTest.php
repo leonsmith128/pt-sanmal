@@ -237,3 +237,89 @@ test('employee dashboard includes an open attendance session as provisional work
         ->and($dashboard['todayDurationMinutes'])->toBe(240)
         ->and($dashboard['todayIsRunning'])->toBeTrue();
 });
+
+
+test('employee dashboard duration follows approved effective clock timestamps', function () {
+    $user = User::factory()->create();
+    $user->forceFill(['role' => UserRole::Employee])->save();
+    $employee = Employee::create(['user_id' => $user->id]);
+
+    $clockIn = AttendanceRecord::create([
+        'employee_id' => $employee->id,
+        'type' => AttendanceType::ClockIn,
+        'work_type' => WorkType::Office,
+        'recorded_at' => Carbon::parse('2026-11-03 00:00:00', 'UTC'),
+        'timezone' => 'Asia/Makassar',
+        'attendance_date' => '2026-11-03',
+    ]);
+    $clockOut = AttendanceRecord::create([
+        'employee_id' => $employee->id,
+        'session_anchor_id' => $clockIn->id,
+        'type' => AttendanceType::ClockOut,
+        'work_type' => WorkType::Office,
+        'recorded_at' => Carbon::parse('2026-11-03 09:00:00', 'UTC'),
+        'timezone' => 'Asia/Makassar',
+        'attendance_date' => '2026-11-03',
+    ]);
+
+    foreach ([
+        [$clockIn, 'clock_in', '2026-11-03 01:00:00'],
+        [$clockOut, 'clock_out', '2026-11-03 08:00:00'],
+    ] as [$record, $type, $effectiveAt]) {
+        AttendanceCorrection::create([
+            'employee_id' => $employee->id,
+            'attendance_record_id' => $record->id,
+            'session_anchor_id' => $clockIn->id,
+            'requested_type' => $type,
+            'requested_recorded_at' => Carbon::parse($effectiveAt, 'UTC'),
+            'attendance_date' => '2026-11-03',
+            'reason' => 'Koreksi timestamp disetujui',
+            'status' => 'approved',
+            'reviewed_by' => $user->id,
+            'reviewed_at' => Carbon::parse('2026-11-03 10:00:00', 'UTC'),
+        ]);
+    }
+
+    $dashboard = app(EmployeeDashboardAggregationService::class)->forEmployee(
+        $employee,
+        Carbon::parse('2026-11-03 11:00:00', 'UTC'),
+    );
+
+    expect($dashboard['monthly']['workMinutes'])->toBe(420)
+        ->and($dashboard['todayClockIn']->effectiveRecordedAt()->toDateTimeString())->toBe('2026-11-03 01:00:00')
+        ->and($dashboard['todayClockOut']->effectiveRecordedAt()->toDateTimeString())->toBe('2026-11-03 08:00:00');
+});
+
+test('employee dashboard attributes a cross-midnight session to its clock-in date', function () {
+    $user = User::factory()->create();
+    $user->forceFill(['role' => UserRole::Employee])->save();
+    $employee = Employee::create(['user_id' => $user->id]);
+
+    $clockIn = AttendanceRecord::create([
+        'employee_id' => $employee->id,
+        'type' => AttendanceType::ClockIn,
+        'work_type' => WorkType::Office,
+        'recorded_at' => Carbon::parse('2026-11-03 15:00:00', 'UTC'),
+        'timezone' => 'Asia/Makassar',
+        'attendance_date' => '2026-11-03',
+    ]);
+
+    AttendanceRecord::create([
+        'employee_id' => $employee->id,
+        'session_anchor_id' => $clockIn->id,
+        'type' => AttendanceType::ClockOut,
+        'work_type' => WorkType::Office,
+        'recorded_at' => Carbon::parse('2026-11-03 18:00:00', 'UTC'),
+        'timezone' => 'Asia/Makassar',
+        'attendance_date' => '2026-11-04',
+    ]);
+
+    $dashboard = app(EmployeeDashboardAggregationService::class)->forEmployee(
+        $employee,
+        Carbon::parse('2026-11-04 00:00:00', 'UTC'),
+    );
+
+    expect($dashboard['monthly']['presentDays'])->toBe(1)
+        ->and($dashboard['monthly']['workMinutes'])->toBe(180)
+        ->and($dashboard['todayStatus']['status'])->toBe(DailyAttendanceStatus::NoRecord->value);
+});
