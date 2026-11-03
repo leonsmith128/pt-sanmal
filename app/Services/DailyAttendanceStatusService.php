@@ -153,6 +153,15 @@ class DailyAttendanceStatusService
             ];
         }
 
+        if ($events->contains(fn (AttendanceRecord $event): bool => $event->timezone_source === 'fallback')) {
+            return $this->reviewResult(
+                $events,
+                $leaveRequests,
+                null,
+                'Timezone absensi menggunakan fallback Asia/Makassar karena GPS tidak dapat menentukan zona waktu. Riwayat perlu ditinjau admin.',
+            );
+        }
+
         $leaveStatuses = $leaveRequests->map(
             fn (LeaveRequest $request) => $this->statusFromLeaveType($request->leaveType?->code, $request->leaveType?->name),
         )->unique();
