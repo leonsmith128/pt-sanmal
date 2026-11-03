@@ -1,10 +1,11 @@
 <x-layouts::app :title="__('Ajukan Koreksi Absensi')">
-    <div class="mx-auto w-full max-w-2xl space-y-5 px-4 py-4 sm:px-6 sm:py-6">
-        <header class="space-y-2">
-            <x-ui.button href="{{ route('leave-requests.index') }}" variant="ghost" icon="arrow-left" size="sm" class="w-fit">{{ __('Kembali') }}</x-ui.button>
-            <flux:heading size="xl" level="1">{{ __('Ajukan Koreksi Absensi') }}</flux:heading>
-            <flux:text>{{ __('Pilih event yang ingin dikoreksi. Untuk Clock Out yang terlupa, pilih sesi Clock In yang masih terbuka.') }}</flux:text>
-        </header>
+    <x-ui.page max-width="2xl" gap="5" class="px-4 py-4 sm:px-6 sm:py-6">
+        <x-ui.page-header
+            :title="__('Ajukan Koreksi Absensi')"
+            :description="__('Pilih event yang ingin dikoreksi. Untuk Clock Out yang terlupa, pilih sesi Clock In yang masih terbuka.')"
+        >
+            <x-ui.button href="{{ route('leave-requests.index') }}" variant="ghost" icon="arrow-left" size="sm">{{ __('Kembali') }}</x-ui.button>
+        </x-ui.page-header>
 
         @if ($errors->any())
             <flux:callout variant="danger" icon="exclamation-triangle">
@@ -71,5 +72,5 @@
                 <x-ui.button type="submit" variant="primary">{{ __('Kirim koreksi') }}</x-ui.button>
             </div>
         </form>
-    </div>
+    </x-ui.page>
 </x-layouts::app>
