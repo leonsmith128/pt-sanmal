@@ -79,8 +79,9 @@ The mockup includes a decorative encouragement card. This is lowest priority. In
 
 ## 3. Visual hierarchy
 
-- White/light neutral dominant surfaces, SanMal blue for primary action and selected emphasis.
+- Light theme uses the approved light neutral surfaces; dark theme uses the matching SanMal dark surface tokens. Both themes must style every dashboard card consistently.
 - Reuse existing `x-ui.page`, `x-ui.page-header`, `x-ui.card`, `x-ui.badge`, and `x-ui.button` where their contracts fit.
+- All Employee Dashboard cards use the shared shadow-only `x-ui.card` surface: `sanmal-surface-primary` in light theme and `sanmal-surface-primary-dark` in dark theme. Do not leave individual cards on generic white/zinc backgrounds or add one-off borders.
 - Use semantic sections and headings; avoid card-in-card nesting.
 - Keep four statistic cards visually consistent; semantic accent colors may distinguish categories but text labels remain mandatory.
 - Use compact, consistent spacing and restrained borders/shadows. Do not copy the mockup's sample numbers, sample employee name, dates, notification count, or fabricated activity.
