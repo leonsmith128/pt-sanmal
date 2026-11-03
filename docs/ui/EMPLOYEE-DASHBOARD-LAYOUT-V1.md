@@ -44,7 +44,7 @@ Render four equal-priority cards beneath the hero:
 
 Current-month attribution is evaluated independently for each attendance session using the timezone snapshot established by that session's Clock In anchor. Sessions belonging to different local months at the same absolute instant remain attributed to their own Clock In month; a cross-midnight or cross-month Clock Out never moves the session. Every calendar date in each applicable session-local month is included in the period/context; weekends and holidays are not excluded. Do not add a lateness metric or an absence count.
 
-At desktop width, use a four-column row. At tablet, allow two columns. At mobile, use a compact two-column grid if labels and values remain readable; otherwise stack.
+Use a two-column grid on mobile and tablet, expanding to four columns at the `xl` breakpoint. Center each metric label and value. Do not add horizontal or vertical separators between metrics.
 
 ### D. Lower content grid
 
@@ -81,7 +81,7 @@ The mockup includes a decorative encouragement card. This is lowest priority. In
 
 - Light theme uses the approved light neutral surfaces; dark theme uses the matching SanMal dark surface tokens. Both themes must style every dashboard card consistently.
 - Reuse existing `x-ui.page`, `x-ui.page-header`, `x-ui.card`, `x-ui.badge`, and `x-ui.button` where their contracts fit.
-- All Employee Dashboard cards use the shared shadow-only `x-ui.card` surface: `sanmal-surface-primary` in light theme and `sanmal-surface-primary-dark` in dark theme. Do not leave individual cards on generic white/zinc backgrounds or add one-off borders.
+- All Employee Dashboard cards use the shared shadow-only `x-ui.card` surface: `sanmal-surface-card` in light theme and `sanmal-surface-card-dark` in dark theme. Do not leave individual cards on generic white/zinc backgrounds or add one-off borders.
 - Use semantic sections and headings; avoid card-in-card nesting.
 - Keep four statistic cards visually consistent; semantic accent colors may distinguish categories but text labels remain mandatory.
 - Use compact, consistent spacing and restrained borders/shadows. Do not copy the mockup's sample numbers, sample employee name, dates, notification count, or fabricated activity.
@@ -112,6 +112,12 @@ The mockup includes a decorative encouragement card. This is lowest priority. In
 5. Implement the Employee Dashboard view using existing UI primitives.
 6. Run focused tests, full relevant test suite, Pint, and asset build as applicable.
 7. Perform browser QA at the responsive checkpoints above and record evidence in the Visual QA Log.
+
+### Implemented layout notes
+
+- The monthly summary currently uses a two-column grid below `xl` and four columns from `xl` upward. Metric labels and values are centered; there are no separators between metrics.
+- The optional encouragement panel is not part of the current implementation.
+- Automated source/feature coverage does not replace responsive browser QA; see [Visual QA Log](progress/VISUAL-QA-LOG.md).
 
 ## 7. Out of scope
 
