@@ -3,7 +3,7 @@
     <head>
         @include('partials.head')
     </head>
-    <body class="min-h-screen bg-white dark:bg-zinc-800">
+    <body class="min-h-screen bg-sanmal-surface-page dark:bg-sanmal-surface-page-dark">
         @php
             $sidebarUser = auth()->user();
             $sidebarEmployee = $sidebarUser->employee;
@@ -21,7 +21,7 @@
         <flux:sidebar
             sticky
             :collapsible="$isManager"
-            class="h-screen min-h-screen overflow-x-hidden border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 {{ $isEmployee && ! $isManager ? 'hidden lg:flex' : '' }}"
+            class="h-screen min-h-screen overflow-x-hidden border-e border-sanmal-border bg-sanmal-surface-secondary dark:border-sanmal-border-dark dark:bg-sanmal-surface-primary-dark {{ $isEmployee && ! $isManager ? 'hidden lg:flex' : '' }}"
         >
             <flux:sidebar.header>
                 <div class="flex w-full items-center justify-between gap-2">
@@ -149,12 +149,12 @@
         </flux:sidebar>
 
         @if ($isManager)
-            <flux:header class="lg:hidden">
+            <flux:header class="border-b border-sanmal-border bg-sanmal-surface-primary dark:border-sanmal-border-dark dark:bg-sanmal-surface-primary-dark lg:hidden">
                 <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" />
                 <flux:spacer />
                 <x-app-logo href="{{ route('dashboard') }}" wire:navigate />
                 <flux:spacer />
-                <a href="{{ route('notifications.index') }}" wire:navigate aria-label="{{ __('Buka notifikasi') }}" class="relative flex size-10 shrink-0 items-center justify-center rounded-full text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800">
+                <a href="{{ route('notifications.index') }}" wire:navigate aria-label="{{ __('Buka notifikasi') }}" class="relative flex size-10 shrink-0 items-center justify-center rounded-full text-zinc-600 hover:bg-sanmal-surface-secondary dark:text-zinc-300 dark:hover:bg-sanmal-surface-elevated-dark">
                     <flux:icon name="bell" class="size-5" />
                     @if ($unreadSystemNotifications > 0)
                         <span class="absolute right-0.5 top-0.5 flex min-h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-semibold text-white">{{ $unreadSystemNotifications > 99 ? '99+' : $unreadSystemNotifications }}</span>
@@ -188,10 +188,10 @@
                 </flux:dropdown>
             </flux:header>
         @elseif ($isEmployee)
-            <flux:header class="lg:hidden">
+            <flux:header class="border-b border-sanmal-border bg-sanmal-surface-primary dark:border-sanmal-border-dark dark:bg-sanmal-surface-primary-dark lg:hidden">
                 <x-app-logo href="{{ route('dashboard') }}" wire:navigate />
                 <flux:spacer />
-                <a href="{{ route('notifications.index') }}" wire:navigate aria-label="{{ __('Buka notifikasi') }}" class="relative flex size-10 shrink-0 items-center justify-center rounded-full text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800">
+                <a href="{{ route('notifications.index') }}" wire:navigate aria-label="{{ __('Buka notifikasi') }}" class="relative flex size-10 shrink-0 items-center justify-center rounded-full text-zinc-600 hover:bg-sanmal-surface-secondary dark:text-zinc-300 dark:hover:bg-sanmal-surface-elevated-dark">
                     <flux:icon name="bell" class="size-5" />
                     @if ($unreadSystemNotifications > 0)
                         <span class="absolute right-0.5 top-0.5 flex min-h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-semibold text-white">{{ $unreadSystemNotifications > 99 ? '99+' : $unreadSystemNotifications }}</span>
@@ -218,7 +218,7 @@
             </flux:header>
 
             <nav
-                class="fixed inset-x-0 bottom-0 z-40 border-t border-zinc-200 bg-white pb-[env(safe-area-inset-bottom)] dark:border-zinc-700 dark:bg-zinc-900 lg:hidden"
+                class="fixed inset-x-0 bottom-0 z-40 border-t border-sanmal-border bg-sanmal-surface-primary pb-[env(safe-area-inset-bottom)] dark:border-sanmal-border-dark dark:bg-sanmal-surface-primary-dark lg:hidden"
                 aria-label="{{ __('Navigasi utama') }}"
             >
                 <div class="mx-auto flex min-h-16 max-w-xl items-stretch justify-around px-2">
