@@ -4,7 +4,7 @@
     'headingSize' => 'xl',
 ])
 
-<header {{ $attributes->class(['flex min-w-0 flex-col gap-3 md:flex-row md:items-start md:justify-between']) }}>
+<header {{ $attributes->class(['flex flex-col gap-3 md:flex-row md:items-start md:justify-between min-w-0']) }}>
     <div class="min-w-0 flex-1">
         <flux:heading :size="$headingSize" level="1">{{ $title }}</flux:heading>
         @if ($description)
