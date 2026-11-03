@@ -123,7 +123,7 @@ class EmployeeDashboardAggregationService
             }
 
             $events = $anchor->sessionEvents
-                ->filter(fn (AttendanceRecord $event) => $event->employee_id === $anchor->employee_id && in_array($event->type, [
+                ->filter(fn (AttendanceRecord $event) => (int) $event->employee_id === (int) $anchor->employee_id && in_array($event->type, [
                     AttendanceType::ClockIn,
                     AttendanceType::OvertimeStart,
                     AttendanceType::ClockOut,
