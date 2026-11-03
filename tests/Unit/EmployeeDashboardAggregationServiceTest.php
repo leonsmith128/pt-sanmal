@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\AttendanceType;
 use App\Enums\OvertimeState;
 use App\Models\AttendanceCorrection;
 use App\Models\AttendanceRecord;
@@ -170,14 +171,14 @@ it('evaluates the current month independently in each Clock In session timezone'
 
     $jakartaClockIn = new AttendanceRecord;
     $jakartaClockIn->forceFill([
-        'type' => \App\Enums\AttendanceType::ClockIn,
+        'type' => AttendanceType::ClockIn,
         'timezone' => 'Asia/Jakarta',
         'attendance_date' => '2026-10-31',
     ]);
 
     $makassarClockIn = new AttendanceRecord;
     $makassarClockIn->forceFill([
-        'type' => \App\Enums\AttendanceType::ClockIn,
+        'type' => AttendanceType::ClockIn,
         'timezone' => 'Asia/Makassar',
         'attendance_date' => '2026-11-01',
     ]);
@@ -193,14 +194,14 @@ it('does not reinterpret a session month using the employee latest timezone', fu
 
     $previousMonthInMakassar = new AttendanceRecord;
     $previousMonthInMakassar->forceFill([
-        'type' => \App\Enums\AttendanceType::ClockIn,
+        'type' => AttendanceType::ClockIn,
         'timezone' => 'Asia/Makassar',
         'attendance_date' => '2026-10-31',
     ]);
 
     $futureLocalDateInJakarta = new AttendanceRecord;
     $futureLocalDateInJakarta->forceFill([
-        'type' => \App\Enums\AttendanceType::ClockIn,
+        'type' => AttendanceType::ClockIn,
         'timezone' => 'Asia/Jakarta',
         'attendance_date' => '2026-11-01',
     ]);
@@ -218,14 +219,14 @@ it('uses the Clock In anchor timezone and date for a later session event', funct
     $clockIn = new AttendanceRecord;
     $clockIn->forceFill([
         'id' => 101,
-        'type' => \App\Enums\AttendanceType::ClockIn,
+        'type' => AttendanceType::ClockIn,
         'timezone' => 'Asia/Jakarta',
         'attendance_date' => '2026-10-31',
     ]);
 
     $clockOut = new AttendanceRecord;
     $clockOut->forceFill([
-        'type' => \App\Enums\AttendanceType::ClockOut,
+        'type' => AttendanceType::ClockOut,
         'timezone' => 'Asia/Makassar',
         'attendance_date' => '2026-11-01',
     ]);
