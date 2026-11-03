@@ -178,23 +178,23 @@
                 <x-ui.card>
                     <h2 id="monthly-summary-heading" class="text-base font-semibold">{{ __('Ringkasan bulan ini') }}</h2>
 
-                    <div class="mt-4 grid grid-cols-2 gap-4 xl:grid-cols-4">
-                        <div>
+                    <div class="mt-4 grid grid-cols-1 divide-y divide-sanmal-border text-center dark:divide-sanmal-border-dark xl:grid-cols-4 xl:divide-x xl:divide-y-0">
+                        <div class="flex flex-col items-center justify-center px-3 py-3 xl:py-2">
                             <p class="text-sm text-zinc-600 dark:text-zinc-400">{{ __('Hari hadir') }}</p>
                             <p class="mt-2 text-2xl font-semibold tabular-nums">{{ $monthly['presentDays'] }}</p>
                         </div>
-                        <div>
+                        <div class="flex flex-col items-center justify-center px-3 py-3 xl:py-2">
                             <p class="text-sm text-zinc-600 dark:text-zinc-400">{{ __('Total jam kerja') }}</p>
                             <p class="mt-2 text-2xl font-semibold tabular-nums">{{ $formatDuration($monthly['workMinutes']) }}</p>
                             @if ($monthly['workIsProvisional'])
                                 <p class="mt-1 text-xs text-amber-700 dark:text-amber-300">{{ __('Termasuk sesi berjalan') }}</p>
                             @endif
                         </div>
-                        <div>
+                        <div class="flex flex-col items-center justify-center px-3 py-3 xl:py-2">
                             <p class="text-sm text-zinc-600 dark:text-zinc-400">{{ __('Belum lengkap') }}</p>
                             <p class="mt-2 text-2xl font-semibold tabular-nums">{{ $monthly['incompleteDays'] }}</p>
                         </div>
-                        <div>
+                        <div class="flex flex-col items-center justify-center px-3 py-3 xl:py-2">
                             <p class="text-sm text-zinc-600 dark:text-zinc-400">{{ __('Total lembur') }}</p>
                             <p class="mt-2 text-2xl font-semibold tabular-nums">{{ $formatDuration($monthly['overtimeMinutes']) }}</p>
                             @if ($monthly['overtimeIsProvisional'])
