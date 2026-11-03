@@ -129,7 +129,7 @@ new #[Title('Profil Pegawai')] class extends Component {
 
             <flux:text wire:loading wire:target="photo,saveProfilePhoto" class="text-sm text-zinc-500 dark:text-zinc-400">Mengunggah foto...</flux:text>
         </form>
-    </div>
+    </x-ui.card>
 
     <x-ui.card padding="p-6">
         <flux:heading size="lg">Informasi pribadi</flux:heading>
