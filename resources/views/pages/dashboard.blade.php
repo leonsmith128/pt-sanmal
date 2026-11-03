@@ -1,11 +1,9 @@
 <x-layouts::app :title="__('Dashboard')">
-    <div class="mx-auto flex w-full max-w-7xl flex-col gap-6">
-        <header>
-            <flux:heading size="xl" level="1">
-                {{ $isManager ? __('Dashboard Administrasi') : __('Dashboard') }}
-            </flux:heading>
-            <flux:text class="mt-1">{{ $today }}</flux:text>
-        </header>
+    <x-ui.page gap="6">
+        <x-ui.page-header
+            :title="$isManager ? __('Dashboard Administrasi') : __('Dashboard')"
+            :description="$today"
+        />
 
         @if ($isManager)
             <section
@@ -104,5 +102,5 @@
                 </div>
             </section>
         @endif
-    </div>
+    </x-ui.page>
 </x-layouts::app>
