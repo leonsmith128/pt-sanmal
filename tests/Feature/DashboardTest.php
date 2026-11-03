@@ -73,7 +73,7 @@ test('employee dashboard does not expose administrative summary when no employee
         ->assertDontSee('Permohonan menunggu');
 });
 
-test('employee monthly summary centers metrics and separates stacked values horizontally', function () {
+test('dashboard metric cards center labels and values without separators', function () {
     $user = User::factory()->create();
     $user->forceFill(['role' => UserRole::Employee])->save();
     Employee::create(['user_id' => $user->id]);
@@ -82,10 +82,11 @@ test('employee monthly summary centers metrics and separates stacked values hori
         ->get(route('dashboard'))
         ->assertOk()
         ->assertSee('Ringkasan bulan ini')
-        ->assertSee('divide-y divide-sanmal-border', false)
-        ->assertSee('xl:divide-x xl:divide-y-0', false)
+        ->assertSee('grid-cols-2 gap-4 text-center xl:grid-cols-4', false)
+        ->assertDontSee('divide-sanmal-border', false)
+        ->assertSee('items-center', false)
         ->assertSee('text-center', false)
-        ->assertSee('items-center', false);
+        ->assertSee('flex flex-col items-center gap-2 text-center', false);
 });
 
 test('employee dashboard shows pending leave request breakdown for the authenticated employee and keeps notifications visible on mobile', function () {
