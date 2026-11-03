@@ -8,9 +8,7 @@
             <x-ui.button href="{{ route('attendance') }}" variant="ghost" icon="arrow-left">{{ __('Absensi') }}</x-ui.button>
         </div>
 
-        @if (session('status'))
-            <flux:callout variant="success" icon="check-circle"><flux:callout.text>{{ session('status') }}</flux:callout.text></flux:callout>
-        @endif
+        <x-ui.flash-message />
 
         <section class="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900">
             <flux:heading size="lg">{{ __('Ajukan lembur') }}</flux:heading>
