@@ -210,3 +210,30 @@ test('employee dashboard separates approved overtime from net ordinary work dura
         ->and($dashboard['monthly']['workIsProvisional'])->toBeFalse()
         ->and($dashboard['monthly']['overtimeIsProvisional'])->toBeFalse();
 });
+
+
+test('employee dashboard includes an open attendance session as provisional work duration', function () {
+    $user = User::factory()->create();
+    $user->forceFill(['role' => UserRole::Employee])->save();
+    $employee = Employee::create(['user_id' => $user->id]);
+
+    AttendanceRecord::create([
+        'employee_id' => $employee->id,
+        'type' => AttendanceType::ClockIn,
+        'work_type' => WorkType::Office,
+        'recorded_at' => Carbon::parse('2026-11-03 08:00:00', 'Asia/Makassar'),
+        'timezone' => 'Asia/Makassar',
+        'attendance_date' => '2026-11-03',
+    ]);
+
+    $dashboard = app(EmployeeDashboardAggregationService::class)->forEmployee(
+        $employee,
+        Carbon::parse('2026-11-03 12:00:00', 'Asia/Makassar'),
+    );
+
+    expect($dashboard['monthly']['incompleteDays'])->toBe(1)
+        ->and($dashboard['monthly']['workMinutes'])->toBe(240)
+        ->and($dashboard['monthly']['workIsProvisional'])->toBeTrue()
+        ->and($dashboard['todayDurationMinutes'])->toBe(240)
+        ->and($dashboard['todayIsRunning'])->toBeTrue();
+});
