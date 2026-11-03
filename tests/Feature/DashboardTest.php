@@ -153,6 +153,10 @@ test('employee dashboard aggregation counts corrected present dates and calculat
         'attendance_date' => '2026-11-03',
     ]);
 
+    $anchor = $clockIn->fresh();
+    expect($anchor->session_anchor_id)->toBe($anchor->id)
+        ->and($anchor->sessionEvents)->toHaveCount(2);
+
     $dashboard = app(EmployeeDashboardAggregationService::class)->forEmployee(
         $employee,
         Carbon::parse('2026-11-03 10:00:00', 'UTC'),
