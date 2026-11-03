@@ -1,5 +1,7 @@
 <?php
 
+uses(Tests\TestCase::class);
+
 use App\Enums\AttendanceType;
 use App\Enums\OvertimeState;
 use App\Models\AttendanceCorrection;
