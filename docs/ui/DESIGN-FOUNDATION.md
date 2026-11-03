@@ -137,6 +137,16 @@ Spacing scale reference: 4, 8, 12, 16, 20, 24, 32, 40, and 48 px. Prefer consist
 
 Density means removing decorative whitespace, not shrinking everything. Do not hide critical information or reduce hit targets to fit more content.
 
+### Application shell and content surface
+
+Keep the application shell visually continuous: the `body` and desktop sidebar use the same background surface (`bg-zinc-50 dark:bg-zinc-900`). The sidebar has no separating border; spacing and surface contrast should define the layout instead.
+
+The main content is a distinct panel on that shell (`bg-white dark:bg-zinc-800`) with rounded corners and **outer margin**, not outer padding. Use a smaller margin on mobile and a wider margin on desktop. Remove Flux's `inset` behavior for this layout and explicitly neutralize default main padding with `p-0`; do not add padding to the main layout to simulate the inset.
+
+Page content owns its own internal spacing. `x-ui.page` provides width, vertical flow, and section gap; do not add blanket horizontal padding to it or duplicate spacing already provided by a page-specific surface. When a page needs inner padding, apply it to the relevant page section/card, not the application shell.
+
+Preserve the employee mobile header and fixed bottom navigation. Ensure the main panel's margin and page content's bottom clearance do not overlap that navigation.
+
 ## 6. Button foundation
 
 The source already contains `x-ui.button`, which wraps Flux UI 2.13's button component. Reuse it before adding another button implementation. Its current Blade API includes:
