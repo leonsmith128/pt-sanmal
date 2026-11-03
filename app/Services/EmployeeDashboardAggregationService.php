@@ -97,8 +97,9 @@ class EmployeeDashboardAggregationService
 
             $clockIns = $events->where('type', AttendanceType::ClockIn);
             $clockOuts = $events->where('type', AttendanceType::ClockOut);
+            $overtimeStarts = $events->where('type', AttendanceType::OvertimeStart);
 
-            if ($clockIns->count() !== 1 || $clockOuts->count() > 1) {
+            if ($clockIns->count() !== 1 || $clockOuts->count() > 1 || $overtimeStarts->count() > 1) {
                 continue;
             }
 
