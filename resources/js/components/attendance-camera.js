@@ -125,7 +125,7 @@ export default function attendanceCamera(config = {}) {
             this.locationSnapshotFailed = false;
             try {
                 const snapshot = await this.locationTracker.prepareSnapshot();
-                if (!snapshot?.latitude || !snapshot?.longitude || !snapshot?.address) {
+                if (!snapshot || !Number.isFinite(snapshot.latitude) || !Number.isFinite(snapshot.longitude) || !snapshot.address) {
                     throw new Error('location-snapshot-incomplete');
                 }
 
