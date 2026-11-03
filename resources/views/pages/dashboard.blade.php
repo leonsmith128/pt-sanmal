@@ -135,7 +135,6 @@
                     <x-ui.notification-dropdown
                         :notifications="$notifications"
                         :unread-count="$unreadNotificationCount"
-                        class="hidden lg:block"
                     />
                 </header>
 
@@ -229,6 +228,19 @@
                                     <p class="mt-1 text-lg font-semibold tabular-nums">{{ $pending['leave'] }}</p>
                                 </div>
                             </div>
+
+                            @if ($pending['leaveBreakdown']->isNotEmpty())
+                                <div class="mt-4 border-t border-zinc-100 pt-3 dark:border-zinc-800">
+                                    <p class="mb-2 text-xs font-medium text-zinc-500 dark:text-zinc-400">{{ __('Rincian permohonan') }}</p>
+                                    <ul class="flex flex-wrap gap-2 text-xs">
+                                        @foreach ($pending['leaveBreakdown'] as $type => $count)
+                                            <li class="rounded-full bg-zinc-100 px-3 py-1.5 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
+                                                {{ $type }}: <span class="font-semibold tabular-nums">{{ $count }}</span>
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            @endif
 
                             <div class="mt-4">
                                 <x-ui.button :href="route('leave-requests.index')" variant="outline">
