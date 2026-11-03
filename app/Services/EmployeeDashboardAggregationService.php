@@ -164,9 +164,12 @@ class EmployeeDashboardAggregationService
         $todayClockOut = $todayEvents->first(fn (AttendanceRecord $record) => $record->type === AttendanceType::ClockOut);
         $todayOpen = $todayClockIn && ! $todayClockOut && $todayStatus['status'] === DailyAttendanceStatus::Incomplete->value;
         $todayEnd = $todayClockOut?->effectiveRecordedAt() ?? ($todayOpen ? $now : null);
-        $todayDuration = $todayClockIn && $todayEnd && $todayEnd->gt($todayClockIn->effectiveRecordedAt())
-            ? (int) floor($todayClockIn->effectiveRecordedAt()->diffInSeconds($todayEnd) / 60)
-            : null;
+        $todayDuration = $todayStatus['status'] !== DailyAttendanceStatus::NeedsReview->value
+            && $todayClockIn
+            && $todayEnd
+            && $todayEnd->gt($todayClockIn->effectiveRecordedAt())
+                ? (int) floor($todayClockIn->effectiveRecordedAt()->diffInSeconds($todayEnd) / 60)
+                : null;
 
         return [
             'timezone' => $timezone,
