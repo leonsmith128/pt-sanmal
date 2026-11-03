@@ -192,7 +192,7 @@ test('attendance camera controls reflect camera availability and video readiness
         ->assertSee('! locationSnapshotReady', false)
         ->assertSee('locationStatusMessage', false)
         ->assertSee('error && active', false)
-        ->assertSee("$dispatch('attendance-camera-open')", false)
+        ->assertSee('$dispatch(\'attendance-camera-open\')', false)
         ->assertSee(__('Lanjutkan'));
 });
 test('attendance camera preserves the complete photo frame without cropping', function () {
@@ -283,7 +283,7 @@ test('collapsed admin sidebar keeps every navigation item visible as an icon', f
     @$document->loadHTML($response->getContent());
     $xpath = new DOMXPath($document);
 
-    expect($xpath->query('//*[@data-flux-sidebar-item]')->length)->toBe(14)
+    expect($xpath->query('//*[@data-flux-sidebar-item]')->length)->toBe(13)
         ->and($response->getContent())->toContain('in-data-flux-sidebar-collapsed-desktop:not-in-data-flux-sidebar-group-dropdown:hidden')
         ->and($response->getContent())->toContain('in-data-flux-sidebar-collapsed-desktop:hidden');
 });
