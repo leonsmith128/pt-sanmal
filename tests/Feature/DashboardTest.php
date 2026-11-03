@@ -670,3 +670,75 @@ test('employee dashboard aggregates multiple approved overtime intervals within 
         ->and($dashboard['monthly']['workMinutes'])->toBe(480)
         ->and($dashboard['monthly']['overtimeMinutes'])->toBe(120);
 });
+
+
+test('employee dashboard marks ambiguous unanchored session events for review', function () {
+    $user = User::factory()->create();
+    $user->forceFill(['role' => UserRole::Employee])->save();
+    $employee = Employee::create(['user_id' => $user->id]);
+
+    foreach (['08:00:00', '08:15:00'] as $time) {
+        AttendanceRecord::create([
+            'employee_id' => $employee->id,
+            'type' => AttendanceType::ClockIn,
+            'work_type' => WorkType::Office,
+            'recorded_at' => Carbon::parse('2026-11-03 '.$time, 'UTC'),
+            'timezone' => 'Asia/Makassar',
+            'attendance_date' => '2026-11-03',
+        ]);
+    }
+
+    $unanchoredClockOut = AttendanceRecord::create([
+        'employee_id' => $employee->id,
+        'type' => AttendanceType::ClockOut,
+        'work_type' => WorkType::Office,
+        'recorded_at' => Carbon::parse('2026-11-03 10:00:00', 'UTC'),
+        'timezone' => 'Asia/Makassar',
+        'attendance_date' => '2026-11-03',
+    ]);
+
+    expect($unanchoredClockOut->session_anchor_id)->toBeNull();
+
+    $dashboard = app(EmployeeDashboardAggregationService::class)->forEmployee(
+        $employee,
+        Carbon::parse('2026-11-03 11:00:00', 'UTC'),
+    );
+
+    expect($dashboard['todayStatus']['status'])->toBe(DailyAttendanceStatus::NeedsReview->value)
+        ->and($dashboard['todayDurationMinutes'])->toBeNull()
+        ->and($dashboard['monthly']['workMinutes'])->toBe(0);
+});
+
+test('employee dashboard excludes a session with a non-positive effective time interval', function () {
+    $user = User::factory()->create();
+    $user->forceFill(['role' => UserRole::Employee])->save();
+    $employee = Employee::create(['user_id' => $user->id]);
+
+    $clockIn = AttendanceRecord::create([
+        'employee_id' => $employee->id,
+        'type' => AttendanceType::ClockIn,
+        'work_type' => WorkType::Office,
+        'recorded_at' => Carbon::parse('2026-11-03 09:00:00', 'UTC'),
+        'timezone' => 'Asia/Makassar',
+        'attendance_date' => '2026-11-03',
+    ]);
+
+    AttendanceRecord::create([
+        'employee_id' => $employee->id,
+        'session_anchor_id' => $clockIn->id,
+        'type' => AttendanceType::ClockOut,
+        'work_type' => WorkType::Office,
+        'recorded_at' => Carbon::parse('2026-11-03 08:00:00', 'UTC'),
+        'timezone' => 'Asia/Makassar',
+        'attendance_date' => '2026-11-03',
+    ]);
+
+    $dashboard = app(EmployeeDashboardAggregationService::class)->forEmployee(
+        $employee,
+        Carbon::parse('2026-11-03 10:00:00', 'UTC'),
+    );
+
+    expect($dashboard['todayStatus']['status'])->toBe(DailyAttendanceStatus::NeedsReview->value)
+        ->and($dashboard['todayDurationMinutes'])->toBeNull()
+        ->and($dashboard['monthly']['workMinutes'])->toBe(0);
+});
