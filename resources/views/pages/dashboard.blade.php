@@ -113,33 +113,48 @@
                     $formatDuration = fn (int $minutes) => intdiv($minutes, 60).'j '.str_pad((string) ($minutes % 60), 2, '0', STR_PAD_LEFT).'m';
                 @endphp
 
-                <x-ui.page-header
-                    :title="__('Selamat datang, :name', ['name' => $dashboardUser->name])"
-                    :description="$employeeDashboard['today']"
-                >
-                    @if ($dashboardUser->profilePhotoUrl())
-                        <img
-                            src="{{ $dashboardUser->profilePhotoUrl() }}"
-                            alt="{{ __('Foto profil :name', ['name' => $dashboardUser->name]) }}"
-                            class="size-11 rounded-full object-cover"
-                        >
-                    @else
-                        <div
-                            aria-hidden="true"
-                            class="flex size-11 items-center justify-center rounded-full bg-sanmal-100 font-semibold text-sanmal-700 dark:bg-sanmal-900 dark:text-sanmal-200"
-                        >
-                            {{ $dashboardUser->initials() }}
-                        </div>
-                    @endif
-                </x-ui.page-header>
+                <header class="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center">
+                    <div class="flex shrink-0 items-center gap-2">
+                        <flux:button
+                            href="{{ route('notifications.index') }}"
+                            variant="ghost"
+                            icon="bell"
+                            :aria-label="__('Notifikasi')"
+                            tooltip="{{ __('Notifikasi') }}"
+                        />
+
+                        @if ($dashboardUser->profilePhotoUrl())
+                            <img
+                                src="{{ $dashboardUser->profilePhotoUrl() }}"
+                                alt="{{ __('Foto profil :name', ['name' => $dashboardUser->name]) }}"
+                                class="size-10 rounded-full object-cover"
+                            >
+                        @else
+                            <div
+                                aria-hidden="true"
+                                class="flex size-10 items-center justify-center rounded-full bg-sanmal-100 font-semibold text-sanmal-700 dark:bg-sanmal-900 dark:text-sanmal-200"
+                            >
+                                {{ $dashboardUser->initials() }}
+                            </div>
+                        @endif
+                    </div>
+
+                    <div class="min-w-0 flex-1">
+                        <flux:heading size="xl" level="1">
+                            {{ __('Selamat datang, :name', ['name' => $dashboardUser->name]) }}
+                        </flux:heading>
+                        <flux:text class="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+                            {{ $employeeDashboard['today'] }}
+                        </flux:text>
+                    </div>
+                </header>
 
                 <x-ui.card padding="p-5 sm:p-6" class="border-sanmal-200 bg-sanmal-50 dark:border-sanmal-800 dark:bg-sanmal-950/40">
                     <div class="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
                         <div class="min-w-0 space-y-2">
-                            <p class="text-sm font-medium text-zinc-600 dark:text-zinc-300">{{ __('Status absensi hari ini') }}</p>
                             <div class="flex flex-wrap items-center gap-2">
-                                <h2 class="text-xl font-semibold tracking-tight">{{ $todayStatus['label'] }}</h2>
-                                <x-ui.badge :color="$statusColor">{{ $todayStatus['label'] }}</x-ui.badge>
+                                <p class="text-sm font-semibold text-zinc-700 dark:text-zinc-200">{{ __('Status absensi hari ini') }}</p>
+                                <x-ui.badge :color="$statusColor" class="px-3 py-1 font-semibold">{{ $todayStatus['label'] }}</x-ui.badge>
                             </div>
 
                             <div class="flex flex-wrap gap-x-5 gap-y-2 text-sm text-zinc-600 dark:text-zinc-300">
@@ -199,7 +214,7 @@
                     </div>
                 </section>
 
-                <div class="grid gap-4 lg:grid-cols-[minmax(0,1.3fr)_minmax(18rem,0.7fr)]">
+                <div class="grid gap-4 lg:grid-cols-[minmax(18rem,0.85fr)_minmax(0,1.15fr)]">
                     <div class="space-y-4">
                         <x-ui.card>
                             <div class="flex items-start justify-between gap-3">
@@ -233,6 +248,18 @@
                         </x-ui.card>
 
                         <x-ui.card>
+                            <h2 class="font-semibold">{{ __('Akses cepat') }}</h2>
+                            <nav aria-label="{{ __('Akses cepat') }}" class="mt-3 grid grid-cols-2 gap-2">
+                                <x-ui.button :href="route('attendance-history.index')" variant="outline" class="justify-center">{{ __('Riwayat absensi') }}</x-ui.button>
+                                <x-ui.button :href="route('leave-requests.index')" variant="outline" class="justify-center">{{ __('Pengajuan') }}</x-ui.button>
+                                <x-ui.button :href="route('overtime-requests.index')" variant="outline" class="justify-center">{{ __('Lembur') }}</x-ui.button>
+                                <x-ui.button :href="route('profile.edit')" variant="outline" class="justify-center">{{ __('Profil pegawai') }}</x-ui.button>
+                            </nav>
+                        </x-ui.card>
+                    </div>
+
+                    <div class="space-y-4">
+                        <x-ui.card>
                             <div class="flex items-center justify-between gap-3">
                                 <h2 class="font-semibold">{{ __('Aktivitas absensi terbaru') }}</h2>
                                 <a href="{{ route('attendance-history.index') }}" class="text-sm font-medium text-sanmal-700 hover:underline dark:text-sanmal-300">{{ __('Lihat riwayat') }}</a>
@@ -251,18 +278,6 @@
                                     <p class="py-5 text-sm text-zinc-500">{{ __('Belum ada aktivitas absensi.') }}</p>
                                 @endforelse
                             </div>
-                        </x-ui.card>
-                    </div>
-
-                    <div class="space-y-4">
-                        <x-ui.card>
-                            <h2 class="font-semibold">{{ __('Akses cepat') }}</h2>
-                            <nav aria-label="{{ __('Akses cepat') }}" class="mt-3 grid grid-cols-2 gap-2">
-                                <x-ui.button :href="route('attendance-history.index')" variant="outline" class="justify-center">{{ __('Riwayat absensi') }}</x-ui.button>
-                                <x-ui.button :href="route('leave-requests.index')" variant="outline" class="justify-center">{{ __('Pengajuan') }}</x-ui.button>
-                                <x-ui.button :href="route('overtime-requests.index')" variant="outline" class="justify-center">{{ __('Lembur') }}</x-ui.button>
-                                <x-ui.button :href="route('profile.edit')" variant="outline" class="justify-center">{{ __('Profil pegawai') }}</x-ui.button>
-                            </nav>
                         </x-ui.card>
                     </div>
                 </div>
