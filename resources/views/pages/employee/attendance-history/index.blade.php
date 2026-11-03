@@ -4,7 +4,7 @@
         gap="5"
         x-data="{ selfiePreviewOpen: false, selfiePreviewUrl: null, selfieDownloadUrl: null }"
         x-on:keydown.escape.window="selfiePreviewOpen = false"
-        class="px-4 py-4 sm:px-6 sm:py-6"
+
     >
         <x-ui.page-header
             :title="__('Riwayat Absensi')"
