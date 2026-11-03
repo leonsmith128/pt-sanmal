@@ -6,8 +6,8 @@ use App\Enums\AttendanceType;
 use App\Enums\DailyAttendanceStatus;
 use App\Enums\OvertimeApprovalStatus;
 use App\Enums\OvertimeState;
-use App\Models\AttendanceRecord;
 use App\Models\AttendanceCorrection;
+use App\Models\AttendanceRecord;
 use App\Models\Employee;
 use App\Models\LeaveRequest;
 use App\Models\OvertimeRequest;
@@ -18,8 +18,7 @@ class EmployeeDashboardAggregationService
 {
     public function __construct(
         private readonly DailyAttendanceStatusService $dailyStatusService,
-    ) {
-    }
+    ) {}
 
     /**
      * Build dashboard data for exactly one employee. The caller must resolve the
@@ -107,7 +106,7 @@ class EmployeeDashboardAggregationService
             $start = $anchor->effectiveRecordedAt();
             $end = $clockOuts->first()?->effectiveRecordedAt() ?? $now;
 
-            if (!$start || !$end || $end->lte($start)) {
+            if (! $start || ! $end || $end->lte($start)) {
                 continue;
             }
 
@@ -163,7 +162,7 @@ class EmployeeDashboardAggregationService
         $todayEvents = $todayStatus['events'];
         $todayClockIn = $todayEvents->first(fn (AttendanceRecord $record) => $record->type === AttendanceType::ClockIn);
         $todayClockOut = $todayEvents->first(fn (AttendanceRecord $record) => $record->type === AttendanceType::ClockOut);
-        $todayOpen = $todayClockIn && !$todayClockOut && $todayStatus['status'] === DailyAttendanceStatus::Incomplete->value;
+        $todayOpen = $todayClockIn && ! $todayClockOut && $todayStatus['status'] === DailyAttendanceStatus::Incomplete->value;
         $todayEnd = $todayClockOut?->effectiveRecordedAt() ?? ($todayOpen ? $now : null);
         $todayDuration = $todayClockIn && $todayEnd && $todayEnd->gt($todayClockIn->effectiveRecordedAt())
             ? (int) floor($todayClockIn->effectiveRecordedAt()->diffInSeconds($todayEnd) / 60)
@@ -213,7 +212,7 @@ class EmployeeDashboardAggregationService
      */
     private function overtimeInterval(OvertimeRequest $request, Carbon $now): ?array
     {
-        if ($request->state === OvertimeState::Cancelled || !$request->startRecord || !$request->clockInRecord) {
+        if ($request->state === OvertimeState::Cancelled || ! $request->startRecord || ! $request->clockInRecord) {
             return null;
         }
 
@@ -234,7 +233,7 @@ class EmployeeDashboardAggregationService
             }
         }
 
-        if (!$start || !$end || $end->lte($start)) {
+        if (! $start || ! $end || $end->lte($start)) {
             return null;
         }
 
