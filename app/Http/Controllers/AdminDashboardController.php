@@ -30,6 +30,8 @@ class AdminDashboardController extends Controller
                 'employeeDashboard' => $employee
                     ? $employeeDashboardService->forEmployee($employee)
                     : null,
+                'notifications' => $user->notifications()->latest()->limit(5)->get(),
+                'unreadNotificationCount' => $user->unreadNotifications()->count(),
             ]);
         }
 
