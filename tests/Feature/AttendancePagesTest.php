@@ -273,6 +273,16 @@ test('Flux main is a direct body child on the key admin and employee pages', fun
         ->and($response->getContent())->not->toContain('pb-[calc(4rem+env(safe-area-inset-bottom))]');
 });
 
+test('inline sidebar shares the page shell surface while the inset main uses a primary surface', function () {
+    $this->actingAs(userWithRole(UserRole::Admin));
+
+    $this->get(route('admin.daily-attendance'))
+        ->assertOk()
+        ->assertSee('bg-sanmal-surface-page dark:bg-sanmal-surface-page-dark', false)
+        ->assertSee('bg-sanmal-surface-primary p-0', false)
+        ->assertDontSee('border-e border-sanmal-border', false);
+});
+
 test('admin sidebar hides brand and theme controls when collapsed', function () {
     $this->actingAs(userWithRole(UserRole::Admin));
 
