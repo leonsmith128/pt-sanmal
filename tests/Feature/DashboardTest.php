@@ -323,3 +323,52 @@ test('employee dashboard attributes a cross-midnight session to its clock-in dat
         ->and($dashboard['monthly']['workMinutes'])->toBe(180)
         ->and($dashboard['todayStatus']['status'])->toBe(DailyAttendanceStatus::NoRecord->value);
 });
+
+
+test('employee dashboard does not display a duration for an attendance day requiring review', function () {
+    $user = User::factory()->create();
+    $user->forceFill(['role' => UserRole::Employee])->save();
+    $employee = Employee::create(['user_id' => $user->id]);
+
+    $clockIn = AttendanceRecord::create([
+        'employee_id' => $employee->id,
+        'type' => AttendanceType::ClockIn,
+        'work_type' => WorkType::Office,
+        'recorded_at' => Carbon::parse('2026-11-03 00:00:00', 'UTC'),
+        'timezone' => 'Asia/Makassar',
+        'attendance_date' => '2026-11-03',
+    ]);
+    AttendanceRecord::create([
+        'employee_id' => $employee->id,
+        'session_anchor_id' => $clockIn->id,
+        'type' => AttendanceType::ClockOut,
+        'work_type' => WorkType::Office,
+        'recorded_at' => Carbon::parse('2026-11-03 09:00:00', 'UTC'),
+        'timezone' => 'Asia/Makassar',
+        'attendance_date' => '2026-11-03',
+    ]);
+
+    $leaveType = LeaveType::create([
+        'code' => 'izin',
+        'name' => 'Izin',
+        'is_active' => true,
+    ]);
+    LeaveRequest::create([
+        'employee_id' => $employee->id,
+        'leave_type_id' => $leaveType->id,
+        'start_date' => '2026-11-03',
+        'end_date' => '2026-11-03',
+        'reason' => 'Izin yang bertabrakan dengan bukti absensi',
+        'status' => 'approved',
+    ]);
+
+    $dashboard = app(EmployeeDashboardAggregationService::class)->forEmployee(
+        $employee,
+        Carbon::parse('2026-11-03 10:00:00', 'UTC'),
+    );
+
+    expect($dashboard['todayStatus']['status'])->toBe(DailyAttendanceStatus::NeedsReview->value)
+        ->and($dashboard['todayDurationMinutes'])->toBeNull()
+        ->and($dashboard['todayIsRunning'])->toBeFalse()
+        ->and($dashboard['monthly']['workMinutes'])->toBe(0);
+});
