@@ -61,7 +61,7 @@
 
         <a
             href="{{ route('notifications.index') }}"
-            class="block border-t border-zinc-100 px-4 py-3 text-center text-sm font-semibold text-sanmal-700 transition hover:bg-sanmal-surface-secondary hover:underline dark:border-sanmal-border-dark dark:text-sanmal-brand-blue-light dark:hover:bg-sanmal-surface-secondary-dark"
+            class="block border-t border-sanmal-border px-4 py-3 text-center text-sm font-semibold text-sanmal-700 transition hover:bg-sanmal-surface-secondary hover:underline dark:border-sanmal-border-dark dark:text-sanmal-brand-blue-light dark:hover:bg-sanmal-surface-secondary-dark"
         >
             {{ __('Lihat semua notifikasi') }}
         </a>
