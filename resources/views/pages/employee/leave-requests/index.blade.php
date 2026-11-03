@@ -1,5 +1,5 @@
 <x-layouts::app :title="'Pusat Permohonan'">
-    <x-ui.page max-width="6xl" gap="5" class="px-4 py-4 sm:px-6 sm:py-6">
+    <x-ui.page max-width="6xl" gap="5">
         <x-ui.page-header
             :title="__('Pusat Permohonan')"
             :description="__('Pantau izin, sakit, cuti, lembur, dan koreksi absensi dari satu tempat.')"
