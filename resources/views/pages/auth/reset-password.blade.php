@@ -11,9 +11,9 @@
             <input type="hidden" name="token" value="{{ request()->route('token') }}">
 
             <!-- Email Address -->
-            <flux:input
+            <x-ui.input
                 name="email"
-                value="{{ request('email') }}"
+                :value="request('email')"
                 :label="__('Email')"
                 type="email"
                 required
@@ -21,7 +21,7 @@
             />
 
             <!-- Password -->
-            <flux:input
+            <x-ui.input
                 name="password"
                 :label="__('Password')"
                 type="password"
@@ -33,7 +33,7 @@
             />
 
             <!-- Confirm Password -->
-            <flux:input
+            <x-ui.input
                 name="password_confirmation"
                 :label="__('Confirm password')"
                 type="password"
