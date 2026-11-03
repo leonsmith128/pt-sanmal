@@ -102,13 +102,11 @@ new #[Title('Keamanan Akun')] class extends Component {
     }
 }; ?>
 
-<section class="w-full space-y-6">
-    <div>
-        <flux:heading size="xl">{{ __('Keamanan Akun') }}</flux:heading>
-        <flux:subheading class="mt-1">
-            {{ __('Kelola email login dan kata sandi. Konfirmasi kata sandi diperlukan sebelum membuka halaman ini.') }}
-        </flux:subheading>
-    </div>
+<x-ui.page gap="6">
+    <x-ui.page-header
+        :title="__('Keamanan Akun')"
+        :description="__('Kelola email login dan kata sandi. Konfirmasi kata sandi diperlukan sebelum membuka halaman ini.')"
+    />
 
     <div class="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
         <flux:heading size="lg">{{ __('Alamat email') }}</flux:heading>
@@ -198,4 +196,4 @@ new #[Title('Keamanan Akun')] class extends Component {
             </div>
         </form>
     </div>
-</section>
+</x-ui.page>
