@@ -6,7 +6,7 @@
 <details {{ $attributes->class(['group relative']) }}>
     <summary
         aria-label="{{ __('Buka notifikasi') }}"
-        class="flex size-10 cursor-pointer list-none items-center justify-center rounded-full text-zinc-600 transition hover:bg-zinc-100 hover:text-zinc-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sanmal-600 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-white [&::-webkit-details-marker]:hidden"
+        class="flex size-10 cursor-pointer list-none items-center justify-center rounded-full text-zinc-600 transition hover:bg-sanmal-surface-secondary hover:text-zinc-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sanmal-600 dark:text-zinc-300 dark:hover:bg-sanmal-surface-secondary-dark dark:hover:text-white [&::-webkit-details-marker]:hidden"
     >
         <flux:icon name="bell" class="size-5" />
         @if ($unreadCount > 0)
@@ -34,7 +34,7 @@
                 @method('PATCH')
                 <button
                     type="submit"
-                    class="flex w-full items-start gap-3 border-b border-zinc-100 px-4 py-3 text-left transition last:border-b-0 hover:bg-zinc-50 focus-visible:bg-zinc-50 focus-visible:outline-none dark:border-zinc-800 dark:hover:bg-sanmal-surface-secondary-dark dark:focus-visible:bg-sanmal-surface-secondary-dark {{ $notification->read_at ? '' : 'bg-sky-50/70 dark:bg-sky-950/20' }}"
+                    class="flex w-full items-start gap-3 border-b border-sanmal-border px-4 py-3 text-left transition last:border-b-0 hover:bg-sanmal-surface-secondary focus-visible:bg-sanmal-surface-secondary focus-visible:outline-none dark:border-sanmal-border-dark dark:hover:bg-sanmal-surface-secondary-dark dark:focus-visible:bg-sanmal-surface-secondary-dark {{ $notification->read_at ? '' : 'bg-sky-50/70 dark:bg-sky-950/20' }}"
                 >
                     <span class="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full {{ $notification->read_at ? 'bg-zinc-100 text-zinc-500 dark:bg-sanmal-surface-elevated-dark' : 'bg-sky-100 text-sky-700 dark:bg-sky-900 dark:text-sky-300' }}">
                         <flux:icon name="{{ $isResolved ? 'x-circle' : 'bell' }}" class="size-4" />
@@ -61,7 +61,7 @@
 
         <a
             href="{{ route('notifications.index') }}"
-            class="block border-t border-zinc-100 px-4 py-3 text-center text-sm font-semibold text-sanmal-700 transition hover:bg-zinc-50 hover:underline dark:border-sanmal-border-dark dark:text-sanmal-brand-blue-light dark:hover:bg-sanmal-surface-secondary-dark"
+            class="block border-t border-zinc-100 px-4 py-3 text-center text-sm font-semibold text-sanmal-700 transition hover:bg-sanmal-surface-secondary hover:underline dark:border-sanmal-border-dark dark:text-sanmal-brand-blue-light dark:hover:bg-sanmal-surface-secondary-dark"
         >
             {{ __('Lihat semua notifikasi') }}
         </a>
