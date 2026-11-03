@@ -22,7 +22,7 @@ Source inspection bukan browser QA. Component test bukan bukti seluruh workflow 
 | Adopsi komponen pada halaman | **Implemented, partial coverage** | Komponen telah diadopsi pada sejumlah halaman Admin, Employee, Shared, dan Authentication. Tidak berarti seluruh halaman telah didesain ulang atau semua markup satu-off harus diekstrak. Periksa source dan [Page Inventory](../PAGE-INVENTORY.md). |
 | Koreksi responsivitas temuan terakhir | **CI verified; visual pending** | Filter Admin Kehadiran, icon pada detail lembur, dan susunan tombol Pusat Permohonan telah diperbaiki. CI terbaru lulus pada commit `6da6b96ee1e8be19126cba43a62d6ec51aaf22ca`, [run 1065](https://github.com/leonsmith128/pt-sanmal/actions/runs/41566842563). Owner/browser visual recheck belum dicatat. |
 | Kontrak data Employee Dashboard | **Specified** | Definisi agregasi status harian, jam kerja non-lembur, lembur disetujui, pengajuan tertunda, aktivitas terbaru, timezone, dan konsistensi Employee/Admin ditetapkan di [Employee Dashboard Data Contract](../EMPLOYEE-DASHBOARD-DATA-CONTRACT.md). |
-| Employee Dashboard V1 layout | **Implemented, unverified** | Layout dan controller role branch tersedia di source; automated coverage baru mencakup pemisahan tampilan pegawai tanpa profil dari ringkasan admin. Agregasi kompleks belum memiliki coverage kontrak lengkap dan belum ada browser QA. Lihat [Employee Dashboard Layout V1](../EMPLOYEE-DASHBOARD-LAYOUT-V1.md). |
+| Employee notification dropdown | **Implemented, unverified** | Reusable `x-ui.notification-dropdown` menerima data dari caller, menampilkan maksimal 5 notifikasi terbaru, unread count/indicator, empty state, dan tautan ke daftar lengkap. Dashboard pegawai memasok data user-scoped; route baca yang ada tetap digunakan. Focused component tests ditambahkan, tetapi belum dijalankan pada CI terbaru. |\n| Employee Dashboard V1 layout | **Implemented, unverified** | Layout dan controller role branch tersedia di source; automated coverage baru mencakup pemisahan tampilan pegawai tanpa profil dari ringkasan admin. Agregasi kompleks belum memiliki coverage kontrak lengkap dan belum ada browser QA. Lihat [Employee Dashboard Layout V1](../EMPLOYEE-DASHBOARD-LAYOUT-V1.md). |
 | Responsive audit menyeluruh | Not started | Audit per halaman/viewport setelah desain dan layouting diterapkan. |
 | Accessibility dan interaction-state audit | Not started | Keyboard, focus, semantics, touch target, loading/error/empty, dan theme. |
 | Final V1 review | Not started | Rekonsiliasi scope, test, visual QA, limitations, dan review PR sebelum merge. |
@@ -34,7 +34,7 @@ Source inspection bukan browser QA. Component test bukan bukti seluruh workflow 
 - **Surface:** `x-ui.card`.
 - **Form:** `x-ui.field`, `x-ui.input`, `x-ui.select`, `x-ui.textarea`, `x-ui.checkbox`.
 - **Feedback:** `x-ui.flash-message`, `x-ui.empty-state`.
-- **Status dan metadata:** `x-ui.badge`, `x-ui.metadata-item`.
+- **Status dan metadata:** `x-ui.badge`, `x-ui.metadata-item`.\n- **Navigation utility:** `x-ui.notification-dropdown` (domain-aware; data disediakan oleh controller).
 
 Komponen generik tidak mengambil alih business logic, authorization, route construction, enum-to-label/color mapping, query, atau state workflow. Domain adapter tetap dipertahankan bila dibutuhkan. Jangan menambah wrapper hanya untuk menghilangkan markup yang belum terbukti berulang.
 
