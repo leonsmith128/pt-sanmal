@@ -161,3 +161,50 @@ it('uses now for running overtime intervals and excludes cancelled or invalid in
         ->and(dashboardOvertimeInterval($service, $cancelled, $now))->toBeNull()
         ->and(dashboardOvertimeInterval($service, $invalid, $now))->toBeNull();
 });
+
+
+it('evaluates the current month independently in each Clock In session timezone', function () {
+    $service = new EmployeeDashboardAggregationService(new DailyAttendanceStatusService);
+    $method = new ReflectionMethod($service, 'isInCurrentMonthForSession');
+    $now = Carbon::parse('2026-11-01 00:30:00', 'UTC');
+
+    $jakartaClockIn = new AttendanceRecord;
+    $jakartaClockIn->forceFill([
+        'type' => \\App\\Enums\\AttendanceType::ClockIn,
+        'timezone' => 'Asia/Jakarta',
+        'attendance_date' => '2026-10-31',
+    ]);
+
+    $makassarClockIn = new AttendanceRecord;
+    $makassarClockIn->forceFill([
+        'type' => \\App\\Enums\\AttendanceType::ClockIn,
+        'timezone' => 'Asia/Makassar',
+        'attendance_date' => '2026-11-01',
+    ]);
+
+    expect($method->invoke($service, $jakartaClockIn, $now, 'Asia/Makassar'))->toBeTrue()
+        ->and($method->invoke($service, $makassarClockIn, $now, 'Asia/Makassar'))->toBeTrue();
+});
+
+it('does not reinterpret a session month using the employee latest timezone', function () {
+    $service = new EmployeeDashboardAggregationService(new DailyAttendanceStatusService);
+    $method = new ReflectionMethod($service, 'isInCurrentMonthForSession');
+    $now = Carbon::parse('2026-11-01 00:30:00', 'UTC');
+
+    $previousMonthInMakassar = new AttendanceRecord;
+    $previousMonthInMakassar->forceFill([
+        'type' => \\App\\Enums\\AttendanceType::ClockIn,
+        'timezone' => 'Asia/Makassar',
+        'attendance_date' => '2026-10-31',
+    ]);
+
+    $futureLocalDateInJakarta = new AttendanceRecord;
+    $futureLocalDateInJakarta->forceFill([
+        'type' => \\App\\Enums\\AttendanceType::ClockIn,
+        'timezone' => 'Asia/Jakarta',
+        'attendance_date' => '2026-11-01',
+    ]);
+
+    expect($method->invoke($service, $previousMonthInMakassar, $now, 'Asia/Makassar'))->toBeFalse()
+        ->and($method->invoke($service, $futureLocalDateInJakarta, $now, 'Asia/Makassar'))->toBeFalse();
+});
