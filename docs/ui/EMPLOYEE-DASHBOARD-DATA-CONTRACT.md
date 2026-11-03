@@ -1,6 +1,6 @@
 # Employee Dashboard Data Contract
 
-> Status: specification approved for the Employee Dashboard layout phase. This document defines aggregation semantics; it does not claim that the aggregation service or UI has been implemented.
+> Status: domain policy approved; the attendance write-path resolver is implemented but not yet verified. Dashboard aggregation and date-boundary behavior remain incomplete.
 
 ## Purpose and consistency
 
@@ -30,6 +30,17 @@ This policy is the approved domain decision for attendance recording and dashboa
 - Validate every resolved identifier against PHP's supported IANA timezone identifiers before use. Never accept an arbitrary timezone string supplied by the client.
 - If GPS is unavailable/invalid or the resolver cannot determine a timezone, attendance may continue under the existing GPS fallback policy: use `Asia/Makassar` as an explicitly unverified fallback, preserve available GPS accuracy/evidence, and flag the attendance for admin review. Do not label the fallback as GPS-verified.
 - The coordinate-to-timezone implementation must not silently depend on the browser clock or leak exact GPS coordinates to a third-party service without an explicit product/privacy decision. Prefer a server-side resolver backed by maintained timezone-boundary data; document its data source and update process.
+
+### Resolver implementation and data provenance
+
+- SanMal uses `aldesrahim/laravel-timezone-indonesia` pinned by `composer.lock` to `v1.1.0`. It resolves coordinates locally from bundled Indonesian timezone polygons; attendance GPS coordinates are not sent to a timezone API.
+- The package is accessed only through `App\\Services\\AttendanceTimezoneResolver`. Application actions must not call the package facade directly.
+- The resolver returns only supported IANA identifiers. The current bundled boundary dataset reports upstream version `2026c`.
+- Persist `timezone_source` on every new attendance event: `office_fixed`, `gps_resolved`, `fallback`, or `session_anchor`. Existing rows retain `legacy`.
+- An onsite event using the `fallback` source uses `Asia/Makassar` only as an explicitly unverified fallback. The daily status is marked `needs_review`; the fallback must never be presented as GPS-verified.
+- The package code is MIT licensed. Its bundled boundary data is ODbL 1.0 and derived from timezone-boundary-builder / OpenStreetMap. Preserve the attribution in [Third-party notices](../../THIRD-PARTY-NOTICES.md).
+- The package has low public adoption, so keep it behind the SanMal resolver service and retain coordinate fixtures for all four zones, outside-Indonesia coordinates, invalid coordinates, and boundary-sensitive cases. Review package releases and boundary-data provenance before upgrades.
+- Update through a reviewed Composer version change; do not download boundary data during attendance requests. The optional compile command is a deployment optimization and is not required for correctness.
 
 ### Session and reporting rules
 
