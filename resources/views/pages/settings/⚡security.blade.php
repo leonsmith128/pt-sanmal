@@ -110,7 +110,7 @@ new #[Title('Keamanan Akun')] class extends Component {
         </flux:subheading>
     </div>
 
-    <x-ui.card padding="p-6">
+    <div class="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
         <flux:heading size="lg">{{ __('Alamat email') }}</flux:heading>
         <flux:subheading class="mt-1">
             {{ __('Gunakan email yang dapat Anda akses. Email baru harus diverifikasi sebelum dianggap terverifikasi.') }}
@@ -130,7 +130,7 @@ new #[Title('Keamanan Akun')] class extends Component {
                 <x-ui.button variant="primary" type="submit" wire:loading.attr="disabled" wire:target="updateEmail">
                     {{ __('Simpan email') }}
                 </x-ui.button>
-            </x-ui.card>
+            </div>
         </form>
 
         @if ($this->hasUnverifiedEmail)
@@ -154,7 +154,7 @@ new #[Title('Keamanan Akun')] class extends Component {
         @endif
     </div>
 
-    <x-ui.card padding="p-6">
+    <div class="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
         <flux:heading size="lg">{{ __('Ubah kata sandi') }}</flux:heading>
         <flux:subheading class="mt-1">
             {{ __('Gunakan kata sandi yang kuat dan tidak digunakan pada layanan lain.') }}
@@ -195,7 +195,7 @@ new #[Title('Keamanan Akun')] class extends Component {
                 <x-ui.button variant="primary" type="submit" wire:loading.attr="disabled" wire:target="updatePassword">
                     {{ __('Perbarui kata sandi') }}
                 </x-ui.button>
-            </x-ui.card>
+            </div>
         </form>
     </div>
 </section>
