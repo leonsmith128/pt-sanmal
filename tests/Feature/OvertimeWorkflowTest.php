@@ -817,3 +817,36 @@ it('does not allow an overtime request rejected by admin to start', function () 
         ->where('type', AttendanceType::OvertimeStart)
         ->exists())->toBeFalse();
 });
+
+
+it('inherits the session anchor timezone for overtime confirmation despite later GPS coordinates', function () {
+    Storage::fake('local');
+    $employee = overtimeEmployee();
+
+    $clockIn = AttendanceRecord::create([
+        'employee_id' => $employee->id,
+        'type' => AttendanceType::ClockIn,
+        'work_type' => WorkType::Onsite,
+        'recorded_at' => now(),
+        'timezone' => 'Asia/Jakarta',
+        'timezone_source' => 'gps_resolved',
+        'attendance_date' => now('Asia/Jakarta')->toDateString(),
+    ]);
+
+    $overtime = overtimeRequest($employee, $clockIn, now()->subMinute()->toDateTimeString());
+    $overtime->update(['timezone' => 'Asia/Makassar']);
+
+    $record = app(ConfirmOvertimeStart::class)->handle(
+        employee: $employee,
+        overtime: $overtime,
+        latitude: -2.5916,
+        longitude: 140.6690,
+        accuracy: 15,
+        addressSnapshot: 'Jayapura',
+        selfie: UploadedFile::fake()->image('overtime-different-gps-zone.jpg'),
+    );
+
+    expect($record->timezone)->toBe('Asia/Jakarta')
+        ->and($record->timezone_source)->toBe('session_anchor')
+        ->and($record->attendance_date->toDateString())->toBe($clockIn->attendance_date->toDateString());
+});
