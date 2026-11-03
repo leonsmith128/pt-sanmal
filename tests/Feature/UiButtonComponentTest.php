@@ -5,6 +5,7 @@ it('renders a reusable button as a semantic action with forwarded attributes', f
         '<x-ui.button type="submit" variant="primary" x-on:click="ready = true">Simpan</x-ui.button>'
     )
         ->assertSee('type="submit"', false)
+        ->assertSee('sanmal-button-primary', false)
         ->assertSee('Simpan')
         ->assertSee('x-on:click="ready = true"', false);
 });
@@ -14,6 +15,7 @@ it('renders a reusable button link and preserves Alpine href binding', function 
         '<x-ui.button href="#" variant="primary" x-bind:href="exportUrl">Konfirmasi dan ekspor</x-ui.button>'
     )
         ->assertSee('href="#"', false)
+        ->assertSee('sanmal-button-primary', false)
         ->assertSee('x-bind:href="exportUrl"', false)
         ->assertSee('sanmal-button-primary', false)
         ->assertSee('Konfirmasi dan ekspor');
