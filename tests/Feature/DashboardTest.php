@@ -45,7 +45,8 @@ test('administrators see the administrative dashboard summary', function () {
         ->assertSee('Dashboard Administrasi')
         ->assertSee('Pegawai aktif')
         ->assertSee('Aktivitas absensi terbaru')
-        ->assertSee('Permohonan menunggu');
+        ->assertSee('Permohonan menunggu')
+        ->assertSee('flex flex-col items-center gap-2 text-center', false);
 });
 
 test('admin personal dashboard is separate from the admin overview', function () {
@@ -85,8 +86,7 @@ test('dashboard metric cards center labels and values without separators', funct
         ->assertSee('grid-cols-2 gap-4 text-center xl:grid-cols-4', false)
         ->assertDontSee('divide-sanmal-border', false)
         ->assertSee('items-center', false)
-        ->assertSee('text-center', false)
-        ->assertSee('flex flex-col items-center gap-2 text-center', false);
+        ->assertSee('text-center', false);
 });
 
 test('employee dashboard shows pending leave request breakdown for the authenticated employee and keeps notifications visible on mobile', function () {
