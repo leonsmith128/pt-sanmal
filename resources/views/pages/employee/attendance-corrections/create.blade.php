@@ -1,5 +1,5 @@
 <x-layouts::app :title="__('Ajukan Koreksi Absensi')">
-    <x-ui.page max-width="2xl" gap="5" class="px-4 py-4 sm:px-6 sm:py-6">
+    <x-ui.page max-width="2xl" gap="5">
         <x-ui.page-header
             :title="__('Ajukan Koreksi Absensi')"
             :description="__('Pilih event yang ingin dikoreksi. Untuk Clock Out yang terlupa, pilih sesi Clock In yang masih terbuka.')"
