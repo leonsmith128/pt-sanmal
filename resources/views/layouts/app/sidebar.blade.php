@@ -3,7 +3,7 @@
     <head>
         @include('partials.head')
     </head>
-    <body class="min-h-dvh bg-zinc-50 dark:bg-zinc-900">
+    <body class="min-h-dvh bg-sanmal-surface-page dark:bg-sanmal-surface-page-dark">
         @php
             $sidebarUser = auth()->user();
             $sidebarEmployee = $sidebarUser->employee;
@@ -22,7 +22,7 @@
         <flux:sidebar
             sticky
             :collapsible="$isManager ? true : 'mobile'"
-            class="h-dvh min-h-dvh overflow-x-hidden bg-zinc-50 dark:bg-zinc-900"
+            class="h-dvh min-h-dvh overflow-x-hidden border-e border-sanmal-border bg-sanmal-surface-secondary dark:border-sanmal-border-dark dark:bg-sanmal-surface-primary-dark"
         >
             <flux:sidebar.header>
                 <div class="flex w-full items-center justify-between gap-2">
@@ -148,7 +148,7 @@
         </flux:sidebar>
 
         @if ($isManager)
-            <flux:header class="lg:hidden">
+            <flux:header class="border-b border-sanmal-border bg-sanmal-surface-primary dark:border-sanmal-border-dark dark:bg-sanmal-surface-primary-dark lg:hidden">
                 <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" />
                 <x-app-logo href="{{ route('dashboard') }}" wire:navigate />
                 <flux:spacer />
@@ -187,7 +187,7 @@
                 </div>
             </flux:header>
         @elseif ($isEmployee)
-            <flux:header class="lg:hidden">
+            <flux:header class="border-b border-sanmal-border bg-sanmal-surface-primary dark:border-sanmal-border-dark dark:bg-sanmal-surface-primary-dark lg:hidden">
                 <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" />
                 <x-app-logo href="{{ route('dashboard') }}" wire:navigate />
                 <flux:spacer />
