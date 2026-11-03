@@ -51,15 +51,16 @@
                         </flux:sidebar.item>
                     </div>
                 @else
-                    <x-ui.sidebar-section :heading="__('Platform')">
-                        <flux:sidebar.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
-                            {{ __('Dashboard') }}
-                        </flux:sidebar.item>
-                    </x-ui.sidebar-section>
+                    <flux:sidebar.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
+                        {{ __('Dashboard') }}
+                    </flux:sidebar.item>
                 @endif
                 @if ($isManager)
                     @if ($sidebarEmployee)
                         <x-ui.sidebar-section :heading="__('Aktivitas Saya')">
+                            <flux:sidebar.item icon="layout-dashboard" :href="route('my-dashboard')" :current="request()->routeIs('my-dashboard')" wire:navigate>
+                                {{ __('Dashboard Pribadi') }}
+                            </flux:sidebar.item>
                             <flux:sidebar.item icon="clock" :href="route('attendance')" :current="request()->routeIs('attendance')" wire:navigate>
                                 {{ __('Absensi') }}
                             </flux:sidebar.item>
@@ -73,10 +74,10 @@
                                 :badge="$unseenRequestDecisions > 0 ? $unseenRequestDecisions : null"
                                 wire:navigate
                             >
-                                {{ __('Permohonan') }}
+                                {{ __('Permohonan Saya') }}
                             </flux:sidebar.item>
                             <flux:sidebar.item icon="clock" :href="route('overtime-requests.index') . '#riwayat-lembur'" :current="request()->routeIs('overtime-requests.*')" wire:navigate>
-                                {{ __('Lembur') }}
+                                {{ __('Lembur Saya') }}
                             </flux:sidebar.item>
                         </x-ui.sidebar-section>
                     @endif
@@ -93,7 +94,7 @@
                         </flux:sidebar.item>
                     </x-ui.sidebar-section>
 
-                    <x-ui.sidebar-section :heading="__('Master Data')">
+                    <x-ui.sidebar-section :heading="__('Data Master')">
                         <flux:sidebar.item icon="building-office-2" :href="route('admin.clients.index')" :current="request()->routeIs('admin.clients.*', 'admin.locations.*')" wire:navigate>
                             {{ __('Klien') }}
                         </flux:sidebar.item>
@@ -102,7 +103,7 @@
                         </flux:sidebar.item>
                     </x-ui.sidebar-section>
 
-                    <x-ui.sidebar-section :heading="__('Permohonan')">
+                    <x-ui.sidebar-section :heading="__('Persetujuan')">
                         <flux:sidebar.item icon="calendar" :href="route('admin.leave-requests.index')" :current="request()->routeIs('admin.leave-requests.*')" wire:navigate>
                             {{ __('Izin & Cuti') }}
                         </flux:sidebar.item>
@@ -111,6 +112,12 @@
                         </flux:sidebar.item>
                         <flux:sidebar.item icon="document-check" :href="route('admin.attendance-corrections.index')" :current="request()->routeIs('admin.attendance-corrections.*')" wire:navigate>
                             {{ __('Koreksi') }}
+                        </flux:sidebar.item>
+                    </x-ui.sidebar-section>
+
+                    <x-ui.sidebar-section :heading="__('Sistem')">
+                        <flux:sidebar.item icon="scroll-text" :href="route('admin.audit-logs.index')" :current="request()->routeIs('admin.audit-logs.*')" wire:navigate>
+                            {{ __('Audit Log') }}
                         </flux:sidebar.item>
                     </x-ui.sidebar-section>
                 @elseif ($sidebarEmployee)
