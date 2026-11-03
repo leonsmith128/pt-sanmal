@@ -1,14 +1,13 @@
 <x-layouts::app :title="__('Buat Permohonan')">
-    <div class="mx-auto w-full max-w-2xl space-y-5 px-4 py-4 sm:px-6 sm:py-6">
-        <header class="space-y-3">
-            <x-ui.button href="{{ route('leave-requests.index') }}" variant="ghost" icon="arrow-left" size="sm" class="w-fit">
+    <x-ui.page max-width="2xl" gap="5" class="px-4 py-4 sm:px-6 sm:py-6">
+        <x-ui.page-header
+            :title="__('Buat Permohonan')"
+            :description="__('Lengkapi informasi berikut. Permohonan akan menunggu keputusan admin.')"
+        >
+            <x-ui.button href="{{ route('leave-requests.index') }}" variant="ghost" icon="arrow-left" size="sm">
                 {{ __('Kembali ke permohonan saya') }}
             </x-ui.button>
-            <div>
-                <flux:heading size="xl" level="1">{{ __('Buat Permohonan') }}</flux:heading>
-                <flux:text class="mt-1">{{ __('Lengkapi informasi berikut. Permohonan akan menunggu keputusan admin.') }}</flux:text>
-            </div>
-        </header>
+        </x-ui.page-header>
 
         @if ($errors->any())
             <flux:callout variant="danger" icon="exclamation-triangle">
@@ -74,5 +73,5 @@
                 </x-ui.button>
             </div>
         </form>
-    </div>
+    </x-ui.page>
 </x-layouts::app>
