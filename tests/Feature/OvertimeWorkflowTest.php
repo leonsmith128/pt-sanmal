@@ -818,7 +818,6 @@ it('does not allow an overtime request rejected by admin to start', function () 
         ->exists())->toBeFalse();
 });
 
-
 it('inherits the session anchor timezone for overtime confirmation despite later GPS coordinates', function () {
     Storage::fake('local');
     $employee = overtimeEmployee();
