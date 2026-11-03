@@ -43,3 +43,50 @@ test('employee dashboard does not expose administrative summary when no employee
         ->assertDontSee('Pegawai aktif')
         ->assertDontSee('Permohonan menunggu');
 });
+
+
+test('employee dashboard shows pending leave request breakdown for the authenticated employee and keeps notifications visible on mobile', function () {
+    $user = User::factory()->create();
+    $user->forceFill(['role' => UserRole::Employee])->save();
+    $employee = Employee::create(['user_id' => $user->id]);
+
+    $otherUser = User::factory()->create();
+    $otherUser->forceFill(['role' => UserRole::Employee])->save();
+    $otherEmployee = Employee::create(['user_id' => $otherUser->id]);
+
+    $leaveType = LeaveType::create([
+        'code' => 'cuti',
+        'name' => 'Cuti Tahunan',
+        'is_active' => true,
+    ]);
+    $sickType = LeaveType::create([
+        'code' => 'sakit',
+        'name' => 'Sakit',
+        'is_active' => true,
+    ]);
+
+    foreach ([
+        [$employee, $leaveType, 'pending'],
+        [$employee, $sickType, 'pending'],
+        [$employee, $leaveType, 'approved'],
+        [$otherEmployee, $leaveType, 'pending'],
+    ] as [$owner, $type, $status]) {
+        LeaveRequest::create([
+            'employee_id' => $owner->id,
+            'leave_type_id' => $type->id,
+            'start_date' => now()->toDateString(),
+            'end_date' => now()->toDateString(),
+            'reason' => 'Keperluan pengujian',
+            'status' => $status,
+        ]);
+    }
+
+    $this->actingAs($user)
+        ->get(route('dashboard'))
+        ->assertOk()
+        ->assertSee('Pengajuan Saya')
+        ->assertSee('Cuti Tahunan: 1')
+        ->assertSee('Sakit: 1')
+        ->assertSee('aria-label="Buka notifikasi"', false)
+        ->assertDontSee('hidden lg:block');
+});
