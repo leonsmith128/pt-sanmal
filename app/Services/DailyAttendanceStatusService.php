@@ -35,7 +35,7 @@ class DailyAttendanceStatusService
      * @param  Collection<int, Employee>  $employees
      * @return array<int, array<string, array{status:string,label:string,events:Collection,leaveRequests:Collection,correction:?DailyStatusCorrection,needs_review:bool,reason:?string}>>
      */
-    public function forEmployeesDateRange(Collection $employees, Carbon|string $startDate, Carbon|string $endDate): array
+    public function forEmployeesDateRange(Collection $employees, Carbon|string $startDate, Carbon|string $endDate, ?string $reportingTimezone = null): array
     {
         $start = Carbon::parse($startDate)->toDateString();
         $end = Carbon::parse($endDate)->toDateString();
@@ -49,7 +49,11 @@ class DailyAttendanceStatusService
         // Event lama tanpa anchor memakai tanggal efektif event itu sendiri.
         $rawEvents = AttendanceRecord::query()
             ->whereIn('employee_id', $employeeIds);
-        AttendanceDateFilter::apply($rawEvents, $start, $end);
+        if ($reportingTimezone !== null) {
+            AttendanceDateFilter::applyInTimezone($rawEvents, $start, $end, $reportingTimezone);
+        } else {
+            AttendanceDateFilter::apply($rawEvents, $start, $end);
+        }
 
         $rawEvents = $rawEvents
             ->with(['approvedCorrection', 'corrections', 'sessionCorrections', 'sessionAnchor.approvedCorrection', 'location', 'project'])
@@ -61,9 +65,11 @@ class DailyAttendanceStatusService
 
         foreach ($rawEvents as $event) {
             $anchor = $event->sessionAnchor;
-            $assignedDate = $anchor
-                ? $anchor->effectiveAttendanceDate()
-                : $event->effectiveAttendanceDate();
+            $assignedDate = $reportingTimezone !== null
+                ? ($anchor ?? $event)->effectiveRecordedAt()->copy()->setTimezone($reportingTimezone)->toDateString()
+                : ($anchor
+                    ? $anchor->effectiveAttendanceDate()
+                    : $event->effectiveAttendanceDate());
 
             if ($assignedDate >= $start && $assignedDate <= $end) {
                 $key = $event->employee_id.'_'.$assignedDate;
