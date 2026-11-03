@@ -94,15 +94,6 @@
                         </flux:sidebar.item>
                     </x-ui.sidebar-section>
 
-                    <x-ui.sidebar-section :heading="__('Data Master')">
-                        <flux:sidebar.item icon="building-office-2" :href="route('admin.clients.index')" :current="request()->routeIs('admin.clients.*', 'admin.locations.*')" wire:navigate>
-                            {{ __('Klien') }}
-                        </flux:sidebar.item>
-                        <flux:sidebar.item icon="users" :href="route('admin.employees.index')" :current="request()->routeIs('admin.employees.*')" wire:navigate>
-                            {{ __('Pegawai') }}
-                        </flux:sidebar.item>
-                    </x-ui.sidebar-section>
-
                     <x-ui.sidebar-section :heading="__('Persetujuan')">
                         <flux:sidebar.item icon="calendar" :href="route('admin.leave-requests.index')" :current="request()->routeIs('admin.leave-requests.*')" wire:navigate>
                             {{ __('Izin & Cuti') }}
@@ -112,6 +103,15 @@
                         </flux:sidebar.item>
                         <flux:sidebar.item icon="document-check" :href="route('admin.attendance-corrections.index')" :current="request()->routeIs('admin.attendance-corrections.*')" wire:navigate>
                             {{ __('Koreksi') }}
+                        </flux:sidebar.item>
+                    </x-ui.sidebar-section>
+
+                    <x-ui.sidebar-section :heading="__('Data Master')">
+                        <flux:sidebar.item icon="building-office-2" :href="route('admin.clients.index')" :current="request()->routeIs('admin.clients.*', 'admin.locations.*')" wire:navigate>
+                            {{ __('Klien') }}
+                        </flux:sidebar.item>
+                        <flux:sidebar.item icon="users" :href="route('admin.employees.index')" :current="request()->routeIs('admin.employees.*')" wire:navigate>
+                            {{ __('Pegawai') }}
                         </flux:sidebar.item>
                     </x-ui.sidebar-section>
 
