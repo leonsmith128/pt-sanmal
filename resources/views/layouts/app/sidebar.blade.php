@@ -3,7 +3,7 @@
     <head>
         @include('partials.head')
     </head>
-    <body class="min-h-dvh bg-sanmal-surface-page dark:bg-sanmal-surface-page-dark">
+    <body class="min-h-dvh bg-sanmal-surface-sidebar dark:bg-sanmal-surface-page-dark">
         @php
             $sidebarUser = auth()->user();
             $sidebarEmployee = $sidebarUser->employee;
