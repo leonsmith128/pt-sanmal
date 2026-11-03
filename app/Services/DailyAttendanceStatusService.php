@@ -153,12 +153,22 @@ class DailyAttendanceStatusService
             ];
         }
 
-        if ($events->contains(fn (AttendanceRecord $event): bool => $event->timezone_source === 'fallback')) {
+        $usesTimezoneFallback = $events->contains(
+            fn (AttendanceRecord $event): bool => $event->timezone_source === 'fallback',
+        );
+        $hasUnverifiedGps = $events->contains(
+            fn (AttendanceRecord $event): bool => $event->timezone_source !== 'legacy'
+                && $event->location_status !== 'captured',
+        );
+
+        if ($usesTimezoneFallback || $hasUnverifiedGps) {
             return $this->reviewResult(
                 $events,
                 $leaveRequests,
                 null,
-                'Timezone absensi menggunakan fallback Asia/Makassar karena GPS tidak dapat menentukan zona waktu. Riwayat perlu ditinjau admin.',
+                $usesTimezoneFallback
+                    ? 'Timezone absensi menggunakan fallback Asia/Makassar karena GPS tidak dapat menentukan zona waktu. Riwayat perlu ditinjau admin.'
+                    : 'Bukti GPS pada salah satu event sesi tidak tersedia atau tidak terverifikasi. Riwayat perlu ditinjau admin.',
             );
         }
 
