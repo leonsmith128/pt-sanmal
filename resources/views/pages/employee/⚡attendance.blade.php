@@ -328,31 +328,8 @@ new #[Title('Absensi')] class extends Component {
                 @if ($unreadCount > 0)
                     <span class="absolute right-0.5 top-0.5 flex min-h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-semibold text-white">{{ $unreadCount > 99 ? '99+' : $unreadCount }}</span>
                 @endif
-            </a>            
+            </a>
         </header>
-
-
-        <section class="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
-            <div class="mb-3 flex items-center justify-between gap-3">
-                <div>
-                    <flux:heading size="sm">{{ Carbon::parse($selectedDate)->translatedFormat('F Y') }}</flux:heading>
-                    <flux:text class="text-sm">{{ __('Pilih tanggal untuk melihat riwayat.') }}</flux:text>
-                </div>
-                <div class="flex gap-1">
-                    <x-ui.button size="sm" variant="ghost" icon="chevron-left" wire:click="shiftWeek(-1)" aria-label="{{ __('Minggu sebelumnya') }}" />
-                    <x-ui.button size="sm" variant="ghost" icon="chevron-right" wire:click="shiftWeek(1)" aria-label="{{ __('Minggu berikutnya') }}" />
-                    <x-ui.button size="sm" variant="ghost" wire:click="selectDate('{{ now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString() }}')">{{ __('Hari ini') }}</x-ui.button>
-                </div>
-            </div>
-            <div class="grid grid-cols-7 gap-1.5">
-                @foreach ($this->weekDays as $day)
-                    <button type="button" wire:click="selectDate('{{ $day['date'] }}')" class="flex min-w-0 flex-col items-center gap-1 rounded-xl px-1 py-2.5 text-sm transition {{ $selectedDate === $day['date'] ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900' : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800' }}">
-                        <span class="text-xs {{ $selectedDate === $day['date'] ? 'opacity-80' : 'text-zinc-500' }}">{{ $day['label'] }}</span>
-                        <span class="flex size-8 items-center justify-center rounded-full {{ $day['today'] && $selectedDate !== $day['date'] ? 'ring-1 ring-zinc-400' : '' }} font-semibold">{{ $day['day'] }}</span>
-                    </button>
-                @endforeach
-            </div>
-        </section>
 
         @php
             $session = $this->openSession;
@@ -424,6 +401,159 @@ new #[Title('Absensi')] class extends Component {
                 </flux:heading>
             </div>
         </div>
+
+        {{-- Form absensi --}}
+        <form wire:submit="confirm('{{ $mode }}')" class="flex flex-col gap-5 rounded-xl border border-neutral-200 p-5 dark:border-neutral-700 {{ $selectedDate !== now(RecordAttendance::DEFAULT_TIMEZONE)->
+            <div class="space-y-1">
+                <flux:heading size="sm">
+                    {{ match ($mode) {
+                        'clock_in' => __('Mulai absensi'),
+                        'clock_out' => __('Selesaikan sesi kerja'),
+                        'overtime_start' => __('Konfirmasi mulai lembur'),
+                        'overtime_locked' => __('Jadwal lembur belum dimulai'),
+                        'clock_in_blocked' => __('Absensi hari ini sudah digunakan'),
+                        default => __('Absensi'),
+                    } }}
+                </flux:heading>
+                <flux:text class="text-sm">
+                    {{ match ($mode) {
+                        'clock_in' => __('Pilih lokasi kerja, ambil foto, lalu konfirmasi absensi masuk.'),
+                        'clock_out' => __('Ambil foto dan konfirmasi untuk mengakhiri sesi kerja.'),
+                        'overtime_start' => __('Ambil foto untuk mencatat konfirmasi mulai lembur.'),
+                        'overtime_locked' => __('Konfirmasi lembur tersedia setelah waktu jadwal dimulai.'),
+                        'clock_in_blocked' => __('Sesi absensi untuk tanggal ini sudah digunakan.'),
+                        default => __('Ikuti langkah berikut untuk melanjutkan absensi.'),
+                    } }}
+                </flux:text>
+            </div>
+toDateString() ? 'hidden' : '' }}">
+            @if ($mode === 'clock_in_blocked')
+                <flux:callout variant="info" icon="lock-closed">
+                    <flux:callout.heading>{{ __('Absensi hari ini sudah digunakan') }}</flux:callout.heading>
+                    <flux:callout.text>
+                        {{ __('Anda sudah melakukan Clock In pada tanggal ini. Sesi kedua tidak dapat dibuat setelah Clock Out.') }}
+                    </flux:callout.text>
+                </flux:callout>
+            @elseif ($mode === 'overtime_locked')
+                <flux:callout variant="warning" icon="lock-closed">
+                    <flux:callout.heading>{{ __('Menunggu jadwal lembur') }}</flux:callout.heading>
+                    <flux:callout.text>
+                        {{ __('Konfirmasi Lembur tersedia setelah jadwal mulai:') }}
+                        <strong>{{ $sessionOvertime->scheduledStartLocal()->format('d M Y, H:i') }}</strong>.
+                        {{ __('Tombol Clock Out tidak tersedia selama pengajuan ini masih aktif. Jika tidak jadi lembur, batalkan pengajuan terlebih dahulu.') }}
+                    </flux:callout.text>
+                </flux:callout>
+            @elseif ($mode === 'clock_in')
+                <x-ui.select name="workType" wire:model.live="workType" :label="__('Jenis lokasi kerja')">
+                    <flux:select.option value="office">{{ __('Kantor') }}</flux:select.option>
+                    <flux:select.option value="onsite">{{ __('Onsite (Proyek)') }}</flux:select.option>
+                </x-ui.select>
+
+                @if ($workType === 'office')
+                    @if ($this->officeLocations->isEmpty())
+                        <flux:text class="text-red-500">{{ __('Belum ada lokasi kantor aktif. Hubungi admin.') }}</flux:text>
+                    @elseif ($this->officeLocations->count() === 1)
+                        <div class="rounded-lg border border-zinc-200 bg-zinc-50 p-3 text-sm dark:border-zinc-700 dark:bg-zinc-900">
+                            <span class="font-medium">{{ __('Lokasi kantor') }}:</span>
+                            {{ $this->officeLocations->first()->name }}
+                        </div>
+                    @else
+                        <x-ui.select name="locationId" wire:model="locationId" :label="__('Kantor')">
+                            @foreach ($this->officeLocations as $office)
+                                <flux:select.option value="{{ $office->id }}">{{ $office->name }}</flux:select.option>
+                            @endforeach
+                        </x-ui.select>
+                    @endif
+                @else
+                    @if ($this->projects->isEmpty())
+                        <flux:text class="text-red-500">{{ __('Belum ada proyek aktif yang tersedia untuk absensi. Hubungi admin.') }}</flux:text>
+                    @else
+                        <x-ui.select name="projectId" wire:model.live="projectId" :label="__('Proyek')">
+                            @foreach ($this->projects as $project)
+                                <flux:select.option value="{{ $project->id }}">
+                                    {{ $project->code }} — {{ $project->name }} ({{ $project->client->name }})
+                                </flux:select.option>
+                            @endforeach
+                        </x-ui.select>
+                        @if ($selectedProject = $this->projects->firstWhere('id', (int) $projectId))
+                            <div class="rounded-lg border border-zinc-200 bg-zinc-50 p-3 text-sm dark:border-zinc-700 dark:bg-zinc-900">
+                                <p><span class="font-medium">{{ __('Client') }}:</span> {{ $selectedProject->client->name }}</p>
+                                <p><span class="font-medium">{{ __('Lokasi Site') }}:</span> {{ $selectedProject->location->name }}</p>
+                                <p><span class="font-medium">{{ __('Jenis layanan') }}:</span> {{ $selectedProject->project_type->label() }}</p>
+                            </div>
+                        @endif
+                    @endif
+                 @endif
+            @elseif ($mode === 'overtime_start')
+                <flux:text>{{ __('Konfirmasi mulai lembur memerlukan foto dan lokasi terbaru. Sesi kerja utama tetap berjalan.') }}</flux:text>
+            @endif
+
+            @if (! in_array($mode, ['overtime_locked', 'clock_in_blocked'], true))
+                <x-attendance.camera
+                    :name="Auth::user()->name"
+                    :event-label="$mode === 'overtime_start' ? 'Lembur' : ($mode === 'clock_in' ? 'Clock In' : 'Clock Out')"
+                    :selfie="$selfie"
+                />
+            @endif
+
+                        @error('form') <flux:text class="text-red-500">{{ $message }}</flux:text> @enderror
+            @error('workType') <flux:text class="text-red-500">{{ $message }}</flux:text> @enderror
+
+            <div class="flex items-center gap-2">
+                @if ($mode === 'overtime_locked')
+                    <x-ui.button type="button" variant="primary" class="min-w-0 flex-1" disabled icon="lock-closed">
+                        {{ __('Konfirmasi Lembur') }}
+                    </x-ui.button>
+                @elseif ($mode === 'clock_in_blocked')
+                    <x-ui.button type="button" variant="primary" class="min-w-0 flex-1" disabled icon="lock-closed">
+                        {{ __('Sesi hari ini sudah digunakan') }}
+                    </x-ui.button>
+                @else
+                    @if ($selfie)
+                        <x-ui.button
+                            type="submit"
+                            variant="primary"
+                            class="min-w-0 flex-1"
+                            wire:loading.attr="disabled"
+                            wire:target="confirm,submit,selfie"
+                        >
+                            {{ __('Lanjutkan') }}
+                        </x-ui.button>
+                    @else
+                        <x-ui.button
+                            type="button"
+                            variant="primary"
+                            class="min-w-0 flex-1"
+                            x-on:click="$dispatch('attendance-camera-open')"
+                        >
+                            {{ match ($mode) { 'clock_in' => __('Absen Masuk'), 'overtime_start' => __('Konfirmasi Lembur'), default => __('Absen Pulang') } }}
+                        </x-ui.button>
+                    @endif
+                @endif
+            </div>
+        </form>
+
+        <section class="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
+            <div class="mb-3 flex items-center justify-between gap-3">
+                <div>
+                    <flux:heading size="sm">{{ Carbon::parse($selectedDate)->translatedFormat('F Y') }}</flux:heading>
+                    <flux:text class="text-sm">{{ __('Pilih tanggal untuk melihat riwayat.') }}</flux:text>
+                </div>
+                <div class="flex gap-1">
+                    <x-ui.button size="sm" variant="ghost" icon="chevron-left" wire:click="shiftWeek(-1)" aria-label="{{ __('Minggu sebelumnya') }}" />
+                    <x-ui.button size="sm" variant="ghost" icon="chevron-right" wire:click="shiftWeek(1)" aria-label="{{ __('Minggu berikutnya') }}" />
+                    <x-ui.button size="sm" variant="ghost" wire:click="selectDate('{{ now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString() }}')">{{ __('Hari ini') }}</x-ui.button>
+                </div>
+            </div>
+            <div class="grid grid-cols-7 gap-1.5">
+                @foreach ($this->weekDays as $day)
+                    <button type="button" wire:click="selectDate('{{ $day['date'] }}')" class="flex min-w-0 flex-col items-center gap-1 rounded-xl px-1 py-2.5 text-sm transition {{ $selectedDate === $day['date'] ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900' : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800' }}">
+                        <span class="text-xs {{ $selectedDate === $day['date'] ? 'opacity-80' : 'text-zinc-500' }}">{{ $day['label'] }}</span>
+                        <span class="flex size-8 items-center justify-center rounded-full {{ $day['today'] && $selectedDate !== $day['date'] ? 'ring-1 ring-zinc-400' : '' }} font-semibold">{{ $day['day'] }}</span>
+                    </button>
+                @endforeach
+            </div>
+        </section>
 
         <div class="grid grid-cols-1 items-stretch gap-3 sm:grid-cols-2">
             <x-attendance.info-card class="min-w-0 flex-1 basis-64"
@@ -536,114 +666,6 @@ new #[Title('Absensi')] class extends Component {
                 @endif
             </x-attendance.info-card>
         </div>
-
-        {{-- Form absensi --}}
-        <form wire:submit="confirm('{{ $mode }}')" class="flex flex-col gap-5 rounded-xl border border-neutral-200 p-5 dark:border-neutral-700 {{ $selectedDate !== now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString() ? 'hidden' : '' }}">
-            @if ($mode === 'clock_in_blocked')
-                <flux:callout variant="info" icon="lock-closed">
-                    <flux:callout.heading>{{ __('Absensi hari ini sudah digunakan') }}</flux:callout.heading>
-                    <flux:callout.text>
-                        {{ __('Anda sudah melakukan Clock In pada tanggal ini. Sesi kedua tidak dapat dibuat setelah Clock Out.') }}
-                    </flux:callout.text>
-                </flux:callout>
-            @elseif ($mode === 'overtime_locked')
-                <flux:callout variant="warning" icon="lock-closed">
-                    <flux:callout.heading>{{ __('Menunggu jadwal lembur') }}</flux:callout.heading>
-                    <flux:callout.text>
-                        {{ __('Konfirmasi Lembur tersedia setelah jadwal mulai:') }}
-                        <strong>{{ $sessionOvertime->scheduledStartLocal()->format('d M Y, H:i') }}</strong>.
-                        {{ __('Tombol Clock Out tidak tersedia selama pengajuan ini masih aktif. Jika tidak jadi lembur, batalkan pengajuan terlebih dahulu.') }}
-                    </flux:callout.text>
-                </flux:callout>
-            @elseif ($mode === 'clock_in')
-                <x-ui.select name="workType" wire:model.live="workType" :label="__('Jenis lokasi kerja')">
-                    <flux:select.option value="office">{{ __('Kantor') }}</flux:select.option>
-                    <flux:select.option value="onsite">{{ __('Onsite (Proyek)') }}</flux:select.option>
-                </x-ui.select>
-
-                @if ($workType === 'office')
-                    @if ($this->officeLocations->isEmpty())
-                        <flux:text class="text-red-500">{{ __('Belum ada lokasi kantor aktif. Hubungi admin.') }}</flux:text>
-                    @elseif ($this->officeLocations->count() === 1)
-                        <div class="rounded-lg border border-zinc-200 bg-zinc-50 p-3 text-sm dark:border-zinc-700 dark:bg-zinc-900">
-                            <span class="font-medium">{{ __('Lokasi kantor') }}:</span>
-                            {{ $this->officeLocations->first()->name }}
-                        </div>
-                    @else
-                        <x-ui.select name="locationId" wire:model="locationId" :label="__('Kantor')">
-                            @foreach ($this->officeLocations as $office)
-                                <flux:select.option value="{{ $office->id }}">{{ $office->name }}</flux:select.option>
-                            @endforeach
-                        </x-ui.select>
-                    @endif
-                @else
-                    @if ($this->projects->isEmpty())
-                        <flux:text class="text-red-500">{{ __('Belum ada proyek aktif yang tersedia untuk absensi. Hubungi admin.') }}</flux:text>
-                    @else
-                        <x-ui.select name="projectId" wire:model.live="projectId" :label="__('Proyek')">
-                            @foreach ($this->projects as $project)
-                                <flux:select.option value="{{ $project->id }}">
-                                    {{ $project->code }} — {{ $project->name }} ({{ $project->client->name }})
-                                </flux:select.option>
-                            @endforeach
-                        </x-ui.select>
-                        @if ($selectedProject = $this->projects->firstWhere('id', (int) $projectId))
-                            <div class="rounded-lg border border-zinc-200 bg-zinc-50 p-3 text-sm dark:border-zinc-700 dark:bg-zinc-900">
-                                <p><span class="font-medium">{{ __('Client') }}:</span> {{ $selectedProject->client->name }}</p>
-                                <p><span class="font-medium">{{ __('Lokasi Site') }}:</span> {{ $selectedProject->location->name }}</p>
-                                <p><span class="font-medium">{{ __('Jenis layanan') }}:</span> {{ $selectedProject->project_type->label() }}</p>
-                            </div>
-                        @endif
-                    @endif
-                 @endif
-            @elseif ($mode === 'overtime_start')
-                <flux:text>{{ __('Konfirmasi mulai lembur memerlukan foto dan lokasi terbaru. Sesi kerja utama tetap berjalan.') }}</flux:text>
-            @endif
-
-            @if (! in_array($mode, ['overtime_locked', 'clock_in_blocked'], true))
-                <x-attendance.camera
-                    :name="Auth::user()->name"
-                    :event-label="$mode === 'overtime_start' ? 'Lembur' : ($mode === 'clock_in' ? 'Clock In' : 'Clock Out')"
-                    :selfie="$selfie"
-                />
-            @endif
-
-                        @error('form') <flux:text class="text-red-500">{{ $message }}</flux:text> @enderror
-            @error('workType') <flux:text class="text-red-500">{{ $message }}</flux:text> @enderror
-
-            <div class="flex items-center gap-2">
-                @if ($mode === 'overtime_locked')
-                    <x-ui.button type="button" variant="primary" class="min-w-0 flex-1" disabled icon="lock-closed">
-                        {{ __('Konfirmasi Lembur') }}
-                    </x-ui.button>
-                @elseif ($mode === 'clock_in_blocked')
-                    <x-ui.button type="button" variant="primary" class="min-w-0 flex-1" disabled icon="lock-closed">
-                        {{ __('Sesi hari ini sudah digunakan') }}
-                    </x-ui.button>
-                @else
-                    @if ($selfie)
-                        <x-ui.button
-                            type="submit"
-                            variant="primary"
-                            class="min-w-0 flex-1"
-                            wire:loading.attr="disabled"
-                            wire:target="confirm,submit,selfie"
-                        >
-                            {{ __('Lanjutkan') }}
-                        </x-ui.button>
-                    @else
-                        <x-ui.button
-                            type="button"
-                            variant="primary"
-                            class="min-w-0 flex-1"
-                            x-on:click="$dispatch('attendance-camera-open')"
-                        >
-                            {{ match ($mode) { 'clock_in' => __('Absen Masuk'), 'overtime_start' => __('Konfirmasi Lembur'), default => __('Absen Pulang') } }}
-                        </x-ui.button>
-                    @endif
-                @endif
-            </div>
-        </form>
 
         {{-- Modal konfirmasi sebelum absensi dikirim --}}
         @php
