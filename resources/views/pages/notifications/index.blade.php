@@ -15,7 +15,7 @@
 
         <x-ui.flash-message />
 
-        <section class="flex flex-col gap-3">
+        <x-ui.section>
             @forelse ($notifications as $notification)
                 @php
                     $data = $notification->data;
@@ -70,6 +70,6 @@
                 </div>
             @endforelse
             {{ $notifications->links() }}
-        </section>
+        </x-ui.section>
     </x-ui.page>
 </x-layouts::app>
