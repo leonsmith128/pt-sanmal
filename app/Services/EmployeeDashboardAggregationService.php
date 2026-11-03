@@ -78,6 +78,7 @@ class EmployeeDashboardAggregationService
 
         $workMinutes = 0;
         $runningWork = false;
+        $overtimeNeedsReview = false;
 
         foreach ($anchors as $anchor) {
             $date = $anchor->effectiveAttendanceDate();
@@ -118,6 +119,9 @@ class EmployeeDashboardAggregationService
             $sessionOvertime = $overtimeIntervals
                 ->filter(fn (array $interval) => $interval['sessionAnchorId'] === $anchor->id)
                 ->values();
+            $overtimeNeedsReview = $overtimeNeedsReview || $sessionOvertime->contains(
+                fn (array $interval) => $interval['start']->lt($start) || $interval['end']->gt($end),
+            );
             $subtraction = $this->mergedOverlapSeconds($start, $end, $sessionOvertime);
             $workMinutes += (int) floor(max(0, $duration - $subtraction) / 60);
         }
@@ -186,6 +190,7 @@ class EmployeeDashboardAggregationService
                 'workIsProvisional' => $runningWork,
                 'overtimeMinutes' => $overtimeMinutes,
                 'overtimeIsProvisional' => $runningOvertime,
+                'overtimeNeedsReview' => $overtimeNeedsReview,
             ],
             'pending' => [
                 'total' => $pendingCorrections + $pendingOvertime + $pendingLeave->count(),
