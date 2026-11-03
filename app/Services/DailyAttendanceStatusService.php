@@ -52,11 +52,7 @@ class DailyAttendanceStatusService
         if ($reportingTimezone !== null) {
             AttendanceDateFilter::applyInTimezone($rawEvents, $start, $end, $reportingTimezone);
         } else {
-            if ($reportingTimezone !== null) {
-            AttendanceDateFilter::applyInTimezone($rawEvents, $start, $end, $reportingTimezone);
-        } else {
             AttendanceDateFilter::apply($rawEvents, $start, $end);
-        }
         }
 
         $rawEvents = $rawEvents
