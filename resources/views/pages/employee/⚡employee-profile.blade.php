@@ -87,7 +87,7 @@ new #[Title('Profil Pegawai')] class extends Component {
         </flux:subheading>
     </div>
 
-    <x-ui.card padding="p-6">
+    <div class="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
         <div class="flex flex-col gap-5 sm:flex-row sm:items-center">
             <flux:avatar
                 :src="$photo?->isPreviewable() ? $photo->temporaryUrl() : auth()->user()->profilePhotoUrl()"
@@ -103,7 +103,7 @@ new #[Title('Profil Pegawai')] class extends Component {
                     JPG, PNG, atau WebP. Maksimal 2 MB.
                 </flux:text>
             </div>
-        </x-ui.card>
+        </div>
 
         <form wire:submit="saveProfilePhoto" class="mt-5 space-y-4">
             <x-ui.input
@@ -133,7 +133,7 @@ new #[Title('Profil Pegawai')] class extends Component {
         </form>
     </div>
 
-    <x-ui.card padding="p-6">
+    <div class="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
         <flux:heading size="lg">Informasi pribadi</flux:heading>
         <flux:subheading class="mt-1">Nomor telepon dapat Anda perbarui sendiri.</flux:subheading>
 
@@ -166,7 +166,7 @@ new #[Title('Profil Pegawai')] class extends Component {
                         <flux:label>Tanggal bergabung</flux:label>
                         <flux:text class="mt-1">{{ auth()->user()->employee->joined_at?->format('d M Y') ?? 'Belum diatur' }}</flux:text>
                     </div>
-                </x-ui.card>
+                </div>
             @else
                 <flux:callout icon="information-circle" variant="warning">
                     Data profil kepegawaian belum terhubung ke akun ini. Hubungi admin jika Anda memerlukan data tersebut.
