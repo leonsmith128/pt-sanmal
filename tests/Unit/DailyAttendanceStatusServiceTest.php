@@ -10,7 +10,11 @@ use App\Services\DailyAttendanceStatusService;
 
 function dailyStatusEvent(AttendanceType $type): AttendanceRecord
 {
-    return new AttendanceRecord(['type' => $type]);
+    return new AttendanceRecord([
+        'type' => $type,
+        'timezone_source' => 'legacy',
+        'location_status' => 'captured',
+    ]);
 }
 
 function dailyStatusLeave(string $code): LeaveRequest
