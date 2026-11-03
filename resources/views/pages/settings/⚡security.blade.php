@@ -108,7 +108,7 @@ new #[Title('Keamanan Akun')] class extends Component {
         :description="__('Kelola email login dan kata sandi. Konfirmasi kata sandi diperlukan sebelum membuka halaman ini.')"
     />
 
-    <div class="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
+    <x-ui.card padding="p-6">
         <flux:heading size="lg">{{ __('Alamat email') }}</flux:heading>
         <flux:subheading class="mt-1">
             {{ __('Gunakan email yang dapat Anda akses. Email baru harus diverifikasi sebelum dianggap terverifikasi.') }}
@@ -150,9 +150,9 @@ new #[Title('Keamanan Akun')] class extends Component {
                 {{ __('Tautan verifikasi telah dikirim ke alamat email Anda.') }}
             </flux:text>
         @endif
-    </div>
+    </x-ui.card>
 
-    <div class="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
+    <x-ui.card padding="p-6">
         <flux:heading size="lg">{{ __('Ubah kata sandi') }}</flux:heading>
         <flux:subheading class="mt-1">
             {{ __('Gunakan kata sandi yang kuat dan tidak digunakan pada layanan lain.') }}
@@ -195,5 +195,5 @@ new #[Title('Keamanan Akun')] class extends Component {
                 </x-ui.button>
             </div>
         </form>
-    </div>
+    </x-ui.card>
 </x-ui.page>
