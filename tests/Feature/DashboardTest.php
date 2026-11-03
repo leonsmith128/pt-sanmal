@@ -6,6 +6,7 @@ use App\Enums\OvertimeApprovalStatus;
 use App\Enums\OvertimeState;
 use App\Enums\UserRole;
 use App\Enums\WorkType;
+use App\Models\AttendanceCorrection;
 use App\Models\AttendanceRecord;
 use App\Models\DailyStatusCorrection;
 use App\Models\Employee;
