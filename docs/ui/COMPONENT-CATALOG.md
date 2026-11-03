@@ -18,6 +18,7 @@ Do not copy a documented API into a page without checking the implementation on 
 | Family | Existing components/patterns documented | Primary responsibility | Detailed reference |
 |---|---|---|---|
 | Page/layout | `x-ui.page`, `x-ui.page-header`, `x-ui.section` | Consistent page width, header, and section rhythm | [Reusable components](REUSABLE-BLADE-COMPONENTS.md) |
+| Navigation composition | `x-ui.sidebar-section` | Role-aware grouped sidebar section: heading when expanded, separator in the same row when collapsed | [Reusable components](REUSABLE-BLADE-COMPONENTS.md) |
 | Button/action | `x-ui.button` | Action semantics, variants, icon slots, forwarded attributes | [Reusable components](REUSABLE-BLADE-COMPONENTS.md) |
 | Form | `x-ui.field`, `x-ui.input`, `x-ui.select`, `x-ui.textarea`, `x-ui.checkbox` | Label, description, validation, and native/Flux control integration | [Reusable components](REUSABLE-BLADE-COMPONENTS.md) |
 | Surface | `x-ui.card` | Reusable card surface/link when semantics fit | [Reusable components](REUSABLE-BLADE-COMPONENTS.md) |
@@ -55,7 +56,7 @@ When a shared component is created or its public contract changes, update the de
 
 ## 5. Current milestone boundary
 
-The 14 shared `x-ui.*` primitives listed in this catalog have been implemented and adopted on selected pages. This closes the reusable-component standardization phase; it does not mean all pages are visually finalized or have passed responsive/accessibility QA.
+The 14 shared `x-ui.*` primitives listed in this catalog have been implemented and adopted on selected pages. `x-ui.sidebar-section` is a shell-specific navigation composition helper, not an additional generic primitive. This closes the reusable-component standardization phase; it does not mean all pages are visually finalized or have passed responsive/accessibility QA.
 
 For current evidence and the next page-level design/layouting phase, see [Implementation Status](progress/IMPLEMENTATION-STATUS.md). Do not add generic components without a demonstrated repeated pattern and stable interaction contract.
 
