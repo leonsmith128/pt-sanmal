@@ -114,20 +114,13 @@
                 @endphp
 
                 <header class="flex min-w-0 items-center gap-3 sm:gap-4">
-                    @if ($dashboardUser->profilePhotoUrl())
-                        <img
-                            src="{{ $dashboardUser->profilePhotoUrl() }}"
-                            alt="{{ __('Foto profil :name', ['name' => $dashboardUser->name]) }}"
-                            class="size-11 shrink-0 rounded-full object-cover"
-                        >
-                    @else
-                        <div
-                            aria-hidden="true"
-                            class="flex size-11 shrink-0 items-center justify-center rounded-full bg-sanmal-100 font-semibold text-sanmal-700 dark:bg-sanmal-900 dark:text-sanmal-200"
-                        >
-                            {{ $dashboardUser->initials() }}
-                        </div>
-                    @endif
+                    <x-ui.avatar
+                        :name="$dashboardUser->name"
+                        :initials="$dashboardUser->initials()"
+                        :src="$dashboardUser->profilePhotoUrl()"
+                        size="lg"
+                        :aria-label="__('Foto profil :name', ['name' => $dashboardUser->name])"
+                    />
 
                     <div class="min-w-0 flex-1">
                         <p class="text-sm text-zinc-600 dark:text-zinc-400">{{ __('Selamat datang,') }}</p>
