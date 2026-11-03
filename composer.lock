@@ -4,8 +4,78 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "7c9db8b8381c2fbcafdfc84877682305",
+    "content-hash": "662894f893945c17dfa6199a07a2dae4",
     "packages": [
+        {
+            "name": "aldesrahim/laravel-timezone-indonesia",
+            "version": "v1.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/aldesrahim/laravel-timezone-indonesia.git",
+                "reference": "b53377e2896ec7b050619d112f1caea8ed50d77d"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/aldesrahim/laravel-timezone-indonesia/zipball/b53377e2896ec7b050619d112f1caea8ed50d77d",
+                "reference": "b53377e2896ec7b050619d112f1caea8ed50d77d",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/console": "^12.0 || ^13.0",
+                "illuminate/contracts": "^12.0 || ^13.0",
+                "illuminate/http": "^12.0 || ^13.0",
+                "illuminate/support": "^12.0 || ^13.0",
+                "php": "^8.2"
+            },
+            "require-dev": {
+                "laravel/pint": "^1.18",
+                "orchestra/testbench": "^10.0 || ^11.0",
+                "pestphp/pest": "^3.0 || ^4.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Aldesrahim\\TimezoneIndonesia\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Al Desrahim",
+                    "email": "aldesrahim@gmail.com"
+                }
+            ],
+            "description": "Resolve an Indonesian IANA timezone from a coordinate, offline, from bundled timezone-boundary-builder geometry.",
+            "homepage": "https://github.com/aldesrahim/laravel-timezone-indonesia",
+            "keywords": [
+                "laravel",
+                "indonesia",
+                "timezone",
+                "geojson",
+                "geolocation",
+                "wib",
+                "wita",
+                "wit"
+            ],
+            "support": {
+                "issues": "https://github.com/aldesrahim/laravel-timezone-indonesia/issues",
+                "source": "https://github.com/aldesrahim/laravel-timezone-indonesia/tree/v1.1.0"
+            },
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Aldesrahim\\TimezoneIndonesia\\TimezoneIndonesiaServiceProvider"
+                    ],
+                    "aliases": {
+                        "TimezoneIndonesia": "Aldesrahim\\TimezoneIndonesia\\Facades\\TimezoneIndonesia"
+                    }
+                }
+            },
+            "time": "2026-08-13T10:33:29+00:00"
+        },
         {
             "name": "bacon/bacon-qr-code",
             "version": "v3.1.1",
