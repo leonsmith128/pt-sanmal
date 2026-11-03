@@ -35,13 +35,13 @@ class AdminDashboardController extends Controller
             ]);
         }
 
-        $today = now()->toDateString();
+        $today = now('Asia/Makassar')->toDateString();
         $employees = Employee::query()
             ->whereHas('user', fn ($query) => $query->where('is_active', true))
             ->with('user:id,name')
             ->get();
 
-        $daily = $statusService->forEmployeesDateRange($employees, $today, $today);
+        $daily = $statusService->forEmployeesDateRange($employees, $today, $today, 'Asia/Makassar');
         $counts = collect($daily)->map(fn ($days) => $days[$today]['status'] ?? 'no_record')->countBy();
 
         return view('pages::dashboard', [
@@ -55,7 +55,7 @@ class AdminDashboardController extends Controller
             'pendingOvertime' => OvertimeRequest::query()->where('approval_status', OvertimeApprovalStatus::Pending)->count(),
             'recentAttendance' => AttendanceRecord::query()
                 ->with('employee.user')
-                ->whereDate('attendance_date', $today)
+                ->whereBetween('recorded_at', [Carbon::parse($today, 'Asia/Makassar')->startOfDay()->utc(), Carbon::parse($today, 'Asia/Makassar')->endOfDay()->utc()])
                 ->latest('recorded_at')
                 ->limit(8)
                 ->get(),
