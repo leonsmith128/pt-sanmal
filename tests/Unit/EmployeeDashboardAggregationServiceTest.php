@@ -131,7 +131,7 @@ it('keeps scheduled and manual overtime finalization timestamps authoritative', 
         ->and($interval['provisional'])->toBeFalse();
 })->with(['scheduled', 'manual']);
 
-it('counts an approved running overtime interval through now and excludes cancelled or invalid intervals', function () {
+it('uses now for running overtime intervals and excludes cancelled or invalid intervals', function () {
     $service = new EmployeeDashboardAggregationService(new DailyAttendanceStatusService);
     $now = Carbon::parse('2026-11-03 20:00:00', 'UTC');
 
