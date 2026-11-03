@@ -34,7 +34,7 @@ This policy is the approved domain decision for attendance recording and dashboa
 ### Resolver implementation and data provenance
 
 - SanMal uses `aldesrahim/laravel-timezone-indonesia` pinned by `composer.lock` to `v1.1.0`. It resolves coordinates locally from bundled Indonesian timezone polygons; attendance GPS coordinates are not sent to a timezone API.
-- The package is accessed only through `App\\Services\\AttendanceTimezoneResolver`. Application actions must not call the package facade directly.
+- The package is accessed only through `App\Services\AttendanceTimezoneResolver`. Application actions must not call the package facade directly.
 - The resolver returns only supported IANA identifiers. The current bundled boundary dataset reports upstream version `2026c`.
 - Persist `timezone_source` on every new attendance event: `office_fixed`, `gps_resolved`, `fallback`, or `session_anchor`. Existing rows retain `legacy`.
 - An onsite event using the `fallback` source uses `Asia/Makassar` only as an explicitly unverified fallback. The daily status is marked `needs_review`; the fallback must never be presented as GPS-verified.
