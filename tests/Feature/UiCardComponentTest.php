@@ -2,8 +2,8 @@
 
 it('renders a content card with shadow-only surface, default spacing, and forwarded attributes', function () {
     $this->blade('<x-ui.card class="md:col-span-2"><p>Konten card</p></x-ui.card>')
-        ->assertSee('rounded-xl bg-white text-zinc-900 shadow-sm', false)
-        ->assertSee('dark:bg-zinc-900 dark:text-zinc-100 dark:shadow-black/20', false)
+        ->assertSee('rounded-xl bg-sanmal-surface-primary text-zinc-900 shadow-sm', false)
+        ->assertSee('dark:bg-sanmal-surface-primary-dark dark:text-zinc-100 dark:shadow-black/20', false)
         ->assertDontSee('border', false)
         ->assertSee('p-4', false)
         ->assertSee('md:col-span-2', false)
