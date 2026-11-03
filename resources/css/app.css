@@ -185,13 +185,15 @@ select:focus[data-flux-control] {
     }
 
     .dark .sanmal-button-secondary {
-        background-color: var(--color-sanmal-surface-secondary-dark) !important;
-        border-color: var(--color-sanmal-border-dark) !important;
-        color: #e2e8f0 !important;
+        background-color: #49351f !important;
+        border-color: #80602b !important;
+        color: #f2bb65 !important;
     }
 
     .dark .sanmal-button-secondary:hover:not(:disabled, [disabled]) {
-        background-color: var(--color-sanmal-surface-elevated-dark) !important;
+        background-color: #594323 !important;
+        border-color: #a27b36 !important;
+        color: #ffce7a !important;
     }
 }
 
