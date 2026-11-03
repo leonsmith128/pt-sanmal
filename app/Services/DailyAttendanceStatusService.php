@@ -206,17 +206,18 @@ class DailyAttendanceStatusService
 
         $clockInCount = $events->filter(fn (AttendanceRecord $event) => $event->type->value === 'clock_in')->count();
         $clockOutCount = $events->filter(fn (AttendanceRecord $event) => $event->type->value === 'clock_out')->count();
+        $overtimeStartCount = $events->filter(fn (AttendanceRecord $event) => $event->type->value === 'overtime_start')->count();
 
-        if ($clockInCount === 0 && ($clockOutCount > 0 || $events->contains(fn (AttendanceRecord $event) => $event->type->value === 'overtime_start'))) {
+        if ($clockInCount === 0 && ($clockOutCount > 0 || $overtimeStartCount > 0)) {
             return $this->reviewResult($events, $leaveRequests, null, 'Ditemukan event tanpa Clock In anchor yang dapat diverifikasi.');
         }
 
-        if ($clockInCount > 1 || $clockOutCount > 1) {
+        if ($clockInCount > 1 || $clockOutCount > 1 || $overtimeStartCount > 1) {
             return $this->reviewResult(
                 $events,
                 $leaveRequests,
                 null,
-                'Ditemukan lebih dari satu event Clock In atau Clock Out pada tanggal sesi ini. Riwayat perlu ditinjau admin.',
+                'Ditemukan event sesi duplikat pada tanggal ini. Riwayat perlu ditinjau admin.',
             );
         }
 
