@@ -80,7 +80,7 @@
                         target="_blank"
                         rel="noopener noreferrer"
                         variant="outline"
-                        icon="image"
+                        icon="photo"
                     >
                         {{ __('Lihat foto tersimpan') }}
                     </x-ui.button>
