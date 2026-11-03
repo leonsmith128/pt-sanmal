@@ -603,3 +603,50 @@ test('employee monthly attendance classification matches the admin daily summary
     expect($employeeDashboard['monthly']['presentDays'])->toBe(1)
         ->and($adminView->getData()['presentToday'])->toBe(1);
 });
+
+
+test('employee dashboard marks a session with duplicate overtime starts for review', function () {
+    $user = User::factory()->create();
+    $user->forceFill(['role' => UserRole::Employee])->save();
+    $employee = Employee::create(['user_id' => $user->id]);
+
+    $clockIn = AttendanceRecord::create([
+        'employee_id' => $employee->id,
+        'type' => AttendanceType::ClockIn,
+        'work_type' => WorkType::Office,
+        'recorded_at' => Carbon::parse('2026-11-03 00:00:00', 'UTC'),
+        'timezone' => 'Asia/Makassar',
+        'attendance_date' => '2026-11-03',
+    ]);
+
+    foreach (['08:00:00', '08:30:00'] as $time) {
+        AttendanceRecord::create([
+            'employee_id' => $employee->id,
+            'session_anchor_id' => $clockIn->id,
+            'type' => AttendanceType::OvertimeStart,
+            'work_type' => WorkType::Office,
+            'recorded_at' => Carbon::parse('2026-11-03 '.$time, 'UTC'),
+            'timezone' => 'Asia/Makassar',
+            'attendance_date' => '2026-11-03',
+        ]);
+    }
+
+    AttendanceRecord::create([
+        'employee_id' => $employee->id,
+        'session_anchor_id' => $clockIn->id,
+        'type' => AttendanceType::ClockOut,
+        'work_type' => WorkType::Office,
+        'recorded_at' => Carbon::parse('2026-11-03 09:00:00', 'UTC'),
+        'timezone' => 'Asia/Makassar',
+        'attendance_date' => '2026-11-03',
+    ]);
+
+    $dashboard = app(EmployeeDashboardAggregationService::class)->forEmployee(
+        $employee,
+        Carbon::parse('2026-11-03 10:00:00', 'UTC'),
+    );
+
+    expect($dashboard['todayStatus']['status'])->toBe(DailyAttendanceStatus::NeedsReview->value)
+        ->and($dashboard['todayDurationMinutes'])->toBeNull()
+        ->and($dashboard['monthly']['workMinutes'])->toBe(0);
+});
