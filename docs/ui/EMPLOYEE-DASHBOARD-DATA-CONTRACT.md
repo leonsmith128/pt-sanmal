@@ -11,11 +11,50 @@ Employee Dashboard and Admin Dashboard must use the same domain definitions for 
 
 Do not duplicate business calculations in Blade. Put shared aggregation in a dedicated service/query layer and expose presentation-ready values to both dashboards where practical. Reuse `DailyAttendanceStatusService` for daily classifications.
 
+## Attendance timestamp and timezone policy
+
+This policy is the approved domain decision for attendance recording and dashboard date interpretation.
+
+### Authoritative time
+
+- The server-generated timestamp is the authoritative event time. Persist it as an absolute UTC instant in `recorded_at`; never trust the device clock as the official attendance time.
+- The timezone is used to derive local wall-clock display and `attendance_date`; it does not change the underlying instant.
+- Preserve the timezone snapshot used for each attendance event. Historical attendance must not be reinterpreted using a later employee, browser, project, or location setting.
+- Device-reported time and device timezone may be retained only as diagnostic evidence; they are never authoritative.
+
+### Timezone selection
+
+- **Office:** always use the company timezone `Asia/Makassar` (WITA). Ignore the office location's configurable timezone and the device timezone for attendance calculation.
+- **Onsite / field duty:** resolve an IANA timezone from the submitted GPS coordinates using a server-trusted coordinate-to-timezone resolver. Do not use the browser/device timezone and do not assume the project's configured location timezone proves the employee's current timezone.
+- Only coordinates that pass the existing GPS validity/accuracy policy may be used for timezone resolution. A coordinate rejected by that policy is not a verified location and must not produce a verified timezone.
+- Validate every resolved identifier against PHP's supported IANA timezone identifiers before use. Never accept an arbitrary timezone string supplied by the client.
+- If GPS is unavailable/invalid or the resolver cannot determine a timezone, attendance may continue under the existing GPS fallback policy: use `Asia/Makassar` as an explicitly unverified fallback, preserve available GPS accuracy/evidence, and flag the attendance for admin review. Do not label the fallback as GPS-verified.
+- The coordinate-to-timezone implementation must not silently depend on the browser clock or leak exact GPS coordinates to a third-party service without an explicit product/privacy decision. Prefer a server-side resolver backed by maintained timezone-boundary data; document its data source and update process.
+
+### Session and reporting rules
+
+- The Clock In event establishes the session timezone snapshot. Clock Out and all other events attached to that session use the anchor's timezone and attendance date, even if the device or GPS later reports another timezone.
+- A new session resolves its timezone independently. A person can therefore have sessions in different timezones over time.
+- Attribute cross-midnight sessions and their overtime to the Clock In anchor's local `attendance_date` / overtime `session_date`; do not split a session at UTC midnight or at a later event's local date.
+- Calculate current local day/month boundaries using the applicable session timezone. Do not select one employee-wide timezone from the latest attendance record to reinterpret every historical session.
+- Admin date filters and dashboard summaries must have an explicit company-date policy. Until that policy is implemented consistently, do not claim employee/admin parity for dates around local/UTC midnight.
+- Approved timestamp corrections may change effective timestamps and effective local dates according to the correction workflow, but must not overwrite original UTC evidence or the stored timezone snapshot.
+
+### Required timezone coverage
+
+- Office ignores a location's non-WITA timezone and device timezone.
+- Onsite resolves WIB, WITA, and WIT from valid coordinates, including locations near timezone boundaries.
+- Invalid/missing GPS never yields a verified timezone; fallback is marked for review.
+- Resolver unknown result, malformed identifier, and resolver failure are handled without blocking a valid photo-backed attendance event.
+- Clock Out inherits the Clock In timezone even if its submitted GPS coordinates are in another timezone.
+- A new session can use a different timezone from the previous session.
+- Cross-midnight and month-boundary sessions, approved corrections, dashboard aggregation, admin date filtering, history, and exports remain consistent with the session timezone snapshot.
+
 ## Period and timezone
 
 - Default period: current calendar month, from its first date through today (not future dates).
 - Include every calendar date. Do not exclude weekends or holidays.
-- Resolve the current date and all day boundaries using the employee's applicable attendance timezone; do not assume the server timezone.
+- Resolve each session's local date and its month attribution using that session's stored timezone snapshot. Do not infer one employee-wide timezone from the latest attendance record.
 - Attribute an attendance session and its overtime to the session's effective Clock In anchor date (`effectiveAttendanceDate()` / overtime `session_date`), not the date on which a cross-midnight Clock Out occurs.
 - A session anchored in the month remains attributed to that month even when it ends after midnight. Do not split one session across two monthly totals.
 
@@ -113,4 +152,4 @@ For the first Dashboard iteration, show the 3–5 most recent attendance events 
 
 ## Implementation boundary
 
-This is a data contract for the Dashboard phase. It does not authorize changes to camera/GPS/evidence workflows, attendance recording, approval transitions, or admin finalization behavior. If an existing domain rule conflicts with this contract, stop and report the conflict before changing that domain rule.
+The timezone policy above is an approved domain decision and authorizes the narrowly scoped attendance-timezone implementation, including its resolver, persistence semantics, aggregation, tests, and documentation. It does not authorize unrelated changes to camera/GPS capture, photo evidence, approval transitions, or admin overtime finalization. Preserve the existing GPS accuracy/wait/photo rules. If the current schema or workflow cannot represent the policy safely, stop and report the specific migration or product decision required before proceeding.
