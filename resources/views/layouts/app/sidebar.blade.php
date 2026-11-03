@@ -22,7 +22,7 @@
         <flux:sidebar
             sticky
             :collapsible="$isManager ? true : 'mobile'"
-            class="h-dvh min-h-dvh overflow-x-hidden border-e border-sanmal-border bg-sanmal-surface-secondary dark:border-sanmal-border-dark dark:bg-sanmal-surface-primary-dark"
+            class="h-dvh min-h-dvh overflow-x-hidden bg-sanmal-surface-page dark:bg-sanmal-surface-page-dark"
         >
             <flux:sidebar.header>
                 <div class="flex w-full items-center justify-between gap-2">
