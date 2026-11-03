@@ -16,9 +16,9 @@ Use a single-column page flow with a responsive two-column lower content area on
 
 ### A. Employee greeting/header
 
-- Greeting based on the current local time where the application already provides a reliable timezone-aware clock; otherwise use a neutral greeting.
-- Display authenticated employee name and current date.
-- Place the existing notification link and the employee avatar/profile image immediately before the greeting, in one compact header row. The notification control must link to the existing `notifications.index` route; do not add notification behavior or duplicate notification data.
+- Header order from left to right: employee profile image/avatar, greeting and employee identity, notification icon aligned at the far right.
+- Display the greeting (for example, “Selamat datang,”) on the first line in regular-weight text. Display the authenticated employee name on the second line in bold, visually prominent text. Put the current date below these lines.
+- The notification control must link to the existing `notifications.index` route; do not add notification behavior or duplicate notification data.
 - Avatar is optional. Use the existing profile image or the established initials fallback; do not invent a profile image or verification badge.
 
 ### B. Today's attendance hero
