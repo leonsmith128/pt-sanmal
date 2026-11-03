@@ -2,12 +2,15 @@
 
 use App\Enums\AttendanceType;
 use App\Enums\DailyAttendanceStatus;
+use App\Enums\OvertimeApprovalStatus;
+use App\Enums\OvertimeState;
 use App\Enums\UserRole;
 use App\Enums\WorkType;
 use App\Models\AttendanceRecord;
 use App\Models\DailyStatusCorrection;
 use App\Models\Employee;
 use App\Models\LeaveRequest;
+use App\Models\OvertimeRequest;
 use App\Models\LeaveType;
 use App\Models\User;
 use App\Services\EmployeeDashboardAggregationService;
@@ -147,4 +150,63 @@ test('employee dashboard aggregation counts corrected present dates and calculat
         ->and($dashboard['monthly']['workIsProvisional'])->toBeFalse()
         ->and($dashboard['todayStatus']['status'])->toBe(DailyAttendanceStatus::Present->value)
         ->and($dashboard['todayIsRunning'])->toBeFalse();
+});
+
+
+test('employee dashboard separates approved overtime from net ordinary work duration', function () {
+    $user = User::factory()->create();
+    $user->forceFill(['role' => UserRole::Employee])->save();
+    $employee = Employee::create(['user_id' => $user->id]);
+
+    $clockIn = AttendanceRecord::create([
+        'employee_id' => $employee->id,
+        'type' => AttendanceType::ClockIn,
+        'work_type' => WorkType::Office,
+        'recorded_at' => Carbon::parse('2026-11-03 08:00:00', 'Asia/Makassar'),
+        'timezone' => 'Asia/Makassar',
+        'attendance_date' => '2026-11-03',
+    ]);
+
+    $overtimeStart = AttendanceRecord::create([
+        'employee_id' => $employee->id,
+        'session_anchor_id' => $clockIn->id,
+        'type' => AttendanceType::OvertimeStart,
+        'work_type' => WorkType::Office,
+        'recorded_at' => Carbon::parse('2026-11-03 16:00:00', 'Asia/Makassar'),
+        'timezone' => 'Asia/Makassar',
+        'attendance_date' => '2026-11-03',
+    ]);
+
+    $clockOut = AttendanceRecord::create([
+        'employee_id' => $employee->id,
+        'session_anchor_id' => $clockIn->id,
+        'type' => AttendanceType::ClockOut,
+        'work_type' => WorkType::Office,
+        'recorded_at' => Carbon::parse('2026-11-03 18:00:00', 'Asia/Makassar'),
+        'timezone' => 'Asia/Makassar',
+        'attendance_date' => '2026-11-03',
+    ]);
+
+    OvertimeRequest::create([
+        'employee_id' => $employee->id,
+        'session_date' => '2026-11-03',
+        'clock_in_record_id' => $clockIn->id,
+        'start_record_id' => $overtimeStart->id,
+        'clock_out_record_id' => $clockOut->id,
+        'scheduled_start_at' => Carbon::parse('2026-11-03 16:00:00', 'Asia/Makassar'),
+        'timezone' => 'Asia/Makassar',
+        'state' => OvertimeState::Completed,
+        'approval_status' => OvertimeApprovalStatus::Approved,
+        'finalization_source' => 'actual',
+    ]);
+
+    $dashboard = app(EmployeeDashboardAggregationService::class)->forEmployee(
+        $employee,
+        Carbon::parse('2026-11-03 19:00:00', 'Asia/Makassar'),
+    );
+
+    expect($dashboard['monthly']['workMinutes'])->toBe(480)
+        ->and($dashboard['monthly']['overtimeMinutes'])->toBe(120)
+        ->and($dashboard['monthly']['workIsProvisional'])->toBeFalse()
+        ->and($dashboard['monthly']['overtimeIsProvisional'])->toBeFalse();
 });
