@@ -7,6 +7,9 @@ use App\Models\DailyStatusCorrection;
 use App\Models\LeaveRequest;
 use App\Models\LeaveType;
 use App\Services\DailyAttendanceStatusService;
+use Tests\TestCase;
+
+uses(TestCase::class);
 
 function dailyStatusEvent(AttendanceType $type): AttendanceRecord
 {
