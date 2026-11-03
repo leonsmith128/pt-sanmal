@@ -24,3 +24,10 @@ it('renders a reusable section with caller-provided attributes', function () {
         ->assertSee('md:grid md:grid-cols-2', false)
         ->assertSee('Isi section');
 });
+
+it('supports page width and spacing presets for role-specific layouts', function () {
+    $this->blade('<x-ui.page max-width="3xl" gap="6"><p>Narrow employee page</p></x-ui.page>')
+        ->assertSee('max-w-3xl', false)
+        ->assertSee('gap-6', false)
+        ->assertSee('Narrow employee page');
+});
