@@ -16,7 +16,7 @@
             @csrf
 
             <!-- Email Address -->
-            <flux:input
+            <x-ui.input
                 name="email"
                 :label="__('Email address')"
                 :value="old('email')"
@@ -29,7 +29,7 @@
 
             <!-- Password -->
             <div class="relative">
-                <flux:input
+                <x-ui.input
                     name="password"
                     :label="__('Password')"
                     type="password"
