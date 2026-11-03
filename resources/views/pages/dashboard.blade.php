@@ -78,7 +78,7 @@
                             </flux:text>
                         </div>
 
-                        <flux:badge>{{ $record->work_type->label() }}</flux:badge>
+                        <x-ui.badge>{{ $record->work_type->label() }}</x-ui.badge>
                     </div>
                 @empty
                     <p class="p-6 text-center text-sm text-zinc-500">
