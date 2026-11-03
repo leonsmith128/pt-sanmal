@@ -1,10 +1,9 @@
 <x-layouts::app :title="__('Notifikasi')">
-    <div class="mx-auto flex w-full max-w-3xl flex-col gap-5 px-4 py-4 sm:px-6 sm:py-6">
-        <header class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-                <flux:heading size="xl">{{ __('Notifikasi sistem') }}</flux:heading>
-                <flux:text class="mt-1">{{ __('Pemberitahuan aktivitas dan perubahan yang tercatat oleh sistem.') }}</flux:text>
-            </div>
+    <x-ui.page max-width="3xl" gap="5" class="px-4 py-4 sm:px-6 sm:py-6">
+        <x-ui.page-header
+            :title="__('Notifikasi sistem')"
+            :description="__('Pemberitahuan aktivitas dan perubahan yang tercatat oleh sistem.')"
+        >
             @if (auth()->user()->unreadNotifications()->exists())
                 <form method="POST" action="{{ route('notifications.read-all') }}">
                     @csrf
@@ -12,7 +11,7 @@
                     <x-ui.button type="submit" variant="outline" icon="check">{{ __('Tandai semua dibaca') }}</x-ui.button>
                 </form>
             @endif
-        </header>
+        </x-ui.page-header>
 
         <x-ui.flash-message />
 
@@ -72,5 +71,5 @@
             @endforelse
             {{ $notifications->links() }}
         </section>
-    </div>
+    </x-ui.page>
 </x-layouts::app>
