@@ -170,14 +170,14 @@ it('evaluates the current month independently in each Clock In session timezone'
 
     $jakartaClockIn = new AttendanceRecord;
     $jakartaClockIn->forceFill([
-        'type' => \\App\\Enums\\AttendanceType::ClockIn,
+        'type' => \App\Enums\AttendanceType::ClockIn,
         'timezone' => 'Asia/Jakarta',
         'attendance_date' => '2026-10-31',
     ]);
 
     $makassarClockIn = new AttendanceRecord;
     $makassarClockIn->forceFill([
-        'type' => \\App\\Enums\\AttendanceType::ClockIn,
+        'type' => \App\Enums\AttendanceType::ClockIn,
         'timezone' => 'Asia/Makassar',
         'attendance_date' => '2026-11-01',
     ]);
@@ -193,14 +193,14 @@ it('does not reinterpret a session month using the employee latest timezone', fu
 
     $previousMonthInMakassar = new AttendanceRecord;
     $previousMonthInMakassar->forceFill([
-        'type' => \\App\\Enums\\AttendanceType::ClockIn,
+        'type' => \App\Enums\AttendanceType::ClockIn,
         'timezone' => 'Asia/Makassar',
         'attendance_date' => '2026-10-31',
     ]);
 
     $futureLocalDateInJakarta = new AttendanceRecord;
     $futureLocalDateInJakarta->forceFill([
-        'type' => \\App\\Enums\\AttendanceType::ClockIn,
+        'type' => \App\Enums\AttendanceType::ClockIn,
         'timezone' => 'Asia/Jakarta',
         'attendance_date' => '2026-11-01',
     ]);
