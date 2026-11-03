@@ -193,7 +193,7 @@ test('attendance camera controls reflect camera availability and video readiness
         ->assertSee('locationStatusMessage', false)
         ->assertSee('error && active', false)
         ->assertSee("$dispatch('attendance-camera-open')", false)
-        ->assertSee("__('Lanjutkan')", false);
+        ->assertSee(__('Lanjutkan'));
 });
 test('attendance camera preserves the complete photo frame without cropping', function () {
     $this->actingAs(userWithRole(UserRole::Employee));
