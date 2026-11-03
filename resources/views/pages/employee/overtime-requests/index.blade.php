@@ -1,12 +1,11 @@
 <x-layouts::app :title="__('Pengajuan Lembur')">
-    <div class="mx-auto flex w-full max-w-3xl flex-col gap-6">
-        <div class="flex items-start justify-between gap-4">
-            <div>
-                <flux:heading size="xl">{{ __('Pengajuan lembur') }}</flux:heading>
-                <flux:text class="mt-1">{{ __('Ajukan waktu mulai lembur sebelum pelaksanaan. Waktu selesai mengikuti clock-out aktual dan dicatat terpisah.') }}</flux:text>
-            </div>
+    <x-ui.page max-width="3xl" gap="6">
+        <x-ui.page-header
+            :title="__('Pengajuan lembur')"
+            :description="__('Ajukan waktu mulai lembur sebelum pelaksanaan. Waktu selesai mengikuti clock-out aktual dan dicatat terpisah.')"
+        >
             <x-ui.button href="{{ route('attendance') }}" variant="ghost" icon="arrow-left">{{ __('Absensi') }}</x-ui.button>
-        </div>
+        </x-ui.page-header>
 
         <x-ui.flash-message />
 
@@ -68,5 +67,5 @@
             @endforelse
             <div>{{ $requests->links() }}</div>
         </section>
-    </div>
+    </x-ui.page>
 </x-layouts::app>
