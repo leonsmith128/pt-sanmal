@@ -72,6 +72,10 @@ class EmployeeDashboardAggregationService
             return $this->dailyStatusService->resolveStatus($events, $day['leaveRequests'], $day['correction']);
         })->all();
 
+        $statusCounts = collect($daily)->countBy(
+            fn (array $day) => $day['status'],
+        );
+
         $anchors = AttendanceRecord::query()
             ->where('employee_id', $employee->id)
             ->where('type', AttendanceType::ClockIn)
