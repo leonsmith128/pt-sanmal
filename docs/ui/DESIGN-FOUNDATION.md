@@ -141,7 +141,7 @@ Density means removing decorative whitespace, not shrinking everything. Do not h
 
 Keep the application shell visually continuous: the `body` and desktop sidebar use the same background surface (`bg-zinc-50 dark:bg-zinc-900`). The sidebar has no separating border; spacing and surface contrast should define the layout instead.
 
-The main content is a distinct panel on that shell (`bg-white dark:bg-zinc-800`) with rounded corners and **outer margin**, not outer padding. Use a smaller margin on mobile and a wider margin on desktop. Remove Flux's `inset` behavior for this layout and explicitly neutralize default main padding with `p-0`; do not add padding to the main layout to simulate the inset.
+The main content is a distinct panel on that shell (`bg-white dark:bg-zinc-800`) with rounded corners and **outer margin**, not outer padding. Use a smaller margin on mobile and a wider margin on desktop. Remove Flux's `inset` behavior for this layout and explicitly neutralize default main padding with `p-0`; do not add padding to the main layout to simulate the inset. Preserve constrained desktop scrolling with `min-h-0 lg:overflow-y-auto lg:overscroll-contain`.
 
 Page content owns its own internal spacing. `x-ui.page` provides width, vertical flow, and section gap; do not add blanket horizontal padding to it or duplicate spacing already provided by a page-specific surface. When a page needs inner padding, apply it to the relevant page section/card, not the application shell.
 
