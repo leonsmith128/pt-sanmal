@@ -1,5 +1,5 @@
 <x-layouts::app :title="__('Notifikasi')">
-    <x-ui.page max-width="3xl" gap="5" class="px-4 py-4 sm:px-6 sm:py-6">
+    <x-ui.page max-width="3xl" gap="5">
         <x-ui.page-header
             :title="__('Notifikasi sistem')"
             :description="__('Pemberitahuan aktivitas dan perubahan yang tercatat oleh sistem.')"
