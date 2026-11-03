@@ -269,6 +269,15 @@ it('groups onsite sessions by the WITA company reporting date without changing t
         'Asia/Makassar',
     );
 
+    Livewire::actingAs(dateFilterAdmin())
+        ->test('pages::admin.kehadiran')
+        ->set('dateFrom', '2026-11-02')
+        ->set('dateTo', '2026-11-02')
+        ->assertSee('data-record-count="2"', false)
+        ->set('dateFrom', '2026-11-01')
+        ->set('dateTo', '2026-11-01')
+        ->assertSee('data-record-count="0"', false);
+
     expect($employeeLocal['events'])->toHaveCount(2)
         ->and($companyCalendar[$employee->id]['2026-11-02']['events'])->toHaveCount(2)
         ->and($companyCalendar[$employee->id]['2026-11-02']['status'])->toBe('present')
