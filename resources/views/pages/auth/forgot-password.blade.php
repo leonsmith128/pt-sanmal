@@ -9,7 +9,7 @@
             @csrf
 
             <!-- Email Address -->
-            <flux:input
+            <x-ui.input
                 name="email"
                 :label="__('Email address')"
                 type="email"
