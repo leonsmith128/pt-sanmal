@@ -175,25 +175,26 @@
                     </div>
                 </x-ui.card>
 
-                <section aria-labelledby="monthly-summary-heading" class="space-y-3">
+                <x-ui.card>
                     <h2 id="monthly-summary-heading" class="text-base font-semibold">{{ __('Ringkasan bulan ini') }}</h2>
-                    <div class="grid grid-cols-2 gap-3 xl:grid-cols-4">
-                        <x-ui.card>
+
+                    <div class="mt-4 grid grid-cols-2 gap-4 xl:grid-cols-4">
+                        <div>
                             <p class="text-sm text-zinc-600 dark:text-zinc-400">{{ __('Hari hadir') }}</p>
                             <p class="mt-2 text-2xl font-semibold tabular-nums">{{ $monthly['presentDays'] }}</p>
-                        </x-ui.card>
-                        <x-ui.card>
+                        </div>
+                        <div>
                             <p class="text-sm text-zinc-600 dark:text-zinc-400">{{ __('Total jam kerja') }}</p>
                             <p class="mt-2 text-2xl font-semibold tabular-nums">{{ $formatDuration($monthly['workMinutes']) }}</p>
                             @if ($monthly['workIsProvisional'])
                                 <p class="mt-1 text-xs text-amber-700 dark:text-amber-300">{{ __('Termasuk sesi berjalan') }}</p>
                             @endif
-                        </x-ui.card>
-                        <x-ui.card>
+                        </div>
+                        <div>
                             <p class="text-sm text-zinc-600 dark:text-zinc-400">{{ __('Belum lengkap') }}</p>
                             <p class="mt-2 text-2xl font-semibold tabular-nums">{{ $monthly['incompleteDays'] }}</p>
-                        </x-ui.card>
-                        <x-ui.card>
+                        </div>
+                        <div>
                             <p class="text-sm text-zinc-600 dark:text-zinc-400">{{ __('Total lembur') }}</p>
                             <p class="mt-2 text-2xl font-semibold tabular-nums">{{ $formatDuration($monthly['overtimeMinutes']) }}</p>
                             @if ($monthly['overtimeIsProvisional'])
@@ -202,9 +203,9 @@
                             @if ($monthly['overtimeNeedsReview'])
                                 <p class="mt-1 text-xs font-medium text-red-700 dark:text-red-300">{{ __('Ada interval lembur di luar sesi absensi dan perlu ditinjau admin') }}</p>
                             @endif
-                        </x-ui.card>
+                        </div>
                     </div>
-                </section>
+                </x-ui.card>
 
                 <div class="grid gap-4 lg:grid-cols-[minmax(18rem,0.85fr)_minmax(0,1.15fr)]">
                     <div class="space-y-4">
