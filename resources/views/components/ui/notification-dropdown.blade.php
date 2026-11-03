@@ -20,7 +20,7 @@
         <div class="flex items-center justify-between gap-3 border-b border-zinc-100 px-4 py-3 dark:border-zinc-800">
             <h2 class="font-semibold text-zinc-900 dark:text-zinc-100">{{ __('Notifikasi') }}</h2>
             @if ($unreadCount > 0)
-                <x-ui.badge color="sky">{{ trans_choice(':count belum dibaca|:count belum dibaca', $unreadCount, ['count' => $unreadCount]) }}</x-ui.badge>
+                <x-ui.badge color="sky">{{ __(':count belum dibaca', ['count' => $unreadCount]) }}</x-ui.badge>
             @endif
         </div>
 
