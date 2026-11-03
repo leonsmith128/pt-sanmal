@@ -42,7 +42,8 @@ test('employees can visit the attendance clock page', function () {
     $this->get(route('attendance'))
         ->assertOk()
         ->assertSee(__('Absensi'))
-        ->assertDontSee(__('Kehadiran Pegawai'));
+        ->assertDontSee(__('Kehadiran Pegawai'))
+        ->assertSee('max-w-7xl', false);
 });
 
 test('employees can visit their own attendance history', function () {
@@ -219,7 +220,8 @@ test('employees receive an ungrouped sidebar and mobile header drawer without bo
         ->assertDontSee(__('Aktivitas Pegawai'))
         ->assertDontSee('fixed inset-x-0 bottom-0', false)
         ->assertDontSee(__('Operasional'))
-        ->assertDontSee(__('Master Data'));
+        ->assertDontSee(__('Master Data'))
+        ->assertDontSee('data-test="sidebar-group-separator"', false);
 
     $document = new DOMDocument;
     @$document->loadHTML($response->getContent());
@@ -294,9 +296,11 @@ test('collapsed admin sidebar keeps every navigation item visible as an icon', f
     $xpath = new DOMXPath($document);
 
     expect($xpath->query('//*[@data-flux-sidebar-item]')->length)->toBe(13)
+        ->and(substr_count($response->getContent(), 'data-test="sidebar-group-separator"'))->toBe(5)
         ->and($response->getContent())->toContain('in-data-flux-sidebar-collapsed-desktop:not-in-data-flux-sidebar-group-dropdown:hidden')
         ->and($response->getContent())->toContain('data-flux-sidebar-item')
-        ->and($response->getContent())->toContain('in-data-flux-sidebar-collapsed-desktop:hidden');
+        ->and($response->getContent())->toContain('in-data-flux-sidebar-collapsed-desktop:hidden')
+        ->and($response->getContent())->toContain('in-data-flux-sidebar-collapsed-desktop:block');
 });
 
 test('attendance status and overtime cards use a responsive two-column grid with overtime details modal', function () {
