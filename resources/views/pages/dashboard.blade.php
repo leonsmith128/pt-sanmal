@@ -54,7 +54,7 @@
                 <x-dashboard.action-card
                     :label="__('Perlu ditinjau')"
                     :value="$needsReviewToday"
-                    :href="route('admin.daily-attendance', ['date' => now('Asia/Makassar')->toDateString()])"
+                    :href="route('admin.daily-attendance', ['date' => $todayDate])"
                 />
             </section>
 
