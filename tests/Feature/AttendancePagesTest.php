@@ -237,11 +237,11 @@ test('admins retain personal employee navigation alongside grouped administratio
         ->assertSee(__('Riwayat'))
         ->assertSee(__('Permohonan'))
         ->assertSee(__('Lembur'))
-        ->assertDontSee(__('Aktivitas Saya'))
+        ->assertSee(__('Aktivitas Saya'))
         ->assertSee(__('Operasional'))
         ->assertSee(__('Master Data'))
         ->assertSee(__('Permohonan'))
-        ->assertDontSee('aria-label="Navigasi utama"', false);
+        ->assertSee('aria-label="Navigasi utama"', false);
 });
 
 test('Flux main is a direct body child on the key admin and employee pages', function () {
