@@ -66,13 +66,14 @@ The original SanMal logo supplied for this project was sampled to identify repre
 
 | Token | HEX | Intended use |
 |---|---|---|
-| `brand/blue` | `#003A6C` | Primary brand blue, primary actions, selected navigation |
-| `brand/blue-dark` | `#00294D` | Hover/pressed/active emphasis |
-| `brand/blue-light` | `#EAF1F7` | Subtle blue surface and selected backgrounds |
-| `brand/yellow` | `#FDBE01` | Brand accent, highlights, restrained emphasis |
-| `brand/yellow-soft` | `#FFF6D6` | Soft accent surface |
+| `brand/blue` | `#0E3B6B` | Primary brand blue and light-theme primary actions |
+| `brand/blue-dark` | `#0C315B` | Light-theme primary hover/pressed emphasis |
+| `brand/blue-light` | `#B4C8DC` | Subtle blue surface and dark-theme focus/accent |
+| `brand/yellow` | `#E7A007` | Brand accent and light-theme highlight |
+| `brand/yellow-dark` | `#D9A72E` | Dark-theme primary action |
+| `brand/yellow-dark-hover` | `#C49320` | Dark-theme primary hover |
 
-Yellow is an accent, not the default primary button fill. Always check foreground/background contrast before using brand colors for text or controls.
+The primary action is theme-aware: blue in light theme and yellow in dark theme. Yellow is also used as a restrained secondary-action accent in dark theme; it must not visually compete with the filled primary action. Always check foreground/background contrast.
 
 ### Neutral palette
 
@@ -139,9 +140,9 @@ Density means removing decorative whitespace, not shrinking everything. Do not h
 
 ### Application shell and content surface
 
-Keep the application shell visually continuous: the `body` and desktop sidebar use the same background surface (`bg-zinc-50 dark:bg-zinc-900`). The sidebar has no separating border; spacing and surface contrast should define the layout instead.
+Keep the application shell visually continuous: the `body` and desktop sidebar use the same page surface (`bg-sanmal-surface-page dark:bg-sanmal-surface-page-dark`). The sidebar has no separating border; it is integrated inline with the shell. Spacing and the main panel's surface contrast define the layout instead.
 
-The main content uses Flux's `<flux:main inset>` as a distinct panel on the shell. Keep the sidebar, optional header, and main as direct siblings. Flux owns the inset panel's rounded surface, desktop outer gutter, constrained viewport layout, and internal desktop scrolling; on smaller screens the panel becomes full width and the document scrolls normally. Do not recreate these behaviors with manual margin or overflow utilities.
+The main content uses Flux's `<flux:main inset>` as a distinct primary-surface panel (`bg-sanmal-surface-primary dark:bg-sanmal-surface-primary-dark`) on the page shell. Keep the sidebar, optional header, and main as direct siblings. Flux owns the inset panel's rounded surface, desktop outer gutter, constrained viewport layout, and internal desktop scrolling; on smaller screens the panel becomes full width and the document scrolls normally. Do not recreate these behaviors with manual margin or overflow utilities.
 
 Keep `p-0` on the main region to neutralize Flux's default inset padding because page content owns its internal spacing. Use `lg:ms-0` to remove the extra start offset beside the sidebar. Add `lg:mt-0` only when a desktop-visible Flux header is also present. Do not manually add `overflow-y-auto`, `overscroll-contain`, or duplicate desktop margin classes; these are already supplied by Flux inset.
 
@@ -189,10 +190,10 @@ Flux 2.13 button sizes are `xs`, `sm`, and `base`; do not pass unsupported value
 
 ### 6.3 Theme contrast and button states
 
-- Light theme primary: SanMal brand blue (`#003A6C`) with white text; hover uses brand dark blue (`#00294D`).
-- Dark theme primary: use SanMal blue (`#006DCC`) with white text so the dominant action remains distinct against dark surfaces; hover uses the deeper blue (`#005CB8`). Keyboard focus uses a lighter blue outline (`#BFDBFE`).
-- Light theme secondary: keep the neutral Flux outline treatment.
-- Dark theme secondary: the shared `x-ui.button` applies a lighter neutral surface (`#262626`), border (`#525252`), and readable text (`#E5E7EB`). Hover increases surface and border contrast.
+- Light theme primary: SanMal brand blue (`#0E3B6B`) with white text; hover uses brand dark blue (`#0C315B`).
+- Dark theme primary: warm SanMal yellow (`#D9A72E`) with dark text (`#172033`); hover uses `#C49320`.
+- Light theme secondary: neutral primary surface, subtle border, and brand-blue text.
+- Dark theme secondary: muted warm-yellow surface (`#49351F`), gold border (`#80602B`), and soft-yellow text (`#F2BB65`). Hover increases surface/border contrast without becoming a second filled primary action.
 - Destructive remains semantic red in both themes.
 - Theme-specific styles must preserve visible focus indication and disabled-state affordance.
 
@@ -245,6 +246,8 @@ These wrap Flux UI and provide label/description/error integration. Inspect thei
 
 ### Card and surface
 - Reuse `x-ui.card` when the content is genuinely a card/surface.
+- The shared card uses a shadow-only treatment without a border. Light cards use `sanmal-surface-primary`; dark cards use `sanmal-surface-primary-dark`. Linked cards may use the secondary surface on hover.
+- Both linked and non-linked card variants must use the same theme surface tokens; do not leave one variant on generic white/zinc surfaces.
 - Do not wrap every section in a card. Avoid card-in-card.
 - Use semantic `article`, `section`, list, or table markup when it better represents the content.
 
@@ -265,7 +268,7 @@ Choose based on data relationships:
 ### Navigation
 
 - Use Flux sidebar and header primitives for the shared application shell; do not build a parallel navigation system.
-- Apply `<flux:main inset>` for the bordered, rounded content surface. Keep sidebar, header, and main as direct layout siblings; use `lg:ms-0 lg:mt-0` on the main region to avoid double offsets. Keep the outer page background visible around the panel.
+- Apply `<flux:main inset>` for the rounded primary-surface content panel. Keep sidebar, header, and main as direct layout siblings; use `lg:ms-0` on the main region to avoid double offsets (add `lg:mt-0` only if a desktop-visible header is present). Keep the page surface visible around the panel.
 - Treat the inset main as the full-width surface. Let `x-ui.page` own the page-specific content width; do not add Flux `container` at the main level as well as another page max-width unless the double constraint is intentional. Use narrower page widths for forms/details and wider widths for operational data pages.
 - The inset main already establishes the shell's content spacing. Avoid adding another padding utility to the root `x-ui.page` (for example `p-6` or `px-4 py-4 sm:px-6 sm:py-6`); use spacing inside the page's own sections/cards instead. This prevents the inset gutter and page padding from accumulating.
 - Employee navigation is one ungrouped list: Beranda, Absensi, Riwayat, Permohonan, and Lembur. On phones, use the top header with a drawer toggle; do not use a fixed bottom navigation bar.
