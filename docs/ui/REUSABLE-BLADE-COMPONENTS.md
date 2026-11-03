@@ -27,7 +27,7 @@ Generic components that can be used by admin, employee, and authentication pages
 | `x-ui.textarea` | Standard multiline text field with shared label, description, and validation layout | Optional `name`, `id`, `label`, `description`, `rows` (default 4), `resize` (default vertical), and `showError`; content is supplied through the slot and remaining attributes are forwarded to `flux:textarea` |
 | `x-ui.checkbox` | Standard single checkbox with shared description and validation feedback | Optional `name`, `id`, `label`, `description`, `checked`, and `showError`; label remains adjacent to the checkbox as rendered by `flux:checkbox`, and remaining attributes are forwarded to the interactive control |
 | `x-ui.badge` | Consistent status and compact indicator presentation | Slot content, optional Flux badge `color` (default `zinc`), and forwarded presentation attributes |
-| `x-ui.metadata-item` | Semantic label/value pair inside a description list | Required `label`, slot for the value, optional `labelClass` and `valueClass`, and mergeable wrapper attributes |\n| `x-ui.notification-dropdown` | Reusable notification preview popover | Required `notifications` collection (latest items, limited by caller) and optional `unreadCount`; renders unread indicators, per-item read navigation, empty state, and the existing all-notifications route. Data retrieval remains in the controller/view model, not the component |
+| `x-ui.metadata-item` | Semantic label/value pair inside a description list | Required `label`, slot for the value, optional `labelClass` and `valueClass`, and mergeable wrapper attributes |\n| `x-ui.avatar` | Consistent circular user avatar with image/initials fallback | Optional `name`, `initials`, `src`, and `size` (`xs`, `sm`, `md` default, `lg`, `xl`); forwards presentation and accessibility attributes |\n| `x-ui.notification-dropdown` | Reusable notification preview popover | Required `notifications` collection (latest items, limited by caller) and optional `unreadCount`; renders unread indicators, per-item read navigation, empty state, and the existing all-notifications route. Data retrieval remains in the controller/view model, not the component |
 
 Metadata and status component rules:
 - Use `x-ui.metadata-item` only as a direct item inside a semantic `<dl>`; the component supplies the wrapper plus `<dt>` and `<dd>`, not the parent grid or surface.
@@ -104,7 +104,7 @@ The shared reusable component foundation is implemented. The current `x-ui.*` in
 - Surface: `card`.
 - Form: `field`, `input`, `select`, `textarea`, `checkbox`.
 - Feedback: `flash-message`, `empty-state`.
-- Status/metadata: `badge`, `metadata-item`.
+- Status/metadata: `badge`, `metadata-item`.\n- Identity: `avatar`.
 
 The primitives are used across selected Admin, Employee, Shared, and Authentication pages. Adoption is intentionally based on semantic fit; it does not require converting every page wrapper, native control, table, or one-off markup into a generic component.
 
