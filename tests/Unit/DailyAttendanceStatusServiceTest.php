@@ -7,6 +7,7 @@ use App\Models\DailyStatusCorrection;
 use App\Models\LeaveRequest;
 use App\Models\LeaveType;
 use App\Services\DailyAttendanceStatusService;
+use Carbon\Carbon;
 use Tests\TestCase;
 
 uses(TestCase::class);
@@ -17,6 +18,7 @@ function dailyStatusEvent(AttendanceType $type): AttendanceRecord
         'type' => $type,
         'timezone_source' => 'legacy',
         'location_status' => 'captured',
+        'recorded_at' => Carbon::parse($type === AttendanceType::ClockIn ? '2026-11-03 08:00:00' : '2026-11-03 17:00:00', 'UTC'),
     ]);
 }
 
