@@ -13,8 +13,8 @@
 
 | Halaman / workflow | Fokus review |
 |---|---|
-| Dashboard Admin | Monitoring seluruh pegawai, hierarki statistik/aktivitas, density, ritme section, wrapping di tablet/mobile |
-| Dashboard Pribadi Admin | Halaman terpisah untuk Admin/Superadmin dengan profil pegawai; employee-scoped attendance, work duration, overtime, requests, dan recent activity |
+| Dashboard Admin | Monitoring seluruh pegawai; card statistik dan tindakan memakai ikon/label/nilai tersusun vertikal dan rata tengah; hierarki aktivitas, density, wrapping tablet/mobile |
+| Dashboard Pribadi Admin | Halaman terpisah untuk Admin/Superadmin dengan profil pegawai; employee-scoped attendance, work duration, overtime, requests, dan recent activity; ringkasan bulan 2 kolom di bawah `xl`, 4 kolom mulai `xl`, label/nilai rata tengah tanpa separator |
 | Client list dan detail | Hierarki Client–Site–Office, ringkasan, list, navigasi, dan aksi |
 | Client create/edit | Grouping field, label, validasi, lebar form, dan hierarki aksi |
 | Location create/edit | Kondisi Office/Site, ownership Client, koordinat/timezone, error mobile |
@@ -71,3 +71,8 @@ Lihat [Component Catalog](COMPONENT-CATALOG.md) untuk peta primitive dan [Reusab
 ## Pemeliharaan
 
 Saat route/halaman berubah, perbarui inventaris ini berdasarkan route dan source aktual. Jangan menyalin hasil audit lama sebagai kondisi terkini. Catat status implementasi dan QA hanya berdasarkan bukti yang benar-benar tersedia.
+
+
+## Source review checkpoint — 4 November 2026
+
+Source review telah mencakup page views Admin, Employee, Dashboard, Notifications, Settings, Authentication, application layouts, serta reusable/domain Blade components pada branch UI/UX V1. Review ini memeriksa konsistensi komposisi dan penggunaan primitive, bukan menyatakan browser QA selesai. Pertahankan native/Flux table untuk data komparatif atau interaksi Livewire, review list/article untuk antrean dan record, serta Livewire SFC untuk workflow interaktif. Sisa pekerjaan adalah browser/device verification, accessibility, interaction-state review, dan tindak lanjut inkonsistensi visual konkret yang ditemukan saat QA. Lihat [Implementation Status](progress/IMPLEMENTATION-STATUS.md) dan [Visual QA Log](progress/VISUAL-QA-LOG.md).
