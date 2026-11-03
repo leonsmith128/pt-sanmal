@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "662894f893945c17dfa6199a07a2dae4",
+    "content-hash": "1999a74ce9f9988acecc1dafda83f471",
     "packages": [
         {
             "name": "aldesrahim/laravel-timezone-indonesia",
