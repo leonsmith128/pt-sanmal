@@ -233,7 +233,6 @@ it('includes forgotten clock-out correction status and note in the daily export'
         ->toContain('Lupa melakukan Clock Out karena pekerjaan lapangan.');
 });
 
-
 it('groups onsite sessions by the WITA company reporting date without changing the employee local date', function () {
     $employee = dateFilterEmployee('Pegawai Batas WITA');
 
