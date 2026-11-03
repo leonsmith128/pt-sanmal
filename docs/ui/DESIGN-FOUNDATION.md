@@ -79,9 +79,9 @@ The primary action is theme-aware: blue in light theme and yellow in dark theme.
 
 | Token | Light | Dark | Typical use |
 |---|---|---|---|
-| `surface/page` | `#E5EBF1` | `#0B1623` | Outer application shell and body background |
+| `surface/page` | `#E5EBF1` | `#0B1623` | Inset main page container |
 | `surface/primary` | `#F8FCFF` | `#122235` | Main content panel |
-| `surface/card` | `#F8FCFF` | `#192B40` | Standard and linked cards; distinct from the dark main panel |\n| `surface/sidebar` | `#CAD6E2` | `#0B1623` | Sidebar navigation surface; dark theme stays integrated with the page shell |
+| `surface/card` | `#F8FCFF` | `#192B40` | Standard and linked cards; distinct from the dark main panel |\n| `surface/sidebar` | `#CAD6E2` | `#0B1623` | Body/shell and sidebar navigation surface; dark theme stays integrated |
 | `surface/secondary` | `#EAF0F6` | `#122235` | Secondary grouping and light-theme hover surfaces |
 | `surface/inset` | `#E3EBF3` | `#20354B` | Inset controls and recessed areas |
 | `surface/elevated` | — | `#263D55` | Elevated dark-theme controls and linked-card hover state |
@@ -144,7 +144,7 @@ Density means removing decorative whitespace, not shrinking everything. Do not h
 
 Keep the application shell visually continuous without making the sidebar and page indistinguishable: the `body` uses the page surface (`bg-sanmal-surface-page dark:bg-sanmal-surface-page-dark`), while the sidebar uses its dedicated surface (`bg-sanmal-surface-sidebar dark:bg-sanmal-surface-page-dark`). In light theme the sidebar is `#CAD6E2` and the page remains `#E5EBF1`; in dark theme both remain integrated with the dark page surface. The sidebar has no separating border.
 
-The main content uses Flux's `<flux:main inset>` as a distinct primary-surface panel (`bg-sanmal-surface-primary dark:bg-sanmal-surface-primary-dark`) on the page shell. Standard and linked `x-ui.card` components keep the dedicated card surface (`bg-sanmal-surface-card dark:bg-sanmal-surface-card-dark`); in dark theme this is intentionally lighter than the main panel. Linked-card hover uses the elevated dark surface token. Keep the sidebar, optional header, and main as direct siblings. Flux owns the inset panel's rounded surface, desktop outer gutter, constrained viewport layout, and internal desktop scrolling; on smaller screens the panel becomes full width and the document scrolls normally. Do not recreate these behaviors with manual margin or overflow utilities.
+The main content uses Flux's `<flux:main inset>` with the page surface (`bg-sanmal-surface-page dark:bg-sanmal-surface-page-dark`) on the shell, so the inset page container is `#E5EBF1` in light theme rather than changing the body color. Standard and linked `x-ui.card` components keep the dedicated card surface (`bg-sanmal-surface-card dark:bg-sanmal-surface-card-dark`); in dark theme this is intentionally lighter than the main panel. Linked-card hover uses the elevated dark surface token. Keep the sidebar, optional header, and main as direct siblings. Flux owns the inset panel's rounded surface, desktop outer gutter, constrained viewport layout, and internal desktop scrolling; on smaller screens the panel becomes full width and the document scrolls normally. Do not recreate these behaviors with manual margin or overflow utilities.
 
 Keep `p-0` on the main region to neutralize Flux's default inset padding because page content owns its internal spacing. Use `lg:ms-0` to remove the extra start offset beside the sidebar. Add `lg:mt-0` only when a desktop-visible Flux header is also present. Do not manually add `overflow-y-auto`, `overscroll-contain`, or duplicate desktop margin classes; these are already supplied by Flux inset.
 
@@ -248,7 +248,7 @@ These wrap Flux UI and provide label/description/error integration. Inspect thei
 
 ### Card and surface
 - Reuse `x-ui.card` when the content is genuinely a card/surface.
-- The shared card uses a shadow-only treatment without a border. Light cards use `sanmal-surface-primary`; dark cards use `sanmal-surface-primary-dark`. Linked cards may use the secondary surface on hover.
+- The shared card uses a shadow-only treatment without a border. Light cards use `sanmal-surface-card`; dark cards use `sanmal-surface-card-dark`. Linked cards may use the secondary surface on hover.
 - Both linked and non-linked card variants must use the same theme surface tokens; do not leave one variant on generic white/zinc surfaces.
 - Do not wrap every section in a card. Avoid card-in-card.
 - Use semantic `article`, `section`, list, or table markup when it better represents the content.
