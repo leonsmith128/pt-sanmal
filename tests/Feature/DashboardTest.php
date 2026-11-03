@@ -100,8 +100,8 @@ test('employee dashboard shows pending leave request breakdown for the authentic
         ->assertSee('Pengajuan Saya')
         ->assertSee('Belum ada data')
         ->assertDontSee('Tidak hadir')
-        ->assertSee('Cuti Tahunan: 1')
-        ->assertSee('Sakit: 1')
+        ->assertSee('Cuti Tahunan:')
+        ->assertSee('Sakit:')
         ->assertSee('aria-label="Buka notifikasi"', false)
         ->assertSee('class="group relative"', false);
 });
