@@ -6,6 +6,7 @@ use App\Enums\OvertimeApprovalStatus;
 use App\Enums\OvertimeState;
 use App\Enums\UserRole;
 use App\Enums\WorkType;
+use App\Http\Controllers\AdminDashboardController;
 use App\Models\AttendanceCorrection;
 use App\Models\AttendanceRecord;
 use App\Models\DailyStatusCorrection;
@@ -14,6 +15,7 @@ use App\Models\LeaveRequest;
 use App\Models\LeaveType;
 use App\Models\OvertimeRequest;
 use App\Models\User;
+use App\Services\DailyAttendanceStatusService;
 use App\Services\EmployeeDashboardAggregationService;
 use Carbon\Carbon;
 
