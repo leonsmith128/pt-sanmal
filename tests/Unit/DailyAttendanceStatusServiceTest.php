@@ -98,3 +98,20 @@ it('keeps a day without events or leave as no record rather than absent', functi
     expect($result['status'])->toBe(DailyAttendanceStatus::NoRecord->value)
         ->and($result['status'])->not->toBe(DailyAttendanceStatus::Absent->value);
 });
+
+it('marks duplicate overtime start events on a session for review', function () {
+    $result = (new DailyAttendanceStatusService)->resolveStatus(
+        collect([
+            dailyStatusEvent(AttendanceType::ClockIn),
+            dailyStatusEvent(AttendanceType::OvertimeStart),
+            dailyStatusEvent(AttendanceType::OvertimeStart),
+            dailyStatusEvent(AttendanceType::ClockOut),
+        ]),
+        collect(),
+        null,
+    );
+
+    expect($result['status'])->toBe(DailyAttendanceStatus::NeedsReview->value)
+        ->and($result['needs_review'])->toBeTrue()
+        ->and($result['reason'])->toContain('duplikat');
+});
