@@ -2,7 +2,7 @@
     <x-ui.page class="!gap-6 p-6">
         <x-admin.page-header
             :title="__('Rekap Absensi Harian')"
-            :description="__('Status cuti, sakit, dan izin dihitung dari permohonan yang disetujui tanpa membuat event absensi sintetis.')"
+            :description="__('Tanggal rekap mengikuti kalender perusahaan (WITA). Status cuti, sakit, dan izin dihitung dari permohonan yang disetujui tanpa membuat event absensi sintetis.')"
         >
             <x-ui.button
                 href="{{ route('admin.leave-requests.index') }}"
