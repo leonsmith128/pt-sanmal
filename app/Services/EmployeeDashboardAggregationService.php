@@ -115,7 +115,10 @@ class EmployeeDashboardAggregationService
             }
 
             $duration = max(0, $start->diffInSeconds($end));
-            $subtraction = $this->mergedOverlapSeconds($start, $end, $overtimeIntervals);
+            $sessionOvertime = $overtimeIntervals
+                ->filter(fn (array $interval) => $interval['sessionAnchorId'] === $anchor->id)
+                ->values();
+            $subtraction = $this->mergedOverlapSeconds($start, $end, $sessionOvertime);
             $workMinutes += (int) floor(max(0, $duration - $subtraction) / 60);
         }
 
@@ -209,7 +212,7 @@ class EmployeeDashboardAggregationService
      */
     private function overtimeInterval(OvertimeRequest $request, Carbon $now): ?array
     {
-        if ($request->state === OvertimeState::Cancelled || !$request->startRecord) {
+        if ($request->state === OvertimeState::Cancelled || !$request->startRecord || !$request->clockInRecord) {
             return null;
         }
 
@@ -234,7 +237,12 @@ class EmployeeDashboardAggregationService
             return null;
         }
 
-        return ['start' => $start, 'end' => $end, 'provisional' => $provisional];
+        return [
+            'start' => $start,
+            'end' => $end,
+            'provisional' => $provisional,
+            'sessionAnchorId' => $request->clockInRecord->id,
+        ];
     }
 
     /**
