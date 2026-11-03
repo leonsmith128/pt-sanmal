@@ -1,14 +1,14 @@
 <?php
 
-use Illuminate\\Support\\Facades\\Blade;
-use Illuminate\\Support\\Str;
-use App\\Models\\User;
+use App\Models\User;
+use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Str;
 
 test('notification dropdown renders unread state and the all notifications link', function () {
     $user = User::factory()->create();
     $notification = $user->notifications()->create([
         'id' => (string) Str::uuid(),
-        'type' => 'App\\Notifications\\TestNotification',
+        'type' => 'App\Notifications\TestNotification',
         'data' => [
             'title' => 'Pengajuan disetujui',
             'message' => 'Pengajuan koreksi absensi telah disetujui.',
