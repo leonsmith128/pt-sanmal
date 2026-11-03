@@ -79,13 +79,11 @@ new #[Title('Profil Pegawai')] class extends Component {
     }
 }; ?>
 
-<section class="w-full space-y-6">
-    <div>
-        <flux:heading size="xl">Profil Pegawai</flux:heading>
-        <flux:subheading class="mt-1">
-            Kelola foto profil dan informasi kontak Anda. Data identitas dan kepegawaian dikelola oleh admin.
-        </flux:subheading>
-    </div>
+<x-ui.page gap="6">
+    <x-ui.page-header
+        :title="__('Profil Pegawai')"
+        :description="__('Kelola foto profil dan informasi kontak Anda. Data identitas dan kepegawaian dikelola oleh admin.')"
+    />
 
     <div class="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
         <div class="flex flex-col gap-5 sm:flex-row sm:items-center">
@@ -182,4 +180,4 @@ new #[Title('Profil Pegawai')] class extends Component {
     </div>
 
 
-</section>
+</x-ui.page>
