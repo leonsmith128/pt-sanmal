@@ -110,14 +110,14 @@ new #[Title('Keamanan Akun')] class extends Component {
         </flux:subheading>
     </div>
 
-    <div class="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
+    <x-ui.card padding="p-6">
         <flux:heading size="lg">{{ __('Alamat email') }}</flux:heading>
         <flux:subheading class="mt-1">
             {{ __('Gunakan email yang dapat Anda akses. Email baru harus diverifikasi sebelum dianggap terverifikasi.') }}
         </flux:subheading>
 
         <form wire:submit="updateEmail" class="mt-5 space-y-4">
-            <flux:input
+            <x-ui.input
                 wire:model="email"
                 :label="__('Email login')"
                 type="email"
@@ -129,7 +129,7 @@ new #[Title('Keamanan Akun')] class extends Component {
                 <x-ui.button variant="primary" type="submit" wire:loading.attr="disabled" wire:target="updateEmail">
                     {{ __('Simpan email') }}
                 </x-ui.button>
-            </div>
+            </x-ui.card>
         </form>
 
         @if ($this->hasUnverifiedEmail)
@@ -153,14 +153,14 @@ new #[Title('Keamanan Akun')] class extends Component {
         @endif
     </div>
 
-    <div class="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
+    <x-ui.card padding="p-6">
         <flux:heading size="lg">{{ __('Ubah kata sandi') }}</flux:heading>
         <flux:subheading class="mt-1">
             {{ __('Gunakan kata sandi yang kuat dan tidak digunakan pada layanan lain.') }}
         </flux:subheading>
 
         <form wire:submit="updatePassword" class="mt-5 space-y-5">
-            <flux:input
+            <x-ui.input
                 wire:model="current_password"
                 :label="__('Kata sandi saat ini')"
                 type="password"
@@ -168,7 +168,7 @@ new #[Title('Keamanan Akun')] class extends Component {
                 autocomplete="current-password"
                 viewable
             />
-            <flux:input
+            <x-ui.input
                 wire:model="password"
                 :label="__('Kata sandi baru')"
                 type="password"
@@ -177,7 +177,7 @@ new #[Title('Keamanan Akun')] class extends Component {
                 passwordrules="{{ Password::defaults()->toPasswordRulesString() }}"
                 viewable
             />
-            <flux:input
+            <x-ui.input
                 wire:model="password_confirmation"
                 :label="__('Konfirmasi kata sandi baru')"
                 type="password"
@@ -191,7 +191,7 @@ new #[Title('Keamanan Akun')] class extends Component {
                 <x-ui.button variant="primary" type="submit" wire:loading.attr="disabled" wire:target="updatePassword">
                     {{ __('Perbarui kata sandi') }}
                 </x-ui.button>
-            </div>
+            </x-ui.card>
         </form>
     </div>
 </section>
