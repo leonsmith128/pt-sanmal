@@ -67,6 +67,7 @@
 
 .dark {
     color-scheme: dark;
+    --color-sanmal-border: #344b63;
     --sanmal-focus: #b4c8dc;
     --sanmal-text-primary: #f1f5f9;
     --sanmal-text-secondary: #cbd5e1;
