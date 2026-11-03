@@ -251,76 +251,13 @@ Choose based on data relationships:
 - For unavoidable horizontal scrolling, scope it to the table container and preserve accessible headers.
 
 ### Navigation
-- Admin: preserve the established desktop sidebar/navigation model; mobile must remain usable without overflow or hidden essential routes.
-- Employee: prioritize simple mobile navigation and easy access to attendance, history, requests, and profile.
-- Shared visual language does not require identical navigation structure for different roles.
-- Do not change route names, middleware, role checks, active states, or navigation permissions as part of visual-only work.
 
-## 9. Seamless implementation rules for AI agents and developers
-
-Before changing a page:
-1. Read `AGENTS.md`, this document, and the relevant page audit.
-2. Inspect the actual target branch and current working tree. Documentation and previous conversations are not proof of current source state.
-3. Locate existing components under `resources/views/components/ui` and `resources/views/components/admin`.
-4. Read the page view/SFC, route, related component, and relevant tests.
-5. Identify the role (Employee/Admin), task, primary viewport, data density, and important states.
-6. Record the current behavior/contract before editing.
-
-During implementation:
-- Work directly in the Laravel source code; Figma is not required for routine component/page design in this phase.
-- Treat source code and browser rendering as the implementation truth. This document is the design guideline; it does not override actual behavior or domain rules.
-- Reuse existing Blade/Flux/Tailwind components when semantically appropriate.
-- Prefer a small, focused change over a broad redesign.
-- Keep presentation components free of business decisions.
-- Do not change query, state, filter semantics, sorting, pagination, route, authorization, validation, persistence, attendance calculations, timestamps, evidence, camera/GPS, or workflow unless explicitly in scope.
-- Do not create generic abstractions solely to reduce markup. Confirm repeated markup and matching interaction contracts first.
-- Preserve light/dark readability and keyboard accessibility where supported by the application.
-
-After implementation:
-1. Run relevant component/feature tests.
-2. Run Pint for changed PHP/Blade-related files as appropriate.
-3. Build frontend assets when CSS/JS changes require it.
-4. Inspect rendered browser output at the relevant viewport checkpoints.
-5. Check overflow, wrapping, focus, loading, disabled, error, and empty states.
-6. Report what was actually tested and what remains unverified. Source inspection is not browser QA.
-
-## 10. Recommended component implementation order
-
-Implement directly in source code, in small reviewable changes:
-
-1. Button — finalize variants, sizing, states, accessibility, and existing `x-ui.button` API.
-2. Form controls — input, select, textarea, checkbox, date controls, search, labels, and validation.
-3. Badge and status — generic primitive plus domain-specific adapters.
-4. Card and surface — only recurring semantic surface patterns.
-5. Alert and feedback — flash, alert, empty, loading, confirmation.
-6. Table and data display — table density, responsive list/card alternatives, pagination.
-7. Navigation — Admin sidebar and Employee mobile navigation.
-
-For every component, document:
-- Purpose and when to use it
-- Existing source component/API
-- Variants and sizes
-- States
-- Responsive behavior for Employee and Admin
-- Accessibility and keyboard/touch expectations
-- Example usage from a real SanMal page
-- Tests and visual verification performed
-
-## 11. Definition of done for UI work
-
-A UI change is complete only when:
-- The right existing component/pattern is reused or a justified new one is added.
-- Employee and Admin responsive priorities are respected.
-- Visual hierarchy, density, and readability are consistent with this guideline.
-- Existing business behavior and server-side protections remain unchanged unless explicitly in scope.
-- Relevant automated tests pass, or unrun tests are clearly disclosed.
-- Browser rendering has been checked at relevant viewport sizes, or the missing QA is explicitly documented.
-- No unrelated formatting/refactor changes are included.
-- Documentation is updated when a shared component contract or design decision changes.
-
-## 12. V1 UI/UX scope and delivery workflow
-
-The SanMal V1 UI/UX program covers the existing web application's Employee and Admin experiences, shared components, page-level consistency, responsive behavior, interaction states, accessibility, and visual QA. It is not permission to add product features or change business/domain behavior.
+- Use Flux sidebar and header primitives for the shared application shell; do not build a parallel navigation system.
+- Apply `<flux:main inset>` for the bordered, rounded content surface. Keep sidebar, header, and main as direct layout siblings; use `lg:ms-0 lg:mt-0` on the main region to avoid double offsets.
+- Employee navigation is one ungrouped list: Beranda, Absensi, Riwayat, Permohonan, and Lembur. On phones, use the top header with a drawer toggle; do not use a fixed bottom navigation bar.
+- Manager personal links reuse the Employee labels (Absensi, Riwayat, Permohonan, Lembur). Keep Admin operational sections grouped because they represent separate administration scopes; keep item labels concise (prefer one word, at most two when needed).
+- Sidebar navigation icons use a consistent 20px square size and do not change size between expanded and collapsed states. Preserve the icon's aspect ratio, alignment, and non-shrinking behavior.
+- Responsive behavior follows the available width: drawer on phone, collapsible sidebar where appropriate on tablet, and persistent sidebar on desktop. Do not create separate role-specific navigation implementations.
 
 ### Single branch and single PR
 
