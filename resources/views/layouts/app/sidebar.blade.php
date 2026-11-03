@@ -3,7 +3,7 @@
     <head>
         @include('partials.head')
     </head>
-    <body class="min-h-screen bg-white dark:bg-zinc-800">
+    <body class="min-h-screen bg-zinc-100 dark:bg-zinc-950">
         @php
             $sidebarUser = auth()->user();
             $sidebarEmployee = $sidebarUser->employee;
@@ -43,7 +43,7 @@
                 @endif
             </flux:sidebar.header>
 
-            <flux:sidebar.nav>
+            <flux:sidebar.nav aria-label="{{ __('Navigasi utama') }}">
                 <div class="flex flex-col">
                     @unless ($isEmployee)
                         <div class="px-3 py-2 text-sm font-medium leading-none text-zinc-400 in-data-flux-sidebar-collapsed-desktop:hidden">{{ __('Platform') }}</div>
@@ -71,7 +71,7 @@
                             >
                                 {{ __('Permohonan') }}
                             </flux:sidebar.item>
-                            <flux:sidebar.item icon="check" :href="route('overtime-requests.index') . '#riwayat-lembur'" :current="request()->routeIs('overtime-requests.*')" wire:navigate>
+                            <flux:sidebar.item icon="clock" :href="route('overtime-requests.index') . '#riwayat-lembur'" :current="request()->routeIs('overtime-requests.*')" wire:navigate>
                                 {{ __('Lembur') }}
                             </flux:sidebar.item>
                         </div>
@@ -144,7 +144,8 @@
                 <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" />
                 <x-app-logo href="{{ route('dashboard') }}" wire:navigate />
                 <flux:spacer />
-                <div class="flex shrink-0 items-center gap-1">                <flux:dropdown position="top" align="start">
+                <div class="flex shrink-0 items-center gap-1">
+                    <flux:dropdown position="top" align="start">
                     <flux:profile
                         :initials="$sidebarUser->initials()"
                         :avatar="$sidebarUser->profilePhotoUrl()"
