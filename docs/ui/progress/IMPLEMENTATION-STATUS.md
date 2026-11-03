@@ -83,4 +83,19 @@ Dokumentasi UI aktif terdiri dari Development Handoff, Design Foundation, Page I
 - **Targeted correction:** table-mode `x-ui.empty-state` now forwards caller attributes to its `td`; a focused regression test was added.
 - **Automated checks:** initial CI run [1030](https://github.com/leonsmith128/pt-sanmal/actions/runs/41549222448) passed PHP formatting and both static-analysis stages, then exposed two markup-contract regressions: the page container's extra class broke an existing exact markup assertion, and table empty-state attribute formatting broke an existing selector assertion. Both source issues were corrected in subsequent commits; rerun CI on the corrected branch head before claiming automated verification. No local test execution is available from this GitHub editing session.
 - **Browser/device checks:** Not run for this batch. Light/dark and viewport visual QA remains outstanding.
-- **Status:** **Implemented, unverified**. Do not begin the all-page adoption pass until CI and component-level visual QA have been reviewed.
+- **Status:** **Implemented, unverified**. The owner clarified that visual QA should follow adoption on real pages; the all-page adoption pass is therefore underway, with browser/device QA still pending.
+
+
+## Employee and shared page adoption — batch 2 (2026-11-03)
+
+- **Branch/PR:** `docs/ui-v1-scope-and-pr-workflow`, [PR #27](https://github.com/leonsmith128/pt-sanmal/pull/27).
+- **Shared layout:** `x-ui.page` now supports constrained width presets (`xl`, `2xl`–`7xl`, `full`) and vertical gap presets (`3`–`6`) while retaining its original `max-w-7xl gap-4` default. `UiLayoutComponentsTest` covers a constrained page preset.
+- **Employee pages adopted:** Attendance, attendance history, correction submission, leave request list/create, overtime request list, and employee profile now use shared page/layout/header primitives where their existing composition fits.
+- **Shared pages adopted:** Dashboard, notifications, and account security now use shared page/header primitives. Profile and security forms use shared input controls; profile detail pairs use `x-ui.metadata-item` inside a semantic `dl`.
+- **Form and status controls:** Employee correction and leave forms use `x-ui.input`, `x-ui.select`, and `x-ui.textarea`; Employee attendance uses shared select/input/textarea and status badge primitives for the relevant work-type, location/project, overtime, and request controls. Existing camera/GPS/evidence child components remain untouched.
+- **Authentication:** Login, confirm-password, forgot-password, and reset-password forms use `x-ui.input`; existing password visibility, autocomplete, password rules, route actions, and form names remain in place.
+- **Feedback and indicators:** Employee request/notification/overtime feedback uses `x-ui.flash-message` where the message follows the generic session/error contract. Domain-specific contextual callouts remain Flux callouts. Dashboard/Admin attendance/Employee attendance/notifications use `x-ui.badge` for compact status indicators.
+- **Contracts preserved by source review:** HTTP methods/actions, CSRF, GET filter names and query forwarding, old input and selected options, upload accept constraints, Livewire `wire:model`/`wire:submit`/loading targets, confirmation behavior, camera/GPS workflow, and domain status mapping.
+- **Automated checks:** Some page-group CI runs passed, including [run 1050](https://github.com/leonsmith128/pt-sanmal/actions/runs/41550788546), [run 1051](https://github.com/leonsmith128/pt-sanmal/actions/runs/41550792805), and [run 1052](https://github.com/leonsmith128/pt-sanmal/actions/runs/41550817438). The latest aggregate CI run for the corrected branch head must still complete before this batch is considered validated.
+- **Browser/device checks:** Not run. The owner has not yet been able to review the pages after component adoption; visual QA is intentionally deferred until the page migration is available for inspection.
+- **Status:** **Implemented, unverified**. Continue auditing remaining specialized page patterns and wait for CI before visual review.
