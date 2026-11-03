@@ -28,6 +28,7 @@ Route::redirect('/', '/login')->name('home');
 
 Route::middleware(['auth', EnsureUserIsActive::class, 'verified'])->group(function () {
     Route::get('dashboard', AdminDashboardController::class)->name('dashboard');
+    Route::get('dashboard-saya', [AdminDashboardController::class, 'myDashboard'])->name('my-dashboard');
     Route::livewire('profil', 'pages::employee.employee-profile')->name('profile.edit');
     Route::get('notifikasi', [NotificationController::class, 'index'])->name('notifications.index');
     Route::patch('notifikasi/{notification}/baca', [NotificationController::class, 'read'])->name('notifications.read');
