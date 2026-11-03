@@ -32,7 +32,7 @@
             </form>
         </section>
 
-        <section id="riwayat-lembur" class="scroll-mt-6 flex flex-col gap-3">
+        <x-ui.section id="riwayat-lembur" class="scroll-mt-6">
             <flux:heading size="lg">{{ __('Riwayat pengajuan lembur') }}</flux:heading>
             @forelse ($requests as $request)
                 <article class="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
@@ -66,6 +66,6 @@
                 </div>
             @endforelse
             <div>{{ $requests->links() }}</div>
-        </section>
+        </x-ui.section>
     </x-ui.page>
 </x-layouts::app>
