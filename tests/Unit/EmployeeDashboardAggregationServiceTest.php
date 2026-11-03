@@ -1,5 +1,9 @@
 <?php
 
+use App\Enums\OvertimeState;
+use App\Models\AttendanceCorrection;
+use App\Models\AttendanceRecord;
+use App\Models\OvertimeRequest;
 use App\Services\DailyAttendanceStatusService;
 use App\Services\EmployeeDashboardAggregationService;
 use Carbon\Carbon;
@@ -57,4 +61,103 @@ it('clips overtime subtraction to the attendance session and merges adjacent win
     );
 
     expect($seconds)->toBe(14_400);
+});
+
+
+function dashboardOvertimeEvent(string $time, int $id): AttendanceRecord
+{
+    $record = new AttendanceRecord;
+    $record->forceFill([
+        'id' => $id,
+        'recorded_at' => Carbon::parse($time, 'UTC'),
+    ]);
+    $record->setRelation('approvedCorrection', null);
+
+    return $record;
+}
+
+function dashboardOvertimeInterval(EmployeeDashboardAggregationService $service, OvertimeRequest $request, Carbon $now): ?array
+{
+    $method = new ReflectionMethod($service, 'overtimeInterval');
+
+    return $method->invoke($service, $request, $now);
+}
+
+it('uses effective event timestamps for actual overtime finalization after approved corrections', function () {
+    $service = new EmployeeDashboardAggregationService(new DailyAttendanceStatusService);
+    $clockIn = dashboardOvertimeEvent('2026-11-03 08:00:00', 41);
+    $start = dashboardOvertimeEvent('2026-11-03 17:00:00', 42);
+    $end = dashboardOvertimeEvent('2026-11-03 19:00:00', 43);
+
+    $start->setRelation('approvedCorrection', new AttendanceCorrection([
+        'requested_recorded_at' => Carbon::parse('2026-11-03 17:30:00', 'UTC'),
+    ]));
+    $end->setRelation('approvedCorrection', new AttendanceCorrection([
+        'requested_recorded_at' => Carbon::parse('2026-11-03 20:00:00', 'UTC'),
+    ]));
+
+    $request = new OvertimeRequest([
+        'state' => OvertimeState::Completed,
+        'finalization_source' => 'actual',
+    ]);
+    $request->setRelation('clockInRecord', $clockIn);
+    $request->setRelation('startRecord', $start);
+    $request->setRelation('clockOutRecord', $end);
+
+    $interval = dashboardOvertimeInterval($service, $request, Carbon::parse('2026-11-03 21:00:00', 'UTC'));
+
+    expect($interval['start']->toDateTimeString())->toBe('2026-11-03 17:30:00')
+        ->and($interval['end']->toDateTimeString())->toBe('2026-11-03 20:00:00')
+        ->and($interval['provisional'])->toBeFalse()
+        ->and($interval['sessionAnchorId'])->toBe(41);
+});
+
+it('keeps scheduled and manual overtime finalization timestamps authoritative', function (string $source) {
+    $service = new EmployeeDashboardAggregationService(new DailyAttendanceStatusService);
+    $request = new OvertimeRequest([
+        'state' => OvertimeState::Completed,
+        'finalization_source' => $source,
+        'final_start_at' => Carbon::parse('2026-11-03 18:00:00', 'UTC'),
+        'final_end_at' => Carbon::parse('2026-11-03 20:00:00', 'UTC'),
+    ]);
+    $request->setRelation('clockInRecord', dashboardOvertimeEvent('2026-11-03 08:00:00', 51));
+    $request->setRelation('startRecord', dashboardOvertimeEvent('2026-11-03 18:30:00', 52));
+    $request->setRelation('clockOutRecord', dashboardOvertimeEvent('2026-11-03 20:30:00', 53));
+
+    $interval = dashboardOvertimeInterval($service, $request, Carbon::parse('2026-11-03 21:00:00', 'UTC'));
+
+    expect($interval['start']->toDateTimeString())->toBe('2026-11-03 18:00:00')
+        ->and($interval['end']->toDateTimeString())->toBe('2026-11-03 20:00:00')
+        ->and($interval['provisional'])->toBeFalse();
+})->with(['scheduled', 'manual']);
+
+it('counts an approved running overtime interval through now and excludes cancelled or invalid intervals', function () {
+    $service = new EmployeeDashboardAggregationService(new DailyAttendanceStatusService);
+    $now = Carbon::parse('2026-11-03 20:00:00', 'UTC');
+
+    $running = new OvertimeRequest(['state' => OvertimeState::InProgress]);
+    $running->setRelation('clockInRecord', dashboardOvertimeEvent('2026-11-03 08:00:00', 61));
+    $running->setRelation('startRecord', dashboardOvertimeEvent('2026-11-03 18:00:00', 62));
+    $running->setRelation('clockOutRecord', null);
+
+    $cancelled = new OvertimeRequest(['state' => OvertimeState::Cancelled]);
+    $cancelled->setRelation('clockInRecord', dashboardOvertimeEvent('2026-11-03 08:00:00', 71));
+    $cancelled->setRelation('startRecord', dashboardOvertimeEvent('2026-11-03 18:00:00', 72));
+
+    $invalid = new OvertimeRequest(['state' => OvertimeState::Completed, 'finalization_source' => 'manual']);
+    $invalid->setRelation('clockInRecord', dashboardOvertimeEvent('2026-11-03 08:00:00', 81));
+    $invalid->setRelation('startRecord', dashboardOvertimeEvent('2026-11-03 18:00:00', 82));
+    $invalid->setRelation('clockOutRecord', dashboardOvertimeEvent('2026-11-03 19:00:00', 83));
+    $invalid->forceFill([
+        'final_start_at' => Carbon::parse('2026-11-03 20:00:00', 'UTC'),
+        'final_end_at' => Carbon::parse('2026-11-03 19:00:00', 'UTC'),
+    ]);
+
+    $runningInterval = dashboardOvertimeInterval($service, $running, $now);
+
+    expect($runningInterval['start']->toDateTimeString())->toBe('2026-11-03 18:00:00')
+        ->and($runningInterval['end']->toDateTimeString())->toBe('2026-11-03 20:00:00')
+        ->and($runningInterval['provisional'])->toBeTrue()
+        ->and(dashboardOvertimeInterval($service, $cancelled, $now))->toBeNull()
+        ->and(dashboardOvertimeInterval($service, $invalid, $now))->toBeNull();
 });
