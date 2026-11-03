@@ -467,8 +467,8 @@ new #[Title('Absensi')] class extends Component {
                                 {{ __('Selesai terjadwal (riwayat)') }}: {{ $overtimeItem->scheduledEndLocal()->format('d M Y, H:i') }}
                             </p>
                         @endif
-                        <flux:badge class="mt-2" :color="$overtimeItem->state->badgeColor()">{{ $overtimeItem->state->label() }}</flux:badge>
-                        <flux:badge class="mt-2" :color="$overtimeItem->approval_status->badgeColor()">{{ $overtimeItem->approval_status->label() }}</flux:badge>
+                        <x-ui.badge class="mt-2" :color="$overtimeItem->state->badgeColor()">{{ $overtimeItem->state->label() }}</x-ui.badge>
+                        <x-ui.badge class="mt-2" :color="$overtimeItem->approval_status->badgeColor()">{{ $overtimeItem->approval_status->label() }}</x-ui.badge>
                         @if ($overtimeItem->startRecord)
                             <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-300">
                                 {{ __('Mulai aktual') }}: {{ $overtimeItem->startRecord->effectiveRecordedAtLocal()->format('d M Y, H:i') }}
@@ -548,10 +548,10 @@ new #[Title('Absensi')] class extends Component {
                     </flux:callout.text>
                 </flux:callout>
             @elseif ($mode === 'clock_in')
-                <flux:select wire:model.live="workType" :label="__('Jenis lokasi kerja')">
+                <x-ui.select name="workType" wire:model.live="workType" :label="__('Jenis lokasi kerja')">
                     <flux:select.option value="office">{{ __('Kantor') }}</flux:select.option>
                     <flux:select.option value="onsite">{{ __('Onsite (Proyek)') }}</flux:select.option>
-                </flux:select>
+                </x-ui.select>
 
                 @if ($workType === 'office')
                     @if ($this->officeLocations->isEmpty())
@@ -562,24 +562,23 @@ new #[Title('Absensi')] class extends Component {
                             {{ $this->officeLocations->first()->name }}
                         </div>
                     @else
-                        <flux:select wire:model="locationId" :label="__('Kantor')">
+                        <x-ui.select name="locationId" wire:model="locationId" :label="__('Kantor')">
                             @foreach ($this->officeLocations as $office)
                                 <flux:select.option value="{{ $office->id }}">{{ $office->name }}</flux:select.option>
                             @endforeach
-                        </flux:select>
+                        </x-ui.select>
                     @endif
-                    @error('locationId') <flux:text class="text-red-500">{{ $message }}</flux:text> @enderror
                 @else
                     @if ($this->projects->isEmpty())
                         <flux:text class="text-red-500">{{ __('Belum ada proyek aktif yang tersedia untuk absensi. Hubungi admin.') }}</flux:text>
                     @else
-                        <flux:select wire:model.live="projectId" :label="__('Proyek')">
+                        <x-ui.select name="projectId" wire:model.live="projectId" :label="__('Proyek')">
                             @foreach ($this->projects as $project)
                                 <flux:select.option value="{{ $project->id }}">
                                     {{ $project->code }} — {{ $project->name }} ({{ $project->client->name }})
                                 </flux:select.option>
                             @endforeach
-                        </flux:select>
+                        </x-ui.select>
                         @if ($selectedProject = $this->projects->firstWhere('id', (int) $projectId))
                             <div class="rounded-lg border border-zinc-200 bg-zinc-50 p-3 text-sm dark:border-zinc-700 dark:bg-zinc-900">
                                 <p><span class="font-medium">{{ __('Client') }}:</span> {{ $selectedProject->client->name }}</p>
@@ -588,8 +587,7 @@ new #[Title('Absensi')] class extends Component {
                             </div>
                         @endif
                     @endif
-                    @error('projectId') <flux:text class="text-red-500">{{ $message }}</flux:text> @enderror
-                @endif
+                 @endif
             @elseif ($mode === 'overtime_start')
                 <flux:text>{{ __('Konfirmasi mulai lembur memerlukan foto dan lokasi terbaru. Sesi kerja utama tetap berjalan.') }}</flux:text>
             @endif
@@ -723,8 +721,8 @@ new #[Title('Absensi')] class extends Component {
                         <flux:subheading>{{ __('Rincian pengajuan pada :date', ['date' => $selectedOvertime->scheduledStartLocal()->translatedFormat('d M Y')]) }}</flux:subheading>
                     </div>
                     <div class="flex flex-wrap gap-2">
-                        <flux:badge :color="$selectedOvertime->state->badgeColor()">{{ $selectedOvertime->state->label() }}</flux:badge>
-                        <flux:badge :color="$selectedOvertime->approval_status->badgeColor()">{{ $selectedOvertime->approval_status->label() }}</flux:badge>
+                        <x-ui.badge :color="$selectedOvertime->state->badgeColor()">{{ $selectedOvertime->state->label() }}</x-ui.badge>
+                        <x-ui.badge :color="$selectedOvertime->approval_status->badgeColor()">{{ $selectedOvertime->approval_status->label() }}</x-ui.badge>
                     </div>
                     <dl class="grid gap-3 rounded-xl bg-zinc-50 p-4 text-sm dark:bg-zinc-800">
                         <div>
@@ -779,16 +777,20 @@ new #[Title('Absensi')] class extends Component {
                     <flux:heading size="lg">{{ __('Ajukan lembur') }}</flux:heading>
                     <flux:subheading>{{ __('Pengajuan dapat dibuat sebelum clock-in. Tentukan waktu mulai; alasan bersifat opsional. Waktu selesai dicatat dari clock-out aktual. Jika jadwal tiba sebelum admin menyetujui, Anda tetap harus mengambil foto konfirmasi lembur.') }}</flux:subheading>
                 </div>
-                <flux:field>
-                    <flux:label>{{ __('Waktu mulai lembur') }}</flux:label>
-                    <flux:input type="datetime-local" wire:model="overtimeStartAt" required />
-                    <flux:error name="overtimeStartAt" />
-                </flux:field>
-                <flux:field>
-                    <flux:label>{{ __('Alasan lembur (opsional)') }}</flux:label>
-                    <flux:textarea wire:model="overtimeReason" rows="3" placeholder="{{ __('Jika diperlukan, jelaskan pekerjaan yang perlu diselesaikan...') }}" />
-                    <flux:error name="overtimeReason" />
-                </flux:field>
+                <x-ui.input
+                    name="overtimeStartAt"
+                    wire:model="overtimeStartAt"
+                    :label="__('Waktu mulai lembur')"
+                    type="datetime-local"
+                    required
+                />
+                <x-ui.textarea
+                    name="overtimeReason"
+                    wire:model="overtimeReason"
+                    :label="__('Alasan lembur (opsional)')"
+                    rows="3"
+                    :placeholder="__('Jika diperlukan, jelaskan pekerjaan yang perlu diselesaikan...')"
+                />
                 @error('form') <flux:text class="text-sm text-red-600 dark:text-red-400">{{ $message }}</flux:text> @enderror
                 <div class="flex justify-end gap-2">
                     <flux:modal.close><x-ui.button variant="ghost">{{ __('Batal') }}</x-ui.button></flux:modal.close>
