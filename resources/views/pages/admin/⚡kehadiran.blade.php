@@ -113,10 +113,11 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
             ->join('users as sort_users', 'sort_users.id', '=', 'sort_employees.user_id')
             ->with(['employee.user', 'location', 'project', 'approvedCorrection', 'sessionAnchor.approvedCorrection']);
 
-        AttendanceDateFilter::apply(
+        AttendanceDateFilter::applyInTimezone(
             $query,
             $from !== '' ? $from : null,
             $to !== '' ? $to : null,
+            'Asia/Makassar',
         );
 
         return $query
@@ -148,7 +149,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
         return Employee::query()
             ->with('user:id,name')
             ->whereHas('user', fn ($query) => $query->where('is_active', true))
-            ->whereDoesntHave('attendanceRecords', fn ($query) => AttendanceDateFilter::apply($query, $from, $from))
+            ->whereDoesntHave('attendanceRecords', fn ($query) => AttendanceDateFilter::applyInTimezone($query, $from, $from, 'Asia/Makassar'))
             ->whereDoesntHave('leaveRequests', fn ($query) => $query
                 ->where('status', LeaveRequestStatus::Approved)
                 ->whereDate('start_date', '<=', $from)
