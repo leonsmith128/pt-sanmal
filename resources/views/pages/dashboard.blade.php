@@ -113,40 +113,40 @@
                     $formatDuration = fn (int $minutes) => intdiv($minutes, 60).'j '.str_pad((string) ($minutes % 60), 2, '0', STR_PAD_LEFT).'m';
                 @endphp
 
-                <header class="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center">
-                    <div class="flex shrink-0 items-center gap-2">
-                        <flux:button
-                            href="{{ route('notifications.index') }}"
-                            variant="ghost"
-                            icon="bell"
-                            :aria-label="__('Notifikasi')"
-                            tooltip="{{ __('Notifikasi') }}"
-                        />
-
-                        @if ($dashboardUser->profilePhotoUrl())
-                            <img
-                                src="{{ $dashboardUser->profilePhotoUrl() }}"
-                                alt="{{ __('Foto profil :name', ['name' => $dashboardUser->name]) }}"
-                                class="size-10 rounded-full object-cover"
-                            >
-                        @else
-                            <div
-                                aria-hidden="true"
-                                class="flex size-10 items-center justify-center rounded-full bg-sanmal-100 font-semibold text-sanmal-700 dark:bg-sanmal-900 dark:text-sanmal-200"
-                            >
-                                {{ $dashboardUser->initials() }}
-                            </div>
-                        @endif
-                    </div>
+                <header class="flex min-w-0 items-center gap-3 sm:gap-4">
+                    @if ($dashboardUser->profilePhotoUrl())
+                        <img
+                            src="{{ $dashboardUser->profilePhotoUrl() }}"
+                            alt="{{ __('Foto profil :name', ['name' => $dashboardUser->name]) }}"
+                            class="size-11 shrink-0 rounded-full object-cover"
+                        >
+                    @else
+                        <div
+                            aria-hidden="true"
+                            class="flex size-11 shrink-0 items-center justify-center rounded-full bg-sanmal-100 font-semibold text-sanmal-700 dark:bg-sanmal-900 dark:text-sanmal-200"
+                        >
+                            {{ $dashboardUser->initials() }}
+                        </div>
+                    @endif
 
                     <div class="min-w-0 flex-1">
-                        <flux:heading size="xl" level="1">
-                            {{ __('Selamat datang, :name', ['name' => $dashboardUser->name]) }}
-                        </flux:heading>
-                        <flux:text class="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+                        <p class="text-sm text-zinc-600 dark:text-zinc-400">{{ __('Selamat datang,') }}</p>
+                        <h1 class="truncate text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 sm:text-2xl">
+                            {{ $dashboardUser->name }}
+                        </h1>
+                        <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
                             {{ $employeeDashboard['today'] }}
-                        </flux:text>
+                        </p>
                     </div>
+
+                    <flux:button
+                        href="{{ route('notifications.index') }}"
+                        variant="ghost"
+                        icon="bell"
+                        :aria-label="__('Notifikasi')"
+                        tooltip="{{ __('Notifikasi') }}"
+                        class="shrink-0"
+                    />
                 </header>
 
                 <x-ui.card padding="p-5 sm:p-6" class="border-sanmal-200 bg-sanmal-50 dark:border-sanmal-800 dark:bg-sanmal-950/40">
