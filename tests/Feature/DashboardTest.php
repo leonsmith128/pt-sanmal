@@ -103,7 +103,7 @@ test('employee dashboard shows pending leave request breakdown for the authentic
         ->assertSee('Cuti Tahunan: 1')
         ->assertSee('Sakit: 1')
         ->assertSee('aria-label="Buka notifikasi"', false)
-        ->assertDontSee('hidden lg:block');
+        ->assertSee('class="group relative"', false);
 });
 
 
@@ -124,7 +124,7 @@ test('employee dashboard aggregation counts corrected present dates and calculat
         'employee_id' => $employee->id,
         'type' => AttendanceType::ClockIn,
         'work_type' => WorkType::Office,
-        'recorded_at' => Carbon::parse('2026-11-03 08:00:00', 'Asia/Makassar'),
+        'recorded_at' => Carbon::parse('2026-11-03 00:00:00', 'UTC'),
         'timezone' => 'Asia/Makassar',
         'attendance_date' => '2026-11-03',
     ]);
@@ -134,14 +134,14 @@ test('employee dashboard aggregation counts corrected present dates and calculat
         'session_anchor_id' => $clockIn->id,
         'type' => AttendanceType::ClockOut,
         'work_type' => WorkType::Office,
-        'recorded_at' => Carbon::parse('2026-11-03 17:00:00', 'Asia/Makassar'),
+        'recorded_at' => Carbon::parse('2026-11-03 09:00:00', 'UTC'),
         'timezone' => 'Asia/Makassar',
         'attendance_date' => '2026-11-03',
     ]);
 
     $dashboard = app(EmployeeDashboardAggregationService::class)->forEmployee(
         $employee,
-        Carbon::parse('2026-11-03 18:00:00', 'Asia/Makassar'),
+        Carbon::parse('2026-11-03 10:00:00', 'UTC'),
     );
 
     expect($dashboard['monthly']['presentDays'])->toBe(2)
@@ -162,7 +162,7 @@ test('employee dashboard separates approved overtime from net ordinary work dura
         'employee_id' => $employee->id,
         'type' => AttendanceType::ClockIn,
         'work_type' => WorkType::Office,
-        'recorded_at' => Carbon::parse('2026-11-03 08:00:00', 'Asia/Makassar'),
+        'recorded_at' => Carbon::parse('2026-11-03 00:00:00', 'UTC'),
         'timezone' => 'Asia/Makassar',
         'attendance_date' => '2026-11-03',
     ]);
@@ -172,7 +172,7 @@ test('employee dashboard separates approved overtime from net ordinary work dura
         'session_anchor_id' => $clockIn->id,
         'type' => AttendanceType::OvertimeStart,
         'work_type' => WorkType::Office,
-        'recorded_at' => Carbon::parse('2026-11-03 16:00:00', 'Asia/Makassar'),
+        'recorded_at' => Carbon::parse('2026-11-03 08:00:00', 'UTC'),
         'timezone' => 'Asia/Makassar',
         'attendance_date' => '2026-11-03',
     ]);
@@ -182,7 +182,7 @@ test('employee dashboard separates approved overtime from net ordinary work dura
         'session_anchor_id' => $clockIn->id,
         'type' => AttendanceType::ClockOut,
         'work_type' => WorkType::Office,
-        'recorded_at' => Carbon::parse('2026-11-03 18:00:00', 'Asia/Makassar'),
+        'recorded_at' => Carbon::parse('2026-11-03 10:00:00', 'UTC'),
         'timezone' => 'Asia/Makassar',
         'attendance_date' => '2026-11-03',
     ]);
@@ -193,7 +193,7 @@ test('employee dashboard separates approved overtime from net ordinary work dura
         'clock_in_record_id' => $clockIn->id,
         'start_record_id' => $overtimeStart->id,
         'clock_out_record_id' => $clockOut->id,
-        'scheduled_start_at' => Carbon::parse('2026-11-03 16:00:00', 'Asia/Makassar'),
+        'scheduled_start_at' => Carbon::parse('2026-11-03 08:00:00', 'UTC'),
         'timezone' => 'Asia/Makassar',
         'state' => OvertimeState::Completed,
         'approval_status' => OvertimeApprovalStatus::Approved,
@@ -202,7 +202,7 @@ test('employee dashboard separates approved overtime from net ordinary work dura
 
     $dashboard = app(EmployeeDashboardAggregationService::class)->forEmployee(
         $employee,
-        Carbon::parse('2026-11-03 19:00:00', 'Asia/Makassar'),
+        Carbon::parse('2026-11-03 11:00:00', 'UTC'),
     );
 
     expect($dashboard['monthly']['workMinutes'])->toBe(480)
@@ -221,14 +221,14 @@ test('employee dashboard includes an open attendance session as provisional work
         'employee_id' => $employee->id,
         'type' => AttendanceType::ClockIn,
         'work_type' => WorkType::Office,
-        'recorded_at' => Carbon::parse('2026-11-03 08:00:00', 'Asia/Makassar'),
+        'recorded_at' => Carbon::parse('2026-11-03 00:00:00', 'UTC'),
         'timezone' => 'Asia/Makassar',
         'attendance_date' => '2026-11-03',
     ]);
 
     $dashboard = app(EmployeeDashboardAggregationService::class)->forEmployee(
         $employee,
-        Carbon::parse('2026-11-03 12:00:00', 'Asia/Makassar'),
+        Carbon::parse('2026-11-03 04:00:00', 'UTC'),
     );
 
     expect($dashboard['monthly']['incompleteDays'])->toBe(1)
