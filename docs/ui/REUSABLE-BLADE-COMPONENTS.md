@@ -14,7 +14,7 @@ Generic components that can be used by admin, employee, and authentication pages
 
 | Component | Responsibility | Initial contract |
 |---|---|---|
-| `x-ui.page` | Standard page width and vertical rhythm | Slot + mergeable attributes; default `w-full max-w-7xl`, `gap-4` |
+| `x-ui.page` | Standard page width and vertical rhythm | Optional `maxWidth` preset (`xl`, `2xl`–`7xl`, `full`; default `7xl`), optional `gap` preset (`3`–`6`; default `4`), slot, and mergeable attributes |
 | `x-ui.page-header` | Responsive page title, description, and action slot | `title`, optional `description`, optional `headingSize`, action slot |
 | `x-ui.section` | Standard vertical grouping for page sections | Slot + mergeable attributes; default vertical gap 3 |
 | `x-ui.flash-message` | Session status and validation feedback | Reads Laravel session status and error bag |
@@ -98,6 +98,7 @@ Page views should compose primitives and domain components, while retaining:
 ## Current migration status
 
 - `x-ui.page`, `x-ui.card`, and `x-ui.button` primitives exist.
+- `x-ui.page`, `x-ui.page-header`, `x-ui.section`, and `x-ui.card` are reusable layout primitives. The page shell now supports role/page-specific max-width and vertical-gap presets while retaining the original `max-w-7xl gap-4` default.
 - The button primitive is applied to the audited Admin Attendance actions (export, evidence backup/deletion, timestamp correction, and modal close), Employee dashboard navigation, Employee Attendance and overtime flows, Employee leave/correction/attendance-history actions, Employee profile/security actions, authentication login/password/verification actions, and existing Admin CRUD/review pages. Specialized native controls remain for calendar-day selection and photo-preview triggers because their custom interaction/content is part of the control itself. Continue auditing any remaining direct Flux/native button usage as pages are revisited.
 - The generic page header is now the implementation behind the existing `x-admin.page-header` API, preserving current callers while making the layout primitive reusable outside Admin.
 - `x-ui.section` provides a standard vertical section wrapper.
