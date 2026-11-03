@@ -17,16 +17,19 @@
             <flux:text class="mt-1 text-sm">{{ __('Pengajuan dapat dibuat sebelum clock-in, termasuk beberapa hari sebelumnya. Jadwal hanya memerlukan waktu mulai; selesai lembur dicatat saat clock-out.') }}</flux:text>
             <form method="POST" action="{{ route('overtime-requests.store') }}" class="mt-5 flex flex-col gap-4">
                 @csrf
-                <flux:field>
-                    <flux:label>{{ __('Jadwal mulai') }}</flux:label>
-                    <flux:input type="datetime-local" name="scheduled_start_at" required value="{{ old('scheduled_start_at') }}" />
-                    <flux:error name="scheduled_start_at" />
-                </flux:field>
-                <flux:field>
-                    <flux:label>{{ __('Alasan lembur (opsional)') }}</flux:label>
-                    <flux:textarea name="reason" rows="3" placeholder="{{ __('Jika diperlukan, jelaskan pekerjaan yang perlu diselesaikan...') }}">{{ old('reason') }}</flux:textarea>
-                    <flux:error name="reason" />
-                </flux:field>
+                <x-ui.input
+                    name="scheduled_start_at"
+                    :label="__('Jadwal mulai')"
+                    type="datetime-local"
+                    :value="old('scheduled_start_at')"
+                    required
+                />
+                <x-ui.textarea
+                    name="reason"
+                    :label="__('Alasan lembur (opsional)')"
+                    rows="3"
+                    :placeholder="__('Jika diperlukan, jelaskan pekerjaan yang perlu diselesaikan...')"
+                >{{ old('reason') }}</x-ui.textarea>
                 @error('form') <flux:text class="text-sm text-red-600 dark:text-red-400">{{ $message }}</flux:text> @enderror
                 <x-ui.button type="submit" variant="primary" class="w-full sm:w-auto">{{ __('Kirim pengajuan') }}</x-ui.button>
             </form>
@@ -44,8 +47,8 @@
                             @endif
                         </div>
                         <div class="flex flex-wrap gap-2">
-                            <flux:badge  :color="$request->approval_status->badgeColor()">{{ $request->approval_status->label() }}</flux:badge>
-                            <flux:badge  :color="$request->state->badgeColor()">{{ $request->state->label() }}</flux:badge>
+                            <x-ui.badge :color="$request->approval_status->badgeColor()">{{ $request->approval_status->label() }}</x-ui.badge>
+                            <x-ui.badge :color="$request->state->badgeColor()">{{ $request->state->label() }}</x-ui.badge>
                         </div>
                     </div>
                     @if ($request->decision_note)
