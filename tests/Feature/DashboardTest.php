@@ -48,6 +48,19 @@ test('administrators see the administrative dashboard summary', function () {
         ->assertSee('Permohonan menunggu');
 });
 
+test('admin personal dashboard is separate from the admin overview', function () {
+    $user = User::factory()->create();
+    $user->forceFill(['role' => UserRole::Admin])->save();
+    Employee::create(['user_id' => $user->id]);
+
+    $this->actingAs($user)->get(route('my-dashboard'))
+        ->assertOk()
+        ->assertSee('Status absensi hari ini')
+        ->assertDontSee('Pegawai aktif');
+
+    $this->get(route('dashboard'))->assertOk()->assertSee('Pegawai aktif');
+});
+
 test('employee dashboard does not expose administrative summary when no employee profile is linked', function () {
     $user = User::factory()->create();
 
