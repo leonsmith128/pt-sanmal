@@ -637,7 +637,6 @@ new #[Title('Absensi')] class extends Component {
                             variant="primary"
                             class="min-w-0 flex-1"
                             x-on:click="$dispatch('attendance-camera-open')"
-                            x-bind:disabled="starting || busy"
                         >
                             {{ match ($mode) { 'clock_in' => __('Absen Masuk'), 'overtime_start' => __('Konfirmasi Lembur'), default => __('Absen Pulang') } }}
                         </x-ui.button>
