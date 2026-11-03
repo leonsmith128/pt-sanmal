@@ -1,5 +1,5 @@
 <x-layouts::app :title="__('Buat Permohonan')">
-    <x-ui.page max-width="2xl" gap="5" class="px-4 py-4 sm:px-6 sm:py-6">
+    <x-ui.page max-width="2xl" gap="5">
         <x-ui.page-header
             :title="__('Buat Permohonan')"
             :description="__('Lengkapi informasi berikut. Permohonan akan menunggu keputusan admin.')"
