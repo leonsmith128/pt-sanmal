@@ -49,6 +49,23 @@ test('administrators see the administrative dashboard summary', function () {
         ->assertSee('flex flex-col items-center gap-2 text-center', false);
 });
 
+
+test('admin dashboard daily attendance action uses the WITA reporting date', function () {
+    Carbon::setTestNow(Carbon::parse('2026-11-03 18:00:00', 'UTC'));
+
+    try {
+        $user = User::factory()->create();
+        $user->forceFill(['role' => UserRole::Admin])->save();
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertSee(route('admin.daily-attendance', ['date' => '2026-11-04']), false);
+    } finally {
+        Carbon::setTestNow();
+    }
+});
+
 test('admin personal dashboard is separate from the admin overview', function () {
     $user = User::factory()->create();
     $user->forceFill(['role' => UserRole::Admin])->save();
