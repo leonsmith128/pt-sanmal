@@ -123,6 +123,8 @@ class EmployeeDashboardAggregationService
             }
 
             $events = $anchor->sessionEvents
+                ->prepend($anchor)
+                ->unique('id')
                 ->filter(fn (AttendanceRecord $event) => (int) $event->employee_id === (int) $anchor->employee_id && in_array($event->type, [
                     AttendanceType::ClockIn,
                     AttendanceType::OvertimeStart,
