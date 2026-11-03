@@ -35,7 +35,9 @@ Source inspection bukan browser QA. Component test bukan bukti seluruh workflow 
 - Tombol pembatalan pengajuan tetap berada di overtime card sebagai satu-satunya jalan pegawai membuka blokir Clock Out.
 - Alur satu tombol: ketika belum ada foto, tombol utama memicu kamera; setelah foto berhasil diunggah, tombol berubah menjadi **Lanjutkan** untuk membuka modal konfirmasi. Tombol kamera sekunder dihapus dari halaman.
 - Kamera baru dibuka setelah izin lokasi diperiksa, koordinat segar didapatkan, dan reverse geocoding menghasilkan alamat snapshot. Shutter tetap manual; preview menyediakan foto ulang/gunakan foto; upload tetap melalui Livewire; pencatatan tetap menunggu konfirmasi dan validasi server.
-- Feature test menegaskan pemicu kamera dari tombol utama dan tahap **Lanjutkan**. Pengujian browser/device untuk urutan GPS, izin kamera, shutter, preview, upload, dan error handling masih diperlukan.
+- Feature test menegaskan pemicu kamera dari tombol utama dan tahap **Lanjutkan**. Regression test lembur mencakup clock-out yang diblokir oleh jadwal aktif, pembatalan jadwal yang membuka kembali clock-out, dan state konfirmasi saat jadwal tiba.
+- GPS unavailable tetap merupakan kondisi yang ditandai untuk review oleh backend pada alur pencatatan yang menerima foto; alur kamera saat ini mensyaratkan GPS dan alamat siap sebelum membuka kamera. Kegagalan izin GPS/kamera dan urutan shutter-preview-upload masih memerlukan pengujian browser/device karena belum ada test runtime JavaScript khusus.
+- Pengujian browser/device untuk urutan GPS, izin kamera, shutter, preview, upload, dan error handling masih diperlukan.
 - **Status: Implemented, unverified.** Test suite, Pint, build, dan CI head terbaru belum lulus/terverifikasi. Regression coverage backend untuk pemblokiran clock-out dan konfirmasi lembur sudah ada, tetapi perlu dijalankan ulang bersama test UI yang diperbarui. Browser/device QA tetap ditunda sampai seluruh halaman pegawai selesai.
 
 ## Cakupan fondasi reusable yang sudah tersedia
