@@ -3,7 +3,7 @@
     <head>
         @include('partials.head')
     </head>
-    <body class="min-h-screen bg-zinc-100 dark:bg-zinc-950">
+    <body class="min-h-screen bg-zinc-50 dark:bg-zinc-900">
         @php
             $sidebarUser = auth()->user();
             $sidebarEmployee = $sidebarUser->employee;
@@ -21,8 +21,8 @@
 
         <flux:sidebar
             sticky
-            collapsible
-            class="h-screen min-h-screen overflow-x-hidden border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 "
+            :collapsible="$isManager ? true : 'mobile'"
+            class="h-screen min-h-screen overflow-x-hidden border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900"
         >
             <flux:sidebar.header>
                 <div class="flex w-full items-center justify-between gap-2">
