@@ -75,27 +75,28 @@ The original SanMal logo supplied for this project was sampled to identify repre
 
 The primary action is theme-aware: blue in light theme and yellow in dark theme. Yellow is also used as a restrained secondary-action accent in dark theme; it must not visually compete with the filled primary action. Always check foreground/background contrast.
 
-### Neutral palette
+### Surface and text palette
 
-| Token | HEX | Typical use |
-|---|---|---|
-| `neutral/white` | `#FFFFFF` | Main surfaces |
-| `neutral/50` | `#F8FAFC` | Page background / subtle surface |
-| `neutral/100` | `#F1F5F9` | Secondary surface |
-| `neutral/200` | `#E2E8F0` | Borders/dividers |
-| `neutral/300` | `#CBD5E1` | Stronger borders |
-| `neutral/500` | `#64748B` | Secondary text |
-| `neutral/700` | `#334155` | Strong secondary text |
-| `neutral/900` | `#0F172A` | Main text |
+| Token | Light | Dark | Typical use |
+|---|---|---|---|
+| `surface/page` | `#E5EBF1` | `#0B1623` | Outer application shell |
+| `surface/primary` | `#F8FCFF` | `#122235` | Main panel and standard cards |
+| `surface/secondary` | `#EAF0F6` | `#192B40` | Secondary grouping and hover surfaces |
+| `surface/inset` | `#E3EBF3` | `#20354B` | Inset controls and recessed areas |
+| `surface/elevated` | — | `#263D55` | Elevated dark-theme controls |
+| `border` | `#D3DDEA` | `#344B63` | Dividers and control borders |
+| `text/primary` | `#172033` | `#F1F5F9` | Main content |
+| `text/secondary` | `#526579` | `#CBD5E1` | Supporting content |
+| `text/muted` | `#64748B` | `#94A3B8` | Metadata and helper text |
 
 ### Semantic colors
 
 | Token | HEX | Meaning |
 |---|---|---|
-| `semantic/success` | `#15803D` | Successful/completed |
-| `semantic/warning` | `#B45309` | Warning/needs attention |
-| `semantic/danger` | `#B91C1C` | Error/rejected/destructive |
-| `semantic/info` | `#2563EB` | Informational |
+| `semantic/success` | `#258640` | Successful/completed |
+| `semantic/warning` | `#B2640A` | Warning/needs attention |
+| `semantic/danger` | `#BD1F1F` | Error/rejected/destructive |
+| `semantic/info` | `#145985` | Informational |
 
 Use semantic colors consistently. A status color must not be the only way to communicate meaning; include readable text or an accessible label.
 
