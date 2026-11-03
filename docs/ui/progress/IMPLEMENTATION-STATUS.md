@@ -34,7 +34,7 @@ Source inspection bukan browser QA. Component test bukan bukti seluruh workflow 
 - **Surface:** `x-ui.card`.
 - **Form:** `x-ui.field`, `x-ui.input`, `x-ui.select`, `x-ui.textarea`, `x-ui.checkbox`.
 - **Feedback:** `x-ui.flash-message`, `x-ui.empty-state`.
-- **Status dan metadata:** `x-ui.badge`, `x-ui.metadata-item`.\n- **Navigation utility:** `x-ui.notification-dropdown` (domain-aware; data disediakan oleh controller).
+- **Status dan metadata:** `x-ui.badge`, `x-ui.metadata-item`.\n- **Identity:** `x-ui.avatar` untuk foto profil dan fallback inisial berbentuk lingkaran; sudah diterapkan pada header Dashboard dan avatar menu profil desktop/mobile yang teridentifikasi. Halaman Profil masih perlu migrasi setelah lokasi source view diverifikasi.\n- **Navigation utility:** `x-ui.notification-dropdown` (domain-aware; data disediakan oleh controller).
 
 Komponen generik tidak mengambil alih business logic, authorization, route construction, enum-to-label/color mapping, query, atau state workflow. Domain adapter tetap dipertahankan bila dibutuhkan. Jangan menambah wrapper hanya untuk menghilangkan markup yang belum terbukti berulang.
 
