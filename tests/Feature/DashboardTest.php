@@ -31,3 +31,15 @@ test('administrators see the administrative dashboard summary', function () {
         ->assertSee('Aktivitas absensi terbaru')
         ->assertSee('Permohonan menunggu');
 });
+
+test('employee dashboard does not expose administrative summary when no employee profile is linked', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->get(route('dashboard'))
+        ->assertOk()
+        ->assertSee('Profil pegawai belum tersedia')
+        ->assertDontSee('Dashboard Administrasi')
+        ->assertDontSee('Pegawai aktif')
+        ->assertDontSee('Permohonan menunggu');
+});
