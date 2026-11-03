@@ -403,7 +403,7 @@ new #[Title('Absensi')] class extends Component {
         </div>
 
         {{-- Form absensi --}}
-        <form wire:submit="confirm('{{ $mode }}')" class="flex flex-col gap-5 rounded-xl border border-neutral-200 p-5 dark:border-neutral-700 {{ $selectedDate !== now(RecordAttendance::DEFAULT_TIMEZONE)->
+        <form wire:submit="confirm('{{ $mode }}')" class="flex flex-col gap-5 rounded-xl border border-neutral-200 p-5 dark:border-neutral-700 {{ $selectedDate !== now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString() ? 'hidden' : '' }}">
             <div class="space-y-1">
                 <flux:heading size="sm">
                     {{ match ($mode) {
@@ -426,7 +426,7 @@ new #[Title('Absensi')] class extends Component {
                     } }}
                 </flux:text>
             </div>
-toDateString() ? 'hidden' : '' }}">
+
             @if ($mode === 'clock_in_blocked')
                 <flux:callout variant="info" icon="lock-closed">
                     <flux:callout.heading>{{ __('Absensi hari ini sudah digunakan') }}</flux:callout.heading>
