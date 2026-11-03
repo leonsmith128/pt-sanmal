@@ -204,19 +204,28 @@ test('attendance camera preserves the complete photo frame without cropping', fu
         ->assertSee('watermarkPreview', false);
 });
 
-test('employees receive the mobile-first five-item bottom navigation', function () {
+test('employees receive an ungrouped sidebar and mobile header drawer without bottom navigation', function () {
     $this->actingAs(userWithRole(UserRole::Employee));
 
-    $this->get(route('attendance'))
+    $response = $this->get(route('attendance'))
         ->assertOk()
+        ->assertSee('data-flux-sidebar-collapse', false)
         ->assertSee('aria-label="Navigasi utama"', false)
         ->assertSee(__('Beranda'))
         ->assertSee(__('Absensi'))
         ->assertSee(__('Riwayat'))
-        ->assertSee(__('Pengajuan'))
-        ->assertSee(__('Profil'))
+        ->assertSee(__('Permohonan'))
+        ->assertSee(__('Lembur'))
+        ->assertDontSee(__('Aktivitas Pegawai'))
+        ->assertDontSee('fixed inset-x-0 bottom-0', false)
         ->assertDontSee(__('Operasional'))
         ->assertDontSee(__('Master Data'));
+
+    $document = new DOMDocument;
+    @$document->loadHTML($response->getContent());
+    $xpath = new DOMXPath($document);
+
+    expect($xpath->query('//*[@data-flux-sidebar-item]')->length)->toBe(5);
 });
 
 test('admins retain personal employee navigation alongside grouped administration menus', function () {
@@ -224,11 +233,11 @@ test('admins retain personal employee navigation alongside grouped administratio
 
     $this->get(route('attendance'))
         ->assertOk()
-        ->assertSee(__('Aktivitas Saya'))
-        ->assertSee(__('Absensi Saya'))
-        ->assertSee(__('Riwayat Absensi Saya'))
-        ->assertSee(__('Pusat Permohonan Saya'))
-        ->assertSee(__('Riwayat Lembur Saya'))
+        ->assertSee(__('Absensi'))
+        ->assertSee(__('Riwayat'))
+        ->assertSee(__('Permohonan'))
+        ->assertSee(__('Lembur'))
+        ->assertDontSee(__('Aktivitas Saya'))
         ->assertSee(__('Operasional'))
         ->assertSee(__('Master Data'))
         ->assertSee(__('Permohonan'))
@@ -254,7 +263,8 @@ test('Flux main is a direct body child on the key admin and employee pages', fun
     $xpath = new DOMXPath($document);
 
     expect($xpath->query('//body/*[@data-flux-main]')->length)->toBe(1)
-        ->and($response->getContent())->toContain('pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-0');
+        ->and($response->getContent())->toContain('inset')
+        ->and($response->getContent())->not->toContain('pb-[calc(4rem+env(safe-area-inset-bottom))]');
 });
 
 test('admin sidebar hides brand and theme controls when collapsed', function () {
@@ -285,6 +295,7 @@ test('collapsed admin sidebar keeps every navigation item visible as an icon', f
 
     expect($xpath->query('//*[@data-flux-sidebar-item]')->length)->toBe(13)
         ->and($response->getContent())->toContain('in-data-flux-sidebar-collapsed-desktop:not-in-data-flux-sidebar-group-dropdown:hidden')
+        ->and($response->getContent())->toContain('data-flux-sidebar-item')
         ->and($response->getContent())->toContain('in-data-flux-sidebar-collapsed-desktop:hidden');
 });
 
