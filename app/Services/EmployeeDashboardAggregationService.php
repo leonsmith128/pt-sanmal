@@ -208,7 +208,7 @@ class EmployeeDashboardAggregationService
     }
 
     /**
-     * @return array{start:Carbon,end:Carbon,provisional:bool}|null
+     * @return array{start:Carbon,end:Carbon,provisional:bool,sessionAnchorId:int}|null
      */
     private function overtimeInterval(OvertimeRequest $request, Carbon $now): ?array
     {
@@ -249,7 +249,7 @@ class EmployeeDashboardAggregationService
      * Merge overlap windows before subtraction so overlapping overtime cannot
      * subtract the same ordinary-work seconds more than once.
      *
-     * @param  Collection<int, array{start:Carbon,end:Carbon,provisional:bool}>  $intervals
+     * @param  Collection<int, array{start:Carbon,end:Carbon,provisional:bool,sessionAnchorId:int}>  $intervals
      */
     private function mergedOverlapSeconds(Carbon $sessionStart, Carbon $sessionEnd, Collection $intervals): int
     {
