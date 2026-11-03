@@ -3,6 +3,7 @@
 it('renders a content card with default spacing and forwarded attributes', function () {
     $this->blade('<x-ui.card class="md:col-span-2"><p>Konten card</p></x-ui.card>')
         ->assertSee('rounded-xl border', false)
+        ->assertSee('bg-sanmal-surface-primary', false)
         ->assertSee('p-4', false)
         ->assertSee('md:col-span-2', false)
         ->assertSee('Konten card');
