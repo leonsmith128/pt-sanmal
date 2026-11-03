@@ -99,3 +99,19 @@ it('keeps a day without events or leave as no record rather than absent', functi
         ->and($result['status'])->not->toBe(DailyAttendanceStatus::Absent->value);
 });
 
+
+
+it('marks duplicate clock-in events on the same attendance date for review', function () {
+    $result = (new DailyAttendanceStatusService)->resolveStatus(
+        collect([
+            dailyStatusEvent(AttendanceType::ClockIn),
+            dailyStatusEvent(AttendanceType::ClockIn),
+            dailyStatusEvent(AttendanceType::ClockOut),
+        ]),
+        collect(),
+        null,
+    );
+
+    expect($result['status'])->toBe(DailyAttendanceStatus::NeedsReview->value)
+        ->and($result['needs_review'])->toBeTrue();
+});
