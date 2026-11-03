@@ -244,6 +244,7 @@ it('groups onsite sessions by the WITA company reporting date without changing t
         'recorded_at' => '2026-11-01 16:30:00',
         'timezone' => 'Asia/Jakarta',
         'timezone_source' => 'gps_resolved',
+        'location_status' => 'captured',
         'attendance_date' => '2026-11-01',
     ]);
 
@@ -255,6 +256,7 @@ it('groups onsite sessions by the WITA company reporting date without changing t
         'recorded_at' => '2026-11-01 17:30:00',
         'timezone' => 'Asia/Jakarta',
         'timezone_source' => 'session_anchor',
+        'location_status' => 'captured',
         'attendance_date' => '2026-11-01',
     ]);
 
