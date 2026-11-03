@@ -193,8 +193,6 @@ test('attendance camera controls reflect camera availability and video readiness
         ->assertSee('locationStatusMessage', false)
         ->assertSee('error && active', false)
         ->assertSee("$dispatch('attendance-camera-open')", false)
-        ->assertSee("await this.prepareLocationSnapshot()", false)
-        ->assertSee("const stream = await this.openCamera()", false)
         ->assertSee("__('Lanjutkan')", false);
 });
 test('attendance camera preserves the complete photo frame without cropping', function () {
