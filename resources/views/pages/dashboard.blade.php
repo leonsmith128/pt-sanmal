@@ -138,7 +138,7 @@
                     />
                 </header>
 
-                <x-ui.card padding="p-5 sm:p-6" class="bg-sanmal-surface-secondary dark:bg-sanmal-surface-secondary-dark">
+                <x-ui.card padding="p-5 sm:p-6">
                     <div class="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
                         <div class="min-w-0 space-y-2">
                             <div class="flex flex-wrap items-center gap-2">
