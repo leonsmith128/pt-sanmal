@@ -91,10 +91,10 @@
                     :description="$today"
                 />
 
-                <x-ui.empty-state
-                    :title="__('Profil pegawai belum tersedia')"
-                    :description="__('Akun ini belum terhubung dengan profil pegawai. Hubungi administrator untuk melanjutkan.')"
-                />
+                <x-ui.empty-state>
+                    <h2 class="font-semibold text-zinc-900 dark:text-zinc-100">{{ __('Profil pegawai belum tersedia') }}</h2>
+                    <p class="mt-1">{{ __('Akun ini belum terhubung dengan profil pegawai. Hubungi administrator untuk melanjutkan.') }}</p>
+                </x-ui.empty-state>
             @else
                 @php
                     $dashboardUser = auth()->user();
