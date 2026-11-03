@@ -85,7 +85,7 @@ new #[Title('Profil Pegawai')] class extends Component {
         :description="__('Kelola foto profil dan informasi kontak Anda. Data identitas dan kepegawaian dikelola oleh admin.')"
     />
 
-    <div class="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
+    <x-ui.card padding="p-6">
         <div class="flex flex-col gap-5 sm:flex-row sm:items-center">
             <flux:avatar
                 :src="$photo?->isPreviewable() ? $photo->temporaryUrl() : auth()->user()->profilePhotoUrl()"
@@ -131,7 +131,7 @@ new #[Title('Profil Pegawai')] class extends Component {
         </form>
     </div>
 
-    <div class="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
+    <x-ui.card padding="p-6">
         <flux:heading size="lg">Informasi pribadi</flux:heading>
         <flux:subheading class="mt-1">Nomor telepon dapat Anda perbarui sendiri.</flux:subheading>
 
@@ -147,24 +147,12 @@ new #[Title('Profil Pegawai')] class extends Component {
             />
 
             @if (auth()->user()->employee)
-                <div class="grid gap-4 sm:grid-cols-2">
-                    <div>
-                        <flux:label>Nomor pegawai</flux:label>
-                        <flux:text class="mt-1">{{ auth()->user()->employee->employee_number ?: 'Belum diatur' }}</flux:text>
-                    </div>
-                    <div>
-                        <flux:label>Jabatan</flux:label>
-                        <flux:text class="mt-1">{{ auth()->user()->employee->title?->name ?? 'Belum diatur' }}</flux:text>
-                    </div>
-                    <div>
-                        <flux:label>Status kepegawaian</flux:label>
-                        <flux:text class="mt-1">{{ auth()->user()->employee->employment_status ?: 'Belum diatur' }}</flux:text>
-                    </div>
-                    <div>
-                        <flux:label>Tanggal bergabung</flux:label>
-                        <flux:text class="mt-1">{{ auth()->user()->employee->joined_at?->format('d M Y') ?? 'Belum diatur' }}</flux:text>
-                    </div>
-                </div>
+                <dl class="grid gap-4 sm:grid-cols-2">
+                    <x-ui.metadata-item label="Nomor pegawai">{{ auth()->user()->employee->employee_number ?: 'Belum diatur' }}</x-ui.metadata-item>
+                    <x-ui.metadata-item label="Jabatan">{{ auth()->user()->employee->title?->name ?? 'Belum diatur' }}</x-ui.metadata-item>
+                    <x-ui.metadata-item label="Status kepegawaian">{{ auth()->user()->employee->employment_status ?: 'Belum diatur' }}</x-ui.metadata-item>
+                    <x-ui.metadata-item label="Tanggal bergabung">{{ auth()->user()->employee->joined_at?->format('d M Y') ?? 'Belum diatur' }}</x-ui.metadata-item>
+                </dl>
             @else
                 <flux:callout icon="information-circle" variant="warning">
                     Data profil kepegawaian belum terhubung ke akun ini. Hubungi admin jika Anda memerlukan data tersebut.
@@ -177,7 +165,7 @@ new #[Title('Profil Pegawai')] class extends Component {
                 </x-ui.button>
             </div>
         </form>
-    </div>
+    </x-ui.card>
 
 
 </x-ui.page>
