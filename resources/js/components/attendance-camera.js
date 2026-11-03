@@ -124,10 +124,19 @@ export default function attendanceCamera(config = {}) {
             this.locationSnapshotReady = false;
             this.locationSnapshotFailed = false;
             try {
-                await this.locationTracker.prepareSnapshot();
+                const snapshot = await this.locationTracker.prepareSnapshot();
+                if (!snapshot?.latitude || !snapshot?.longitude || !snapshot?.address) {
+                    throw new Error('location-snapshot-incomplete');
+                }
+
+                this.locationSnapshot = snapshot;
+                this.locationSnapshotReady = true;
+                this.locationSnapshotFailed = false;
+                return snapshot;
             } catch (error) {
                 // Status gagal sudah dipublikasikan oleh LocationTracker.
                 this.locationSnapshotFailed = true;
+                throw error;
             }
         },
 
@@ -308,7 +317,10 @@ export default function attendanceCamera(config = {}) {
                 await this.locationTracker.prepareAccess(5000);
                 if (sessionId !== this.cameraSessionId) return;
                 this.locationAccessReady = true;
-                this.startLocationWatch();
+
+                // Kamera tidak boleh dibuka sebelum koordinat segar dan alamat snapshot siap.
+                await this.prepareLocationSnapshot();
+                if (sessionId !== this.cameraSessionId) return;
 
                 const stream = await this.openCamera();
                 if (sessionId !== this.cameraSessionId) {
