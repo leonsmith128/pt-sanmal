@@ -237,12 +237,16 @@ test('admins retain personal employee navigation alongside grouped administratio
         ->assertOk()
         ->assertSee(__('Absensi'))
         ->assertSee(__('Riwayat'))
-        ->assertSee(__('Permohonan'))
-        ->assertSee(__('Lembur'))
+        ->assertSee(__('Dashboard Pribadi'))
+        ->assertSee(__('Permohonan Saya'))
+        ->assertSee(__('Lembur Saya'))
         ->assertSee(__('Aktivitas Saya'))
         ->assertSee(__('Operasional'))
-        ->assertSee(__('Master Data'))
-        ->assertSee(__('Permohonan'))
+        ->assertSee(__('Persetujuan'))
+        ->assertSee(__('Data Master'))
+        ->assertSee(__('Sistem'))
+        ->assertSee(__('Audit Log'))
+        ->assertDontSee(__('Platform'))
         ->assertSee('aria-label="Navigasi utama"', false);
 });
 
@@ -295,7 +299,7 @@ test('collapsed admin sidebar keeps every navigation item visible as an icon', f
     @$document->loadHTML($response->getContent());
     $xpath = new DOMXPath($document);
 
-    expect($xpath->query('//*[@data-flux-sidebar-item]')->length)->toBe(13)
+    expect($xpath->query('//*[@data-flux-sidebar-item]')->length)->toBe(15)
         ->and(substr_count($response->getContent(), 'data-test="sidebar-group-separator"'))->toBe(5)
         ->and($response->getContent())->toContain('in-data-flux-sidebar-collapsed-desktop:not-in-data-flux-sidebar-group-dropdown:hidden')
         ->and($response->getContent())->toContain('data-flux-sidebar-item')
