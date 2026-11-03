@@ -55,7 +55,8 @@ class AdminDashboardController extends Controller
             'pendingOvertime' => OvertimeRequest::query()->where('approval_status', OvertimeApprovalStatus::Pending)->count(),
             'recentAttendance' => AttendanceRecord::query()
                 ->with('employee.user')
-                ->whereBetween('recorded_at', [Carbon::parse($today, 'Asia/Makassar')->startOfDay()->utc(), Carbon::parse($today, 'Asia/Makassar')->endOfDay()->utc()])
+            ->tap(fn ($query) => AttendanceDateFilter::applyInTimezone($query, $today, $today, 'Asia/Makassar'))
+                
                 ->latest('recorded_at')
                 ->limit(8)
                 ->get(),
