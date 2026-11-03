@@ -45,7 +45,9 @@
 
             <flux:sidebar.nav>
                 <div class="flex flex-col">
-                    <div class="px-3 py-2 text-sm font-medium leading-none text-zinc-400 in-data-flux-sidebar-collapsed-desktop:hidden">{{ $isEmployee ? __('Navigasi') : __('Platform') }}</div>
+                    @unless ($isEmployee)
+                        <div class="px-3 py-2 text-sm font-medium leading-none text-zinc-400 in-data-flux-sidebar-collapsed-desktop:hidden">{{ __('Platform') }}</div>
+                    @endunless
                     <flux:sidebar.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
                         {{ $isEmployee ? __('Beranda') : __('Dashboard') }}
                     </flux:sidebar.item>
