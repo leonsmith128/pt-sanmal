@@ -382,15 +382,15 @@ new #[Title('Absensi')] class extends Component {
 
         {{-- Ringkasan jam --}}
         <div class="grid grid-cols-3 gap-2">
-            <div class="rounded-xl border border-neutral-200 p-3 dark:border-neutral-700">
+            <div class="rounded-xl border border-sanmal-border bg-sanmal-surface-card p-3 text-center dark:border-sanmal-border-dark dark:bg-sanmal-surface-card-dark">
                 <flux:text class="text-xs">{{ __('Masuk') }}</flux:text>
                 <flux:heading size="lg">{{ $clockInForDisplay?->effectiveRecordedAtLocal()->format('H:i') ?? '—' }}</flux:heading>
             </div>
-            <div class="rounded-xl border border-neutral-200 p-3 dark:border-neutral-700">
+            <div class="rounded-xl border border-sanmal-border bg-sanmal-surface-card p-3 text-center dark:border-sanmal-border-dark dark:bg-sanmal-surface-card-dark">
                 <flux:text class="text-xs">{{ __('Pulang') }}</flux:text>
                 <flux:heading size="lg">{{ $clockOutRecord?->effectiveRecordedAtLocal()->format('H:i') ?? '—' }}</flux:heading>
             </div>
-            <div class="rounded-xl border border-neutral-200 p-3 dark:border-neutral-700">
+            <div class="rounded-xl border border-sanmal-border bg-sanmal-surface-card p-3 text-center dark:border-sanmal-border-dark dark:bg-sanmal-surface-card-dark">
                 <flux:text class="text-xs">{{ __('Total kerja') }}</flux:text>
                 <flux:heading size="sm">
                     @if ($workedMinutes !== null)
@@ -403,7 +403,7 @@ new #[Title('Absensi')] class extends Component {
         </div>
 
         {{-- Form absensi --}}
-        <form wire:submit="confirm('{{ $mode }}')" class="flex flex-col gap-5 rounded-xl border border-neutral-200 p-5 dark:border-neutral-700 {{ $selectedDate !== now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString() ? 'hidden' : '' }}">
+        <form wire:submit="confirm('{{ $mode }}')" class="flex flex-col gap-5 rounded-xl border border-sanmal-border bg-sanmal-surface-card p-4 dark:border-sanmal-border-dark dark:bg-sanmal-surface-card-dark sm:p-5 {{ $selectedDate !== now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString() ? 'hidden' : '' }}">
             <div class="space-y-1">
                 <flux:heading size="sm">
                     {{ match ($mode) {
@@ -453,7 +453,7 @@ new #[Title('Absensi')] class extends Component {
                     @if ($this->officeLocations->isEmpty())
                         <flux:text class="text-red-500">{{ __('Belum ada lokasi kantor aktif. Hubungi admin.') }}</flux:text>
                     @elseif ($this->officeLocations->count() === 1)
-                        <div class="rounded-lg border border-zinc-200 bg-zinc-50 p-3 text-sm dark:border-zinc-700 dark:bg-zinc-900">
+                        <div class="rounded-lg border border-sanmal-border bg-sanmal-surface-secondary p-3 text-sm dark:border-sanmal-border-dark dark:bg-sanmal-surface-secondary-dark">
                             <span class="font-medium">{{ __('Lokasi kantor') }}:</span>
                             {{ $this->officeLocations->first()->name }}
                         </div>
@@ -476,7 +476,7 @@ new #[Title('Absensi')] class extends Component {
                             @endforeach
                         </x-ui.select>
                         @if ($selectedProject = $this->projects->firstWhere('id', (int) $projectId))
-                            <div class="rounded-lg border border-zinc-200 bg-zinc-50 p-3 text-sm dark:border-zinc-700 dark:bg-zinc-900">
+                            <div class="rounded-lg border border-sanmal-border bg-sanmal-surface-secondary p-3 text-sm dark:border-sanmal-border-dark dark:bg-sanmal-surface-secondary-dark">
                                 <p><span class="font-medium">{{ __('Client') }}:</span> {{ $selectedProject->client->name }}</p>
                                 <p><span class="font-medium">{{ __('Lokasi Site') }}:</span> {{ $selectedProject->location->name }}</p>
                                 <p><span class="font-medium">{{ __('Jenis layanan') }}:</span> {{ $selectedProject->project_type->label() }}</p>
@@ -499,7 +499,7 @@ new #[Title('Absensi')] class extends Component {
                         @error('form') <flux:text class="text-red-500">{{ $message }}</flux:text> @enderror
             @error('workType') <flux:text class="text-red-500">{{ $message }}</flux:text> @enderror
 
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 pt-1">
                 @if ($mode === 'overtime_locked')
                     <x-ui.button type="button" variant="primary" class="min-w-0 flex-1" disabled icon="lock-closed">
                         {{ __('Konfirmasi Lembur') }}
