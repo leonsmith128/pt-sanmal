@@ -39,7 +39,7 @@
         </x-ui.page-header>
 
         <section aria-label="{{ __('Ringkasan kehadiran') }}" class="grid grid-cols-1 gap-3 sm:grid-cols-3">
-            <x-ui.card padding="p-4">>
+            <x-ui.card padding="p-4">
                 <div class="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
                     <flux:icon name="calendar" class="size-4" />
                     {{ __('Hari hadir') }}
@@ -47,7 +47,7 @@
                 <p class="mt-2 text-2xl font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">{{ number_format($summary['present_days']) }}</p>
                 <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{{ __('Termasuk koreksi hadir dari admin.') }}</p>
             </x-ui.card>
-            <x-ui.card padding="p-4">>
+            <x-ui.card padding="p-4">
                 <div class="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
                     <flux:icon name="check-circle" class="size-4" />
                     {{ __('Absensi lengkap') }}
@@ -55,7 +55,7 @@
                 <p class="mt-2 text-2xl font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">{{ number_format($summary['complete_days']) }}</p>
                 <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{{ __('Memiliki Clock In dan Clock Out yang valid.') }}</p>
             </x-ui.card>
-            <x-ui.card padding="p-4">>
+            <x-ui.card padding="p-4">
                 <div class="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
                     <flux:icon name="exclamation-triangle" class="size-4" />
                     {{ __('Perlu ditinjau') }}
