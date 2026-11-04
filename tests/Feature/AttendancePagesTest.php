@@ -217,7 +217,7 @@ test('attendance page renders the shared full-size photo preview when a selfie i
         ->assertSee('aria-modal="true"', false)
         ->assertSee('max-h-[calc(100dvh-7rem)]', false)
         ->assertSee('download="foto-absensi.', false)
-        ->assertDontSee('object-cover', false);
+        ->assertSee('max-w-[calc(100vw-3.5rem)] rounded-lg object-contain', false);
 });
 
 test('attendance photo preview provides a download link for the captured temporary photo', function () {
