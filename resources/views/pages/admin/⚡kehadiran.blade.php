@@ -385,50 +385,42 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                     $exportFilterSummary = $activeExportFilters
                         ? 'Filter tambahan aktif: '.implode(' · ', $activeExportFilters)
                         : 'Filter tambahan: tidak ada; seluruh pegawai masuk dalam cakupan laporan.';
-                @endphp
-                <flux:dropdown position="bottom" align="end">
-                    <x-ui.button size="sm" variant="outline" class="w-full flex-row items-center justify-center gap-2 whitespace-nowrap sm:w-auto" icon="arrow-down-tray">
-                        <span class="inline-flex items-center gap-2 whitespace-nowrap">
-                            {{ __('Export') }}
-                            <flux:icon name="chevron-down" variant="micro" />
-                        </span>
-                    </x-ui.button>
-                    <flux:menu>
-                        <flux:menu.item
-                            :href="route('admin.kehadiran.export', [...$exportFilters, 'from' => $today->toDateString(), 'to' => $today->toDateString()])"
-                            x-on:click.prevent="exportUrl = $el.href; exportDescription = 'Laporan absensi tanggal {{ $today->translatedFormat('d M Y') }}. Seluruh filter aktif tetap diterapkan.'; exportConfirmOpen = true"
-                            icon="calendar-days"
-                        >
-                            {{ __('Hari ini') }}
-                        </flux:menu.item>
-                        <flux:menu.item
-                            :href="route('admin.kehadiran.export', [...$exportFilters, 'from' => $weekStart->toDateString(), 'to' => $weekEnd->toDateString()])"
-                            x-on:click.prevent="exportUrl = $el.href; exportDescription = 'Laporan seluruh pegawai dari {{ $weekStart->translatedFormat('d M Y') }} sampai {{ $weekEnd->translatedFormat('d M Y') }}. Filter aktif tetap diterapkan.'; exportConfirmOpen = true"
-                            icon="calendar-days"
-                        >
-                            {{ __('Minggu ini') }}
-                        </flux:menu.item>
-                        <flux:menu.item
-                            :href="route('admin.kehadiran.export', [...$exportFilters, 'from' => $monthStart->toDateString(), 'to' => $monthEnd->toDateString()])"
-                            x-on:click.prevent="exportUrl = $el.href; exportDescription = 'Laporan seluruh pegawai dari {{ $monthStart->translatedFormat('d M Y') }} sampai {{ $monthEnd->translatedFormat('d M Y') }}. Filter aktif tetap diterapkan.'; exportConfirmOpen = true"
-                            icon="calendar"
-                        >
-                            {{ __('Bulan ini') }}
-                        </flux:menu.item>
-                        <flux:menu.separator />
-                        <flux:menu.item
-                            :href="route('admin.kehadiran.export', array_filter([
+                    $exportOptions = [
+                        [
+                            'label' => __('Hari ini'),
+                            'href' => route('admin.kehadiran.export', [...$exportFilters, 'from' => $today->toDateString(), 'to' => $today->toDateString()]),
+                            'description' => 'Laporan absensi tanggal '.$today->translatedFormat('d M Y').'. Seluruh filter aktif tetap diterapkan.',
+                            'icon' => 'calendar-days',
+                        ],
+                        [
+                            'label' => __('Minggu ini'),
+                            'href' => route('admin.kehadiran.export', [...$exportFilters, 'from' => $weekStart->toDateString(), 'to' => $weekEnd->toDateString()]),
+                            'description' => 'Laporan seluruh pegawai dari '.$weekStart->translatedFormat('d M Y').' sampai '.$weekEnd->translatedFormat('d M Y').'. Filter aktif tetap diterapkan.',
+                            'icon' => 'calendar-days',
+                        ],
+                        [
+                            'label' => __('Bulan ini'),
+                            'href' => route('admin.kehadiran.export', [...$exportFilters, 'from' => $monthStart->toDateString(), 'to' => $monthEnd->toDateString()]),
+                            'description' => 'Laporan seluruh pegawai dari '.$monthStart->translatedFormat('d M Y').' sampai '.$monthEnd->translatedFormat('d M Y').'. Filter aktif tetap diterapkan.',
+                            'icon' => 'calendar',
+                        ],
+                        [
+                            'label' => __('Sesuai filter tanggal'),
+                            'href' => route('admin.kehadiran.export', array_filter([
                                 ...$exportFilters,
                                 'from' => $dateFrom,
                                 'to' => $dateTo,
-                            ], fn ($value) => $value !== ''))"
-                            x-on:click.prevent="exportUrl = $el.href; exportDescription = '{{ $customExportDateDescription }} Seluruh filter tambahan yang aktif tetap diterapkan.'; exportConfirmOpen = true"
-                            icon="arrow-down-tray"
-                        >
-                            {{ __('Sesuai filter tanggal') }}
-                        </flux:menu.item>
-                    </flux:menu>
-                </flux:dropdown>
+                            ], fn ($value) => $value !== '')),
+                            'description' => $customExportDateDescription.' Seluruh filter tambahan yang aktif tetap diterapkan.',
+                            'icon' => 'arrow-down-tray',
+                            'divider_before' => true,
+                        ],
+                    ];
+                <x-admin.attendance-export
+                    :options="$exportOptions"
+                    :filter-summary="$exportFilterSummary"
+                    :warning="__('Ekspor menggunakan satu baris per pegawai per tanggal. Tanggal tanpa event absensi tetap disertakan. Periksa kembali cakupan sebelum melanjutkan.')"
+                /></flux:dropdown>
             </div>
 
             <div id="attendance-records" data-record-count="{{ $records->total() }}" class="attendance-responsive-table px-3 pb-3 sm:px-4 [&_thead]:sticky [&_thead]:top-0 [&_thead]:z-20 [&_thead]:bg-sanmal-surface-secondary dark:[&_thead]:bg-sanmal-surface-secondary-dark">
@@ -552,31 +544,5 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                 </flux:table>
             </div>
         </x-ui.card>
-        <div
-            x-show="exportConfirmOpen"
-            x-cloak
-            x-transition.opacity
-            x-on:click.self="exportConfirmOpen = false"
-            class="fixed inset-0 z-[110] flex items-center justify-center bg-black/60 p-4"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="attendance-export-confirm-title"
-        >
-            <div class="w-full max-w-lg space-y-4 rounded-2xl bg-white p-5 shadow-xl dark:bg-zinc-900">
-                <div class="flex items-start justify-between gap-3">
-                    <h2 id="attendance-export-confirm-title" class="text-lg font-semibold">{{ __('Konfirmasi ekspor rekap absensi') }}</h2>
-                    <x-ui.button type="button" variant="ghost" icon="x-mark" square aria-label="{{ __('Tutup') }}" x-on:click="exportConfirmOpen = false" />
-                </div>
-                <p class="text-sm text-zinc-600 dark:text-zinc-300" x-text="exportDescription"></p>
-                <p class="text-sm text-zinc-600 dark:text-zinc-300">{{ $exportFilterSummary }}</p>
-                <p class="text-sm text-amber-700 dark:text-amber-300">{{ __('Ekspor menggunakan satu baris per pegawai per tanggal. Tanggal tanpa event absensi tetap disertakan. Periksa kembali cakupan sebelum melanjutkan.') }}</p>
-                <div class="flex justify-end gap-2">
-                    <x-ui.button type="button" variant="outline" x-on:click="exportConfirmOpen = false">{{ __('Batal') }}</x-ui.button>
-                    <x-ui.button href="#" x-bind:href="exportUrl" variant="primary" x-on:click="exportConfirmOpen = false">
-                        {{ __('Konfirmasi dan ekspor') }}
-                    </x-ui.button>
-                </div>
-            </div>
-        </div>
     </x-ui.page>
 </section>
