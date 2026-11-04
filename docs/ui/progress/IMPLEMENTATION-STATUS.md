@@ -1,6 +1,6 @@
 # UI/UX V1 — Status Implementasi
 
-> Snapshot: 4 November 2026. Tracking: branch `docs/ui-v1-scope-and-pr-workflow` · [PR #27](https://github.com/leonsmith128/pt-sanmal/pull/27). Periksa ulang source, branch HEAD, dan CI sebelum memakai snapshot ini untuk keputusan berikutnya.
+> Snapshot: 5 November 2026. Tracking: branch `docs/ui-v1-scope-and-pr-workflow` · [PR #27](https://github.com/leonsmith128/pt-sanmal/pull/27). Periksa ulang source, branch HEAD, dan CI sebelum memakai snapshot ini untuk keputusan berikutnya.
 
 ## Cara membaca status
 
@@ -18,13 +18,25 @@
 | Application shell dan navigasi | Sidebar Admin/Manager berkelompok; Employee tetap tidak berkelompok. Mobile memakai header dan drawer, tanpa fixed bottom navigation. Scrollbar auto-hide diterapkan hanya pada Flux inset main desktop: lebar tipis, thumb semi-transparan, tampil selama scrolling dan kembali transparan setelah 850 ms idle; hover pada thumb meningkatkan kontras di browser yang mendukung pseudo-element scrollbar. Scroll document mobile dan scrollbar komponen lain tidak diubah. | Regression test shell/sidebar lulus pada run #1418; build untuk perubahan scrollbar menunggu CI terbaru. | Browser QA scrollbar belum dilakukan pada desktop, Firefox/WebKit, light/dark, serta pemeriksaan bahwa mobile tetap document-scroll. |
 | Halaman Admin | Source review mencakup halaman Admin dan komponen terkait. Beberapa perbaikan filter, wrapping, density, dan layout sudah diterapkan. | Test yang terkait berjalan dalam CI; lihat hasil run terbaru di bawah. | Belum ada bukti QA lintas halaman dan viewport. |
 | Employee Dashboard | Layout V1, ringkasan bulanan, Pengajuan Saya, Akses Cepat, Aktivitas Terbaru, dan notifikasi tersedia. | Test dashboard lulus pada run #1460. Assertion divider diperbaiki agar hanya memeriksa container Ringkasan Bulan Ini, bukan seluruh halaman. | Belum dilakukan. |
-| Employee Profile | Source diperbarui: circular avatar melalui `x-ui.avatar`, modal pratinjau bersama `x-ui.photo-preview`, deskripsi redundan dihapus, dan pesan validasi upload menjadi feedback batas ukuran. URL foto tersimpan disajikan oleh endpoint authenticated yang tidak bergantung pada `public/storage` symlink. | Test route serving foto tanpa storage symlink dan render modal profil lulus pada run #1460. | Belum dilakukan. |
+| Employee Profile | Source diperbarui: circular avatar melalui `x-ui.avatar`, modal pratinjau bersama `x-ui.photo-preview`, deskripsi redundan dihapus, dan pesan validasi upload menjadi feedback batas ukuran. URL foto tersimpan disajikan oleh endpoint authenticated yang tidak bergantung pada `public/storage` symlink. Follow-up 5 November membatasi lebar halaman ke `max-w-3xl` agar form/detail tidak melebar seperti halaman operasional. | Test route serving foto tanpa storage symlink dan render modal profil lulus pada run #1460. Regression assertion untuk lebar halaman ditambahkan pada commit `e660a63`; CI commit tersebut belum terverifikasi. | Belum dilakukan. |
 | Employee Attendance | Urutan source: header pegawai → kalender → ringkasan jam → status kehadiran/lembur → satu form absensi → modal. Calendar, time summary, info card, dan photo preview dipisah menjadi Blade Components; satu Livewire SFC tetap menjadi orchestrator. | Test urutan halaman dan pembuka kalender bulanan lulus pada run #1460. | Belum dilakukan; terutama alur kamera/GPS dan ukuran layar kecil. |
 | Employee Attendance History | **Scope implementasi V1 selesai.** Tiga indikator ringkasan; filter rentang tanggal/urutan collapsible (default tertutup); date-group maksimal 10 tanggal/halaman; status-only group; empty state; dialog detail event berisi waktu asli/efektif, timezone, lokasi/GPS/akurasi/koordinat/peta, konteks pekerjaan, catatan, dan foto privat; CSV mengikuti periode diterapkan. Surface memakai `x-ui.card` borderless dengan `shadow-sm`; komposisi page-local tanpa reusable component baru. Mobile mempertahankan tiga indikator ringkas satu baris dan aksi Export/Absen/Filter sejajar. Kontrak: [Employee Attendance History V1](../EMPLOYEE-ATTENDANCE-HISTORY-V1.md). | Run [#1513](https://github.com/leonsmith128/pt-sanmal/actions/runs/41850885136), HEAD `37e09a7`, workflow success; termasuk regression test disclosure filter. | Browser/device QA, light/dark, keyboard/focus, dan dialog interaction belum tercatat; lihat [Visual QA Log](VISUAL-QA-LOG.md). |
 | Kalender Absensi | Weekly calendar dan monthly picker enam baris tersedia. Indikator memakai status domain; `no_record` tidak diartikan sebagai absent. | Feature test pemilihan tanggal dan sinkronisasi kalender lulus pada run #1418. | Belum dilakukan pada viewport dan theme yang ditentukan. |
 | Photo preview | Komponen terpisah menampilkan thumbnail, modal foto penuh, unduh foto sementara, dan aksi foto ulang. | Test shared photo preview, download, dan state selfie tersedia lulus pada run #1460. Test diperbaiki agar memeriksa modal hanya ketika selfie memang tersedia. | Belum dilakukan; modal dan siklus capture perlu diuji di browser/perangkat. |
 | Accessibility dan interaction-state | Beberapa kontrol sudah memiliki label/semantics; audit menyeluruh belum selesai. | Test otomatis hanya memeriksa kontrak yang tercakup di masing-masing test. | Audit keyboard, focus, dialog, loading, error, dan touch target masih terbuka. |
 
+## Follow-up Employee Profile — 5 November 2026
+
+Source review menemukan bahwa halaman Profil Pegawai masih memakai lebar default `x-ui.page` (`max-w-7xl`), padahal Design Foundation mengarahkan halaman form/detail menggunakan lebar yang lebih terfokus. Root halaman sekarang menggunakan preset yang sudah didukung, `max-width="3xl"`.
+
+Perubahan dibatasi pada presentasi halaman:
+- Tidak mengubah Livewire property `phone`/`photo`, action, validasi, penyimpanan foto, route, atau otorisasi.
+- Tidak menambah nested Livewire Component maupun reusable component baru.
+- Regression assertion ditambahkan pada `EmployeeProfileTest` untuk memastikan halaman merender `max-w-3xl`.
+
+Commit: [e660a63](https://github.com/leonsmith128/pt-sanmal/commit/e660a634dadff927dee65ac4a9198c01730567ff).
+
+**Batas verifikasi:** CI untuk commit ini belum tersedia saat catatan diperbarui. Browser QA Profil Pegawai belum dilakukan; perubahan lebar halaman belum boleh dianggap lulus visual QA.
 ## CI terbaru untuk Employee Attendance History — 4 November 2026
 
 Run terbaru [#1513](https://github.com/leonsmith128/pt-sanmal/actions/runs/41850885136) menguji PR head `37e09a7423f5ad7949c008a1f67d8986b8eb9147` dan selesai dengan **workflow success**. Run ini mencakup regression test disclosure filter (default tertutup, relasi `aria-controls`/`aria-expanded`, dan jumlah filter aktif). Rincian jumlah test lintas database pada validasi Batch 2 sebelumnya tetap dicatat pada run #1497 di bawah.
