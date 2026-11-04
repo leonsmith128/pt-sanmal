@@ -4,8 +4,8 @@
     $activeFilterCount = collect($values)->filter(fn ($value) => filled($value))->count();
 @endphp
 
-<div data-active-filter-count="{{ $activeFilterCount }}" class="grid w-full min-w-0 grid-cols-1 items-end gap-3 sm:grid-cols-2 xl:grid-cols-4">
-    <div class="col-span-full flex items-center justify-between gap-3">
+<div data-active-filter-count="{{ $activeFilterCount }}" class="grid w-full min-w-0 grid-cols-1 items-end gap-x-3 gap-y-2 sm:grid-cols-2 xl:grid-cols-4">
+    <div class="col-span-full flex items-center justify-between gap-2 pb-1">
         <h3 class="text-sm font-semibold text-[var(--sanmal-text-primary)]">{{ __('Filter absensi') }}</h3>
         <span class="text-xs text-[var(--sanmal-text-secondary)]">{{ $activeFilterCount }} {{ __('filter aktif') }}</span>
     </div>
