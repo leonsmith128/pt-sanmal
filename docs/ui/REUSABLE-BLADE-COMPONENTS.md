@@ -223,3 +223,61 @@ The reusable component standardization phase is complete. Do not repeat the prim
 - Light/dark, mobile/desktop, focus, disabled, and loading states remain correct.
 - Existing routes, authorization, filters, sorting, pagination, exports, and forms are unchanged.
 - Run focused Pest tests before broader suite; report tests as unverified until actually executed.
+
+
+## Application shell and page composition contract
+
+### Single application shell
+
+- `resources/views/layouts/app.blade.php` is the single authenticated application layout.
+- It delegates shell/navigation rendering to `resources/views/layouts/app/sidebar.blade.php`.
+- The sidebar layout owns the document structure, role-aware navigation, mobile header, toast group, Flux scripts, and the application sidebar.
+- Page content is rendered inside `<flux:main inset>`. Keep Flux Inset as the desktop application content/scroll container; do not introduce a second application shell or a competing header layout.
+- Do not add page-specific document wrappers (`html`, `head`, `body`) inside routed page views.
+- New routed pages should use the configured default application layout unless a separately approved public/guest use case requires another layout.
+
+### Page composition primitives
+
+Use the existing components inside the application shell:
+
+```blade
+<x-ui.page>
+    <x-ui.page-header title="..." description="...">
+        {{-- Optional page actions --}}
+    </x-ui.page-header>
+
+    <x-ui.section>
+        {{-- Page-owned content --}}
+    </x-ui.section>
+</x-ui.page>
+```
+
+- `x-ui.page` owns the standard content width and vertical rhythm.
+- `x-ui.page-header` owns responsive title/description/action alignment.
+- `x-ui.section` owns section grouping and spacing.
+- The page/Livewire SFC remains responsible for state, actions, filters, authorization context, and data orchestration.
+- Do not create `x-layouts.page`, `x-layouts.page-header`, or duplicate the responsibilities of existing `x-ui.*` primitives.
+
+### Layout and partial inventory — 5 November 2026
+
+| Path | Classification | Decision |
+|---|---|---|
+| `layouts/app.blade.php` | active | Retain as the single authenticated application layout |
+| `layouts/app/sidebar.blade.php` | active | Retain as the SanMal Application Shell implementation |
+| `layouts/app/header.blade.php` | unused-confirmed for the current route/layout configuration | Removed; it was the legacy starter-kit header/navbar shell, while the configured app layout delegates to the sidebar shell |
+| `layouts/auth.blade.php` | active, out of scope | Leave unchanged |
+| `layouts/auth/simple.blade.php` | active, out of scope | Leave unchanged |
+| `layouts/auth/card.blade.php` | alternate, out of scope | Leave unchanged pending authentication redesign |
+| `layouts/auth/split.blade.php` | alternate, out of scope | Leave unchanged pending authentication redesign |
+| `partials/head.blade.php` | shared infrastructure | Retain; used by document layouts |
+| `partials/settings-heading.blade.php` | settings partial | Retain pending separate usage/API review |
+
+The legacy `layouts/app/header.blade.php` was removed after confirming the configured application layout and route declarations use the sidebar-based application layout and do not select the header layout. The shared `x-desktop-user-menu` component was **not** removed: the active sidebar layout still renders it. Keep `x-app-logo` and `x-app-logo-icon` until their full usage, including authentication layouts, is reviewed.
+
+### Scope boundary
+
+This inventory is a focused layout/shell audit, not a blanket declaration that every Blade component or partial is unused. Do not delete component files solely because they resemble starter-kit code or have no references in one page. Before removing any further view, verify direct references, Livewire layout configuration, route-level layout selection, nested includes/components, and test coverage.
+
+Authentication layouts and authentication page views were deliberately excluded from this batch at the project owner's request. No file under `resources/views/layouts/auth/` or `resources/views/pages/auth/` was changed.
+
+Sidebar data extraction into a View Composer is a separate follow-up. Do not mix that change into shell consolidation without a dedicated contract for notification queries, role data, and request-decision badges.
