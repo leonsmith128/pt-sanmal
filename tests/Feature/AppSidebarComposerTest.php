@@ -10,7 +10,7 @@ use Illuminate\Support\Str;
 test('application sidebar composer supplies manager data when the actual Blade component renders', function () {
     $user = User::factory()->create();
     $user->forceFill(['role' => UserRole::Admin])->save();
-    actingAs($user);
+    auth()->login($user);
 
     $notification = $user->notifications()->create([
         'id' => (string) Str::uuid(),
@@ -41,7 +41,7 @@ test('application sidebar composer supplies manager data when the actual Blade c
 test('application sidebar composer supplies employee data when the actual Blade component renders', function () {
     $user = User::factory()->create();
     $user->forceFill(['role' => UserRole::Employee])->save();
-    actingAs($user);
+    auth()->login($user);
     $employee = Employee::query()->create(['user_id' => $user->id]);
 
     $sidebarData = null;
