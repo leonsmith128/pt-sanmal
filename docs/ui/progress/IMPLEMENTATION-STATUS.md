@@ -130,3 +130,17 @@ The Admin Attendance page now uses a shared filter contract and presentation com
 - Reversed date ranges are normalized consistently between page and export. No migration was added.
 
 Regression coverage was added for combined Client/Location/Project filtering, historical Location identity after a Project moves, inactive option visibility, reversed date-range parity, and complete daily export context. CI run #1538 passed on the implementation head (Pint, repository static analysis, changed-code static analysis, MariaDB tests, and SQLite tests). Browser/device QA is not recorded; see [Visual QA Log](VISUAL-QA-LOG.md).
+
+
+## Admin Attendance filter-panel layout follow-up — 5 November 2026
+
+The Admin Attendance filter panel has been visually simplified without changing its filter contract or Livewire state ownership:
+
+- Removed the redundant page-header description and the duplicate "Cakupan catatan" heading/date explanation.
+- Kept the filter title and active-filter count as the panel's only heading row.
+- Moved **Reset filter** below the controls and aligned it to the trailing edge, separated by a subtle divider. The action continues to reset only additional filters; the date range is preserved.
+- Tightened horizontal and vertical filter-grid spacing while retaining the existing compact small control size and responsive 1 / 2 / 4-column grid.
+- Kept **Export** in the activity toolbar, aligned with the activity heading/count rather than mixing it into filter-reset actions.
+- No filter fields, query semantics, export parameters, authorization, pagination, or table behavior changed.
+
+Automated regression coverage checks the visible hierarchy and absence of the redundant descriptions. Browser visual QA has not yet been performed; see [Visual QA Log](VISUAL-QA-LOG.md). The activity table's horizontal-overflow redesign is explicitly the next separate UI task.
