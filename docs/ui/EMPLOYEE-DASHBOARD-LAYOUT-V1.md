@@ -25,13 +25,13 @@ Use a single-column page flow with a responsive two-column lower content area on
 
 This is the dominant section and must appear before monthly statistics.
 
-- Show today's resolved attendance status with text and semantic badge, not color alone.
+- Show today's resolved attendance status with text and semantic badge, not color alone. Keep the status badge compact (small text and tight vertical padding) so it does not compete with the status label or nearby heading.
 - Show the effective Clock In time when available.
 - Show current work duration. An open session is explicitly marked as running/provisional.
 - Show effective Clock Out time when available.
 - Primary action links to the existing `attendance` route. The dashboard itself must not start/stop attendance or invoke camera/GPS.
 - Empty, incomplete, leave/sick/permission, needs-review, and no-record states must remain distinguishable. In particular, no-record must not be labelled absent.
-- On narrow screens, stack status, time/duration, and action vertically; the action remains easy to reach.
+- On narrow screens, stack status, time/duration, and action vertically; the action remains easy to reach. Keep navigation CTAs at the standard button height; reserve taller controls for actions that submit or advance a workflow.
 
 ### C. Four monthly statistic cards
 
@@ -82,7 +82,7 @@ The mockup includes a decorative encouragement card. This is lowest priority. In
 - Light theme uses the approved light neutral surfaces; dark theme uses the matching SanMal dark surface tokens. Both themes must style every dashboard card consistently.
 - Reuse existing `x-ui.page`, `x-ui.page-header`, `x-ui.card`, `x-ui.badge`, and `x-ui.button` where their contracts fit.
 - All Employee Dashboard cards use the shared shadow-only `x-ui.card` surface: `sanmal-surface-card` in light theme and `sanmal-surface-card-dark` in dark theme. Do not leave individual cards on generic white/zinc backgrounds or add one-off borders.
-- Use semantic sections and headings; avoid card-in-card nesting.
+- Use semantic sections and headings; avoid card-in-card nesting. Header-adjacent count/status badges should use compact sizing and must not visually dominate their labels.
 - Keep four statistic cards visually consistent; semantic accent colors may distinguish categories but text labels remain mandatory.
 - Use compact, consistent spacing and restrained borders/shadows. Do not copy the mockup's sample numbers, sample employee name, dates, notification count, or fabricated activity.
 - Respect light and dark themes supported by the application.
