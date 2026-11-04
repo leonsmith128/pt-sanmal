@@ -9,8 +9,6 @@ use App\\Models\\Employee;
 use App\\Models\\LeaveRequest;
 use App\\Services\\DailyAttendanceExportService;
 use App\\Services\\DailyAttendanceStatusService;
-use App\\Support\\AttendanceDateFilter;
-use Illuminate\\Database\\Eloquent\\Builder;
 use Illuminate\\Http\\Request;
 use Illuminate\\Pagination\\LengthAwarePaginator;
 use Illuminate\\Support\\Carbon;
@@ -122,21 +120,6 @@ class AttendanceHistoryController extends Controller
             'Content-Type' => 'text/csv; charset=UTF-8',
             'Cache-Control' => 'private, no-store, no-cache, must-revalidate',
         ]);
-    }
-
-    private function attendanceQuery(Employee $employee, array $filters): Builder
-    {
-        $query = $employee->attendanceRecords()
-            ->getQuery()
-            ->with(['location', 'project', 'approvedCorrection', 'sessionAnchor.approvedCorrection']);
-
-        AttendanceDateFilter::apply(
-            $query,
-            $filters['from'] !== '' ? $filters['from'] : null,
-            $filters['to'] !== '' ? $filters['to'] : null,
-        );
-
-        return $query;
     }
 
     private function earliestAvailableDate(Employee $employee): string
