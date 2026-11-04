@@ -359,23 +359,35 @@ test('attendance status and overtime cards use a responsive two-column grid with
         ->assertSet('selectedOvertimeId', $overtime->id);
 });
 
-test('attendance action is presented after the date selector and status cards', function () {
+test('attendance page orders calendar, time summary, status cards, and one attendance form with its action', function () {
     $this->actingAs(userWithRole(UserRole::Employee));
 
     $html = $this->get(route('attendance'))
         ->assertOk()
         ->assertSee(__('Pilih tanggal untuk melihat riwayat.'))
+        ->assertSee(__('Total kerja'))
         ->assertSee(__('Status kehadiran'))
         ->assertSee(__('Lembur'))
+        ->assertSee('id="attendance-form"', false)
+        ->assertSee(__('Absen Masuk'))
         ->getContent();
 
     $calendarPosition = strpos($html, __('Pilih tanggal untuk melihat riwayat.'));
+    $summaryPosition = strpos($html, __('Total kerja'));
     $statusPosition = strpos($html, __('Status kehadiran'));
-    $actionPosition = strpos($html, 'form="attendance-form"');
+    $formPosition = strpos($html, 'id="attendance-form"');
+    $actionPosition = strpos($html, __('Absen Masuk'), $formPosition);
+    $formClosePosition = strpos($html, '</form>', $formPosition);
 
     expect($calendarPosition)->not->toBeFalse()
+        ->and($summaryPosition)->not->toBeFalse()
         ->and($statusPosition)->not->toBeFalse()
+        ->and($formPosition)->not->toBeFalse()
         ->and($actionPosition)->not->toBeFalse()
-        ->and($calendarPosition)->toBeLessThan($statusPosition)
-        ->and($statusPosition)->toBeLessThan($actionPosition);
+        ->and($formClosePosition)->not->toBeFalse()
+        ->and($calendarPosition)->toBeLessThan($summaryPosition)
+        ->and($summaryPosition)->toBeLessThan($statusPosition)
+        ->and($statusPosition)->toBeLessThan($formPosition)
+        ->and($formPosition)->toBeLessThan($actionPosition)
+        ->and($actionPosition)->toBeLessThan($formClosePosition);
 });
