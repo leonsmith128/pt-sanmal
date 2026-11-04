@@ -144,3 +144,15 @@ The Admin Attendance filter panel has been visually simplified without changing 
 - No filter fields, query semantics, export parameters, authorization, pagination, or table behavior changed.
 
 Automated regression coverage checks the visible hierarchy and absence of the redundant descriptions. Browser visual QA has not yet been performed; see [Visual QA Log](VISUAL-QA-LOG.md). The activity table's horizontal-overflow redesign is explicitly the next separate UI task.
+
+
+## Admin Attendance responsive table layout — 5 November 2026
+
+The Admin Attendance activity table now uses a fixed-width table layout on desktop and a stacked, labeled-row presentation below the large-screen breakpoint. The compact mobile presentation is intended to avoid horizontal scrolling while keeping all seven existing information groups available: timestamp, employee, attendance type, work type/project context, GPS location, photo evidence, and timestamp correction.
+
+- The responsive presentation is implemented in the existing Admin Attendance Livewire SFC; no nested Livewire component or new business logic was introduced.
+- Existing sort controls, pagination, empty state, not-yet-present rows, project snapshot dialog, private photo preview/download, map links, and timestamp correction form remain in the same page flow.
+- Every cell receives a visible field label in the stacked layout. The table remains semantically tabular on large screens.
+- The existing filter, export, query, authorization, and timezone contracts are unchanged.
+
+Automated regression coverage checks the responsive wrapper, fixed-width table class, and mobile field labels. Browser/device QA has not yet been performed; verify actual overflow, card spacing, table readability, pagination, dialog, photo preview, map links, and correction form at the viewport checkpoints in [Visual QA Log](VISUAL-QA-LOG.md).
