@@ -212,10 +212,11 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
         table-layout: fixed;
     }
 
+    .attendance-mobile-list { display: none; }
+
     @media (max-width: 1279px) {
-        .attendance-responsive-table .attendance-desktop-table {
-            display: none;
-        }
+        .attendance-responsive-table .attendance-desktop-table { display: none; }
+        .attendance-mobile-list { display: grid; }
     }</style>
 
 <section x-data="{ exportConfirmOpen: false, exportUrl: '', exportDescription: '' }" x-on:keydown.escape.window="exportConfirmOpen = false" class="w-full">
@@ -363,8 +364,52 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                     :warning="__('Ekspor menggunakan satu baris per pegawai per tanggal. Tanggal tanpa event absensi tetap disertakan. Periksa kembali cakupan sebelum melanjutkan.')"
                 />
             </div>
-            <div id="attendance-records" data-record-count="{{ $records->total() }}" class="attendance-responsive-table px-3 py-3 sm:px-4 sm:py-4 [&_thead]:sticky [&_thead]:top-0 [&_thead]:z-20 [&_thead]:bg-sanmal-surface-secondary dark:[&_thead]:bg-sanmal-surface-secondary-dark">
-                <flux:table class="w-full table-fixed" :paginate="$records" pagination:scroll-to="#attendance-records">
+            <div id="attendance-records" data-record-count="{{ $records->total() }}" class="attendance-responsive-table p-3 sm:p-4 [&_thead]:sticky [&_thead]:top-0 [&_thead]:z-20 [&_thead]:bg-sanmal-surface-secondary dark:[&_thead]:bg-sanmal-surface-secondary-dark">
+                <div class="attendance-mobile-list gap-3">
+                @forelse ($records as $record)
+                    <article wire:key="attendance-mobile-{{ $record->id }}" class="rounded-xl border border-sanmal-border bg-sanmal-surface-primary p-3 shadow-sm dark:border-sanmal-border-dark dark:bg-sanmal-surface-primary-dark">
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="min-w-0">
+                                <p class="truncate text-sm font-semibold text-[var(--sanmal-text-primary)]">{{ $record->employee->user->name }}</p>
+                                <p class="mt-1 text-xs tabular-nums text-[var(--sanmal-text-secondary)]">{{ $record->effectiveRecordedAtLocal()->format('d M Y · H:i T') }}</p>
+                            </div>
+                            <x-ui.badge :color="$record->type === AttendanceType::ClockIn ? 'green' : 'blue'">{{ $record->type->label() }}</x-ui.badge>
+                        </div>
+                        <div class="mt-3 flex flex-wrap gap-2">
+                            <details class="min-w-0 flex-1">
+                                <summary class="flex min-h-10 cursor-pointer list-none items-center justify-center rounded-lg border border-sanmal-border px-3 text-sm font-medium text-sanmal-brand-blue dark:border-sanmal-border-dark dark:text-sanmal-brand-yellow-dark">{{ __('Tampilkan detail') }}</summary>
+                                <dl class="mt-3 grid gap-3 border-t border-sanmal-border pt-3 text-sm dark:border-sanmal-border-dark">
+                                    <div><dt class="text-xs text-[var(--sanmal-text-muted)]">{{ __('Jenis kerja') }}</dt><dd class="mt-1">{{ $record->work_type->label() }}</dd></div>
+                                    @if ($record->project_name_snapshot)
+                                        <div><dt class="text-xs text-[var(--sanmal-text-muted)]">{{ __('Proyek') }}</dt><dd class="mt-1">{{ $record->project_code_snapshot ? $record->project_code_snapshot.' · ' : '' }}{{ $record->project_name_snapshot }}</dd></div>
+                                        <div><dt class="text-xs text-[var(--sanmal-text-muted)]">{{ __('Client') }}</dt><dd class="mt-1">{{ $record->client_code_snapshot ? $record->client_code_snapshot.' · ' : '' }}{{ $record->client_name_snapshot ?: '—' }}</dd></div>
+                                    @endif
+                                    <div><dt class="text-xs text-[var(--sanmal-text-muted)]">{{ __('Lokasi GPS') }}</dt><dd class="mt-1 break-words">{{ $record->address_snapshot ?: '—' }}</dd></div>
+                                    @if ($record->approvedCorrection)
+                                        <div><dt class="text-xs text-[var(--sanmal-text-muted)]">{{ __('Waktu asli') }}</dt><dd class="mt-1">{{ $record->recordedAtLocal()->format('d M Y · H:i T') }}</dd></div>
+                                    @endif
+                                </dl>
+                            </details>
+                            @if ($record->selfie_path)
+                                <a href="{{ route('admin.attendance.selfie', $record) }}" target="_blank" rel="noopener noreferrer" class="inline-flex min-h-10 items-center justify-center rounded-lg border border-sanmal-border px-3 text-sm font-medium text-sanmal-brand-blue dark:border-sanmal-border-dark dark:text-sanmal-brand-yellow-dark">{{ __('Foto') }}</a>
+                            @endif
+                            @if ($record->latitude !== null && $record->longitude !== null)
+                                <a href="https://www.google.com/maps?q={{ $record->latitude }},{{ $record->longitude }}" target="_blank" rel="noopener noreferrer" class="inline-flex min-h-10 items-center justify-center rounded-lg border border-sanmal-border px-3 text-sm font-medium text-sanmal-brand-blue dark:border-sanmal-border-dark dark:text-sanmal-brand-yellow-dark">{{ __('Peta') }}</a>
+                            @endif
+                        </div>
+                    </article>
+                @empty
+                    <x-admin.empty-state :message="__('Tidak ada catatan pada filter ini.')" />
+                @endforelse
+                @foreach ($notYetPresent as $employee)
+                    <article wire:key="attendance-mobile-not-present-{{ $employee->id }}" class="rounded-xl border border-sanmal-border bg-sanmal-surface-primary p-3 dark:border-sanmal-border-dark dark:bg-sanmal-surface-primary-dark">
+                        <div class="flex items-center justify-between gap-3"><p class="text-sm font-semibold">{{ $employee->user->name }}</p><x-ui.badge color="amber">{{ __('Belum ada absensi') }}</x-ui.badge></div>
+                    </article>
+                @endforeach
+                <div class="pt-1">{{ $records->links() }}</div>
+            </div>
+            <div class="attendance-desktop-table">
+            <flux:table class="w-full table-fixed" :paginate="$records" pagination:scroll-to="#attendance-records">
                     <flux:table.columns>
                         <flux:table.column sortable :sorted="$sortBy === 'recorded_at'" :direction="$sortDirection" wire:click="sort('recorded_at')" class="w-26 px-3 py-3 sm:py-2">{{ __('Waktu') }}</flux:table.column>
                         <flux:table.column sortable :sorted="$sortBy === 'employee'" :direction="$sortDirection" wire:click="sort('employee')" class="w-34 px-3 py-3 sm:py-2">{{ __('Pegawai') }}</flux:table.column>
@@ -436,27 +481,36 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                                 </flux:table.cell>
                                 <flux:table.cell data-label="Koreksi" class="px-3 py-3 sm:py-2">
                                     @if (in_array($record->type, [AttendanceType::ClockIn, AttendanceType::ClockOut], true) && $record->employee->user_id !== auth()->id())
-                                        <details class="max-w-full whitespace-normal">
-                                            <summary class="inline-flex cursor-pointer items-center rounded-md border border-sanmal-border bg-sanmal-surface-primary px-2.5 py-1.5 text-xs font-medium text-sanmal-brand-blue transition hover:bg-sanmal-surface-secondary dark:border-sanmal-border-dark dark:bg-sanmal-surface-inset-dark dark:text-sanmal-brand-yellow-dark dark:hover:bg-sanmal-surface-elevated-dark">{{ __('Koreksi timestamp') }}</summary>
-                                            <form method="POST" action="{{ route('admin.kehadiran.correct-timestamp', $record) }}" class="mt-2 grid w-64 max-w-[calc(100vw-3rem)] gap-2 rounded-lg border border-sanmal-border bg-sanmal-surface-secondary p-3 dark:border-sanmal-border-dark dark:bg-sanmal-surface-secondary-dark">
-                                                @csrf
-                                                <label class="grid gap-1 text-xs">
-                                                    <span>{{ __('Waktu efektif') }}</span>
-                                                    <input type="datetime-local" name="recorded_at_local" required value="{{ $record->effectiveRecordedAtLocal()->format('Y-m-d\\TH:i') }}" class="rounded-md border-sanmal-border bg-sanmal-surface-primary text-sm dark:border-sanmal-border-dark dark:bg-sanmal-surface-inset-dark">
-                                                </label>
-                                                <label class="grid gap-1 text-xs">
-                                                    <span>{{ __('Alasan wajib') }}</span>
-                                                    <textarea name="reason" required minlength="5" maxlength="2000" rows="2" class="rounded-md border-sanmal-border bg-sanmal-surface-primary text-sm dark:border-sanmal-border-dark dark:bg-sanmal-surface-inset-dark"></textarea>
-                                                </label>
-                                                <x-ui.button type="submit" size="sm" variant="primary">{{ __('Simpan koreksi') }}</x-ui.button>
-                                                <p class="text-xs text-[var(--sanmal-text-muted)]">{{ __('Timestamp bukti asli tidak diubah; perubahan dicatat di audit log.') }}</p>
-                                            </form>
-                                        </details>
+                                        <flux:modal.trigger :name="'attendance-correction-'.$record->id">
+                                            <x-ui.button type="button" size="sm" variant="outline">{{ __('Koreksi') }}</x-ui.button>
+                                        </flux:modal.trigger>
                                     @else
                                         —
                                     @endif
                                 </flux:table.cell>
                             </flux:table.row>
+                            <flux:modal :name="'attendance-correction-'.$record->id" class="max-w-md">
+                                <form method="POST" action="{{ route('admin.kehadiran.correct-timestamp', $record) }}" class="grid gap-4">
+                                    @csrf
+                                    <div>
+                                        <flux:heading size="lg">{{ __('Koreksi timestamp') }}</flux:heading>
+                                        <flux:text class="mt-1">{{ $record->employee->user->name }} · {{ $record->type->label() }}</flux:text>
+                                    </div>
+                                    <label class="grid gap-1 text-sm">
+                                        <span class="font-medium">{{ __('Waktu efektif') }}</span>
+                                        <input type="datetime-local" name="recorded_at_local" required value="{{ $record->effectiveRecordedAtLocal()->format('Y-m-d\\TH:i') }}" class="rounded-md border-sanmal-border bg-sanmal-surface-primary text-sm dark:border-sanmal-border-dark dark:bg-sanmal-surface-inset-dark">
+                                    </label>
+                                    <label class="grid gap-1 text-sm">
+                                        <span class="font-medium">{{ __('Alasan wajib') }}</span>
+                                        <textarea name="reason" required minlength="5" maxlength="2000" rows="3" class="rounded-md border-sanmal-border bg-sanmal-surface-primary text-sm dark:border-sanmal-border-dark dark:bg-sanmal-surface-inset-dark"></textarea>
+                                    </label>
+                                    <p class="text-xs text-[var(--sanmal-text-muted)]">{{ __('Timestamp bukti asli tidak diubah; perubahan dicatat di audit log.') }}</p>
+                                    <div class="flex justify-end gap-2">
+                                        <flux:modal.close><x-ui.button type="button" variant="outline">{{ __('Batal') }}</x-ui.button></flux:modal.close>
+                                        <x-ui.button type="submit" variant="primary">{{ __('Simpan koreksi') }}</x-ui.button>
+                                    </div>
+                                </form>
+                            </flux:modal>
                         @empty
                             @if ($notYetPresent->isEmpty())
                                 <flux:table.row>
@@ -482,6 +536,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                         @endforeach
                     </flux:table.rows>
                 </flux:table>
+            </div>
             </div>
         </x-ui.card>
     </x-ui.page>
