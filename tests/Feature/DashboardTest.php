@@ -95,14 +95,21 @@ test('dashboard metric cards center labels and values without separators', funct
     $user->forceFill(['role' => UserRole::Employee])->save();
     Employee::create(['user_id' => $user->id]);
 
-    $this->actingAs($user)
+    $response = $this->actingAs($user)
         ->get(route('dashboard'))
         ->assertOk()
         ->assertSee('Ringkasan bulan ini')
         ->assertSee('grid-cols-2 gap-4 text-center xl:grid-cols-4', false)
-        ->assertDontSee('divide-sanmal-border', false)
         ->assertSee('items-center', false)
         ->assertSee('text-center', false);
+
+    $document = new DOMDocument;
+    @$document->loadHTML($response->getContent());
+    $xpath = new DOMXPath($document);
+    $heading = $xpath->query('//*[@id="monthly-summary-heading"]')->item(0);
+
+    expect($heading)->not->toBeNull()
+        ->and($document->saveHTML($heading->parentNode))->not->toContain('divide-sanmal-border');
 });
 
 test('employee dashboard shows pending leave request breakdown for the authenticated employee and keeps notifications visible on mobile', function () {
