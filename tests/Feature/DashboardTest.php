@@ -149,6 +149,9 @@ test('employee dashboard shows pending leave request breakdown for the authentic
         ->assertDontSee('Tidak hadir')
         ->assertSee('Cuti Tahunan:')
         ->assertSee('Sakit:')
+        ->assertSee('bg-sanmal-surface-inset', false)
+        ->assertSee('dark:bg-sanmal-surface-inset-dark', false)
+        ->assertSee('divide-sanmal-border dark:divide-sanmal-border-dark', false)
         ->assertSee('aria-label="Buka notifikasi"', false)
         ->assertSee('class="group relative"', false);
 });
