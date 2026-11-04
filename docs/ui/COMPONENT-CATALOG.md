@@ -60,7 +60,7 @@ When a shared component is created or its public contract changes, update the de
 
 ## 5. Current milestone boundary
 
-The 14 core `x-ui.*` primitives have been implemented and adopted on selected pages. Two additional shared `x-ui.*` utilities (`x-ui.avatar`, `x-ui.photo-preview`, and `x-ui.notification-dropdown`) are also implemented; `x-ui.sidebar-section` is a shell-specific navigation composition helper, not a generic primitive. This closes the reusable-component standardization phase; it does not mean all pages are visually finalized or have passed responsive/accessibility QA.
+The 14 core `x-ui.*` primitives have been implemented and adopted on selected pages. Three additional shared `x-ui.*` utilities (`x-ui.avatar`, `x-ui.photo-preview`, and `x-ui.notification-dropdown`) are also implemented; `x-ui.sidebar-section` is a shell-specific navigation composition helper, not a generic primitive. This closes the reusable-component standardization phase; it does not mean all pages are visually finalized or have passed responsive/accessibility QA.
 
 For current evidence and the next page-level design/layouting phase, see [Implementation Status](progress/IMPLEMENTATION-STATUS.md). Do not add generic components without a demonstrated repeated pattern and stable interaction contract.
 
