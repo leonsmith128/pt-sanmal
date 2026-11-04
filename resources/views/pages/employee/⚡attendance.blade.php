@@ -393,30 +393,31 @@ new #[Title('Absensi')] class extends Component {
 
 <section class="w-full" wire:poll.30s>
     <x-ui.page gap="4">
-        {{-- Header pegawai: avatar fallback, identitas, dan pintasan notifikasi --}}
-        <header class="flex items-center gap-3">
-            <div class="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-zinc-100 text-sm font-semibold text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200" aria-hidden="true">
-                {{ str($this->employee->user->name)->squish()->explode(' ')->take(2)->map(fn ($part) => str($part)->substr(0, 1)->upper())->implode('') }}
-            </div>
-            <div class="min-w-0 flex-1">
-                <h1 class="truncate text-base font-semibold text-zinc-900 dark:text-zinc-100">{{ $this->employee->user->name }}</h1>
-                <p class="truncate text-sm text-zinc-500 dark:text-zinc-400">
-                    {{ $this->employee->employee_number ?: __('Kode pegawai belum diatur') }}
-                    <span aria-hidden="true">·</span>
-                    {{ $this->employee->title?->name ?? __('Jabatan belum diatur') }}
-                </p>
-            </div>
-            @php
-                $unreadCount = Auth::user()->unreadNotifications()->count();
-            @endphp
-                    
-            <a href="{{ route('notifications.index') }}" wire:navigate aria-label="{{ __('Buka notifikasi') }}" title="{{ __('Notifikasi') }}" class="relative flex size-10 shrink-0 items-center justify-center rounded-full text-zinc-600 transition hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800">
-                <flux:icon name="bell" variant="outline" class="size-5" />
-                @if ($unreadCount > 0)
-                    <span class="absolute right-0.5 top-0.5 flex min-h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-semibold text-white">{{ $unreadCount > 99 ? '99+' : $unreadCount }}</span>
-                @endif
-            </a>
-        </header>
+        @php
+            $attendanceUser = $this->employee->user;
+            $unreadCount = Auth::user()->unreadNotifications()->count();
+            $employeeDescription = implode(' · ', [
+                $this->employee->employee_number ?: __('Kode pegawai belum diatur'),
+                $this->employee->title?->name ?? __('Jabatan belum diatur'),
+            ]);
+        @endphp
+        <x-employee.identity-header
+            :name="$attendanceUser->name"
+            :initials="$attendanceUser->initials()"
+            :src="$attendanceUser->profilePhotoUrl()"
+            :greeting="__('Selamat datang,')"
+            :description="$employeeDescription"
+            avatar-size="compact"
+        >
+            <x-slot:actions>
+                <a href="{{ route('notifications.index') }}" wire:navigate aria-label="{{ __('Buka notifikasi') }}" title="{{ __('Notifikasi') }}" class="relative flex size-10 shrink-0 items-center justify-center rounded-full text-zinc-600 transition hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800">
+                    <flux:icon name="bell" variant="outline" class="size-5" />
+                    @if ($unreadCount > 0)
+                        <span class="absolute right-0.5 top-0.5 flex min-h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-semibold text-white">{{ $unreadCount > 99 ? '99+' : $unreadCount }}</span>
+                    @endif
+                </a>
+            </x-slot:actions>
+        </x-employee.identity-header>
 
         @php
             $session = $this->openSession;
