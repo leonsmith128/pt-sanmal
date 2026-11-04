@@ -1,5 +1,5 @@
 <x-layouts::app :title="__('Dashboard')">
-    <x-ui.page gap="6">
+    <x-ui.page :gap="$isManager ? '6' : '4'">
         @if ($isManager)
             <x-ui.page-header
                 :title="__('Dashboard Administrasi')"
