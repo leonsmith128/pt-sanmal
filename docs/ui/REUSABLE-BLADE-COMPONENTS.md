@@ -122,6 +122,17 @@ Page views should compose primitives and domain components, while retaining:
 - form validation and confirmation flow;
 - data-specific markup that is not genuinely repeated.
 
+### Admin Attendance export confirmation
+
+`x-admin.attendance-export` owns the Admin Attendance export dropdown and confirmation dialog markup. It is a page-specific presentation component; it does not construct routes, resolve filter state, or execute exports.
+
+Contract:
+- Required `:options` contains prepared menu entries with `label`, `href`, `description`, and `icon`; optional `divider_before` inserts a menu separator.
+- Required `:filter-summary` and `:warning` provide the confirmation copy.
+- The parent Admin Attendance SFC owns the Alpine state: `exportConfirmOpen`, `exportUrl`, and `exportDescription`. The component intentionally shares that parent Alpine scope.
+- Route construction, date-range normalization, active filter resolution, and export semantics remain in the page/server layer.
+- Preserve the semantic anchor for the final export action and its Alpine-bound `href`.
+
 ### Admin Attendance reusable filters
 
 `x-admin.attendance-filters` is the page-level Blade composition for Admin Attendance filters. It renders controls and option labels only; it does not query models, authorize access, mutate state, or build export URLs.
