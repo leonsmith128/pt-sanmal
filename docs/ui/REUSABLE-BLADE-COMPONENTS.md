@@ -72,7 +72,7 @@ Use `x-employee.identity-header` for the employee identity heading shared by the
 Contract:
 - Required `name`; optional `initials`, `src`, `greeting`, `description`, and `avatarSize` (default `lg`).
 - Use `avatar-size="lg"` (56 px) on Employee Dashboard to preserve its larger visual emphasis.
-- Use `avatar-size="compact"` (48 px) on Attendance so the identity remains subordinate to the attendance workflow while retaining the same heading hierarchy.
+- Use `avatar-size="lg"` (56 px) on Attendance as well, keeping avatar dimensions identical across both employee pages.
 - Supply page-specific notification controls through the `actions` slot. The component does not query notifications or decide routes.
 - The greeting and description are caller-provided; keep employee identity data and date formatting in the page.
 - The shared name heading uses the Dashboard typography on both pages. Do not duplicate the header markup in either page.
