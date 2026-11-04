@@ -95,6 +95,16 @@ Gap yang masih terbuka: perluasan matriks kalender/timezone dan browser QA respo
 - Regression test menghitung 15 item navigasi Admin, lima separator grouping, tidak adanya separator pada Employee, dan lebar halaman Absensi; seluruhnya lulus full CI run 1297.
 - **Status: Implemented; automated CI verified, browser QA pending.** Browser QA pada 360–430px, 768–1024px, dan 1280–1440px masih diperlukan. Periksa khusus outer margin, permukaan konten utama, lebar konten halaman Absensi, dan tinggi/posisi separator pada sidebar expanded/collapsed.
 
+## Employee Attendance — weekly and monthly calendar
+
+- Weekly calendar uses seven Monday-first date columns, selected-date styling, a separate today outline, and previous/next week plus Hari Ini controls.
+- Monthly date picker uses a centered six-row grid, month navigation, adjacent-month dates, close control, Escape, and backdrop dismissal. Selecting a date synchronizes the existing `selectedDate` state and closes the picker.
+- Daily indicators are sourced in batches from `DailyAttendanceStatusService::forEmployeesDateRange()`: `present` uses success green, `needs_review` uses warning amber, and `no_record` uses a subtle gray dot. There is no visible legend.
+- Other domain states (incomplete, leave, sick, permission, explicit absence) are not silently relabelled as one of the three selected indicators. No record is not interpreted as absent.
+- Camera, GPS, evidence upload, attendance submission, overtime, and history workflows are unchanged.
+- Feature coverage added for the 42-cell monthly grid, month navigation, date selection, and selected-date synchronization.
+- **Status: Source and regression test updated; CI verification pending. Browser QA pending** at 360–390px, 414–430px, 768px, 1024px, and 1280–1440px in light/dark themes. See [Employee Attendance Calendar V1](../EMPLOYEE-ATTENDANCE-CALENDAR-V1.md).
+
 ## Employee Attendance — layout and photo preview
 
 - Main attendance action remains the final element inside the attendance form, after the camera component and validation messages. It is not sticky or fixed; the page retains normal document scrolling when the photo preview or lower history content increases page height.
