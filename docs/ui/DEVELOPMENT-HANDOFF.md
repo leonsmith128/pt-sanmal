@@ -30,6 +30,13 @@ Jangan membaca seluruh dokumentasi secara berurutan untuk setiap task. Gunakan j
 Tidak perlu membaca audit lama atau semua spesifikasi fitur yang tidak terkait. Dokumen aktif adalah panduan; source, route, test, dan hasil browser aktual adalah kebenaran implementasi.
 ## Konteks produk
 
+SanMal adalah aplikasi internal absensi dan administrasi pegawai PT SanMal Calibration Laboratory.
+
+- **Employee:** mobile-first. Prioritaskan absensi, kamera/GPS/bukti, permohonan, riwayat, dan touch interaction.
+- **Admin:** desktop/tablet information-first tetapi tetap mobile-friendly. Prioritaskan data operasional, filter, table/list, detail review, dan efisiensi administrasi.
+- **Shared:** gunakan bahasa visual dan kontrak komponen yang konsisten; komposisi halaman tidak harus identik.
+- **Design principle:** seamless-first. Jangan membungkus semua konten dengan card/border/shadow atau membuat card-in-card.
+
 ## Pola arsitektur UI yang digunakan
 
 - **Blade + Controller:** halaman request/response sederhana tanpa state server reaktif yang kompleks.
@@ -41,13 +48,6 @@ Tidak perlu membaca audit lama atau semua spesifikasi fitur yang tidak terkait. 
 - **Flux UI:** renderer komponen UI yang sudah digunakan aplikasi. Jangan membuat sistem komponen paralel atau memigrasikan halaman ke Volt/framework lain hanya demi keseragaman.
 
 Contoh konkret: Employee Attendance tetap satu Native Livewire 4 SFC. Kalender, ringkasan jam, status card, dan photo preview dipisah menjadi Blade Components; kamera tetap komponen khusus karena lifecycle browser-nya. Lihat [Employee Attendance Layout V1](EMPLOYEE-ATTENDANCE-LAYOUT-V1.md).
-
-SanMal adalah aplikasi internal absensi dan administrasi pegawai PT SanMal Calibration Laboratory.
-
-- **Employee:** mobile-first. Prioritaskan absensi, kamera/GPS/bukti, permohonan, riwayat, dan touch interaction.
-- **Admin:** desktop/tablet information-first tetapi tetap mobile-friendly. Prioritaskan data operasional, filter, table/list, detail review, dan efisiensi administrasi.
-- **Shared:** gunakan bahasa visual dan kontrak komponen yang konsisten; komposisi halaman tidak harus identik.
-- **Design principle:** seamless-first. Jangan membungkus semua konten dengan card/border/shadow atau membuat card-in-card.
 
 ## Scope dan non-goals
 
