@@ -642,9 +642,15 @@ test('attendance history renders date groups and event detail dialog using the c
     expect($exportLinks->length)->toBe(1);
 
     $exportUrl = html_entity_decode($exportLinks->item(0)->getAttribute('href'));
+    $cardSurfaces = $xpath->query('//*[contains(concat(" ", normalize-space(@class), " "), " shadow-sm ")]');
 
     expect($exportUrl)->toContain('from=2026-11-01')
-        ->and($exportUrl)->toContain('to=2026-11-04');
+        ->and($exportUrl)->toContain('to=2026-11-04')
+        ->and($cardSurfaces->length)->toBeGreaterThanOrEqual(5);
+
+    foreach ($cardSurfaces as $cardSurface) {
+        expect($cardSurface->getAttribute('class'))->not->toMatch('/\\bborder(?:-|\\s|$)/');
+    }
 });
 
 test('attendance history does not expose a map link for unverified GPS coordinates', function () {
