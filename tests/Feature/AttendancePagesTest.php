@@ -214,6 +214,16 @@ test('attendance page renders a separate full-size photo preview and full-width 
         ->assertDontSee('object-cover', false);
 });
 
+test('attendance photo preview provides a download link for the captured temporary photo', function () {
+    $employee = userWithRole(UserRole::Employee);
+
+    Livewire::actingAs($employee)
+        ->test('pages::employee.attendance')
+        ->set('selfie', \\Illuminate\\Http\\UploadedFile::fake()->image('attendance.jpg'))
+        ->assertSee('download="foto-absensi.', false)
+        ->assertSee(__('Unduh'));
+});
+
 test('employees receive an ungrouped sidebar and mobile header drawer without bottom navigation', function () {
     $this->actingAs(userWithRole(UserRole::Employee));
 
