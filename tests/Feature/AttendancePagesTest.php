@@ -618,7 +618,7 @@ test('attendance history renders date groups and event detail dialog using the c
         'selfie_source' => 'camera',
     ]);
 
-    $this->actingAs($employee)
+    $response = $this->actingAs($employee)
         ->get(route('attendance-history.index', [
             'from' => '2026-11-01',
             'to' => '2026-11-04',
@@ -630,13 +630,21 @@ test('attendance history renders date groups and event detail dialog using the c
         ->assertSee('attendance-event-detail-title', false)
         ->assertSee('openEvent(JSON.parse(atob($el.dataset.event)), $el)', false)
         ->assertSee('data-event=', false)
-        ->assertSee(e(route('attendance-history.export', [
-            'from' => '2026-11-01',
-            'to' => '2026-11-04',
-        ])), false)
         ->assertViewHas('dateGroups', fn ($groups): bool => $groups->total() === 1
             && $groups->first()['date'] === '2026-11-03'
             && $groups->first()['events']->count() === 1);
+
+    $document = new DOMDocument;
+    @$document->loadHTML($response->getContent());
+    $xpath = new DOMXPath($document);
+    $exportLinks = $xpath->query('//a[contains(@href, "/riwayat-absensi/ekspor")]');
+
+    expect($exportLinks->length)->toBe(1);
+
+    $exportUrl = html_entity_decode($exportLinks->item(0)->getAttribute('href'));
+
+    expect($exportUrl)->toContain('from=2026-11-01')
+        ->and($exportUrl)->toContain('to=2026-11-04');
 });
 
 test('attendance history does not expose a map link for unverified GPS coordinates', function () {
