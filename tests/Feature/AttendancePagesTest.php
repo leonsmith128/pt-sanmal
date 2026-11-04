@@ -59,11 +59,15 @@ test('employees can visit their own attendance history', function () {
     $this->get(route('attendance-history.index'))
         ->assertOk()
         ->assertSee(__('Riwayat Absensi'))
-        ->assertSee(__('Ekspor rekap harian (CSV)'))
+        ->assertSee(__('Export'))
+        ->assertSee(__('Absen'))
         ->assertSee(__('Belum ada riwayat absensi'))
         ->assertSee(__('Hari hadir'))
         ->assertSee(__('Absensi lengkap'))
         ->assertSee(__('Perlu ditinjau'))
+        ->assertSee('grid grid-cols-3 gap-2 sm:gap-3', false)
+        ->assertSee('flex w-full flex-row gap-2 sm:w-auto', false)
+        ->assertSee('whitespace-nowrap sm:flex-none', false)
         ->assertSee('name="direction"', false);
 });
 
