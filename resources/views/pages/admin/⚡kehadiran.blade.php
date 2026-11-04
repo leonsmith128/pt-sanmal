@@ -3,7 +3,6 @@
 use App\Actions\RecordAttendance;
 use App\Enums\AttendanceType;
 use App\Enums\LeaveRequestStatus;
-use App\Enums\SelfieSource;
 use App\Enums\WorkType;
 use App\Models\AttendanceRecord;
 use App\Models\Employee;
@@ -162,105 +161,116 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
     }
 }; ?>
 
-<section x-data="{ selfiePreviewOpen: false, selfiePreviewUrl: null, selfieDownloadUrl: null, exportConfirmOpen: false, exportUrl: '', exportDescription: '' }" x-on:keydown.escape.window="selfiePreviewOpen = false; exportConfirmOpen = false" class="w-full">
+<section x-data="{ exportConfirmOpen: false, exportUrl: '', exportDescription: '' }" x-on:keydown.escape.window="exportConfirmOpen = false" class="w-full">
     <x-ui.page>
         <x-admin.page-header
             :title="__('Kehadiran Pegawai')"
             :description="__('Pantau dan telusuri catatan absensi seluruh pegawai. Filter tanggal mengikuti kalender perusahaan (WITA).')"
         />
         @if (session('status'))
-            <div role="status" class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-200">
+            <div role="status" class="rounded-lg border border-sanmal-success/30 bg-sanmal-success/10 px-4 py-3 text-sm text-sanmal-success dark:border-sanmal-success/50 dark:bg-sanmal-success/15">
                 {{ session('status') }}
             </div>
         @endif
         @error('drive_backup')
-            <div role="alert" class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
+            <div role="alert" class="rounded-lg border border-sanmal-danger/30 bg-sanmal-danger/10 px-4 py-3 text-sm text-sanmal-danger dark:border-sanmal-danger/50 dark:bg-sanmal-danger/15">
                 {{ $message }}
             </div>
         @enderror
 
         @php
-            ($records = $this->records)
+            $records = $this->records;
+            $notYetPresent = $this->notYetPresent;
         @endphp
 
-        <x-admin.filter-panel class="!p-3 !w-full !min-w-0">
-            <div class="grid w-full min-w-0 grid-cols-1 items-end gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6">
-                <x-ui.input
+        <x-ui.card padding="p-0" class="overflow-hidden">
+            <div class="flex flex-col gap-2 border-b border-sanmal-border bg-sanmal-surface-secondary px-4 py-3 sm:flex-row sm:items-center sm:justify-between dark:border-sanmal-border-dark dark:bg-sanmal-surface-secondary-dark">
+                <div>
+                    <h2 class="font-semibold text-[var(--sanmal-text-primary)]">{{ __('Cakupan catatan') }}</h2>
+                    <p class="mt-0.5 text-sm text-[var(--sanmal-text-secondary)]">{{ __('Tanggal mengikuti kalender perusahaan WITA.') }}</p>
+                </div>
+                <x-ui.button
                     size="sm"
-                    type="date"
-                    wire:model.live="dateFrom"
-                    :label="__('Dari tanggal')"
-                    class="w-full min-w-0"
-                />
-                <x-ui.input
-                    size="sm"
-                    type="date"
-                    wire:model.live="dateTo"
-                    :label="__('Sampai tanggal')"
-                    class="w-full min-w-0"
-                />
-                <x-ui.select
-                    size="sm"
-                    wire:model.live="employeeId"
-                    :label="__('Pegawai')"
-                    class="w-full min-w-0"
+                    type="button"
+                    variant="outline"
+                    class="w-full sm:w-auto"
+                    icon="arrows-up-down"
+                    wire:click="resetAdditionalFilters"
                 >
-                    <flux:select.option value="">{{ __('Semua pegawai') }}</flux:select.option>
-                    @foreach ($this->employees as $employee)
-                        <flux:select.option value="{{ $employee->id }}">{{ $employee->user->name }}</flux:select.option>
-                    @endforeach
-                </x-ui.select>
-                <x-ui.input
-                    size="sm"
-                    wire:model.live.debounce.300ms="search"
-                    :label="__('Pencarian')"
-                    class="w-full min-w-0"
-                    :placeholder="__('Nama / nomor / catatan')"
-                />
-                <x-ui.select
-                    size="sm"
-                    wire:model.live="attendanceType"
-                    :label="__('Jenis absensi')"
-                    class="w-full min-w-0"
-                >
-                    <flux:select.option value="">{{ __('Semua jenis') }}</flux:select.option>
-                    @foreach (AttendanceType::cases() as $type)
-                        <flux:select.option value="{{ $type->value }}">{{ $type->label() }}</flux:select.option>
-                    @endforeach
-                </x-ui.select>
-                <x-ui.select
-                    size="sm"
-                    wire:model.live="workType"
-                    :label="__('Jenis kerja')"
-                    class="w-full min-w-0"
-                >
-                    <flux:select.option value="">{{ __('Semua jenis kerja') }}</flux:select.option>
-                    @foreach (WorkType::cases() as $type)
-                        <flux:select.option value="{{ $type->value }}">{{ $type->label() }}</flux:select.option>
-                    @endforeach
-                </x-ui.select>
-                <div class="col-span-1 flex min-w-0 sm:col-span-2 sm:justify-end lg:col-span-3 2xl:col-span-6">
-                    <x-ui.button
+                    {{ __('Reset filter tambahan') }}
+                </x-ui.button>
+            </div>
+
+            <div class="p-4">
+                <div class="grid w-full min-w-0 grid-cols-1 items-end gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6">
+                    <x-ui.input
                         size="sm"
-                        type="button"
-                        variant="outline"
-                        class="w-full sm:w-auto"
-                        icon="arrows-up-down"
-                        wire:click="resetAdditionalFilters"
+                        type="date"
+                        wire:model.live="dateFrom"
+                        :label="__('Dari tanggal')"
+                        class="w-full min-w-0"
+                    />
+                    <x-ui.input
+                        size="sm"
+                        type="date"
+                        wire:model.live="dateTo"
+                        :label="__('Sampai tanggal')"
+                        class="w-full min-w-0"
+                    />
+                    <x-ui.select
+                        size="sm"
+                        wire:model.live="employeeId"
+                        :label="__('Pegawai')"
+                        class="w-full min-w-0"
                     >
-                        {{ __('Reset') }}
-                    </x-ui.button>
+                        <flux:select.option value="">{{ __('Semua pegawai') }}</flux:select.option>
+                        @foreach ($this->employees as $employee)
+                            <flux:select.option value="{{ $employee->id }}">{{ $employee->user->name }}</flux:select.option>
+                        @endforeach
+                    </x-ui.select>
+                    <x-ui.input
+                        size="sm"
+                        wire:model.live.debounce.300ms="search"
+                        :label="__('Pencarian')"
+                        class="w-full min-w-0"
+                        :placeholder="__('Nama / nomor / catatan')"
+                    />
+                    <x-ui.select
+                        size="sm"
+                        wire:model.live="attendanceType"
+                        :label="__('Jenis absensi')"
+                        class="w-full min-w-0"
+                    >
+                        <flux:select.option value="">{{ __('Semua jenis') }}</flux:select.option>
+                        @foreach (AttendanceType::cases() as $type)
+                            <flux:select.option value="{{ $type->value }}">{{ $type->label() }}</flux:select.option>
+                        @endforeach
+                    </x-ui.select>
+                    <x-ui.select
+                        size="sm"
+                        wire:model.live="workType"
+                        :label="__('Jenis kerja')"
+                        class="w-full min-w-0"
+                    >
+                        <flux:select.option value="">{{ __('Semua jenis kerja') }}</flux:select.option>
+                        @foreach (WorkType::cases() as $type)
+                            <flux:select.option value="{{ $type->value }}">{{ $type->label() }}</flux:select.option>
+                        @endforeach
+                    </x-ui.select>
                 </div>
             </div>
-        </x-admin.filter-panel>
+        </x-ui.card>
 
-        <x-ui.card class="space-y-4">
-            <div class="flex flex-wrap items-center justify-between gap-3">
+        <x-ui.card padding="p-0" class="overflow-hidden">
+            <div class="flex flex-col gap-3 border-b border-sanmal-border px-4 py-4 sm:flex-row sm:items-center sm:justify-between dark:border-sanmal-border-dark">
                 <div>
                     <flux:heading size="lg">{{ __('Aktivitas terbaru') }}</flux:heading>
-                    <flux:text class="mt-1 text-sm">
+                    <p class="mt-1 text-sm text-[var(--sanmal-text-secondary)]">
                         {{ number_format($records->total()) }} {{ __('catatan absensi') }}
-                    </flux:text>
+                        @if ($notYetPresent->isNotEmpty())
+                            <span class="text-[var(--sanmal-text-muted)]">{{ __('dan :count pegawai belum memiliki catatan pada tanggal ini.', ['count' => number_format($notYetPresent->count())]) }}</span>
+                        @endif
+                    </p>
                 </div>
                 @php
                     $exportFilters = array_filter([
@@ -293,7 +303,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                         : 'Filter tambahan: tidak ada; seluruh pegawai masuk dalam cakupan laporan.';
                 @endphp
                 <flux:dropdown position="bottom" align="end">
-                    <x-ui.button size="sm" variant="outline" icon="arrow-down-tray">
+                    <x-ui.button size="sm" variant="outline" class="w-full sm:w-auto" icon="arrow-down-tray">
                         {{ __('Export') }}
                         <flux:icon name="chevron-down" variant="micro" />
                     </x-ui.button>
@@ -335,119 +345,93 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                 </flux:dropdown>
             </div>
 
-            <div id="attendance-records" data-record-count="{{ $records->total() }}" class="max-h-[70vh] overflow-auto rounded-lg border border-neutral-200 p-1 [--flux-bleed:0.5rem] [&_thead]:sticky [&_thead]:top-0 [&_thead]:z-20 [&_thead]:bg-white dark:border-neutral-700 dark:[&_thead]:bg-zinc-900">
+            <div id="attendance-records" data-record-count="{{ $records->total() }}" class="max-h-[70vh] overflow-auto [--flux-bleed:0.5rem] [&_thead]:sticky [&_thead]:top-0 [&_thead]:z-20 [&_thead]:bg-sanmal-surface-secondary dark:[&_thead]:bg-sanmal-surface-secondary-dark">
                 <flux:table bleed :paginate="$records" pagination:scroll-to="#attendance-records">
                     <flux:table.columns>
-                        <flux:table.column sortable :sorted="$sortBy === 'recorded_at'" :direction="$sortDirection" wire:click="sort('recorded_at')" class="px-3 py-2">{{ __('Waktu') }}</flux:table.column>
-                        <flux:table.column sortable :sorted="$sortBy === 'employee'" :direction="$sortDirection" wire:click="sort('employee')" class="px-3 py-2">{{ __('Pegawai') }}</flux:table.column>
-                        <flux:table.column sortable :sorted="$sortBy === 'type'" :direction="$sortDirection" wire:click="sort('type')" class="px-3 py-2">{{ __('Jenis') }}</flux:table.column>
-                        <flux:table.column sortable :sorted="$sortBy === 'work_type'" :direction="$sortDirection" wire:click="sort('work_type')" class="px-3 py-2">{{ __('Lokasi kerja') }}</flux:table.column>
-                        <flux:table.column class="px-3 py-2">{{ __('GPS') }}</flux:table.column>
-                        <flux:table.column class="px-3 py-2">{{ __('Foto') }}</flux:table.column>
-                        <flux:table.column class="px-3 py-2">{{ __('Koreksi waktu') }}</flux:table.column>
+                        <flux:table.column sortable :sorted="$sortBy === 'recorded_at'" :direction="$sortDirection" wire:click="sort('recorded_at')" class="w-26 px-3 py-2">{{ __('Waktu') }}</flux:table.column>
+                        <flux:table.column sortable :sorted="$sortBy === 'employee'" :direction="$sortDirection" wire:click="sort('employee')" class="w-34 px-3 py-2">{{ __('Pegawai') }}</flux:table.column>
+                        <flux:table.column sortable :sorted="$sortBy === 'type'" :direction="$sortDirection" wire:click="sort('type')" class="w-20 px-3 py-2">{{ __('Jenis') }}</flux:table.column>
+                        <flux:table.column sortable :sorted="$sortBy === 'work_type'" :direction="$sortDirection" wire:click="sort('work_type')" class="w-40 px-3 py-2">{{ __('Kerja') }}</flux:table.column>
+                        <flux:table.column class="w-40 px-3 py-2">{{ __('Lokasi GPS') }}</flux:table.column>
+                        <flux:table.column class="w-14 px-3 py-2" align="center">{{ __('Foto') }}</flux:table.column>
+                        <flux:table.column class="w-28 px-3 py-2">{{ __('Koreksi') }}</flux:table.column>
                     </flux:table.columns>
                     <flux:table.rows>
                         @forelse ($records as $record)
                             <flux:table.row :key="$record->id">
-                                <flux:table.cell class="whitespace-nowrap px-3 py-2">
-                                    {{ $record->effectiveRecordedAtLocal()->format('d M Y, H:i T') }}
+                                <flux:table.cell class="whitespace-normal px-3 py-2">
+                                    <p class="font-medium text-[var(--sanmal-text-primary)]">{{ $record->effectiveRecordedAtLocal()->format('d M Y') }}</p>
+                                    <p class="text-xs text-[var(--sanmal-text-secondary)]">{{ $record->effectiveRecordedAtLocal()->format('H:i T') }}</p>
                                     @if ($record->approvedCorrection)
-                                        <p class="text-xs text-zinc-500">{{ __('Bukti asli:') }} {{ $record->recordedAtLocal()->format('d M Y, H:i T') }}</p>
-                                    @endif
-                                    @if ($record->captured_at)
-                                        <p class="text-xs text-zinc-500">{{ __('Waktu perangkat (informasi):') }} {{ $record->captured_at->copy()->setTimezone($record->timezone)->format('d M Y, H:i T') }}</p>
+                                        <p class="mt-1 text-xs text-[var(--sanmal-text-muted)]">{{ __('Asli:') }} {{ $record->recordedAtLocal()->format('d M, H:i T') }}</p>
                                     @endif
                                 </flux:table.cell>
-                                <flux:table.cell class="px-3 py-2">{{ $record->employee->user->name }}</flux:table.cell>
+                                <flux:table.cell class="px-3 py-2" title="{{ $record->employee->user->name }}">
+                                    <span class="block truncate font-medium text-[var(--sanmal-text-primary)]">{{ $record->employee->user->name }}</span>
+                                </flux:table.cell>
                                 <flux:table.cell class="px-3 py-2">
                                     <x-ui.badge :color="$record->type === AttendanceType::ClockIn ? 'green' : 'blue'">
                                         {{ $record->type->label() }}
                                     </x-ui.badge>
                                 </flux:table.cell>
-                                <flux:table.cell class="px-3 py-2">
-                                    {{ $record->work_type->label() }}
-                                    @if ($record->client_name_snapshot)
-                                        <span class="block text-xs text-zinc-500">{{ __('Client') }}: {{ $record->client_code_snapshot ? $record->client_code_snapshot.' · ' : '' }}{{ $record->client_name_snapshot }}</span>
-                                    @endif
+                                <flux:table.cell class="whitespace-normal px-3 py-2">
+                                    <p class="text-sm text-[var(--sanmal-text-primary)]">{{ $record->work_type->label() }}</p>
                                     @if ($record->project_name_snapshot)
-                                        <span class="block text-xs text-zinc-500">{{ __('Proyek') }}: {{ $record->project_code_snapshot ? $record->project_code_snapshot.' · ' : '' }}{{ $record->project_name_snapshot }}</span>
-                                    @endif
-                                    @if ($record->location_name_snapshot)
-                                        <span class="block text-xs text-zinc-500">{{ __('Lokasi') }}: {{ $record->location_name_snapshot }}</span>
-                                    @endif
-                                    @if ($record->snapshot_source === 'migration_backfill')
-                                        <span class="mt-1 block text-xs text-amber-600 dark:text-amber-400">{{ __('Baseline migrasi') }}</span>
+                                        <div class="mt-1 max-w-full">
+                                            <x-admin.attendance.project-snapshot-modal
+                                                :modal-name="'attendance-project-'.$record->id"
+                                                :project-code="$record->project_code_snapshot"
+                                                :project-name="$record->project_name_snapshot"
+                                                :client-code="$record->client_code_snapshot"
+                                                :client-name="$record->client_name_snapshot"
+                                                :location-name="$record->location_name_snapshot"
+                                            />
+                                        </div>
                                     @endif
                                 </flux:table.cell>
-                                <flux:table.cell class="whitespace-nowrap px-3 py-2">
+                                <flux:table.cell class="whitespace-normal px-3 py-2">
                                     @if ($record->latitude !== null && $record->longitude !== null)
-                                        @if ($record->accuracy_m !== null)
-                                            <p>±{{ round((float) $record->accuracy_m) }} m</p>
-                                        @endif
-                                        <a href="https://www.google.com/maps?q={{ $record->latitude }},{{ $record->longitude }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center rounded-md border border-zinc-300 px-2 py-1 text-xs font-medium text-zinc-700 transition hover:bg-zinc-50 dark:border-zinc-600 dark:text-zinc-200 dark:hover:bg-zinc-800">{{ __('Peta') }}</a>
+                                        <a href="https://www.google.com/maps?q={{ $record->latitude }},{{ $record->longitude }}" target="_blank" rel="noopener noreferrer" class="block break-words text-sm leading-5 text-sanmal-brand-blue underline decoration-sanmal-brand-blue/30 underline-offset-2 transition hover:decoration-current focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sanmal-brand-blue dark:text-sanmal-brand-yellow-dark dark:decoration-sanmal-brand-yellow-dark/40 dark:focus-visible:outline-sanmal-brand-yellow-dark">
+                                            <span class="sr-only">{{ __('Alamat tersimpan:') }}</span>
+                                            {{ $record->address_snapshot ?: __('Buka lokasi di peta') }}
+                                        </a>
                                     @else
-                                        <span>—</span>
-                                    @endif
-                                    <p class="mt-1 max-w-xs whitespace-normal break-words text-xs text-zinc-600 dark:text-zinc-300">
-                                        <span class="font-medium">{{ __('Alamat tersimpan:') }}</span>
-                                        {{ $record->address_snapshot ?: __('Alamat belum tersedia') }}
-                                    </p>
-                                    @if ($record->location_status === 'unavailable')
-                                        <x-ui.badge color="amber" size="sm" class="ml-1">{{ __('Perlu ditinjau') }}</x-ui.badge>
+                                        <span class="block break-words text-sm text-[var(--sanmal-text-muted)]">{{ $record->address_snapshot ?: '—' }}</span>
                                     @endif
                                 </flux:table.cell>
-                                <flux:table.cell class="whitespace-nowrap px-3 py-2">
+                                <flux:table.cell class="px-3 py-2" align="center">
                                     @if ($record->selfie_path)
-                                        <button
-                                            type="button"
-                                            data-preview-url="{{ route('admin.attendance.selfie', $record) }}"
-                                            data-download-url="{{ route('admin.attendance.selfie.download', $record) }}"
-                                            x-on:click="selfiePreviewUrl = $el.dataset.previewUrl; selfieDownloadUrl = $el.dataset.downloadUrl; selfiePreviewOpen = true"
-                                            class="inline-flex items-center rounded-md border border-zinc-300 px-2.5 py-1 text-xs font-medium text-zinc-700 transition hover:bg-zinc-50 dark:border-zinc-600 dark:text-zinc-200 dark:hover:bg-zinc-800"
-                                        >{{ __('Pratinjau') }}</button>
-                                        @if ($record->selfie_source === SelfieSource::Upload)
-                                            <x-ui.badge color="amber" size="sm" class="ml-1">{{ __('Unggahan') }}</x-ui.badge>
-                                        @endif
-                                        @if ($record->drive_backup_status === 'verified')
-                                            <x-ui.badge color="green" size="sm" class="ml-1">{{ __('Drive terverifikasi') }}</x-ui.badge>
-                                            @if ($record->local_deleted_at)
-                                                <x-ui.badge color="zinc" size="sm" class="ml-1">{{ __('Lokal dihapus') }}</x-ui.badge>
-                                            @else
-                                                <form method="POST" action="{{ route('admin.attendance.selfie.delete-local', $record) }}" class="mt-2" onsubmit="return confirm('{{ __('Hapus foto lokal setelah backup Drive terverifikasi?') }}')">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <x-ui.button type="submit" size="xs" variant="danger">{{ __('Hapus lokal') }}</x-ui.button>
-                                                </form>
-                                            @endif
-                                        @else
-                                            @if ($record->drive_backup_status === 'failed')
-                                                <x-ui.badge color="red" size="sm" class="ml-1">{{ __('Backup gagal') }}</x-ui.badge>
-                                            @endif
-                                            <form method="POST" action="{{ route('admin.attendance.selfie.backup', $record) }}" class="mt-2">
-                                                @csrf
-                                                <x-ui.button type="submit" size="xs" variant="outline">{{ __('Backup ke Drive') }}</x-ui.button>
-                                            </form>
-                                        @endif
+                                        <x-ui.photo-preview
+                                            :src="route('admin.attendance.selfie', $record)"
+                                            :alt="__('Foto absensi :name', ['name' => $record->employee->user->name])"
+                                            :title="__('Foto absensi')"
+                                            :trigger-label="__('Buka foto absensi :name', ['name' => $record->employee->user->name])"
+                                            :download-url="route('admin.attendance.selfie.download', $record)"
+                                            :download-name="'absensi-'.$record->id.'.jpg'"
+                                            class="rounded-md"
+                                        >
+                                            <img src="{{ route('admin.attendance.selfie', $record) }}" alt="" class="size-10 rounded-md object-cover" />
+                                        </x-ui.photo-preview>
                                     @else
                                         —
                                     @endif
                                 </flux:table.cell>
                                 <flux:table.cell class="px-3 py-2">
                                     @if (in_array($record->type, [AttendanceType::ClockIn, AttendanceType::ClockOut], true) && $record->employee->user_id !== auth()->id())
-                                        <details class="min-w-56">
-                                            <summary class="inline-flex cursor-pointer items-center rounded-md border border-zinc-300 px-2.5 py-1.5 text-xs font-medium text-zinc-700 transition hover:bg-zinc-50 dark:border-zinc-600 dark:text-zinc-200 dark:hover:bg-zinc-800">{{ __('Koreksi timestamp') }}</summary>
-                                            <form method="POST" action="{{ route('admin.kehadiran.correct-timestamp', $record) }}" class="mt-2 grid min-w-64 gap-2 rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-700 dark:bg-zinc-800">
+                                        <details class="max-w-full whitespace-normal">
+                                            <summary class="inline-flex cursor-pointer items-center rounded-md border border-sanmal-border bg-sanmal-surface-primary px-2.5 py-1.5 text-xs font-medium text-sanmal-brand-blue transition hover:bg-sanmal-surface-secondary dark:border-sanmal-border-dark dark:bg-sanmal-surface-inset-dark dark:text-sanmal-brand-yellow-dark dark:hover:bg-sanmal-surface-elevated-dark">{{ __('Koreksi timestamp') }}</summary>
+                                            <form method="POST" action="{{ route('admin.kehadiran.correct-timestamp', $record) }}" class="mt-2 grid w-64 max-w-[calc(100vw-3rem)] gap-2 rounded-lg border border-sanmal-border bg-sanmal-surface-secondary p-3 dark:border-sanmal-border-dark dark:bg-sanmal-surface-secondary-dark">
                                                 @csrf
                                                 <label class="grid gap-1 text-xs">
                                                     <span>{{ __('Waktu efektif') }}</span>
-                                                    <input type="datetime-local" name="recorded_at_local" required value="{{ $record->effectiveRecordedAtLocal()->format('Y-m-d\\TH:i') }}" class="rounded-md border-zinc-300 text-sm dark:border-zinc-600 dark:bg-zinc-900">
+                                                    <input type="datetime-local" name="recorded_at_local" required value="{{ $record->effectiveRecordedAtLocal()->format('Y-m-d\\TH:i') }}" class="rounded-md border-sanmal-border bg-sanmal-surface-primary text-sm dark:border-sanmal-border-dark dark:bg-sanmal-surface-inset-dark">
                                                 </label>
                                                 <label class="grid gap-1 text-xs">
                                                     <span>{{ __('Alasan wajib') }}</span>
-                                                    <textarea name="reason" required minlength="5" maxlength="2000" rows="2" class="rounded-md border-zinc-300 text-sm dark:border-zinc-600 dark:bg-zinc-900"></textarea>
+                                                    <textarea name="reason" required minlength="5" maxlength="2000" rows="2" class="rounded-md border-sanmal-border bg-sanmal-surface-primary text-sm dark:border-sanmal-border-dark dark:bg-sanmal-surface-inset-dark"></textarea>
                                                 </label>
                                                 <x-ui.button type="submit" size="sm" variant="primary">{{ __('Simpan koreksi') }}</x-ui.button>
-                                                <p class="text-xs text-zinc-500">{{ __('Timestamp bukti asli tidak diubah; perubahan dicatat di audit log.') }}</p>
+                                                <p class="text-xs text-[var(--sanmal-text-muted)]">{{ __('Timestamp bukti asli tidak diubah; perubahan dicatat di audit log.') }}</p>
                                             </form>
                                         </details>
                                     @else
@@ -456,7 +440,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                                 </flux:table.cell>
                             </flux:table.row>
                         @empty
-                            @if ($this->notYetPresent->isEmpty())
+                            @if ($notYetPresent->isEmpty())
                                 <flux:table.row>
                                     <flux:table.cell colspan="7" class="px-3 py-2">
                                         <x-admin.empty-state :message="__('Tidak ada catatan pada filter ini.')" />
@@ -465,7 +449,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                             @endif
                         @endforelse
 
-                        @foreach ($this->notYetPresent as $employee)
+                        @foreach ($notYetPresent as $employee)
                             <flux:table.row :key="'not-present-'.$employee->id">
                                 <flux:table.cell class="whitespace-nowrap px-3 py-2">—</flux:table.cell>
                                 <flux:table.cell class="px-3 py-2">{{ $employee->user->name }}</flux:table.cell>
@@ -482,32 +466,6 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                 </flux:table>
             </div>
         </x-ui.card>
-        <div
-            x-show="selfiePreviewOpen"
-            x-cloak
-            x-transition.opacity
-            x-on:click.self="selfiePreviewOpen = false"
-            class="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-4"
-            role="dialog"
-            aria-modal="true"
-            aria-label="{{ __('Pratinjau foto absensi') }}"
-        >
-            <div class="flex max-h-full w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-zinc-900">
-                <div class="flex items-center justify-between gap-3 border-b border-zinc-200 px-4 py-3 dark:border-zinc-700">
-                    <h2 class="font-semibold">{{ __('Foto absensi') }}</h2>
-                    <x-ui.button type="button" variant="ghost" icon="x-mark" square aria-label="{{ __('Tutup pratinjau') }}" x-on:click="selfiePreviewOpen = false" />
-                </div>
-                <div class="min-h-0 overflow-auto bg-zinc-950 p-2">
-                    <img :src="selfiePreviewUrl" alt="{{ __('Foto absensi ukuran penuh') }}" class="mx-auto max-h-[75dvh] w-auto max-w-full object-contain">
-                </div>
-                <div class="flex justify-end border-t border-zinc-200 p-3 dark:border-zinc-700">
-                    <a :href="selfieDownloadUrl" class="inline-flex items-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300">
-                        <flux:icon name="arrow-down-tray" class="size-4" />
-                        {{ __('Unduh foto') }}
-                    </a>
-                </div>
-            </div>
-        </div>
         <div
             x-show="exportConfirmOpen"
             x-cloak

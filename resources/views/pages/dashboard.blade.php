@@ -1,88 +1,120 @@
 <x-layouts::app :title="__('Dashboard')">
     <x-ui.page :gap="$isManager ? '6' : '4'">
         @if ($isManager)
-            <x-ui.page-header
-                :title="__('Dashboard Administrasi')"
-                :description="$today"
-            />
-
-            <section
-                aria-label="{{ __('Ringkasan kehadiran') }}"
-                class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
-            >
-                <x-dashboard.stat-card
-                    :label="__('Pegawai aktif')"
-                    :value="$activeEmployees"
-                    icon="users"
-                />
-
-                <x-dashboard.stat-card
-                    :label="__('Hadir hari ini')"
-                    :value="$presentToday"
-                    icon="check-circle"
-                />
-
-                <x-dashboard.stat-card
-                    :label="__('Belum lengkap')"
-                    :value="$incompleteToday"
-                    icon="clock"
-                />
-
-                <x-dashboard.stat-card
-                    :label="__('Belum ada catatan')"
-                    :value="$noRecordToday"
-                    icon="exclamation-triangle"
-                />
-            </section>
-
-            <section
-                aria-label="{{ __('Tindakan administrasi') }}"
-                class="grid gap-4 md:grid-cols-3"
-            >
-                <x-dashboard.action-card
-                    :label="__('Permohonan menunggu')"
-                    :value="$pendingLeave"
-                    :href="route('admin.leave-requests.index', ['status' => 'pending'])"
-                />
-
-                <x-dashboard.action-card
-                    :label="__('Persetujuan lembur menunggu')"
-                    :value="$pendingOvertime"
-                    :href="route('admin.overtime-requests.index', ['status' => 'pending'])"
-                />
-
-                <x-dashboard.action-card
-                    :label="__('Perlu ditinjau')"
-                    :value="$needsReviewToday"
+            <x-ui.page-header :title="__('Dashboard Administrasi')" :description="$today">
+                <x-ui.button
                     :href="route('admin.daily-attendance', ['date' => $todayDate])"
-                />
-            </section>
+                    variant="outline"
+                    icon="calendar"
+                >
+                    {{ __('Lihat kehadiran hari ini') }}
+                </x-ui.button>
+            </x-ui.page-header>
 
-            <section class="overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-700">
-                <div class="border-b border-zinc-200 p-4 dark:border-zinc-700">
-                    <flux:heading size="lg">{{ __('Aktivitas absensi terbaru') }}</flux:heading>
-                </div>
+            <div class="grid items-start gap-4 xl:grid-cols-[minmax(0,1.5fr)_minmax(19rem,0.85fr)]">
+                <section aria-labelledby="attendance-overview-heading">
+                    <x-ui.card padding="p-0" class="overflow-hidden">
+                        <div class="bg-sanmal-brand-blue px-5 py-5 text-white dark:bg-sanmal-surface-primary-dark sm:px-6">
+                            <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-white/75 dark:text-[var(--sanmal-text-secondary)]">{{ __('Kehadiran hari ini') }}</p>
+                                    <h2 id="attendance-overview-heading" class="mt-1 text-3xl font-semibold tracking-tight tabular-nums">
+                                        {{ number_format($presentToday) }} <span class="text-lg font-medium text-white/75 dark:text-[var(--sanmal-text-secondary)]">/ {{ number_format($activeEmployees) }}</span>
+                                    </h2>
+                                    <p class="mt-1 text-sm text-white/75 dark:text-[var(--sanmal-text-secondary)]">{{ __('pegawai aktif telah hadir') }}</p>
+                                </div>
 
-                @forelse ($recentAttendance as $record)
-                    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-zinc-100 px-4 py-3 last:border-0 dark:border-zinc-800">
-                        <div>
-                            <p class="font-medium">
-                                {{ $record->employee?->user?->name ?? __('Pegawai tidak ditemukan') }}
-                            </p>
-                            <flux:text size="sm">
-                                {{ $record->type->label() }}
-                                ·
-                                {{ $record->recordedAtLocal()->format('d M Y H:i') }}
-                            </flux:text>
+                                <div class="flex items-center gap-2 text-sm text-white/80 dark:text-[var(--sanmal-text-secondary)]">
+                                    <flux:icon name="users" class="size-4" />
+                                    <span>{{ __('Pegawai aktif') }}: {{ number_format($activeEmployees) }}</span>
+                                </div>
+                            </div>
                         </div>
 
-                        <x-ui.badge>{{ $record->work_type->label() }}</x-ui.badge>
+                        <div class="grid gap-px bg-sanmal-border sm:grid-cols-3 dark:bg-sanmal-border-dark">
+                            <div class="bg-sanmal-surface-card p-4 dark:bg-sanmal-surface-card-dark">
+                                <p class="text-sm text-[var(--sanmal-text-secondary)]">{{ __('Belum lengkap') }}</p>
+                                <p class="mt-1 text-2xl font-semibold tabular-nums text-sanmal-warning">{{ number_format($incompleteToday) }}</p>
+                            </div>
+                            <div class="bg-sanmal-surface-card p-4 dark:bg-sanmal-surface-card-dark">
+                                <p class="text-sm text-[var(--sanmal-text-secondary)]">{{ __('Perlu ditinjau') }}</p>
+                                <p class="mt-1 text-2xl font-semibold tabular-nums text-sanmal-danger">{{ number_format($needsReviewToday) }}</p>
+                            </div>
+                            <div class="bg-sanmal-surface-card p-4 dark:bg-sanmal-surface-card-dark">
+                                <p class="text-sm text-[var(--sanmal-text-secondary)]">{{ __('Belum ada catatan') }}</p>
+                                <p class="mt-1 text-2xl font-semibold tabular-nums text-[var(--sanmal-text-primary)]">{{ number_format($noRecordToday) }}</p>
+                            </div>
+                        </div>
+                    </x-ui.card>
+                </section>
+
+                <section aria-labelledby="admin-queue-heading" class="space-y-3">
+                    <div class="flex items-baseline justify-between gap-3 px-1">
+                        <h2 id="admin-queue-heading" class="text-base font-semibold text-[var(--sanmal-text-primary)]">{{ __('Antrean tindakan') }}</h2>
+                        <p class="text-sm text-[var(--sanmal-text-muted)]">{{ __('Butuh keputusan') }}</p>
                     </div>
-                @empty
-                    <p class="p-6 text-center text-sm text-zinc-500">
-                        {{ __('Belum ada catatan absensi hari ini.') }}
-                    </p>
-                @endforelse
+
+                    <div class="grid gap-3">
+                        <x-dashboard.action-card
+                            :label="__('Permohonan menunggu')"
+                            :value="$pendingLeave"
+                            :href="route('admin.leave-requests.index', ['status' => 'pending'])"
+                            icon="document-text"
+                        />
+
+                        <x-dashboard.action-card
+                            :label="__('Persetujuan lembur menunggu')"
+                            :value="$pendingOvertime"
+                            :href="route('admin.overtime-requests.index', ['status' => 'pending'])"
+                            icon="clock"
+                        />
+
+                        <x-dashboard.action-card
+                            :label="__('Catatan perlu ditinjau')"
+                            :value="$needsReviewToday"
+                            :href="route('admin.daily-attendance', ['date' => $todayDate])"
+                            icon="exclamation-triangle"
+                        />
+                    </div>
+                </section>
+            </div>
+
+            <section aria-labelledby="recent-attendance-heading">
+                <x-ui.card padding="p-0" class="overflow-hidden">
+                    <div class="flex flex-col gap-2 border-b border-sanmal-border px-5 py-4 sm:flex-row sm:items-center sm:justify-between dark:border-sanmal-border-dark">
+                        <div>
+                            <h2 id="recent-attendance-heading" class="text-lg font-semibold text-[var(--sanmal-text-primary)]">{{ __('Aktivitas absensi terbaru') }}</h2>
+                            <p class="mt-1 text-sm text-[var(--sanmal-text-secondary)]">{{ __('Catatan masuk dan pulang yang tercatat hari ini') }}</p>
+                        </div>
+                        <x-ui.button :href="route('admin.daily-attendance', ['date' => $todayDate])" variant="ghost" icon-trailing="chevron-right">
+                            {{ __('Buka daftar') }}
+                        </x-ui.button>
+                    </div>
+
+                    <div class="divide-y divide-sanmal-border dark:divide-sanmal-border-dark">
+                        @forelse ($recentAttendance as $record)
+                            <div class="flex flex-wrap items-center justify-between gap-3 px-5 py-3.5">
+                                <div class="flex min-w-0 items-center gap-3">
+                                    <span class="flex size-9 shrink-0 items-center justify-center rounded-full bg-sanmal-surface-inset text-sanmal-brand-blue dark:bg-sanmal-surface-inset-dark dark:text-sanmal-brand-yellow-dark">
+                                        <flux:icon :name="$record->type->value === 'clock_in' ? 'arrow-right' : 'arrow-left'" class="size-4" />
+                                    </span>
+                                    <div class="min-w-0">
+                                        <p class="truncate font-medium text-[var(--sanmal-text-primary)]">{{ $record->employee?->user?->name ?? __('Pegawai tidak ditemukan') }}</p>
+                                        <p class="mt-0.5 text-sm text-[var(--sanmal-text-secondary)]">
+                                            {{ $record->type->label() }} · <time datetime="{{ $record->recordedAtLocal()->toIso8601String() }}">{{ $record->recordedAtLocal()->format('d M Y, H:i') }}</time>
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <x-ui.badge>{{ $record->work_type->label() }}</x-ui.badge>
+                            </div>
+                        @empty
+                            <p class="px-5 py-8 text-center text-sm text-[var(--sanmal-text-muted)]">
+                                {{ __('Belum ada catatan absensi hari ini.') }}
+                            </p>
+                        @endforelse
+                    </div>
+                </x-ui.card>
             </section>
         @else
             @if (! $employeeDashboard)

@@ -35,7 +35,7 @@ test('authenticated users can visit the dashboard', function () {
         ->assertDontSee('Pegawai aktif');
 });
 
-test('administrators see the administrative dashboard summary', function () {
+test('administrators see the administrative dashboard operational overview', function () {
     $user = User::factory()->create();
     $user->forceFill(['role' => UserRole::Admin])->save();
 
@@ -44,9 +44,10 @@ test('administrators see the administrative dashboard summary', function () {
         ->assertOk()
         ->assertSee('Dashboard Administrasi')
         ->assertSee('Pegawai aktif')
+        ->assertSee('Kehadiran hari ini')
+        ->assertSee('Antrean tindakan')
         ->assertSee('Aktivitas absensi terbaru')
-        ->assertSee('Permohonan menunggu')
-        ->assertSee('flex flex-col items-center gap-2 text-center', false);
+        ->assertSee('Permohonan menunggu');
 });
 
 test('admin dashboard daily attendance action uses the WITA reporting date', function () {

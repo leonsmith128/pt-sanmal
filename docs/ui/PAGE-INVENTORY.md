@@ -13,7 +13,7 @@
 
 | Halaman / workflow | Fokus review |
 |---|---|
-| Dashboard Admin | Monitoring seluruh pegawai; card statistik dan tindakan memakai ikon/label/nilai tersusun vertikal dan rata tengah; hierarki aktivitas, density, wrapping tablet/mobile |
+| Dashboard Admin | Monitoring seluruh pegawai; overview kehadiran hari ini, antrean tindakan, dan aktivitas terbaru; hierarki aktivitas, density, wrapping tablet/mobile |
 | Dashboard Pribadi Admin | Halaman terpisah untuk Admin/Superadmin dengan profil pegawai; employee-scoped attendance, work duration, overtime, requests, dan recent activity; ringkasan bulan 2 kolom di bawah `xl`, 4 kolom mulai `xl`, label/nilai rata tengah tanpa separator |
 | Client list dan detail | Hierarki Client–Site–Office, ringkasan, list, navigasi, dan aksi |
 | Client create/edit | Grouping field, label, validasi, lebar form, dan hierarki aksi |

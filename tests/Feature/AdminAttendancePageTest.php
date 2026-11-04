@@ -136,6 +136,42 @@ it('filters attendance records by employee text, event type, and work type', fun
         ->assertSee('data-record-count="1"', false);
 });
 
+it('renders compact attendance media, map link, and historical project context', function () {
+    $admin = attendancePageAdmin();
+    $employee = attendancePageEmployee('Pegawai Proyek');
+
+    $record = AttendanceRecord::query()->create([
+        'employee_id' => $employee->id,
+        'type' => AttendanceType::ClockIn,
+        'work_type' => WorkType::Onsite,
+        'recorded_at' => '2026-11-02 01:00:00',
+        'timezone' => 'Asia/Makassar',
+        'attendance_date' => '2026-11-02',
+        'latitude' => -5.1477,
+        'longitude' => 119.4327,
+        'address_snapshot' => 'Jl. Kalibrasi No. 1, Makassar',
+        'selfie_path' => 'selfies/attendance.jpg',
+        'client_code_snapshot' => 'CL-01',
+        'client_name_snapshot' => 'Client Kalibrasi',
+        'project_code_snapshot' => 'PRJ-01',
+        'project_name_snapshot' => 'Proyek Pengujian',
+        'location_name_snapshot' => 'Site Makassar',
+    ]);
+
+    Livewire::actingAs($admin)
+        ->test('pages::admin.kehadiran')
+        ->set('dateFrom', '2026-11-02')
+        ->set('dateTo', '2026-11-02')
+        ->assertSee('Jl. Kalibrasi No. 1, Makassar')
+        ->assertSee('https://www.google.com/maps?q=', false)
+        ->assertSee('PRJ-01 · Proyek Pengujian')
+        ->assertSee('attendance-project-'.$record->id, false)
+        ->assertSee('Konteks proyek')
+        ->assertSee(route('admin.attendance.selfie', $record), false)
+        ->assertDontSee('Backup ke Drive')
+        ->assertDontSee('Hapus lokal');
+});
+
 it('shows recent attendance across dates and paginates after thirty records', function () {
     $admin = attendancePageAdmin();
     $employee = attendancePageEmployee('Pegawai Aktivitas');

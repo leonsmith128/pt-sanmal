@@ -5,16 +5,21 @@
     'icon' => null,
 ])
 
-<x-ui.card :href="$href" padding="p-5">
-    <div class="flex flex-col items-center gap-2 text-center">
+<x-ui.card :href="$href" padding="p-4" class="group">
+    <div class="flex items-center gap-3">
         @if ($icon)
-            <flux:icon :name="$icon" class="size-5 text-zinc-400" />
+            <span class="flex size-9 shrink-0 items-center justify-center rounded-lg bg-sanmal-surface-inset text-sanmal-brand-blue dark:bg-sanmal-surface-inset-dark dark:text-sanmal-brand-yellow-dark">
+                <flux:icon :name="$icon" class="size-4" />
+            </span>
         @endif
 
-        <flux:text>{{ $label }}</flux:text>
-    </div>
+        <div class="min-w-0 flex-1">
+            <p class="text-sm leading-5 text-[var(--sanmal-text-secondary)]">{{ $label }}</p>
+            <p class="mt-1 text-2xl font-semibold tracking-tight tabular-nums text-[var(--sanmal-text-primary)]">
+                {{ number_format($value) }}
+            </p>
+        </div>
 
-    <p class="mt-2 text-center text-2xl font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">
-        {{ number_format($value) }}
-    </p>
+        <flux:icon name="chevron-right" class="size-4 shrink-0 text-[var(--sanmal-text-muted)] transition-transform motion-reduce:transition-none group-hover:translate-x-0.5" />
+    </div>
 </x-ui.card>
