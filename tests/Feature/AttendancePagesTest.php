@@ -649,7 +649,7 @@ test('attendance history renders date groups and event detail dialog using the c
         ->and($cardSurfaces->length)->toBeGreaterThanOrEqual(5);
 
     foreach ($cardSurfaces as $cardSurface) {
-        expect($cardSurface->getAttribute('class'))->not->toMatch('/\\bborder(?:-|\\s|$)/');
+        expect($cardSurface->getAttribute('class'))->not->toContain('border');
     }
 });
 
