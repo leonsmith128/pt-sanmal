@@ -78,3 +78,10 @@ Viewport emulation alone does not satisfy device QA.
 The reusable filter UI and shared query/export filter contract were added to PR #27. Automated regression coverage targets combined Client/Location/Project filters, historical Location filtering after a Project Location change, inactive historical options, reversed date-range normalization, and complete daily recap export semantics.
 
 **Browser/device QA: Not run.** Source review and CI do not establish visual or interaction QA. Verify filter wrapping and select interaction at 360–390 px, 414–430 px, 768 px, 1024 px, and 1280–1440 px in supported light/dark themes. Also confirm independent dropdown selections remain visible when their combination returns an empty result.
+
+
+## Admin Attendance filter-panel layout — source follow-up (5 November 2026)
+
+The filter panel was tightened, redundant page descriptions removed, the reset action moved below the filter controls, and Export retained in the activity toolbar. The existing filter contract and reset semantics are unchanged.
+
+**Browser/device QA: Not run.** Review at 360–390 px, 414–430 px, 768 px, 1024 px, and 1280–1440 px in supported light/dark themes. Confirm the controls remain legible, the reset action stays easy to reach, and the Export dropdown is not clipped. The activity table still requires a separate responsive-layout pass; this change does not claim to resolve horizontal table overflow.
