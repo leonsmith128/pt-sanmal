@@ -30,6 +30,8 @@ Run [#1418](https://github.com/leonsmith128/pt-sanmal/actions/runs/41771398379) 
 - PR head: `7f887da6b44e2e43ea0c9e6ba1eb9764a4b36669`
 - Merge ref yang diuji: `48f992148f546cb06264e2aae928581f345984a7`
 
+Setelah run ini, perubahan yang ditambahkan pada branch adalah dokumentasi saja; tidak ada perubahan source aplikasi setelah PR head yang diuji. Run ini tetap bukan bukti browser/device QA.
+
 **Status: CI gagal pada run #1418.**
 
 | Pemeriksaan | Hasil |
