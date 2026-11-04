@@ -21,7 +21,7 @@
         <flux:icon name="chevron-down" variant="micro" class="shrink-0 transition-transform" x-bind:class="filtersOpen ? 'rotate-180' : ''" />
     </button>
 
-    <div id="admin-attendance-filter-controls" x-cloak x-show="filtersOpen" x-collapse class="mt-3 grid w-full min-w-0 grid-cols-1 items-end gap-x-2 gap-y-3 sm:grid-cols-2 lg:grid-cols-5">
+    <div id="admin-attendance-filter-controls" x-cloak x-show="filtersOpen" class="mt-3 grid w-full min-w-0 grid-cols-1 items-end gap-x-2 gap-y-3 sm:grid-cols-2 lg:grid-cols-5">
     <div class="col-span-full flex items-center justify-between gap-2 pb-1">
         <span class="text-xs text-[var(--sanmal-text-secondary)]">{{ $activeFilterCount }} {{ __('filter aktif') }}</span>
     </div>
