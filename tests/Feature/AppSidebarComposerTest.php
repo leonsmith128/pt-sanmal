@@ -3,7 +3,6 @@
 use App\Enums\UserRole;
 use App\Models\Employee;
 use App\Models\User;
-use App\View\Composers\AppSidebarComposer;
 use Illuminate\Support\Str;
 
 test('application sidebar composer prepares manager navigation and system notifications', function () {
