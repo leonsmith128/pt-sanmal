@@ -31,6 +31,8 @@ test('authenticated users can visit the dashboard', function () {
     $response = $this->get(route('dashboard'));
     $response->assertOk()
         ->assertSee('Selamat datang')
+        ->assertSee('x-employee.identity-header', false)
+        ->assertSee('size-14', false)
         ->assertDontSee('Dashboard Administrasi')
         ->assertDontSee('Pegawai aktif');
 });
