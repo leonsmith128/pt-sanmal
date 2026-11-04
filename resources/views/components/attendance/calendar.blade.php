@@ -4,6 +4,7 @@
     'selectedDate',
     'selectedMonthLabel',
     'calendarMonthLabel',
+    'todayDate',
     'showMonthlyCalendar' => false,
 ])
 
