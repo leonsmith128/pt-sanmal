@@ -79,9 +79,9 @@ The primary action is theme-aware: blue in light theme and yellow in dark theme.
 
 | Token | Light | Dark | Typical use |
 |---|---|---|---|
-| `surface/page` | `#E5EBF1` | `#0B1623` | Inset main page container |
+| `surface/page` | `#F2F5F8` | `#0B1623` | Inset main page container |
 | `surface/primary` | `#F8FCFF` | `#122235` | Main content panel |
-| `surface/card` | `#F8FCFF` | `#192B40` | Standard and linked cards; distinct from the dark main panel |
+| `surface/card` | `#F9FAFC` | `#192B40` | Standard and linked cards; distinct from the main panel |
 | `surface/sidebar` | `#CAD6E2` | `#0B1623` | Body/shell and sidebar navigation surface; dark theme stays integrated |
 | `surface/secondary` | `#EAF0F6` | `#122235` | Secondary grouping and light-theme hover surfaces |
 | `surface/inset` | `#E3EBF3` | `#20354B` | Inset controls and recessed areas |
@@ -90,6 +90,8 @@ The primary action is theme-aware: blue in light theme and yellow in dark theme.
 | `text/primary` | `#172033` | `#F1F5F9` | Main content |
 | `text/secondary` | `#526579` | `#CBD5E1` | Supporting content |
 | `text/muted` | `#64748B` | `#94A3B8` | Metadata and helper text |
+
+The live token values are defined in `resources/css/app.css`; if this table and the stylesheet ever differ, inspect the source branch and update this document rather than copying stale values. In the current source, the light page surface is `#F2F5F8` and the card surface is `#F9FAFC`; the primary surface remains `#F8FCFF`.
 
 ### Semantic colors
 
@@ -105,8 +107,10 @@ Use semantic colors consistently. A status color must not be the only way to com
 ### Surface usage rules
 
 - Use `x-ui.card` for standard content cards so light/dark backgrounds, text color, radius, and shadow remain centralized.
+- **The outer card container is borderless and shadow-only** (`shadow-sm`; dark theme uses `dark:shadow-black/20`). Do not add border utilities to a standard card container. The card surface is `#F9FAFC` in light theme and `#192B40` in dark theme.
+- Borders remain appropriate for controls, dividers, tables, modal frames, and inset/secondary groups when they communicate structure; this rule applies to the outer card container, not every descendant.
 - Use the approved `surface/secondary` or `surface/inset` tokens for nested groups, chips, and recessed content; always provide the matching dark token.
-- Use the `border` token pair for dividers and outlines. Do not introduce one-off `white`, `zinc`, or `gray` backgrounds/borders inside standardized cards.
+- Do not introduce one-off `white`, `zinc`, or `gray` backgrounds/borders inside standardized cards.
 - Use the shared `--sanmal-text-primary`, `--sanmal-text-secondary`, and `--sanmal-text-muted` variables for neutral text hierarchy. Reserve semantic colors for actual status and feedback.
 - A component may have a different layout by role or page, but its surface palette must remain consistent with the shared design tokens.
 
@@ -151,9 +155,9 @@ Density means removing decorative whitespace, not shrinking everything. Do not h
 
 ### Application shell and content surface
 
-Keep the application shell visually continuous without making the sidebar and page indistinguishable: the `body` and sidebar use the sidebar surface (`bg-sanmal-surface-sidebar dark:bg-sanmal-surface-page-dark`). In light theme both are `#CAD6E2`; the inset main content uses the separate page surface (`bg-sanmal-surface-page dark:bg-sanmal-surface-page-dark`), which is `#E5EBF1`; in dark theme both remain integrated with the dark page surface. The sidebar has no separating border.
+Keep the application shell visually continuous without making the sidebar and page indistinguishable: the `body` and sidebar use the sidebar surface (`bg-sanmal-surface-sidebar dark:bg-sanmal-surface-page-dark`). In light theme both are `#CAD6E2`; the inset main content uses the separate page surface (`bg-sanmal-surface-page dark:bg-sanmal-surface-page-dark`), which is `#F2F5F8`; in dark theme both remain integrated with the dark page surface. The sidebar has no separating border.
 
-The main content uses Flux's `<flux:main inset>` and applies the page surface directly to that element (`bg-sanmal-surface-page dark:bg-sanmal-surface-page-dark`). The inset page container is `#E5EBF1` in light theme; it does not change the body/sidebar surface. Standard and linked `x-ui.card` components keep the dedicated card surface (`bg-sanmal-surface-card dark:bg-sanmal-surface-card-dark`); in dark theme this is intentionally lighter than the main panel. Linked-card hover uses the elevated dark surface token. Keep the sidebar, optional header, and main as direct siblings. Flux owns the inset panel's rounded surface, desktop outer gutter, constrained viewport layout, and internal desktop scrolling; on smaller screens the panel becomes full width and the document scrolls normally. Do not recreate these behaviors with manual margin or overflow utilities.
+The main content uses Flux's `<flux:main inset>` and applies the page surface directly to that element (`bg-sanmal-surface-page dark:bg-sanmal-surface-page-dark`). The inset page container is `#F2F5F8` in light theme; it does not change the body/sidebar surface. Standard and linked `x-ui.card` components keep the dedicated borderless card surface (`bg-sanmal-surface-card dark:bg-sanmal-surface-card-dark`): `#F9FAFC` in light theme and `#192B40` in dark theme, intentionally distinct from the main panel. The outer card uses shadow for elevation, not a border. Linked-card hover uses the elevated dark surface token. Keep the sidebar, optional header, and main as direct siblings. Flux owns the inset panel's rounded surface, desktop outer gutter, constrained viewport layout, and internal desktop scrolling; on smaller screens the panel becomes full width and the document scrolls normally. Do not recreate these behaviors with manual margin or overflow utilities.
 
 Keep `p-0` on the main region to neutralize Flux's default inset padding because page content owns its internal spacing. Use `lg:ms-0` to remove the extra start offset beside the sidebar. Add `lg:mt-0` only when a desktop-visible Flux header is also present. Do not manually add `overflow-y-auto`, `overscroll-contain`, or duplicate desktop margin classes; these are already supplied by Flux inset.
 
