@@ -102,3 +102,31 @@ test('profile photo upload rejects images over two megabytes', function () {
         ->call('saveProfilePhoto')
         ->assertHasErrors(['photo']);
 });
+
+test('profile photo URL serves the stored image without requiring a public storage symlink', function () {
+    Storage::fake('public');
+
+    $path = UploadedFile::fake()->image('profile.jpg')->store('profile-photos', 'public');
+    $user = User::factory()->create(['profile_photo_path' => $path]);
+
+    $this->actingAs($user)
+        ->get($user->profilePhotoUrl())
+        ->assertOk()
+        ->assertHeader('content-type', 'image/jpeg');
+
+    expect($user->profilePhotoUrl())->toBe(route('profile-photo.show', ['user' => $user->id]));
+});
+
+test('employee profile renders the saved photo as a modal preview trigger', function () {
+    Storage::fake('public');
+
+    $path = UploadedFile::fake()->image('profile.jpg')->store('profile-photos', 'public');
+    $user = User::factory()->create(['profile_photo_path' => $path]);
+
+    $this->actingAs($user)
+        ->get('/profil')
+        ->assertOk()
+        ->assertSee('Perbesar foto profil')
+        ->assertSee($user->profilePhotoUrl(), false)
+        ->assertSee('role="dialog"', false);
+});
