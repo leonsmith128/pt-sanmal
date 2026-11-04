@@ -107,11 +107,11 @@
         </div>
 
         @if ($dateGroups->isEmpty())
-            <x-ui.empty-state
-                icon="calendar"
-                :title="__('Belum ada riwayat absensi')"
-                :description="__('Tidak ada status kehadiran atau event pada rentang tanggal ini. Coba ubah filter tanggal.')"
-            />
+            <div class="rounded-2xl border border-dashed border-zinc-300 px-5 py-12 text-center dark:border-zinc-700">
+                <flux:icon name="calendar" class="mx-auto size-9 text-zinc-400" />
+                <flux:heading size="md" class="mt-3">{{ __('Belum ada riwayat absensi') }}</flux:heading>
+                <flux:text class="mt-1">{{ __('Tidak ada status kehadiran atau event pada rentang tanggal ini. Coba ubah filter tanggal.') }}</flux:text>
+            </div>
         @else
             <div class="space-y-3">
                 @foreach ($dateGroups as $group)
