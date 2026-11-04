@@ -354,6 +354,15 @@ it('keeps the attendance filter panel compact and removes redundant page descrip
         ->assertDontSee('Pantau dan telusuri catatan absensi seluruh pegawai.');
 });
 
+it('uses the Heroicons reset icon in the attendance filter panel', function () {
+    $admin = attendancePageAdmin();
+
+    Livewire::actingAs($admin)
+        ->test('pages::admin.kehadiran')
+        ->assertSee('arrow-path')
+        ->assertDontSee('rotate-ccw');
+});
+
 it('renders the attendance export confirmation with an Alpine-bound link', function () {
     $admin = attendancePageAdmin();
 
