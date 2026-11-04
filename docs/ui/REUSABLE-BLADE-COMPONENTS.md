@@ -65,6 +65,18 @@ Button and action hierarchy:
 
 A dynamically assigned Alpine URL must use an anchor rendered on the server (for example, provide a harmless initial `href` and bind the final URL with `x-bind:href`). A plain button cannot become a semantic link merely by adding an Alpine `href` attribute.
 
+### Employee identity composition (`x-employee.identity-header`)
+
+Use `x-employee.identity-header` for the employee identity heading shared by the Employee Dashboard and Attendance page. It centralizes the avatar, greeting, name typography, supporting description, responsive spacing, and optional trailing action slot.
+
+Contract:
+- Required `name`; optional `initials`, `src`, `greeting`, `description`, and `avatarSize` (default `lg`).
+- Use `avatar-size="lg"` (56 px) on Employee Dashboard to preserve its larger visual emphasis.
+- Use `avatar-size="compact"` (48 px) on Attendance so the identity remains subordinate to the attendance workflow while retaining the same heading hierarchy.
+- Supply page-specific notification controls through the `actions` slot. The component does not query notifications or decide routes.
+- The greeting and description are caller-provided; keep employee identity data and date formatting in the page.
+- The shared name heading uses the Dashboard typography on both pages. Do not duplicate the header markup in either page.
+
 ### 2. Domain/layout components (`x-admin.*`, `x-attendance.*`, etc.)
 
 Components that encode a repeated page pattern or domain-specific presentation:
