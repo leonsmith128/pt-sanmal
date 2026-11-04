@@ -3,11 +3,11 @@
     <head>
         @include('partials.head')
     </head>
-    <body class="flex h-dvh min-h-0 w-full overflow-hidden overscroll-none bg-sanmal-surface-sidebar dark:bg-sanmal-surface-page-dark">
+    <body class="min-h-dvh bg-sanmal-surface-sidebar dark:bg-sanmal-surface-page-dark">
         <flux:sidebar
             sticky
             :collapsible="$isManager ? true : 'mobile'"
-            class="sticky top-0 flex h-dvh min-h-0 shrink-0 self-start flex-col overflow-hidden bg-sanmal-surface-sidebar dark:bg-sanmal-surface-page-dark"
+            class="h-dvh min-h-dvh overflow-x-hidden bg-sanmal-surface-sidebar dark:bg-sanmal-surface-page-dark"
         >
             <flux:sidebar.header>
                 <div class="flex w-full items-center justify-between gap-2">
@@ -28,7 +28,7 @@
                 @endif
             </flux:sidebar.header>
 
-            <flux:sidebar.nav aria-label="{{ __('Navigasi utama') }}" class="sanmal-sidebar-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain">
+            <flux:sidebar.nav aria-label="{{ __('Navigasi utama') }}" >
                 @if ($isEmployee)
                     <div class="flex flex-col">
                         <flux:sidebar.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
