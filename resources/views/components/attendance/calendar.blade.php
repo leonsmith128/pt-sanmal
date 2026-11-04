@@ -18,7 +18,7 @@
             <x-ui.button size="sm" variant="ghost" icon="chevron-left" wire:click="shiftWeek(-1)" aria-label="{{ __('Minggu sebelumnya') }}" />
             <x-ui.button size="sm" variant="ghost" icon="chevron-right" wire:click="shiftWeek(1)" aria-label="{{ __('Minggu berikutnya') }}" />
             <x-ui.button size="sm" variant="ghost" icon="calendar-days" wire:click="openMonthlyCalendar" aria-label="{{ __('Buka kalender bulanan') }}" />
-            <x-ui.button size="sm" variant="ghost" wire:click="selectDate('{{ now(\App\Actions\RecordAttendance::DEFAULT_TIMEZONE)->toDateString() }}')">{{ __('Hari ini') }}</x-ui.button>
+            <x-ui.button size="sm" variant="ghost" wire:click="selectDate('{{ $todayDate }}')">{{ __('Hari ini') }}</x-ui.button>
         </div>
     </div>
     <div class="grid grid-cols-7 gap-1 sm:gap-1.5">
