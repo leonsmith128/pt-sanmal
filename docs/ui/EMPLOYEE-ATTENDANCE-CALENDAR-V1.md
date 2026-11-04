@@ -10,7 +10,7 @@ Provide a compact weekly calendar for daily navigation and a monthly calendar fo
 ## 2. Weekly calendar
 
 - Seven columns, Monday through Sunday.
-- The selected date's month and year are displayed as a text button that opens the monthly picker. Style it as a readable, semibold heading with a subtle chevron, comfortable click target, hover surface, and visible keyboard-focus ring.
+- The selected date's month and year are displayed together on one line as a text button that opens the monthly picker. Keep the label whitespace-nowrap and omit the chevron to conserve horizontal space on mobile. Retain a readable, semibold heading, comfortable click target, hover surface, and visible keyboard-focus ring.
 - Do not display a separate calendar icon/button or helper description beneath the month heading.
 - Previous/next week controls and a **Hari ini** action remain available.
 - Each date shows weekday, day number, and a small status dot when one of the three agreed indicator states applies.
