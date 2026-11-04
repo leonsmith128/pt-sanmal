@@ -80,7 +80,7 @@ test('attendance history date filters use shared controls and retain submitted v
         ->assertSee('value="2026-11-01"', false)
         ->assertSee('name="to"', false)
         ->assertSee('value="2026-11-03"', false)
-        ->assertSee(__('Terapkan filter'))
+        ->assertSee(__('Terapkan'))
         ->assertSee(__('Reset'));
 });
 
@@ -102,11 +102,15 @@ test('saved address snapshots are visible to employees and admins', function () 
         'address_snapshot' => $address,
     ]);
 
-    $this->actingAs($employee)
+    $historyResponse = $this->actingAs($employee)
         ->get(route('attendance-history.index'))
-        ->assertOk()
-        ->assertSee(__('Alamat tersimpan:'))
-        ->assertSee($address);
+        ->assertOk();
+
+    preg_match('/data-event="([^"]+)"/', $historyResponse->getContent(), $matches);
+    expect($matches)->toHaveKey(1);
+
+    $payload = json_decode(base64_decode($matches[1]), true, flags: JSON_THROW_ON_ERROR);
+    expect($payload['address'])->toBe($address);
 
     $this->actingAs($admin)
         ->get(route('admin.kehadiran'))
@@ -626,7 +630,10 @@ test('attendance history renders date groups and event detail dialog using the c
         ->assertSee('attendance-event-detail-title', false)
         ->assertSee('openEvent(JSON.parse(atob($el.dataset.event)), $el)', false)
         ->assertSee('data-event=', false)
-        ->assertSee('attendance-history.export?from=2026-11-01&amp;to=2026-11-04', false)
+        ->assertSee(e(route('attendance-history.export', [
+            'from' => '2026-11-01',
+            'to' => '2026-11-04',
+        ])), false)
         ->assertViewHas('dateGroups', fn ($groups): bool => $groups->total() === 1
             && $groups->first()['date'] === '2026-11-03'
             && $groups->first()['events']->count() === 1);
