@@ -41,7 +41,7 @@
         <section aria-label="{{ __('Ringkasan kehadiran') }}" class="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <article class="rounded-xl bg-sanmal-surface-card p-4 dark:bg-sanmal-surface-card-dark">
                 <div class="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
-                    <flux:icon name="calendar-check" class="size-4" />
+                    <flux:icon name="calendar" class="size-4" />
                     {{ __('Hari hadir') }}
                 </div>
                 <p class="mt-2 text-2xl font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">{{ number_format($summary['present_days']) }}</p>
@@ -57,7 +57,7 @@
             </article>
             <article class="rounded-xl bg-sanmal-surface-card p-4 dark:bg-sanmal-surface-card-dark">
                 <div class="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
-                    <flux:icon name="alert-triangle" class="size-4" />
+                    <flux:icon name="exclamation-triangle" class="size-4" />
                     {{ __('Perlu ditinjau') }}
                 </div>
                 <p class="mt-2 text-2xl font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">{{ number_format($summary['needs_review_days']) }}</p>
@@ -163,7 +163,7 @@
                         @if ($group['events']->isEmpty())
                             <div class="px-4 py-5 text-sm text-zinc-500 dark:text-zinc-400 sm:px-5">
                                 <div class="flex items-center gap-2">
-                                    <flux:icon name="clipboard-check" class="size-4 shrink-0" />
+                                    <flux:icon name="clock" class="size-4 shrink-0" />
                                     {{ __('Tidak ada event foto atau waktu untuk tanggal ini. Status berasal dari catatan administratif atau permohonan.') }}
                                 </div>
                             </div>
@@ -211,11 +211,11 @@
                                         <div class="flex min-w-0 items-start gap-3">
                                             <span class="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
                                                 @if ($record->type->value === 'clock_in')
-                                                    <flux:icon name="log-in" class="size-4" />
+                                                    <flux:icon name="arrow-right-on-rectangle" class="size-4" />
                                                 @elseif ($record->type->value === 'clock_out')
-                                                    <flux:icon name="log-out" class="size-4" />
+                                                    <flux:icon name="arrow-left-on-rectangle" class="size-4" />
                                                 @else
-                                                    <flux:icon name="timer" class="size-4" />
+                                                    <flux:icon name="clock" class="size-4" />
                                                 @endif
                                             </span>
                                             <div class="min-w-0">
