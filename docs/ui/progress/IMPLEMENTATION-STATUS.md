@@ -98,9 +98,9 @@ Gap yang masih terbuka: perluasan matriks kalender/timezone dan browser QA respo
 ## Employee Attendance — layout and photo preview
 
 - Main attendance action remains the final element inside the attendance form, after the camera component and validation messages. It is not sticky or fixed; the page retains normal document scrolling when the photo preview or lower history content increases page height.
-- `x-attendance.photo-preview` owns the captured-selfie thumbnail and full-size popover. The image keeps its intrinsic aspect ratio (`object-contain`) and is constrained only by the available viewport; the popover closes through its close control, outside click, or Escape.
+- `x-attendance.photo-preview` owns the captured-selfie thumbnail and full-size centered modal. The image keeps its intrinsic aspect ratio (`object-contain`) and is constrained to the viewport; the modal closes through its close control, clicking the backdrop outside the preview, or Escape.
 - `x-attendance.camera` remains dedicated to camera/GPS capture and watermark behavior; its source was restored unchanged after preview responsibilities were extracted.
 - Retake action and the existing camera/GPS/watermark/Livewire submission flow remain unchanged.
 - Attendance summary and form surfaces now use the approved SanMal light/dark card and border tokens.
 - Regression coverage was updated for the standalone preview component and full-width bottom action placement.
-- **Status: Implemented; CI verification pending for the latest PR head. Browser/device QA remains pending**, especially 360–390px and 414–430px widths, popover placement near viewport edges, and the full camera → preview → retake → confirm sequence.
+- **Status: Implemented; CI verification pending for the latest PR head. Browser/device QA remains pending**, especially 360–390px and 414–430px widths, centered modal placement and backdrop dismissal, and the full camera → preview → retake → confirm sequence.
