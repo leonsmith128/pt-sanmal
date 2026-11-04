@@ -24,6 +24,7 @@ Jangan membaca seluruh dokumentasi secara berurutan untuk setiap task. Gunakan j
 - Mengubah API komponen: [Reusable Blade Components](REUSABLE-BLADE-COMPONENTS.md).
 - Employee Dashboard: [Layout V1](EMPLOYEE-DASHBOARD-LAYOUT-V1.md) dan [Data Contract](EMPLOYEE-DASHBOARD-DATA-CONTRACT.md).
 - Employee Attendance: [Layout V1](EMPLOYEE-ATTENDANCE-LAYOUT-V1.md) dan [Calendar V1](EMPLOYEE-ATTENDANCE-CALENDAR-V1.md).
+- Employee Attendance History: [V1 scope and behavior](EMPLOYEE-ATTENDANCE-HISTORY-V1.md).
 - Employee Profile: [Layout V1](EMPLOYEE-PROFILE-LAYOUT-V1.md).
 - Status pekerjaan: [Implementation Status](progress/IMPLEMENTATION-STATUS.md).
 - Bukti browser/perangkat: [Visual QA Log](progress/VISUAL-QA-LOG.md).
