@@ -7,7 +7,7 @@ use App\Enums\AttendanceType;
 use App\Enums\OvertimeState;
 use App\Enums\SelfieSource;
 use App\Enums\WorkType;
-use App\Services\DailyAttendanceStatusService;
+use App\Services\AttendanceCalendarService;
 use App\Models\AttendanceRecord;
 use App\Models\OvertimeRequest;
 use App\Support\AttendanceEvidence;
@@ -127,22 +127,11 @@ new #[Title('Absensi')] class extends Component {
 
     private function attendanceIndicatorsForRange(string $startDate, string $endDate): array
     {
-        $statuses = app(DailyAttendanceStatusService::class)->forEmployeesDateRange(
-            collect([$this->employee]),
+        return app(AttendanceCalendarService::class)->indicatorsForRange(
+            $this->employee,
             $startDate,
             $endDate,
         );
-
-        return collect($statuses[$this->employee->id] ?? [])
-            ->mapWithKeys(fn (array $day, string $date) => [
-                $date => match ($day['status']) {
-                    'present' => 'present',
-                    'needs_review' => 'review',
-                    'no_record' => 'none',
-                    default => null,
-                },
-            ])
-            ->all();
     }
 
     #[Computed]
@@ -441,115 +430,14 @@ new #[Title('Absensi')] class extends Component {
                 : ($this->hasClockInToday ? 'clock_in_blocked' : 'clock_in');
         @endphp
 
-        <x-ui.card padding="p-4" class="rounded-2xl">
-            <div class="mb-3 flex items-center justify-between gap-2">
-                <div class="min-w-0">
-                    <flux:heading size="sm">{{ Carbon::parse($selectedDate)->translatedFormat('F Y') }}</flux:heading>
-                    <flux:text class="text-sm">{{ __('Pilih tanggal untuk melihat riwayat.') }}</flux:text>
-                </div>
-                <div class="flex shrink-0 items-center gap-0.5">
-                    <x-ui.button size="sm" variant="ghost" icon="chevron-left" wire:click="shiftWeek(-1)" aria-label="{{ __('Minggu sebelumnya') }}" />
-                    <x-ui.button size="sm" variant="ghost" icon="chevron-right" wire:click="shiftWeek(1)" aria-label="{{ __('Minggu berikutnya') }}" />
-                    <x-ui.button size="sm" variant="ghost" icon="calendar-days" wire:click="openMonthlyCalendar" aria-label="{{ __('Buka kalender bulanan') }}" />
-                    <x-ui.button size="sm" variant="ghost" wire:click="selectDate('{{ now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString() }}')">{{ __('Hari ini') }}</x-ui.button>
-                </div>
-            </div>
-            <div class="grid grid-cols-7 gap-1 sm:gap-1.5">
-                @foreach ($this->weekCalendarDays as $day)
-                    @php
-                        $indicatorClass = match ($day['indicator']) {
-                            'present' => 'bg-[#54B66F]',
-                            'review' => 'bg-[#B2640A]',
-                            'none' => 'bg-slate-400/70 dark:bg-slate-400/60',
-                            default => null,
-                        };
-                        $indicatorLabel = match ($day['indicator']) {
-                            'present' => __('Hadir'),
-                            'review' => __('Perlu ditinjau'),
-                            'none' => __('Tidak ada catatan'),
-                            default => null,
-                        };
-                    @endphp
-                    <button
-                        type="button"
-                        wire:key="attendance-week-day-{{ $day['date'] }}"
-                        wire:click="selectDate('{{ $day['date'] }}')"
-                        aria-label="{{ $day['label'] }} {{ $day['day'] }} {{ $indicatorLabel }}"
-                        aria-pressed="{{ $selectedDate === $day['date'] ? 'true' : 'false' }}"
-                        class="flex min-h-12 min-w-0 flex-col items-center justify-center gap-1 rounded-xl px-0.5 py-2 text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sanmal-brand-blue {{ $selectedDate === $day['date'] ? 'bg-[#0E3B6B] text-white dark:bg-[#D9A72E] dark:text-[#172033]' : 'text-[var(--sanmal-text-secondary)] hover:bg-sanmal-surface-secondary dark:hover:bg-sanmal-surface-elevated-dark' }} {{ $day['today'] && $selectedDate !== $day['date'] ? 'ring-1 ring-[#0E3B6B] dark:ring-[#D9A72E]' : '' }}"
-                    >
-                        <span class="text-xs {{ $selectedDate === $day['date'] ? 'opacity-85' : 'text-[var(--sanmal-text-muted)]' }}">{{ $day['label'] }}</span>
-                        <span class="text-base font-semibold tabular-nums">{{ $day['day'] }}</span>
-                        <span class="flex h-1.5 items-center justify-center">
-                            @if ($indicatorClass)
-                                <span class="size-1.5 rounded-full {{ $indicatorClass }}" aria-hidden="true"></span>
-                            @endif
-                        </span>
-                    </button>
-                @endforeach
-            </div>
-        </x-ui.card>
-
-        @if ($showMonthlyCalendar)
-            <div
-                class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
-                role="presentation"
-                wire:click.self="closeMonthlyCalendar"
-                x-on:keydown.escape.window="$wire.closeMonthlyCalendar()"
-            >
-                <section
-                    role="dialog"
-                    aria-modal="true"
-                    aria-labelledby="attendance-month-calendar-title"
-                    class="w-full max-w-md rounded-2xl bg-sanmal-surface-card p-4 text-[var(--sanmal-text-primary)] shadow-2xl dark:bg-sanmal-surface-card-dark sm:p-5"
-                >
-                    <div class="mb-4 flex items-center justify-between gap-3">
-                        <flux:heading id="attendance-month-calendar-title" size="lg">{{ Carbon::parse($calendarMonth)->translatedFormat('F Y') }}</flux:heading>
-                        <div class="flex items-center gap-1">
-                            <x-ui.button size="sm" variant="ghost" icon="chevron-left" wire:click="shiftCalendarMonth(-1)" aria-label="{{ __('Bulan sebelumnya') }}" />
-                            <x-ui.button size="sm" variant="ghost" icon="chevron-right" wire:click="shiftCalendarMonth(1)" aria-label="{{ __('Bulan berikutnya') }}" />
-                            <x-ui.button size="sm" variant="ghost" icon="x-mark" wire:click="closeMonthlyCalendar" aria-label="{{ __('Tutup kalender bulanan') }}" />
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-7 gap-1 text-center">
-                        @foreach ([__('Sen'), __('Sel'), __('Rab'), __('Kam'), __('Jum'), __('Sab'), __('Min')] as $weekday)
-                            <span class="py-2 text-xs font-medium text-[var(--sanmal-text-muted)]">{{ $weekday }}</span>
-                        @endforeach
-                        @foreach ($this->monthDays as $day)
-                            @php
-                                $indicatorClass = match ($day['indicator']) {
-                                    'present' => 'bg-[#54B66F]',
-                                    'review' => 'bg-[#B2640A]',
-                                    'none' => 'bg-slate-400/70 dark:bg-slate-400/60',
-                                    default => null,
-                                };
-                                $indicatorLabel = match ($day['indicator']) {
-                                    'present' => __('Hadir'),
-                                    'review' => __('Perlu ditinjau'),
-                                    'none' => __('Tidak ada catatan'),
-                                    default => null,
-                                };
-                            @endphp
-                            <button
-                                type="button"
-                                wire:key="attendance-month-day-{{ $day['date'] }}"
-                                wire:click="selectCalendarDate('{{ $day['date'] }}')"
-                                aria-label="{{ $day['date'] }} {{ $indicatorLabel }}"
-                                aria-pressed="{{ $selectedDate === $day['date'] ? 'true' : 'false' }}"
-                                class="flex min-h-11 flex-col items-center justify-center gap-0.5 rounded-lg text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sanmal-brand-blue {{ $selectedDate === $day['date'] ? 'bg-[#0E3B6B] font-semibold text-white dark:bg-[#D9A72E] dark:text-[#172033]' : ($day['inMonth'] ? 'text-[var(--sanmal-text-primary)] hover:bg-sanmal-surface-secondary dark:hover:bg-sanmal-surface-elevated-dark' : 'text-[var(--sanmal-text-muted)] opacity-60 hover:bg-sanmal-surface-secondary dark:hover:bg-sanmal-surface-elevated-dark') }} {{ $day['today'] && $selectedDate !== $day['date'] ? 'ring-1 ring-[#0E3B6B] dark:ring-[#D9A72E]' : '' }}"
-                            >
-                                <span class="tabular-nums">{{ $day['day'] }}</span>
-                                <span class="flex h-1.5 items-center justify-center">
-                                    @if ($indicatorClass)
-                                        <span class="size-1.5 rounded-full {{ $indicatorClass }}" aria-hidden="true"></span>
-                                    @endif
-                                </span>
-                            </button>
-                        @endforeach
-                    </div>
-                </section>
-            </div>
-        @endif
+        <x-attendance.calendar
+            :week-days="$this->weekCalendarDays"
+            :month-days="$this->monthDays"
+            :selected-date="$selectedDate"
+            :selected-month-label="Carbon::parse($selectedDate)->translatedFormat('F Y')"
+            :calendar-month-label="Carbon::parse($calendarMonth)->translatedFormat('F Y')"
+            :show-monthly-calendar="$showMonthlyCalendar"
+        />
 
         {{-- Ringkasan waktu kerja --}}
         @php
@@ -588,26 +476,11 @@ new #[Title('Absensi')] class extends Component {
         @endphp
 
         {{-- Ringkasan jam --}}
-        <div class="grid grid-cols-3 gap-2">
-            <div class="rounded-xl bg-sanmal-surface-card p-3 text-center shadow-sm dark:bg-sanmal-surface-card-dark dark:shadow-black/20">
-                <flux:text class="text-xs">{{ __('Masuk') }}</flux:text>
-                <flux:heading size="lg">{{ $clockInForDisplay?->effectiveRecordedAtLocal()->format('H:i') ?? '—' }}</flux:heading>
-            </div>
-            <div class="rounded-xl bg-sanmal-surface-card p-3 text-center shadow-sm dark:bg-sanmal-surface-card-dark dark:shadow-black/20">
-                <flux:text class="text-xs">{{ __('Pulang') }}</flux:text>
-                <flux:heading size="lg">{{ $clockOutRecord?->effectiveRecordedAtLocal()->format('H:i') ?? '—' }}</flux:heading>
-            </div>
-            <div class="rounded-xl bg-sanmal-surface-card p-3 text-center shadow-sm dark:bg-sanmal-surface-card-dark dark:shadow-black/20">
-                <flux:text class="text-xs">{{ __('Total kerja') }}</flux:text>
-                <flux:heading size="sm">
-                    @if ($workedMinutes !== null)
-                        {{ intdiv($workedMinutes, 60) }}j {{ $workedMinutes % 60 }}m
-                    @else
-                        —
-                    @endif
-                </flux:heading>
-            </div>
-        </div>
+        <x-attendance.time-summary
+            :clock-in-time="$clockInForDisplay?->effectiveRecordedAtLocal()->format('H:i')"
+            :clock-out-time="$clockOutRecord?->effectiveRecordedAtLocal()->format('H:i')"
+            :worked-minutes="$workedMinutes"
+        />
 
         <div class="grid grid-cols-1 items-stretch gap-3 sm:grid-cols-2">
             <x-attendance.info-card class="min-w-0 flex-1 basis-64"
