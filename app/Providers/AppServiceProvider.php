@@ -27,7 +27,7 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->configureDefaults();
 
-        View::composer('layouts.app.sidebar', AppSidebarComposer::class);
+        View::composer('layouts::app.sidebar', AppSidebarComposer::class);
     }
 
     /**
