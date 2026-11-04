@@ -20,10 +20,28 @@
 | Employee Dashboard | Layout V1, ringkasan bulanan, Pengajuan Saya, Akses Cepat, Aktivitas Terbaru, dan notifikasi tersedia. | Test dashboard lulus pada run #1460. Assertion divider diperbaiki agar hanya memeriksa container Ringkasan Bulan Ini, bukan seluruh halaman. | Belum dilakukan. |
 | Employee Profile | Source diperbarui: circular avatar melalui `x-ui.avatar`, modal pratinjau bersama `x-ui.photo-preview`, deskripsi redundan dihapus, dan pesan validasi upload menjadi feedback batas ukuran. URL foto tersimpan disajikan oleh endpoint authenticated yang tidak bergantung pada `public/storage` symlink. | Test route serving foto tanpa storage symlink dan render modal profil lulus pada run #1460. | Belum dilakukan. |
 | Employee Attendance | Urutan source: header pegawai → kalender → ringkasan jam → status kehadiran/lembur → satu form absensi → modal. Calendar, time summary, info card, dan photo preview dipisah menjadi Blade Components; satu Livewire SFC tetap menjadi orchestrator. | Test urutan halaman dan pembuka kalender bulanan lulus pada run #1460. | Belum dilakukan; terutama alur kamera/GPS dan ukuran layar kecil. |
-| Employee Attendance History | UI Batch 2 telah diimplementasikan pada source: tiga indikator ringkasan, filter tanggal/urutan, kelompok per tanggal, 10 tanggal per halaman, status-only group, dialog detail event, waktu asli/efektif, GPS/akurasi/alamat, dan foto privat. CSV membawa rentang filter yang sedang terlihat. Tidak ada reusable component baru; komposisi masih page-local. | Belum diverifikasi pada CI terbaru setelah perubahan Batch 2. | Browser/device QA belum dilakukan. |
+| Employee Attendance History | UI Batch 2 telah diimplementasikan pada source: tiga indikator ringkasan, filter tanggal/urutan, kelompok per tanggal, 10 tanggal per halaman, status-only group, dialog detail event, waktu asli/efektif, GPS/akurasi/alamat, dan foto privat. CSV membawa rentang filter yang sedang terlihat. Tidak ada reusable component baru; komposisi masih page-local. | Run #1497: test MariaDB dan SQLite lulus; detail angka di bagian CI terbaru. | Browser/device QA belum dilakukan. |
 | Kalender Absensi | Weekly calendar dan monthly picker enam baris tersedia. Indikator memakai status domain; `no_record` tidak diartikan sebagai absent. | Feature test pemilihan tanggal dan sinkronisasi kalender lulus pada run #1418. | Belum dilakukan pada viewport dan theme yang ditentukan. |
 | Photo preview | Komponen terpisah menampilkan thumbnail, modal foto penuh, unduh foto sementara, dan aksi foto ulang. | Test shared photo preview, download, dan state selfie tersedia lulus pada run #1460. Test diperbaiki agar memeriksa modal hanya ketika selfie memang tersedia. | Belum dilakukan; modal dan siklus capture perlu diuji di browser/perangkat. |
 | Accessibility dan interaction-state | Beberapa kontrol sudah memiliki label/semantics; audit menyeluruh belum selesai. | Test otomatis hanya memeriksa kontrak yang tercakup di masing-masing test. | Audit keyboard, focus, dialog, loading, error, dan touch target masih terbuka. |
+
+## CI terbaru untuk Employee Attendance History — 4 November 2026
+
+Run [#1497](https://github.com/leonsmith128/pt-sanmal/actions/runs/41788406320) menguji PR head `091cedd8bd81b9bf9e956125320c456f541e7cd6`.
+
+**Status: CI passed.**
+
+| Pemeriksaan | Hasil |
+|---|---|
+| Vite asset build | Passed |
+| Pint untuk file PHP yang berubah | Passed |
+| Targeted PHPStan untuk changed application code | Passed |
+| Repository-wide static analysis | Step selesai; baseline debt repository tetap berlaku dan bukan jaminan type-clean |
+| MariaDB 11 | **285 passed, 1 skipped** — 1.182 assertions |
+| SQLite | **284 passed, 2 skipped** — 1.180 assertions |
+| Kesimpulan workflow | **Success** |
+
+Test yang relevan mencakup render date-group, filter, summary, event-detail payload, private-photo route references, export URL dengan periode yang terlihat, GPS map-link guard, dan preservasi identity snapshots. Automated CI bukan browser/device QA; responsive, keyboard/focus, dialog behavior, dan theme review masih perlu dilakukan.
 
 ## CI terbaru yang diperiksa
 
