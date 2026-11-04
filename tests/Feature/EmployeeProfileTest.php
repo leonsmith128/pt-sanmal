@@ -128,6 +128,10 @@ test('employee profile renders the saved photo as a modal preview trigger in a f
         ->assertOk()
         ->assertSee('max-w-3xl', false)
         ->assertSee('Perbesar foto profil')
+        ->assertSee('Pilih file')
+        ->assertSee('type="file"', false)
+        ->assertSee('class="sr-only"', false)
+        ->assertSee('x-on:click="$refs.photoInput.click()"', false)
         ->assertSee($user->profilePhotoUrl(), false)
         ->assertSee('role="dialog"', false);
 });
