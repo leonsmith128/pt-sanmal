@@ -424,37 +424,39 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                     :warning="__('Ekspor menggunakan satu baris per pegawai per tanggal. Tanggal tanpa event absensi tetap disertakan. Periksa kembali cakupan sebelum melanjutkan.')"
                 />
             </div>
+        </x-ui.card>
 
-            <div id="attendance-records" data-record-count="{{ $records->total() }}" class="attendance-responsive-table pb-3 [&_thead]:sticky [&_thead]:top-0 [&_thead]:z-20 [&_thead]:bg-sanmal-surface-secondary dark:[&_thead]:bg-sanmal-surface-secondary-dark">
+        <x-ui.card padding="p-0" class="overflow-hidden">
+            <div id="attendance-records" data-record-count="{{ $records->total() }}" class="attendance-responsive-table px-2 pb-2 sm:px-3 sm:pb-3 [&_thead]:sticky [&_thead]:top-0 [&_thead]:z-20 [&_thead]:bg-sanmal-surface-secondary dark:[&_thead]:bg-sanmal-surface-secondary-dark">
                 <flux:table class="w-full table-fixed" :paginate="$records" pagination:scroll-to="#attendance-records">
                     <flux:table.columns>
-                        <flux:table.column sortable :sorted="$sortBy === 'recorded_at'" :direction="$sortDirection" wire:click="sort('recorded_at')" class="w-26 px-3 py-2">{{ __('Waktu') }}</flux:table.column>
-                        <flux:table.column sortable :sorted="$sortBy === 'employee'" :direction="$sortDirection" wire:click="sort('employee')" class="w-34 px-3 py-2">{{ __('Pegawai') }}</flux:table.column>
-                        <flux:table.column sortable :sorted="$sortBy === 'type'" :direction="$sortDirection" wire:click="sort('type')" class="w-20 px-3 py-2">{{ __('Jenis') }}</flux:table.column>
-                        <flux:table.column sortable :sorted="$sortBy === 'work_type'" :direction="$sortDirection" wire:click="sort('work_type')" class="w-40 px-3 py-2">{{ __('Kerja') }}</flux:table.column>
-                        <flux:table.column class="w-40 px-3 py-2">{{ __('Lokasi GPS') }}</flux:table.column>
-                        <flux:table.column class="w-14 px-3 py-2" align="center">{{ __('Foto') }}</flux:table.column>
-                        <flux:table.column class="w-28 px-3 py-2">{{ __('Koreksi') }}</flux:table.column>
+                        <flux:table.column sortable :sorted="$sortBy === 'recorded_at'" :direction="$sortDirection" wire:click="sort('recorded_at')" class="w-26 px-3 py-3 sm:py-2">{{ __('Waktu') }}</flux:table.column>
+                        <flux:table.column sortable :sorted="$sortBy === 'employee'" :direction="$sortDirection" wire:click="sort('employee')" class="w-34 px-3 py-3 sm:py-2">{{ __('Pegawai') }}</flux:table.column>
+                        <flux:table.column sortable :sorted="$sortBy === 'type'" :direction="$sortDirection" wire:click="sort('type')" class="w-20 px-3 py-3 sm:py-2">{{ __('Jenis') }}</flux:table.column>
+                        <flux:table.column sortable :sorted="$sortBy === 'work_type'" :direction="$sortDirection" wire:click="sort('work_type')" class="w-40 px-3 py-3 sm:py-2">{{ __('Kerja') }}</flux:table.column>
+                        <flux:table.column class="w-40 px-3 py-3 sm:py-2">{{ __('Lokasi GPS') }}</flux:table.column>
+                        <flux:table.column class="w-14 px-3 py-3 sm:py-2" align="center">{{ __('Foto') }}</flux:table.column>
+                        <flux:table.column class="w-28 px-3 py-3 sm:py-2">{{ __('Koreksi') }}</flux:table.column>
                     </flux:table.columns>
                     <flux:table.rows>
                         @forelse ($records as $record)
                             <flux:table.row :key="$record->id">
-                                <flux:table.cell data-label="Waktu" class="whitespace-normal px-3 py-2">
+                                <flux:table.cell data-label="Waktu" class="whitespace-normal px-3 py-3 sm:py-2">
                                     <p class="font-medium text-[var(--sanmal-text-primary)]">{{ $record->effectiveRecordedAtLocal()->format('d M Y') }}</p>
                                     <p class="text-xs text-[var(--sanmal-text-secondary)]">{{ $record->effectiveRecordedAtLocal()->format('H:i T') }}</p>
                                     @if ($record->approvedCorrection)
                                         <p class="mt-1 text-xs text-[var(--sanmal-text-muted)]">{{ __('Asli:') }} {{ $record->recordedAtLocal()->format('d M, H:i T') }}</p>
                                     @endif
                                 </flux:table.cell>
-                                <flux:table.cell data-label="Pegawai" class="px-3 py-2" title="{{ $record->employee->user->name }}">
+                                <flux:table.cell data-label="Pegawai" class="px-3 py-3 sm:py-2" title="{{ $record->employee->user->name }}">
                                     <span class="block truncate font-medium text-[var(--sanmal-text-primary)]">{{ $record->employee->user->name }}</span>
                                 </flux:table.cell>
-                                <flux:table.cell data-label="Jenis" class="px-3 py-2">
+                                <flux:table.cell data-label="Jenis" class="px-3 py-3 sm:py-2">
                                     <x-ui.badge :color="$record->type === AttendanceType::ClockIn ? 'green' : 'blue'">
                                         {{ $record->type->label() }}
                                     </x-ui.badge>
                                 </flux:table.cell>
-                                <flux:table.cell data-label="Jenis kerja / Project" class="whitespace-normal px-3 py-2">
+                                <flux:table.cell data-label="Jenis kerja / Project" class="whitespace-normal px-3 py-3 sm:py-2">
                                     <p class="text-sm text-[var(--sanmal-text-primary)]">{{ $record->work_type->label() }}</p>
                                     @if ($record->project_name_snapshot)
                                         <div class="mt-1 max-w-full">
@@ -469,7 +471,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                                         </div>
                                     @endif
                                 </flux:table.cell>
-                                <flux:table.cell data-label="Lokasi GPS" class="whitespace-normal px-3 py-2">
+                                <flux:table.cell data-label="Lokasi GPS" class="whitespace-normal px-3 py-3 sm:py-2">
                                     @if ($record->latitude !== null && $record->longitude !== null)
                                         <a href="https://www.google.com/maps?q={{ $record->latitude }},{{ $record->longitude }}" target="_blank" rel="noopener noreferrer" class="block break-words text-sm leading-5 text-sanmal-brand-blue underline decoration-sanmal-brand-blue/30 underline-offset-2 transition hover:decoration-current focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sanmal-brand-blue dark:text-sanmal-brand-yellow-dark dark:decoration-sanmal-brand-yellow-dark/40 dark:focus-visible:outline-sanmal-brand-yellow-dark">
                                             <span class="sr-only">{{ __('Alamat tersimpan:') }}</span>
@@ -479,7 +481,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                                         <span class="block break-words text-sm text-[var(--sanmal-text-muted)]">{{ $record->address_snapshot ?: '—' }}</span>
                                     @endif
                                 </flux:table.cell>
-                                <flux:table.cell data-label="Bukti foto" class="px-3 py-2" align="center">
+                                <flux:table.cell data-label="Bukti foto" class="px-3 py-3 sm:py-2" align="center">
                                     @if ($record->selfie_path)
                                         <x-ui.photo-preview
                                             :src="route('admin.attendance.selfie', $record)"
@@ -496,7 +498,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                                         —
                                     @endif
                                 </flux:table.cell>
-                                <flux:table.cell data-label="Koreksi" class="px-3 py-2">
+                                <flux:table.cell data-label="Koreksi" class="px-3 py-3 sm:py-2">
                                     @if (in_array($record->type, [AttendanceType::ClockIn, AttendanceType::ClockOut], true) && $record->employee->user_id !== auth()->id())
                                         <details class="max-w-full whitespace-normal">
                                             <summary class="inline-flex cursor-pointer items-center rounded-md border border-sanmal-border bg-sanmal-surface-primary px-2.5 py-1.5 text-xs font-medium text-sanmal-brand-blue transition hover:bg-sanmal-surface-secondary dark:border-sanmal-border-dark dark:bg-sanmal-surface-inset-dark dark:text-sanmal-brand-yellow-dark dark:hover:bg-sanmal-surface-elevated-dark">{{ __('Koreksi timestamp') }}</summary>
@@ -522,7 +524,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                         @empty
                             @if ($notYetPresent->isEmpty())
                                 <flux:table.row>
-                                    <flux:table.cell colspan="7" class="px-3 py-2">
+                                    <flux:table.cell colspan="7" class="px-3 py-3 sm:py-2">
                                         <x-admin.empty-state :message="__('Tidak ada catatan pada filter ini.')" />
                                     </flux:table.cell>
                                 </flux:table.row>
@@ -531,15 +533,15 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
 
                         @foreach ($notYetPresent as $employee)
                             <flux:table.row :key="'not-present-'.$employee->id">
-                                <flux:table.cell data-label="Waktu" class="whitespace-nowrap px-3 py-2">—</flux:table.cell>
-                                <flux:table.cell data-label="Pegawai" class="px-3 py-2">{{ $employee->user->name }}</flux:table.cell>
-                                <flux:table.cell data-label="Jenis" class="px-3 py-2">
+                                <flux:table.cell data-label="Waktu" class="whitespace-nowrap px-3 py-3 sm:py-2">—</flux:table.cell>
+                                <flux:table.cell data-label="Pegawai" class="px-3 py-3 sm:py-2">{{ $employee->user->name }}</flux:table.cell>
+                                <flux:table.cell data-label="Jenis" class="px-3 py-3 sm:py-2">
                                     <x-ui.badge color="amber">{{ __('Belum ada absensi') }}</x-ui.badge>
                                 </flux:table.cell>
-                                <flux:table.cell class="px-3 py-2">—</flux:table.cell>
-                                <flux:table.cell class="px-3 py-2">—</flux:table.cell>
-                                <flux:table.cell class="px-3 py-2">—</flux:table.cell>
-                                <flux:table.cell class="px-3 py-2">—</flux:table.cell>
+                                <flux:table.cell class="px-3 py-3 sm:py-2">—</flux:table.cell>
+                                <flux:table.cell class="px-3 py-3 sm:py-2">—</flux:table.cell>
+                                <flux:table.cell class="px-3 py-3 sm:py-2">—</flux:table.cell>
+                                <flux:table.cell class="px-3 py-3 sm:py-2">—</flux:table.cell>
                             </flux:table.row>
                         @endforeach
                     </flux:table.rows>
