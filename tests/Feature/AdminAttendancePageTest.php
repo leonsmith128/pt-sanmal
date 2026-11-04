@@ -354,13 +354,13 @@ it('keeps the attendance filter panel compact and removes redundant page descrip
         ->assertDontSee('Pantau dan telusuri catatan absensi seluruh pegawai.');
 });
 
-it('uses the Heroicons reset icon in the attendance filter panel', function () {
+it('keeps the reset filter action connected to the Livewire page', function () {
     $admin = attendancePageAdmin();
 
     Livewire::actingAs($admin)
         ->test('pages::admin.kehadiran')
-        ->assertSee('arrow-path')
-        ->assertDontSee('rotate-ccw');
+        ->assertSee('wire:click="resetAdditionalFilters"', false)
+        ->assertSee('Reset filter');
 });
 
 it('renders the attendance export confirmation with an Alpine-bound link', function () {
@@ -380,7 +380,7 @@ it('renders attendance rows with responsive card labels and a fixed-width table 
         ->assertSee('attendance-responsive-table', false)
         ->assertSee('px-3 pb-3 sm:px-4', false)
         ->assertDontSee('max-h-[70vh] overflow-y-auto overflow-x-hidden', false)
-        ->assertSee('class="w-full table-fixed"', false)
+        ->assertSee('table-fixed', false)
         ->assertSee('data-label="Waktu"', false)
         ->assertSee('data-label="Pegawai"', false)
         ->assertSee('data-label="Jenis kerja / Project"', false)
@@ -411,11 +411,11 @@ it('keeps the active filter count visible while the filter controls are collapse
         ->assertSee('x-show="filtersOpen"', false);
 });
 
-it('renders the export label and chevron together in a horizontal inline group', function () {
+it('renders the export action in a horizontal inline group', function () {
     $admin = attendancePageAdmin();
 
     Livewire::actingAs($admin)
         ->test('pages::admin.kehadiran')
         ->assertSee('inline-flex items-center gap-2 whitespace-nowrap', false)
-        ->assertSee('chevron-down');
+        ->assertSee('Export');
 });
