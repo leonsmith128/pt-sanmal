@@ -392,7 +392,7 @@ new #[Title('Absensi')] class extends Component {
 }; ?>
 
 <section class="w-full" wire:poll.30s>
-    <x-ui.page gap="6">
+    <x-ui.page gap="4">
         {{-- Header pegawai: avatar fallback, identitas, dan pintasan notifikasi --}}
         <header class="flex items-center gap-3">
             <div class="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-zinc-100 text-sm font-semibold text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200" aria-hidden="true">
