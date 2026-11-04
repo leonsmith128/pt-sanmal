@@ -116,3 +116,17 @@ Automated CI bukan browser/device QA. Responsive, accessibility, dan pengujian k
 - [Employee Profile Layout V1](../EMPLOYEE-PROFILE-LAYOUT-V1.md) — spesifikasi profil, foto, dan upload.
 - [Employee Dashboard Layout V1](../EMPLOYEE-DASHBOARD-LAYOUT-V1.md) dan [Data Contract](../EMPLOYEE-DASHBOARD-DATA-CONTRACT.md) — tampilan dan definisi data dashboard.
 - [Visual QA Log](VISUAL-QA-LOG.md) — bukti browser/device aktual.
+
+
+## Follow-up Admin Attendance reusable filters — 5 November 2026
+
+The Admin Attendance page now uses a shared filter contract and presentation component on this PR branch:
+
+- `app/Data/Attendance/AttendanceFilterData.php` normalizes optional date, employee, Client, Location, Project, search, attendance type, and work type values. One-sided date ranges become a single-day range; reversed bounds are swapped.
+- `app/Filters/AttendanceRecordFilter.php` owns shared Eloquent predicates. The page retains sorting, eager loading, pagination, and authorization.
+- `x-admin.attendance-filters` renders configurable controls from option data. Livewire SFC remains the state owner; no nested Livewire component was added.
+- Client options are derived through Projects with attendance history. Location options use attendance-record foreign keys and include inactive historical Locations. Project options include Projects with attendance history and label non-active status as `Nonaktif`. Dropdowns remain independent and combine with AND.
+- Export shares normalized filter data and day-qualification semantics. A matching Project/Location/etc. event qualifies the day, while CSV output retains the complete daily recap and events from other Projects on that day.
+- Reversed date ranges are normalized consistently between page and export. No migration was added.
+
+Regression coverage was added for combined Client/Location/Project filtering, historical Location identity after a Project moves, inactive option visibility, reversed date-range parity, and complete daily export context. CI is being verified for this follow-up. Browser/device QA is not recorded; see [Visual QA Log](VISUAL-QA-LOG.md).

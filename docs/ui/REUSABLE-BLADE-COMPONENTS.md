@@ -122,6 +122,23 @@ Page views should compose primitives and domain components, while retaining:
 - form validation and confirmation flow;
 - data-specific markup that is not genuinely repeated.
 
+### Admin Attendance reusable filters
+
+`x-admin.attendance-filters` is the page-level Blade composition for Admin Attendance filters. It renders controls and option labels only; it does not query models, authorize access, mutate state, or build export URLs.
+
+Contract:
+- `:filters` lists enabled fields: `date`, `client`, `location`, `project`, `employee`, `search`, `attendance_type`, and `work_type`.
+- `:values` carries current filter values and supplies the active-filter count.
+- `:options` supplies prepared options for Client, Location, Project, Employee, attendance type, and work type.
+- Livewire SFC owns state (`dateFrom`, `dateTo`, `clientId`, `locationId`, `projectId`, `employeeId`, `search`, `attendanceType`, and `workType`). Do not add a nested Livewire component.
+- Dropdowns are independent and combine with AND; selecting Client does not cascade/reset Location or Project.
+- Options include entities with attendance history, including inactive historical Locations and non-active Projects labeled `Nonaktif`. Client has no active/inactive state.
+- Location filtering uses `attendance_records.location_id`, not the Project's mutable current Location.
+
+`AttendanceFilterData` is the normalized data contract shared by the page and export. `AttendanceRecordFilter` applies shared query predicates: WITA date range, employee, Client through Project ownership, event Location, Project, attendance type, work type, and employee/name/number/notes search. Sorting, eager loading, pagination, and authorization remain with the caller.
+
+Export preserves daily-recap semantics: selected filters decide whether a WITA calendar day qualifies, but a qualifying day exports its complete event/session context, including other Project events on that day. A single date bound becomes a single-day range; reversed bounds are normalized consistently on the page and export. No schema migration is required.
+
 ## Extraction rules
 
 1. Extract only when a pattern repeats or has a clear cross-page standardization benefit.
