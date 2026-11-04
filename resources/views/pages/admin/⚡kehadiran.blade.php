@@ -390,7 +390,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                 <div class="attendance-mobile-list gap-3">
                 @forelse ($records as $record)
                     <article wire:key="attendance-mobile-{{ $record->id }}" class="flex gap-3 rounded-xl border border-sanmal-border bg-sanmal-surface-primary p-3 shadow-sm dark:border-sanmal-border-dark dark:bg-sanmal-surface-primary-dark">
-                        <div class="w-20 shrink-0 self-center">
+                        <div class="w-20 shrink-0">
                             @if ($record->selfie_path)
                                 <x-ui.photo-preview
                                     :src="route('admin.attendance.selfie', $record)"
