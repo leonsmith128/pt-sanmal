@@ -543,4 +543,3 @@ test('attendance history summary respects administrative present corrections wit
             && $summary['needs_review_days'] === 0)
         ->assertViewHas('dateGroups', fn ($groups): bool => $groups->total() === 0);
 });
-\n
