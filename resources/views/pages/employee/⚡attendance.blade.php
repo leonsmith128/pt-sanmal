@@ -536,8 +536,6 @@ new #[Title('Absensi')] class extends Component {
             </x-attendance.info-card>
         </div>
 
-
-
         {{-- Form absensi --}}
         <form id="attendance-form" wire:submit="confirm('{{ $mode }}')" class="flex flex-col gap-5 rounded-xl border border-sanmal-border bg-sanmal-surface-card p-4 dark:border-sanmal-border-dark dark:bg-sanmal-surface-card-dark sm:p-5 {{ $selectedDate !== now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString() ? 'hidden' : '' }}">
             <div class="space-y-1">
@@ -633,11 +631,10 @@ new #[Title('Absensi')] class extends Component {
                 <x-attendance.photo-preview :selfie="$selfie" />
             @endif
 
-                        @error('form') <flux:text class="text-red-500">{{ $message }}</flux:text> @enderror
+            @error('form') <flux:text class="text-red-500">{{ $message }}</flux:text> @enderror
             @error('workType') <flux:text class="text-red-500">{{ $message }}</flux:text> @enderror
 
-
-                    <div class="flex w-full items-center gap-2 pt-1">
+            <div class="flex w-full items-center gap-2 pt-1">
                         @if ($mode === 'overtime_locked')
                             <x-ui.button type="button" variant="primary" class="min-w-0 flex-1" disabled icon="lock-closed">
                                 {{ __('Konfirmasi Lembur') }}
@@ -668,11 +665,8 @@ new #[Title('Absensi')] class extends Component {
                                 </x-ui.button>
                             @endif
                         @endif
-                    </div>
-
+            </div>
         </form>
-
-
 
         {{-- Modal konfirmasi sebelum absensi dikirim --}}
         @php
