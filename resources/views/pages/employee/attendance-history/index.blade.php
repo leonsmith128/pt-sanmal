@@ -23,45 +23,45 @@
             :title="__('Riwayat Absensi')"
             :description="__('Tinjau ringkasan kehadiran dan bukti absensi berdasarkan tanggal sesi.')"
         >
-            <div class="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+            <div class="flex w-full flex-row gap-2 sm:w-auto">
                 <x-ui.button
                     href="{{ route('attendance-history.export', ['from' => $filters['from'], 'to' => $filters['to']]) }}"
                     variant="outline"
                     icon="arrow-down-tray"
-                    class="w-full sm:w-auto"
+                    class="min-w-0 flex-1 whitespace-nowrap sm:flex-none"
                 >
-                    {{ __('Ekspor rekap harian (CSV)') }}
+                    {{ __('Export') }}
                 </x-ui.button>
-                <x-ui.button href="{{ route('attendance') }}" variant="primary" icon="clock" class="w-full sm:w-auto">
-                    {{ __('Buka halaman absensi') }}
+                <x-ui.button href="{{ route('attendance') }}" variant="primary" icon="clock" class="min-w-0 flex-1 whitespace-nowrap sm:flex-none">
+                    {{ __('Absen') }}
                 </x-ui.button>
             </div>
         </x-ui.page-header>
 
-        <section aria-label="{{ __('Ringkasan kehadiran') }}" class="grid grid-cols-1 gap-3 sm:grid-cols-3">
-            <x-ui.card padding="p-4">
-                <div class="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
-                    <flux:icon name="calendar" class="size-4" />
+        <section aria-label="{{ __('Ringkasan kehadiran') }}" class="grid grid-cols-3 gap-2 sm:gap-3">
+            <x-ui.card padding="p-2.5 sm:p-4">
+                <div class="flex min-w-0 items-center gap-1 whitespace-nowrap text-[10px] leading-tight text-zinc-500 dark:text-zinc-400 sm:gap-2 sm:text-sm">
+                    <flux:icon name="calendar" class="hidden size-4 shrink-0 sm:block" />
                     {{ __('Hari hadir') }}
                 </div>
-                <p class="mt-2 text-2xl font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">{{ number_format($summary['present_days']) }}</p>
-                <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{{ __('Termasuk koreksi hadir dari admin.') }}</p>
+                <p class="mt-1.5 text-xl font-semibold tabular-nums text-zinc-900 dark:text-zinc-100 sm:mt-2 sm:text-2xl">{{ number_format($summary['present_days']) }}</p>
+                <p class="mt-1 hidden text-xs text-zinc-500 dark:text-zinc-400 sm:block">{{ __('Termasuk koreksi hadir dari admin.') }}</p>
             </x-ui.card>
-            <x-ui.card padding="p-4">
-                <div class="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
-                    <flux:icon name="check-circle" class="size-4" />
+            <x-ui.card padding="p-2.5 sm:p-4">
+                <div class="flex min-w-0 items-center gap-1 whitespace-nowrap text-[10px] leading-tight text-zinc-500 dark:text-zinc-400 sm:gap-2 sm:text-sm">
+                    <flux:icon name="check-circle" class="hidden size-4 shrink-0 sm:block" />
                     {{ __('Absensi lengkap') }}
                 </div>
-                <p class="mt-2 text-2xl font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">{{ number_format($summary['complete_days']) }}</p>
-                <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{{ __('Memiliki Clock In dan Clock Out yang valid.') }}</p>
+                <p class="mt-1.5 text-xl font-semibold tabular-nums text-zinc-900 dark:text-zinc-100 sm:mt-2 sm:text-2xl">{{ number_format($summary['complete_days']) }}</p>
+                <p class="mt-1 hidden text-xs text-zinc-500 dark:text-zinc-400 sm:block">{{ __('Memiliki Clock In dan Clock Out yang valid.') }}</p>
             </x-ui.card>
-            <x-ui.card padding="p-4">
-                <div class="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
-                    <flux:icon name="exclamation-triangle" class="size-4" />
+            <x-ui.card padding="p-2.5 sm:p-4">
+                <div class="flex min-w-0 items-center gap-1 whitespace-nowrap text-[10px] leading-tight text-zinc-500 dark:text-zinc-400 sm:gap-2 sm:text-sm">
+                    <flux:icon name="exclamation-triangle" class="hidden size-4 shrink-0 sm:block" />
                     {{ __('Perlu ditinjau') }}
                 </div>
-                <p class="mt-2 text-2xl font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">{{ number_format($summary['needs_review_days']) }}</p>
-                <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{{ __('Tanggal dengan bukti atau status yang perlu diperiksa.') }}</p>
+                <p class="mt-1.5 text-xl font-semibold tabular-nums text-zinc-900 dark:text-zinc-100 sm:mt-2 sm:text-2xl">{{ number_format($summary['needs_review_days']) }}</p>
+                <p class="mt-1 hidden text-xs text-zinc-500 dark:text-zinc-400 sm:block">{{ __('Tanggal dengan bukti atau status yang perlu diperiksa.') }}</p>
             </x-ui.card>
         </section>
 
