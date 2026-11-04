@@ -33,7 +33,7 @@
 |---|---|
 | Attendance / Clock In-Out | Prioritas mobile; kamera, GPS, izin, kesiapan capture, lokasi kerja, bukti, upload, konfirmasi, error. Lihat [Attendance Layout V1](EMPLOYEE-ATTENDANCE-LAYOUT-V1.md) dan [Calendar V1](EMPLOYEE-ATTENDANCE-CALENDAR-V1.md) |
 | [Employee profile](EMPLOYEE-PROFILE-LAYOUT-V1.md) | Hierarki informasi, circular avatar, preview foto dalam dialog, upload error feedback, nilai kosong/panjang, section responsif |
-| [Attendance history](EMPLOYEE-ATTENDANCE-HISTORY-V1.md) | Scope implementasi V1 selesai: tiga indikator, filter tanggal/urutan collapsible, empty state, date-group 10 tanggal/halaman, status-only group, dialog detail event, timestamp asli/efektif, GPS/alamat/foto privat, pagination, dan ekspor |
+| Attendance history | Ringkasan tiga indikator, filter, empty state, dan date-group menggunakan `x-ui.card` tanpa border dengan `shadow-sm`; filter rentang tanggal dan urutan; date group 10 tanggal/halaman; status-only group; detail event dalam dialog; timestamp asli/efektif, GPS, alamat, foto privat, pagination, dan ekspor |
 | Attendance correction submission | Pemilihan record/timestamp, alasan, attachment, validasi mobile |
 | Leave/request list | Status, periode, ringkasan, empty state, navigasi detail |
 | Overtime list | Ringkasan jadwal, status, detail, modal/form, aksi |
