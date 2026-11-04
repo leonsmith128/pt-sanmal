@@ -27,7 +27,6 @@
                 type="button"
                 wire:key="attendance-week-day-{{ $day['date'] }}"
                 wire:click="selectDate('{{ $day['date'] }}')"
-                aria-label="{{ $day['label'] }} {{ $day['day'] }}"
                 aria-pressed="{{ $selectedDate === $day['date'] ? 'true' : 'false' }}"
                 class="flex min-h-12 min-w-0 flex-col items-center justify-center gap-1 rounded-xl px-0.5 py-2 text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sanmal-brand-blue {{ $selectedDate === $day['date'] ? 'bg-[#0E3B6B] text-white dark:bg-[#D9A72E] dark:text-[#172033]' : 'text-[var(--sanmal-text-secondary)] hover:bg-sanmal-surface-secondary dark:hover:bg-sanmal-surface-elevated-dark' }} {{ $day['today'] && $selectedDate !== $day['date'] ? 'ring-1 ring-[#0E3B6B] dark:ring-[#D9A72E]' : '' }}"
             >
@@ -64,7 +63,6 @@
                         type="button"
                         wire:key="attendance-month-day-{{ $day['date'] }}"
                         wire:click="selectCalendarDate('{{ $day['date'] }}')"
-                        aria-label="{{ $day['date'] }}"
                         aria-pressed="{{ $selectedDate === $day['date'] ? 'true' : 'false' }}"
                         class="flex min-h-11 flex-col items-center justify-center gap-0.5 rounded-lg text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sanmal-brand-blue {{ $selectedDate === $day['date'] ? 'bg-[#0E3B6B] font-semibold text-white dark:bg-[#D9A72E] dark:text-[#172033]' : ($day['inMonth'] ? 'text-[var(--sanmal-text-primary)] hover:bg-sanmal-surface-secondary dark:hover:bg-sanmal-surface-elevated-dark' : 'text-[var(--sanmal-text-muted)] opacity-60 hover:bg-sanmal-surface-secondary dark:hover:bg-sanmal-surface-elevated-dark') }} {{ $day['today'] && $selectedDate !== $day['date'] ? 'ring-1 ring-[#0E3B6B] dark:ring-[#D9A72E]' : '' }}"
                     >
