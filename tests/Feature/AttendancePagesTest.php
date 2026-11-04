@@ -219,7 +219,7 @@ test('attendance photo preview provides a download link for the captured tempora
 
     Livewire::actingAs($employee)
         ->test('pages::employee.attendance')
-        ->set('selfie', \\Illuminate\\Http\\UploadedFile::fake()->image('attendance.jpg'))
+        ->set('selfie', \Illuminate\Http\UploadedFile::fake()->image('attendance.jpg'))
         ->assertSee('download="foto-absensi.', false)
         ->assertSee(__('Unduh'));
 });
