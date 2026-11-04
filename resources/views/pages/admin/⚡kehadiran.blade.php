@@ -1,11 +1,17 @@
 <?php
 
 use App\Actions\RecordAttendance;
+use App\Data\Attendance\AttendanceFilterData;
 use App\Enums\AttendanceType;
 use App\Enums\LeaveRequestStatus;
+use App\Enums\ProjectStatus;
 use App\Enums\WorkType;
+use App\Filters\AttendanceRecordFilter;
 use App\Models\AttendanceRecord;
+use App\Models\Client;
 use App\Models\Employee;
+use App\Models\Location;
+use App\Models\Project;
 use App\Support\AttendanceDateFilter;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -20,6 +26,9 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
     public string $dateFrom = '';
     public string $dateTo = '';
     public string $employeeId = '';
+    public string $clientId = '';
+    public string $locationId = '';
+    public string $projectId = '';
     public string $search = '';
     public string $attendanceType = '';
     public string $workType = '';
@@ -66,24 +75,34 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
         $this->attendanceType = '';
         $this->workType = '';
         $this->employeeId = '';
+        $this->clientId = '';
+        $this->locationId = '';
+        $this->projectId = '';
         unset($this->records, $this->notYetPresent);
         $this->resetPage();
+    }
+
+    private function attendanceFilterData(): AttendanceFilterData
+    {
+        return AttendanceFilterData::fromArray([
+            'from' => $this->dateFrom,
+            'to' => $this->dateTo,
+            'employee_id' => $this->employeeId,
+            'client_id' => $this->clientId,
+            'location_id' => $this->locationId,
+            'project_id' => $this->projectId,
+            'search' => $this->search,
+            'attendance_type' => $this->attendanceType,
+            'work_type' => $this->workType,
+        ]);
     }
 
     /** @return array{0: string, 1: string} */
     private function range(): array
     {
-        $from = Carbon::canBeCreatedFromFormat($this->dateFrom, 'Y-m-d') ? $this->dateFrom : '';
-        $to = Carbon::canBeCreatedFromFormat($this->dateTo, 'Y-m-d') ? $this->dateTo : '';
+        $filters = $this->attendanceFilterData();
 
-        if ($from === '' && $to === '') {
-            return ['', ''];
-        }
-
-        $from = $from !== '' ? $from : $to;
-        $to = $to !== '' ? $to : $from;
-
-        return $from <= $to ? [$from, $to] : [$to, $from];
+        return [$filters->from ?? '', $filters->to ?? ''];
     }
 
     #[Computed]
@@ -95,10 +114,51 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
     }
 
     #[Computed]
+    public function filterOptions(): array
+    {
+        return [
+            'clients' => Client::query()
+                ->whereHas('projects', fn ($query) => $query->whereHas('attendanceRecords'))
+                ->orderBy('name')->get(['id', 'code', 'name'])
+                ->map(fn (Client $client) => ['id' => $client->id, 'label' => $client->code.' · '.$client->name])->all(),
+            'locations' => Location::query()->whereHas('attendanceRecords')->orderBy('name')
+                ->get(['id', 'name', 'is_active'])
+                ->map(fn (Location $location) => [
+                    'id' => $location->id,
+                    'label' => $location->name.(! $location->is_active ? ' (Nonaktif)' : ''),
+                ])->all(),
+            'projects' => Project::query()->whereHas('attendanceRecords')->with('client:id,name')->orderBy('name')
+                ->get(['id', 'client_id', 'code', 'name', 'status'])
+                ->map(fn (Project $project) => [
+                    'id' => $project->id,
+                    'label' => $project->code.' · '.$project->name.' — '.$project->client?->name
+                        .($project->status !== ProjectStatus::Active ? ' (Nonaktif)' : ''),
+                ])->all(),
+            'employees' => $this->employees->map(fn (Employee $employee) => [
+                'id' => $employee->id, 'label' => $employee->user->name,
+            ])->all(),
+            'attendance_types' => collect(AttendanceType::cases())->map(fn (AttendanceType $type) => [
+                'value' => $type->value, 'label' => $type->label(),
+            ])->all(),
+            'work_types' => collect(WorkType::cases())->map(fn (WorkType $type) => [
+                'value' => $type->value, 'label' => $type->label(),
+            ])->all(),
+        ];
+    }
+
+    #[Computed]
+    public function filterValues(): array
+    {
+        return [
+            'from' => $this->dateFrom, 'to' => $this->dateTo, 'employee_id' => $this->employeeId,
+            'client_id' => $this->clientId, 'location_id' => $this->locationId, 'project_id' => $this->projectId,
+            'search' => $this->search, 'attendance_type' => $this->attendanceType, 'work_type' => $this->workType,
+        ];
+    }
+
+    #[Computed]
     public function records()
     {
-        [$from, $to] = $this->range();
-
         $sortColumns = [
             'recorded_at' => "COALESCE((SELECT ac.requested_recorded_at FROM attendance_corrections ac WHERE ac.attendance_record_id = attendance_records.id AND ac.status = 'approved' ORDER BY ac.reviewed_at DESC LIMIT 1), attendance_records.recorded_at)",
             'employee' => 'sort_users.name',
@@ -112,25 +172,9 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
             ->join('users as sort_users', 'sort_users.id', '=', 'sort_employees.user_id')
             ->with(['employee.user', 'location', 'project', 'approvedCorrection', 'sessionAnchor.approvedCorrection']);
 
-        AttendanceDateFilter::applyInTimezone(
-            $query,
-            $from !== '' ? $from : null,
-            $to !== '' ? $to : null,
-            'Asia/Makassar',
-        );
+        (new AttendanceRecordFilter($this->attendanceFilterData()))->apply($query, 'Asia/Makassar');
 
         return $query
-            ->when($this->employeeId !== '', fn ($query) => $query->where('attendance_records.employee_id', (int) $this->employeeId))
-            ->when($this->attendanceType !== '', fn ($query) => $query->where('attendance_records.type', $this->attendanceType))
-            ->when($this->workType !== '', fn ($query) => $query->where('attendance_records.work_type', $this->workType))
-            ->when(trim($this->search) !== '', function ($query) {
-                $term = trim($this->search);
-                $query->where(function ($nested) use ($term) {
-                    $nested->where('sort_users.name', 'like', '%'.$term.'%')
-                        ->orWhere('sort_employees.employee_number', 'like', '%'.$term.'%')
-                        ->orWhere('attendance_records.notes', 'like', '%'.$term.'%');
-                });
-            })
             ->orderByRaw(($sortColumns[$this->sortBy] ?? $sortColumns['recorded_at']).' '.($this->sortDirection === 'asc' ? 'asc' : 'desc'))
             ->orderByDesc('attendance_records.id')
             ->paginate(30);
@@ -141,7 +185,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
     {
         [$from, $to] = $this->range();
 
-        if ($from === '' || $from !== $to || $this->employeeId !== '' || trim($this->search) !== '' || $this->attendanceType !== '' || $this->workType !== '') {
+        if ($from === '' || $from !== $to || $this->employeeId !== '' || $this->clientId !== '' || $this->locationId !== '' || $this->projectId !== '' || trim($this->search) !== '' || $this->attendanceType !== '' || $this->workType !== '') {
             return collect();
         }
 
@@ -202,62 +246,11 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
             </div>
 
             <div class="p-4">
-                <div class="grid w-full min-w-0 grid-cols-1 items-end gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6">
-                    <x-ui.input
-                        size="sm"
-                        type="date"
-                        wire:model.live="dateFrom"
-                        :label="__('Dari tanggal')"
-                        class="w-full min-w-0"
-                    />
-                    <x-ui.input
-                        size="sm"
-                        type="date"
-                        wire:model.live="dateTo"
-                        :label="__('Sampai tanggal')"
-                        class="w-full min-w-0"
-                    />
-                    <x-ui.select
-                        size="sm"
-                        wire:model.live="employeeId"
-                        :label="__('Pegawai')"
-                        class="w-full min-w-0"
-                    >
-                        <flux:select.option value="">{{ __('Semua pegawai') }}</flux:select.option>
-                        @foreach ($this->employees as $employee)
-                            <flux:select.option value="{{ $employee->id }}">{{ $employee->user->name }}</flux:select.option>
-                        @endforeach
-                    </x-ui.select>
-                    <x-ui.input
-                        size="sm"
-                        wire:model.live.debounce.300ms="search"
-                        :label="__('Pencarian')"
-                        class="w-full min-w-0"
-                        :placeholder="__('Nama / nomor / catatan')"
-                    />
-                    <x-ui.select
-                        size="sm"
-                        wire:model.live="attendanceType"
-                        :label="__('Jenis absensi')"
-                        class="w-full min-w-0"
-                    >
-                        <flux:select.option value="">{{ __('Semua jenis') }}</flux:select.option>
-                        @foreach (AttendanceType::cases() as $type)
-                            <flux:select.option value="{{ $type->value }}">{{ $type->label() }}</flux:select.option>
-                        @endforeach
-                    </x-ui.select>
-                    <x-ui.select
-                        size="sm"
-                        wire:model.live="workType"
-                        :label="__('Jenis kerja')"
-                        class="w-full min-w-0"
-                    >
-                        <flux:select.option value="">{{ __('Semua jenis kerja') }}</flux:select.option>
-                        @foreach (WorkType::cases() as $type)
-                            <flux:select.option value="{{ $type->value }}">{{ $type->label() }}</flux:select.option>
-                        @endforeach
-                    </x-ui.select>
-                </div>
+                <x-admin.attendance-filters
+                    :filters="['date', 'client', 'location', 'project', 'employee', 'search', 'attendance_type', 'work_type']"
+                    :values="$this->filterValues"
+                    :options="$this->filterOptions"
+                />
             </div>
         </x-ui.card>
 
@@ -275,6 +268,9 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                 @php
                     $exportFilters = array_filter([
                         'employee_id' => $employeeId,
+                        'client_id' => $clientId,
+                        'location_id' => $locationId,
+                        'project_id' => $projectId,
                         'search' => $search,
                         'attendance_type' => $attendanceType,
                         'work_type' => $workType,
@@ -288,6 +284,18 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                     if ($employeeId !== '') {
                         $selectedEmployee = $this->employees->firstWhere('id', (int) $employeeId);
                         $activeExportFilters[] = 'Pegawai: '.($selectedEmployee?->user?->name ?? 'ID '.$employeeId);
+                    }
+                    if ($clientId !== '') {
+                        $selected = collect($this->filterOptions['clients'])->firstWhere('id', (int) $clientId);
+                        $activeExportFilters[] = 'Client: '.($selected['label'] ?? 'ID '.$clientId);
+                    }
+                    if ($locationId !== '') {
+                        $selected = collect($this->filterOptions['locations'])->firstWhere('id', (int) $locationId);
+                        $activeExportFilters[] = 'Location: '.($selected['label'] ?? 'ID '.$locationId);
+                    }
+                    if ($projectId !== '') {
+                        $selected = collect($this->filterOptions['projects'])->firstWhere('id', (int) $projectId);
+                        $activeExportFilters[] = 'Project: '.($selected['label'] ?? 'ID '.$projectId);
                     }
                     if (trim($search) !== '') {
                         $activeExportFilters[] = 'Pencarian: '.trim($search);

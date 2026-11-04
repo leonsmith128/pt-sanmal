@@ -2,7 +2,9 @@
 
 namespace App\Services;
 
+use App\Data\Attendance\AttendanceFilterData;
 use App\Enums\AttendanceType;
+use App\Filters\AttendanceRecordFilter;
 use App\Models\AttendanceRecord;
 use App\Models\Employee;
 use Illuminate\Database\Eloquent\Builder;
@@ -11,7 +13,7 @@ use Illuminate\Support\Collection;
 
 class DailyAttendanceExportService
 {
-    public function stream(Builder $employeesQuery, Carbon $start, Carbon $end, DailyAttendanceStatusService $statusService, array $filters = []): void
+    public function stream(Builder $employeesQuery, Carbon $start, Carbon $end, DailyAttendanceStatusService $statusService, AttendanceFilterData $filters): void
     {
         $stream = fopen('php://output', 'w');
 
@@ -29,6 +31,7 @@ class DailyAttendanceExportService
             'Status Koreksi', 'Catatan Absensi / Koreksi / Status',
         ]);
 
+        $recordFilter = new AttendanceRecordFilter($filters);
         $monthStart = $start->copy()->startOfMonth();
         $lastMonth = $end->copy()->startOfMonth();
 
@@ -55,18 +58,9 @@ class DailyAttendanceExportService
                             continue;
                         }
 
-                        $events = $daily['events'];
-                        if (($filters['attendance_type'] ?? '') !== '') {
-                            $events = $events->filter(fn (AttendanceRecord $event) => $event->type->value === $filters['attendance_type']);
-                            if ($events->isEmpty()) {
-                                continue;
-                            }
-                        }
-                        if (($filters['work_type'] ?? '') !== '') {
-                            $events = $events->filter(fn (AttendanceRecord $event) => $event->work_type->value === $filters['work_type']);
-                            if ($events->isEmpty()) {
-                                continue;
-                            }
+                        // Filter determines whether this day qualifies; export all events once it does.
+                        if (! $recordFilter->matchesDay($employee, $daily['events'])) {
+                            continue;
                         }
 
                         $allEvents = $daily['events'];

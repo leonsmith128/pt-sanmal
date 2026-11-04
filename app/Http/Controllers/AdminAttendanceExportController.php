@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\AttendanceType;
+use App\Data\Attendance\AttendanceFilterData;
 use App\Enums\WorkType;
 use App\Models\AttendanceRecord;
 use App\Models\DailyStatusCorrection;
@@ -25,34 +26,33 @@ class AdminAttendanceExportController extends Controller
     ): StreamedResponse {
         $filters = $request->validate([
             'from' => ['nullable', 'date_format:Y-m-d'],
-            'to' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:from'],
+            'to' => ['nullable', 'date_format:Y-m-d'],
             'employee_id' => ['nullable', 'integer', 'exists:employees,id'],
+            'client_id' => ['nullable', 'integer', 'exists:clients,id'],
+            'location_id' => ['nullable', 'integer', 'exists:locations,id'],
+            'project_id' => ['nullable', 'integer', 'exists:projects,id'],
             'search' => ['nullable', 'string', 'max:255'],
             'attendance_type' => ['nullable', Rule::enum(AttendanceType::class)],
             'work_type' => ['nullable', Rule::enum(WorkType::class)],
         ]);
 
         $today = Carbon::now('Asia/Makassar')->startOfDay();
-        $from = $filters['from'] ?? $this->earliestAvailableDate();
-        $to = $filters['to'] ?? $today->toDateString();
+        $filterData = AttendanceFilterData::fromArray($filters);
+
+        if ($filterData->from === null && $filterData->to === null) {
+            $filterData = $filterData->withDateRange($this->earliestAvailableDate(), $today->toDateString());
+        }
+
+        $from = $filterData->from ?? $today->toDateString();
+        $to = $filterData->to ?? $from;
         $start = Carbon::parse($from, 'Asia/Makassar')->startOfDay();
         $end = Carbon::parse($to, 'Asia/Makassar')->startOfDay();
-
-        $employees = Employee::query()
-            ->when($filters['employee_id'] ?? null, fn (Builder $query, $id) => $query->whereKey($id))
-            ->when(trim($filters['search'] ?? '') !== '', function (Builder $query) use ($filters): void {
-                $term = trim($filters['search']);
-                $query->where(function (Builder $nested) use ($term): void {
-                    $nested->whereHas('user', fn (Builder $user) => $user->where('name', 'like', '%'.$term.'%'))
-                        ->orWhere('employee_number', 'like', '%'.$term.'%')
-                        ->orWhereHas('attendanceRecords', fn (Builder $records) => $records->where('notes', 'like', '%'.$term.'%'));
-                });
-            });
+        $employees = Employee::query();
 
         $filename = 'rekap-absensi-admin-'.$start->format('Ymd').'-'.$end->format('Ymd').'.csv';
 
-        return response()->streamDownload(function () use ($employees, $start, $end, $filters, $statusService, $exportService): void {
-            $exportService->stream($employees, $start, $end, $statusService, $filters);
+        return response()->streamDownload(function () use ($employees, $start, $end, $statusService, $exportService, $filterData): void {
+            $exportService->stream($employees, $start, $end, $statusService, $filterData);
         }, $filename, [
             'Content-Type' => 'text/csv; charset=UTF-8',
             'Cache-Control' => 'private, no-store, no-cache, must-revalidate',
