@@ -92,3 +92,5 @@ The filter panel was tightened, redundant page descriptions removed, the reset a
 The activity table source now has a fixed-width desktop layout and a stacked card-like row presentation below the large-screen breakpoint. All existing data groups and row actions remain represented.
 
 **Browser/device QA: Not run.** Verify at 360–390 px, 414–430 px, 768 px, 1024 px, and 1280–1440 px in supported themes. Specifically inspect whether the stacked rows eliminate horizontal overflow; whether long employee names, addresses, and project snapshots wrap correctly; and whether pagination, photo preview, map links, project context, and timestamp correction remain usable. Automated regression tests do not replace this review.
+
+The mobile filter disclosure was added to the source. Browser QA must confirm that it starts collapsed on mobile, opens/closes by keyboard and touch, reflects the active-filter count, and remains expanded appropriately while users change Livewire-bound values. Desktop filter controls must remain visible without requiring a click.
