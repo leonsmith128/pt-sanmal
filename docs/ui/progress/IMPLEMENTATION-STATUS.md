@@ -94,3 +94,12 @@ Gap yang masih terbuka: perluasan matriks kalender/timezone dan browser QA respo
 - Inset Main menjadi pemilik spacing shell. Padding root `x-ui.page` yang menggandakan gutter telah dihapus dari Rekap Harian, Persetujuan Permohonan, Riwayat Absensi, Pusat Permohonan, form Koreksi/Permohonan, dan Notifikasi. `x-ui.page` tetap mengatur lebar konten per halaman; halaman Absensi Pegawai diperlebar dari `max-w-xl` ke lebar default `max-w-7xl` agar tidak tampak sempit di desktop.
 - Regression test menghitung 15 item navigasi Admin, lima separator grouping, tidak adanya separator pada Employee, dan lebar halaman Absensi; seluruhnya lulus full CI run 1297.
 - **Status: Implemented; automated CI verified, browser QA pending.** Browser QA pada 360–430px, 768–1024px, dan 1280–1440px masih diperlukan. Periksa khusus outer margin, permukaan konten utama, lebar konten halaman Absensi, dan tinggi/posisi separator pada sidebar expanded/collapsed.
+
+## Employee Attendance — layout and photo preview
+
+- Main attendance action remains the final element inside the attendance form, after the camera component and validation messages. It is not sticky or fixed; the page retains normal document scrolling when the photo preview or lower history content increases page height.
+- Captured selfie preview is presented as a clickable thumbnail. The popover displays the same temporary photo with its intrinsic aspect ratio preserved (object-contain), constrained only by the available viewport; it can be dismissed by its close control, outside click, or Escape.
+- Retake action and the existing camera/GPS/watermark/Livewire submission flow remain unchanged.
+- Attendance summary and form surfaces now use the approved SanMal light/dark card and border tokens.
+- Regression coverage was added for the full-size photo preview popover and its no-crop sizing behavior.
+- **Status: Implemented; CI running for commit 2dd9df6717eba2b045016c4094128b3031f3168f. Browser/device QA remains pending**, especially 360–390px and 414–430px widths, popover placement near viewport edges, and the full camera → preview → retake → confirm sequence.
