@@ -359,19 +359,23 @@ test('attendance status and overtime cards use a responsive two-column grid with
         ->assertSet('selectedOvertimeId', $overtime->id);
 });
 
-test('attendance action is presented before the historical date selector', function () {
+test('attendance action is presented after the date selector and status cards', function () {
     $this->actingAs(userWithRole(UserRole::Employee));
 
     $html = $this->get(route('attendance'))
         ->assertOk()
-        ->assertSee(__('Mulai absensi'))
         ->assertSee(__('Pilih tanggal untuk melihat riwayat.'))
+        ->assertSee(__('Status kehadiran'))
+        ->assertSee(__('Lembur'))
         ->getContent();
 
-    $actionPosition = strpos($html, 'wire:submit="confirm');
-    $historyPosition = strpos($html, __('Pilih tanggal untuk melihat riwayat.'));
+    $calendarPosition = strpos($html, __('Pilih tanggal untuk melihat riwayat.'));
+    $statusPosition = strpos($html, __('Status kehadiran'));
+    $actionPosition = strpos($html, 'form="attendance-form"');
 
-    expect($actionPosition)->not->toBeFalse()
-        ->and($historyPosition)->not->toBeFalse()
-        ->and($actionPosition)->toBeLessThan($historyPosition);
+    expect($calendarPosition)->not->toBeFalse()
+        ->and($statusPosition)->not->toBeFalse()
+        ->and($actionPosition)->not->toBeFalse()
+        ->and($calendarPosition)->toBeLessThan($statusPosition)
+        ->and($statusPosition)->toBeLessThan($actionPosition);
 });
