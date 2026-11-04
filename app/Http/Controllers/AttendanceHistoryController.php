@@ -29,6 +29,7 @@ class AttendanceHistoryController extends Controller
         abort_unless($user->is_active && $employee, 403, 'Akun ini belum terhubung dengan data pegawai aktif.');
 
         $filters = $this->validatedFilters($request, useCurrentMonthDefault: true);
+        $filters = $this->completeHistoryRange($filters, $employee);
         $dailyStatuses = $statusService->forEmployeesDateRange(
             collect([$employee]),
             $filters['from'],
@@ -138,6 +139,27 @@ class AttendanceHistoryController extends Controller
             ->filter()->sort()->first() ?? Carbon::now('Asia/Makassar')->toDateString();
     }
 
+    private function completeHistoryRange(array $filters, Employee $employee): array
+    {
+        $today = Carbon::now('Asia/Makassar')->toDateString();
+
+        if ($filters['from'] === '') {
+            $filters['from'] = $this->earliestAvailableDate($employee);
+        }
+
+        if ($filters['to'] === '') {
+            $filters['to'] = max($today, $filters['from']);
+        }
+
+        // A one-sided range can become reversed when the selected boundary is
+        // earlier than the employee's first available record (or in the future).
+        if ($filters['from'] > $filters['to']) {
+            $filters['from'] = $filters['to'];
+        }
+
+        return $filters;
+    }
+
     private function validatedFilters(Request $request, bool $useCurrentMonthDefault = false): array
     {
         $validated = $request->validate([
@@ -185,6 +207,7 @@ class AttendanceHistoryController extends Controller
         );
     }
 
+    /** @param Collection<int, AttendanceRecord> $events */
     private function hasCompleteClockInAndOut(Collection $events): bool
     {
         $clockIns = $events->filter(fn (AttendanceRecord $event): bool => $event->type === AttendanceType::ClockIn);
