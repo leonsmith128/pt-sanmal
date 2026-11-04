@@ -106,10 +106,13 @@ test('dashboard metric cards center labels and values without separators', funct
     $document = new DOMDocument;
     @$document->loadHTML($response->getContent());
     $xpath = new DOMXPath($document);
-    $heading = $xpath->query('//*[@id="monthly-summary-heading"]')->item(0);
+    $monthlySummary = $xpath->query('//*[@id="monthly-summary-heading"]/parent::*')->item(0);
 
-    expect($heading)->not->toBeNull()
-        ->and($document->saveHTML($heading->parentNode))->not->toContain('divide-sanmal-border');
+    if (! $monthlySummary instanceof DOMElement) {
+        throw new RuntimeException('Monthly summary container was not rendered.');
+    }
+
+    expect($document->saveHTML($monthlySummary))->not->toContain('divide-sanmal-border');
 });
 
 test('employee dashboard shows pending leave request breakdown for the authenticated employee and keeps notifications visible on mobile', function () {
