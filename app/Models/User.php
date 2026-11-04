@@ -12,7 +12,6 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 /**
@@ -62,7 +61,7 @@ class User extends Authenticatable implements MustVerifyEmail
     public function profilePhotoUrl(): ?string
     {
         return $this->profile_photo_path
-            ? Storage::disk('public')->url($this->profile_photo_path)
+            ? route('profile-photo.show', ['user' => $this->getKey()])
             : null;
     }
 
