@@ -85,3 +85,10 @@ The reusable filter UI and shared query/export filter contract were added to PR 
 The filter panel was tightened, redundant page descriptions removed, the reset action moved below the filter controls, and Export retained in the activity toolbar. The existing filter contract and reset semantics are unchanged.
 
 **Browser/device QA: Not run.** Review at 360–390 px, 414–430 px, 768 px, 1024 px, and 1280–1440 px in supported light/dark themes. Confirm the controls remain legible, the reset action stays easy to reach, and the Export dropdown is not clipped. The activity table still requires a separate responsive-layout pass; this change does not claim to resolve horizontal table overflow.
+
+
+## Admin Attendance responsive table layout — source follow-up (5 November 2026)
+
+The activity table source now has a fixed-width desktop layout and a stacked card-like row presentation below the large-screen breakpoint. All existing data groups and row actions remain represented.
+
+**Browser/device QA: Not run.** Verify at 360–390 px, 414–430 px, 768 px, 1024 px, and 1280–1440 px in supported themes. Specifically inspect whether the stacked rows eliminate horizontal overflow; whether long employee names, addresses, and project snapshots wrap correctly; and whether pagination, photo preview, map links, project context, and timestamp correction remain usable. Automated regression tests do not replace this review.
