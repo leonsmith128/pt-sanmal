@@ -48,9 +48,16 @@ This policy is the approved domain decision for attendance recording and dashboa
 - A new Clock In resolves its timezone independently. A person can therefore have sessions in different timezones over time; never use the latest session timezone to reinterpret an earlier session.
 - Attribute cross-midnight sessions and their overtime to the Clock In anchor's local `attendance_date` / overtime `session_date`; do not split a session at UTC midnight, local midnight, or a later event's date.
 - Evaluate whether a session belongs to the current month using the current calendar month in that session's stored Clock In timezone. A session in Jakarta may therefore belong to October while a separate session in Makassar belongs to November at the same absolute instant near a month boundary.
-- The dashboard may use the latest session timezone to present its current-day header, but this display context must not change the date/month attribution of any session.
+- The employee dashboard's current-day header uses WITA (`Asia/Makassar`), not the latest session timezone. This display choice must not change the date/month attribution of any session.
 - Admin date filters and dashboard summaries must have an explicit company-date policy. Until that policy is implemented consistently, do not claim employee/admin parity for dates around local/UTC midnight.
 - Approved timestamp corrections may change effective timestamps and effective local dates according to the correction workflow, but must not overwrite original UTC evidence or the stored timezone snapshot.
+
+### Display timezone
+
+- Actual event instants are stored as UTC. Each event's timezone comes from the rules above: GPS-resolved for onsite, `Asia/Makassar` for office, or the explicitly unverified fallback.
+- Pages that show or summarize attendance data, including the employee dashboard and all Admin pages, convert actual times to WITA (`Asia/Makassar`) for display. These pages show no timezone label.
+- Employee attendance history detail shows the event's stored GPS-resolved timezone snapshot next to its time, as the only place a timezone label appears.
+- Display conversion never changes attribution, the timezone snapshot, or the stored UTC evidence.
 
 ### Required timezone coverage
 
