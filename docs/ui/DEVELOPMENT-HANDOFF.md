@@ -4,22 +4,43 @@ Panduan operasional ringkas untuk AI coding agent dan developer yang melanjutkan
 
 ## Mulai dari sini
 
-Baca berurutan:
+Jangan membaca seluruh dokumentasi secara berurutan untuk setiap task. Gunakan jalur minimum berikut.
+
+### Wajib sebelum mengubah repository
 
 1. [Repository README](../../README.md) — tujuan aplikasi dan stack.
 2. [Project Status](../PROJECT-STATUS.md) — milestone repository, risiko, dan status production.
-3. [AI Agent Rules](../../AGENTS.md) — batas perubahan, domain, testing, dan Git.
-4. [Architecture & Development](../ARCHITECTURE-AND-DEVELOPMENT.md) — struktur Laravel/Livewire, route, domain, dan test.
-5. [Design Foundation](DESIGN-FOUNDATION.md) — brand, prinsip visual, responsive role priorities.
-6. [Page Inventory](PAGE-INVENTORY.md) — cakupan halaman dan fokus review.
-7. [Component Catalog](COMPONENT-CATALOG.md) — peta primitive bersama.
-8. [Reusable Blade Components](REUSABLE-BLADE-COMPONENTS.md) — detail API/kontrak komponen.
-9. [Employee Dashboard Data Contract](EMPLOYEE-DASHBOARD-DATA-CONTRACT.md) — definisi agregasi status, jam kerja, lembur, pengajuan, dan aktivitas.
-10. [Implementation Status](progress/IMPLEMENTATION-STATUS.md) dan [Visual QA Log](progress/VISUAL-QA-LOG.md) — status dan bukti yang tercatat.
+3. [AI Agent Rules](../../AGENTS.md) — aturan wajib untuk perubahan dan Git.
+4. [Architecture & Development](../ARCHITECTURE-AND-DEVELOPMENT.md) — struktur Laravel/Livewire, route, domain, dan testing.
 
-Tidak perlu membaca audit lama. Dokumen aktif di atas adalah panduan; source, route, test, dan hasil browser aktual adalah kebenaran implementasi.
+### Wajib untuk pekerjaan UI
 
+5. [Design Foundation](DESIGN-FOUNDATION.md) — token dan aturan visual.
+6. [Page Inventory](PAGE-INVENTORY.md) — halaman in-scope dan fokus review.
+7. [Component Catalog](COMPONENT-CATALOG.md) — cari komponen yang sudah ada.
+
+### Baca sesuai area task
+
+- Mengubah API komponen: [Reusable Blade Components](REUSABLE-BLADE-COMPONENTS.md).
+- Employee Dashboard: [Layout V1](EMPLOYEE-DASHBOARD-LAYOUT-V1.md) dan [Data Contract](EMPLOYEE-DASHBOARD-DATA-CONTRACT.md).
+- Employee Attendance: [Layout V1](EMPLOYEE-ATTENDANCE-LAYOUT-V1.md) dan [Calendar V1](EMPLOYEE-ATTENDANCE-CALENDAR-V1.md).
+- Status pekerjaan: [Implementation Status](progress/IMPLEMENTATION-STATUS.md).
+- Bukti browser/perangkat: [Visual QA Log](progress/VISUAL-QA-LOG.md).
+
+Tidak perlu membaca audit lama atau semua spesifikasi fitur yang tidak terkait. Dokumen aktif adalah panduan; source, route, test, dan hasil browser aktual adalah kebenaran implementasi.
 ## Konteks produk
+
+## Pola arsitektur UI yang digunakan
+
+- **Blade + Controller:** halaman request/response sederhana tanpa state server reaktif yang kompleks.
+- **Native Livewire 4 SFC:** halaman yang membutuhkan state server reaktif. Satu SFC menjadi orchestrator state halaman dan action.
+- **Blade Components:** memecah markup berdasarkan tanggung jawab visual; bukan state owner Livewire tersendiri.
+- **Actions:** proses bisnis/use-case seperti pencatatan absensi dan konfirmasi lembur.
+- **Services:** kalkulasi, agregasi, dan klasifikasi domain yang dapat digunakan ulang.
+- **Nested Livewire Component:** hanya jika bagian halaman benar-benar membutuhkan state, lifecycle, validasi, atau interaksi server independen.
+- **Flux UI:** renderer komponen UI yang sudah digunakan aplikasi. Jangan membuat sistem komponen paralel atau memigrasikan halaman ke Volt/framework lain hanya demi keseragaman.
+
+Contoh konkret: Employee Attendance tetap satu Native Livewire 4 SFC. Kalender, ringkasan jam, status card, dan photo preview dipisah menjadi Blade Components; kamera tetap komponen khusus karena lifecycle browser-nya. Lihat [Employee Attendance Layout V1](EMPLOYEE-ATTENDANCE-LAYOUT-V1.md).
 
 SanMal adalah aplikasi internal absensi dan administrasi pegawai PT SanMal Calibration Laboratory.
 
