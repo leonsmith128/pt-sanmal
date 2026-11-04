@@ -115,5 +115,5 @@ Gap yang masih terbuka: perluasan matriks kalender/timezone dan browser QA respo
 - Calendar and time-summary markup were extracted into Blade Components; the page remains a single Livewire SFC orchestrator. Business workflows remain in the existing Actions, and calendar status classification is handled by `AttendanceCalendarService`.
 - Retake action and the existing camera/GPS/watermark/Livewire submission flow remain unchanged.
 - Attendance summary and form surfaces now use the approved SanMal light/dark card and border tokens.
-- Regression coverage was updated for the standalone preview component and full-width bottom action placement.
+- Regression coverage was updated for the standalone preview component, its temporary-photo download action, and full-width bottom action placement.
 - **Status: Implemented; CI verification pending for the latest PR head. Browser/device QA remains pending**, especially 360–390px and 414–430px widths, centered modal placement and backdrop dismissal, and the full camera → preview → retake → confirm sequence.
