@@ -36,22 +36,22 @@
                 x-on:click.stop
                 class="flex max-h-[calc(100dvh-2rem)] w-fit max-w-full flex-col rounded-xl border border-sanmal-border bg-sanmal-surface-card p-3 shadow-2xl dark:border-sanmal-border-dark dark:bg-sanmal-surface-card-dark"
             >
-            <div class="mb-2 flex items-center justify-between gap-4">
-                <span class="text-sm font-medium">{{ __('Pratinjau foto') }}</span>
-                <button
-                    type="button"
-                    x-on:click="previewOpen = false"
-                    class="rounded-md p-1 text-[var(--sanmal-text-secondary)] transition hover:bg-sanmal-surface-secondary focus-visible:outline-2 focus-visible:outline-blue-600"
-                    aria-label="{{ __('Tutup pratinjau foto') }}"
-                >
-                    <flux:icon name="x-mark" variant="micro" />
-                </button>
-            </div>
-            <img
-                src="{{ $selfie->temporaryUrl() }}"
-                alt="{{ __('Foto absensi dalam ukuran asli') }}"
-                class="block h-auto w-auto max-h-[calc(100dvh-7rem)] max-w-[calc(100vw-3.5rem)] rounded-lg object-contain"
-            />
+                <div class="mb-2 flex items-center justify-between gap-4">
+                    <span class="text-sm font-medium">{{ __('Pratinjau foto') }}</span>
+                    <button
+                        type="button"
+                        x-on:click="previewOpen = false"
+                        class="rounded-md p-1 text-[var(--sanmal-text-secondary)] transition hover:bg-sanmal-surface-secondary focus-visible:outline-2 focus-visible:outline-blue-600"
+                        aria-label="{{ __('Tutup pratinjau foto') }}"
+                    >
+                        <flux:icon name="x-mark" variant="micro" />
+                    </button>
+                </div>
+                <img
+                    src="{{ $selfie->temporaryUrl() }}"
+                    alt="{{ __('Foto absensi dalam ukuran asli') }}"
+                    class="block h-auto w-auto max-h-[calc(100dvh-7rem)] max-w-[calc(100vw-3.5rem)] rounded-lg object-contain"
+                />
             </div>
         </div>
         <div class="mt-2">
