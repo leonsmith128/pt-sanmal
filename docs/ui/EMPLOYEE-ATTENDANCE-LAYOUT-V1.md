@@ -41,7 +41,7 @@ Komponen: `resources/views/components/attendance/info-card.blade.php` (`x-attend
 
 - Card kehadiran menampilkan tanggal, status, tempat/lokasi, alamat snapshot bila tersedia, dan jam masuk/pulang bila ada.
 - Card lembur menampilkan status operasional dan status persetujuan sebagai informasi yang berbeda, serta rincian jadwal/aktual/finalisasi yang tersedia.
-- Grid memakai satu kolom pada mobile dan dua kolom mulai `sm`.
+- Grid memakai satu kolom pada mobile dan dua kolom mulai `sm`. Badge status pada header info card harus compact (teks kecil dan padding vertikal rapat), sejajar tengah dengan judul, serta tidak mengambil perhatian lebih besar daripada label.
 - Tinggi minimum dan area konten fleksibel digunakan agar dua card lebih stabil ketika jumlah informasinya berbeda.
 - Container card menggunakan surface token dan shadow; jangan menambahkan border pada container luar. Border internal untuk pemisah konten masih boleh bila diperlukan.
 
@@ -62,7 +62,7 @@ Mode yang ditangani halaman: `clock_in`, `clock_out`, `overtime_start`, `overtim
 
 - `overtime_locked` dan `clock_in_blocked`: tombol utama disabled dengan pesan kontekstual.
 - Mode yang memerlukan foto: sebelum selfie tersedia, tombol utama membuka kamera.
-- Setelah selfie tersedia, tombol utama berubah menjadi **Lanjutkan** dan memicu tahap validasi/konfirmasi.
+- Setelah selfie tersedia, tombol utama berubah menjadi **Lanjutkan** dan memicu tahap validasi/konfirmasi. Tombol aksi utama yang membuka kamera atau melanjutkan workflow menggunakan tinggi sekitar 48 px; pertahankan lebar fleksibel yang sudah ada. Tombol navigasi biasa dan aksi sekunder tetap memakai ukuran standar.
 - Submit final dilakukan setelah pegawai mengonfirmasi melalui modal; validasi server tetap menjadi sumber keputusan.
 - Jangan menambah tombol kamera sekunder yang menduplikasi tombol utama.
 
