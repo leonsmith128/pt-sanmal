@@ -28,7 +28,7 @@
                 @endif
             </flux:sidebar.header>
 
-            <flux:sidebar.nav aria-label="{{ __('Navigasi utama') }}" >
+            <flux:sidebar.nav aria-label="{{ __('Navigasi utama') }}">
                 @if ($isEmployee)
                     <div class="flex flex-col">
                         <flux:sidebar.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
