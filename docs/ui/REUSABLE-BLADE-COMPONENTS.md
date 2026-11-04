@@ -264,7 +264,7 @@ Use the existing components inside the application shell:
 |---|---|---|
 | `layouts/app.blade.php` | active | Retain as the single authenticated application layout |
 | `layouts/app/sidebar.blade.php` | active | Retain as the SanMal Application Shell implementation |
-| `layouts/app/header.blade.php` | unused-confirmed for the current route/layout configuration | Removed; it was the legacy starter-kit header/navbar shell, while the configured app layout delegates to the sidebar shell |
+| `layouts/app/header.blade.php` | legacy alternate; not selected by the configured root layout or route declarations inspected | Removed from this branch; it duplicated the previous starter-kit header/navbar shell |
 | `layouts/auth.blade.php` | active, out of scope | Leave unchanged |
 | `layouts/auth/simple.blade.php` | active, out of scope | Leave unchanged |
 | `layouts/auth/card.blade.php` | alternate, out of scope | Leave unchanged pending authentication redesign |
@@ -272,7 +272,7 @@ Use the existing components inside the application shell:
 | `partials/head.blade.php` | shared infrastructure | Retain; used by document layouts |
 | `partials/settings-heading.blade.php` | settings partial | Retain pending separate usage/API review |
 
-The legacy `layouts/app/header.blade.php` was removed after confirming the configured application layout and route declarations use the sidebar-based application layout and do not select the header layout. The shared `x-desktop-user-menu` component was **not** removed: the active sidebar layout still renders it. Keep `x-app-logo` and `x-app-logo-icon` until their full usage, including authentication layouts, is reviewed.
+The legacy `layouts/app/header.blade.php` was removed because the configured root layout delegates to the sidebar shell and the inspected route declarations do not select the header layout. The repository's GitHub code-search index did not provide complete results, so this is a configuration/source-based consolidation rather than a claim that every possible dynamic reference was exhaustively indexed. The shared `x-desktop-user-menu` component was **not** removed: the active sidebar layout still renders it. Keep `x-app-logo` and `x-app-logo-icon` until their full usage, including authentication layouts, is reviewed.
 
 ### Scope boundary
 
