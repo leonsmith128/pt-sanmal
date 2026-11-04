@@ -344,6 +344,28 @@ new #[Title('Absensi')] class extends Component {
                 : ($this->hasClockInToday ? 'clock_in_blocked' : 'clock_in');
         @endphp
 
+        <section class="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
+            <div class="mb-3 flex items-center justify-between gap-3">
+                <div>
+                    <flux:heading size="sm">{{ Carbon::parse($selectedDate)->translatedFormat('F Y') }}</flux:heading>
+                    <flux:text class="text-sm">{{ __('Pilih tanggal untuk melihat riwayat.') }}</flux:text>
+                </div>
+                <div class="flex gap-1">
+                    <x-ui.button size="sm" variant="ghost" icon="chevron-left" wire:click="shiftWeek(-1)" aria-label="{{ __('Minggu sebelumnya') }}" />
+                    <x-ui.button size="sm" variant="ghost" icon="chevron-right" wire:click="shiftWeek(1)" aria-label="{{ __('Minggu berikutnya') }}" />
+                    <x-ui.button size="sm" variant="ghost" wire:click="selectDate('{{ now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString() }}')">{{ __('Hari ini') }}</x-ui.button>
+                </div>
+            </div>
+            <div class="grid grid-cols-7 gap-1.5">
+                @foreach ($this->weekDays as $day)
+                    <button type="button" wire:click="selectDate('{{ $day['date'] }}')" class="flex min-w-0 flex-col items-center gap-1 rounded-xl px-1 py-2.5 text-sm transition {{ $selectedDate === $day['date'] ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900' : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800' }}">
+                        <span class="text-xs {{ $selectedDate === $day['date'] ? 'opacity-80' : 'text-zinc-500' }}">{{ $day['label'] }}</span>
+                        <span class="flex size-8 items-center justify-center rounded-full {{ $day['today'] && $selectedDate !== $day['date'] ? 'ring-1 ring-zinc-400' : '' }} font-semibold">{{ $day['day'] }}</span>
+                    </button>
+                @endforeach
+            </div>
+        </section>
+
         {{-- Ringkasan waktu kerja --}}
         @php
             $clockInRecord = $this->history->firstWhere('type', AttendanceType::ClockIn);
@@ -501,29 +523,42 @@ new #[Title('Absensi')] class extends Component {
             @error('workType') <flux:text class="text-red-500">{{ $message }}</flux:text> @enderror
 
 
-        </form>
+            <div class="{{ $selectedDate !== now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString() ? 'hidden' : '' }}">
+                        <div class="flex w-full items-center gap-2 pt-1">
+                            @if ($mode === 'overtime_locked')
+                                <x-ui.button type="button" variant="primary" class="min-w-0 flex-1" disabled icon="lock-closed">
+                                    {{ __('Konfirmasi Lembur') }}
+                                </x-ui.button>
+                            @elseif ($mode === 'clock_in_blocked')
+                                <x-ui.button type="button" variant="primary" class="min-w-0 flex-1" disabled icon="lock-closed">
+                                    {{ __('Sesi hari ini sudah digunakan') }}
+                                </x-ui.button>
+                            @else
+                                @if ($selfie)
+                                    <x-ui.button
+                                        type="submit"
+                                        variant="primary"
+                                        class="min-w-0 flex-1"
+                                        wire:loading.attr="disabled"
+                                        wire:target="confirm,submit,selfie"
+                                    >
+                                        {{ __('Lanjutkan') }}
+                                    </x-ui.button>
+                                @else
+                                    <x-ui.button
+                                        type="button"
+                                        variant="primary"
+                                        class="min-w-0 flex-1" form="attendance-form"
+                                        x-on:click="$dispatch('attendance-camera-open')"
+                                    >
+                                        {{ match ($mode) { 'clock_in' => __('Absen Masuk'), 'overtime_start' => __('Konfirmasi Lembur'), default => __('Absen Pulang') } }}
+                                    </x-ui.button>
+                                @endif
+                            @endif
+                        </div>
+                    </div>
 
-        <section class="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
-            <div class="mb-3 flex items-center justify-between gap-3">
-                <div>
-                    <flux:heading size="sm">{{ Carbon::parse($selectedDate)->translatedFormat('F Y') }}</flux:heading>
-                    <flux:text class="text-sm">{{ __('Pilih tanggal untuk melihat riwayat.') }}</flux:text>
-                </div>
-                <div class="flex gap-1">
-                    <x-ui.button size="sm" variant="ghost" icon="chevron-left" wire:click="shiftWeek(-1)" aria-label="{{ __('Minggu sebelumnya') }}" />
-                    <x-ui.button size="sm" variant="ghost" icon="chevron-right" wire:click="shiftWeek(1)" aria-label="{{ __('Minggu berikutnya') }}" />
-                    <x-ui.button size="sm" variant="ghost" wire:click="selectDate('{{ now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString() }}')">{{ __('Hari ini') }}</x-ui.button>
-                </div>
-            </div>
-            <div class="grid grid-cols-7 gap-1.5">
-                @foreach ($this->weekDays as $day)
-                    <button type="button" wire:click="selectDate('{{ $day['date'] }}')" class="flex min-w-0 flex-col items-center gap-1 rounded-xl px-1 py-2.5 text-sm transition {{ $selectedDate === $day['date'] ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900' : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800' }}">
-                        <span class="text-xs {{ $selectedDate === $day['date'] ? 'opacity-80' : 'text-zinc-500' }}">{{ $day['label'] }}</span>
-                        <span class="flex size-8 items-center justify-center rounded-full {{ $day['today'] && $selectedDate !== $day['date'] ? 'ring-1 ring-zinc-400' : '' }} font-semibold">{{ $day['day'] }}</span>
-                    </button>
-                @endforeach
-            </div>
-        </section>
+        </form>
 
         <div class="grid grid-cols-1 items-stretch gap-3 sm:grid-cols-2">
             <x-attendance.info-card class="min-w-0 flex-1 basis-64"
@@ -637,40 +672,7 @@ new #[Title('Absensi')] class extends Component {
             </x-attendance.info-card>
         </div>
 
-        <div class="{{ $selectedDate !== now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString() ? 'hidden' : '' }}">
-            <div class="flex w-full items-center gap-2 pt-1">
-                @if ($mode === 'overtime_locked')
-                    <x-ui.button type="button" variant="primary" class="min-w-0 flex-1" disabled icon="lock-closed">
-                        {{ __('Konfirmasi Lembur') }}
-                    </x-ui.button>
-                @elseif ($mode === 'clock_in_blocked')
-                    <x-ui.button type="button" form="attendance-form" variant="primary" class="min-w-0 flex-1" disabled icon="lock-closed">
-                        {{ __('Sesi hari ini sudah digunakan') }}
-                    </x-ui.button>
-                @else
-                    @if ($selfie)
-                        <x-ui.button
-                            type="submit"
-                            variant="primary"
-                            class="min-w-0 flex-1" form="attendance-form"
-                            wire:loading.attr="disabled"
-                            wire:target="confirm,submit,selfie"
-                        >
-                            {{ __('Lanjutkan') }}
-                        </x-ui.button>
-                    @else
-                        <x-ui.button
-                            type="button"
-                            variant="primary"
-                            class="min-w-0 flex-1" form="attendance-form"
-                            x-on:click="$dispatch('attendance-camera-open')"
-                        >
-                            {{ match ($mode) { 'clock_in' => __('Absen Masuk'), 'overtime_start' => __('Konfirmasi Lembur'), default => __('Absen Pulang') } }}
-                        </x-ui.button>
-                    @endif
-                @endif
-            </div>
-        </div>
+
 
         {{-- Modal konfirmasi sebelum absensi dikirim --}}
         @php
