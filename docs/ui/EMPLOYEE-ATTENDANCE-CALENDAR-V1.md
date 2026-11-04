@@ -1,7 +1,7 @@
 # Employee Attendance Calendar V1
 
-> Status: implemented in source; automated CI verification and browser/device QA pending.
-> Scope: weekly date selector and monthly date picker on the Employee Attendance page.
+> Scope: weekly date selector and monthly date picker on the Employee Attendance page. The current source implementation is in `x-attendance.calendar` and the parent Employee Attendance Livewire SFC.
+> The monthly-grid regression test passed in CI run [#1418](https://github.com/leonsmith128/pt-sanmal/actions/runs/41771398379); the overall workflow still has two other failing assertions. Browser/device QA remains pending. See [Implementation Status](progress/IMPLEMENTATION-STATUS.md) for the complete verification snapshot and [Employee Attendance Layout V1](EMPLOYEE-ATTENDANCE-LAYOUT-V1.md) for page composition.
 
 ## 1. Purpose
 
