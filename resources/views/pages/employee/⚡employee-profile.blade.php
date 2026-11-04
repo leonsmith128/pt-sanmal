@@ -131,9 +131,6 @@ new #[Title('Profil Pegawai')] class extends Component {
                 :label="__('Foto profil')"
                 accept="image/jpeg,image/png,image/webp"
             />
-            @error('photo')
-                <flux:text class="text-sm text-red-600 dark:text-red-400">{{ $message }}</flux:text>
-            @enderror
 
             <div class="flex flex-wrap gap-2">
                 <x-ui.button type="submit" variant="primary" wire:loading.attr="disabled" wire:target="photo,saveProfilePhoto">
