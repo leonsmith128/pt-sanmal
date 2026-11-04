@@ -113,30 +113,21 @@
                     $formatDuration = fn (int $minutes) => intdiv($minutes, 60).'j '.str_pad((string) ($minutes % 60), 2, '0', STR_PAD_LEFT).'m';
                 @endphp
 
-                <header class="flex min-w-0 items-center gap-3 sm:gap-4">
-                    <x-ui.avatar
-                        :name="$dashboardUser->name"
-                        :initials="$dashboardUser->initials()"
-                        :src="$dashboardUser->profilePhotoUrl()"
-                        size="lg"
-                        :aria-label="__('Foto profil :name', ['name' => $dashboardUser->name])"
-                    />
-
-                    <div class="min-w-0 flex-1">
-                        <p class="text-sm text-[var(--sanmal-text-secondary)]">{{ __('Selamat datang,') }}</p>
-                        <h1 class="truncate text-xl font-bold tracking-tight text-[var(--sanmal-text-primary)] sm:text-2xl">
-                            {{ $dashboardUser->name }}
-                        </h1>
-                        <p class="mt-1 text-sm text-[var(--sanmal-text-muted)]">
-                            {{ $employeeDashboard['today'] }}
-                        </p>
-                    </div>
-
-                    <x-ui.notification-dropdown
-                        :notifications="$notifications"
-                        :unread-count="$unreadNotificationCount"
-                    />
-                </header>
+                <x-employee.identity-header
+                    :name="$dashboardUser->name"
+                    :initials="$dashboardUser->initials()"
+                    :src="$dashboardUser->profilePhotoUrl()"
+                    :greeting="__('Selamat datang,')"
+                    :description="$employeeDashboard['today']"
+                    avatar-size="lg"
+                >
+                    <x-slot:actions>
+                        <x-ui.notification-dropdown
+                            :notifications="$notifications"
+                            :unread-count="$unreadNotificationCount"
+                        />
+                    </x-slot:actions>
+                </x-employee.identity-header>
 
                 <x-ui.card padding="p-5 sm:p-6">
                     <div class="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
