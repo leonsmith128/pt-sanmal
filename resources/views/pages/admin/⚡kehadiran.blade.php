@@ -207,15 +207,33 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
 
 
 <style>
-    .attendance-responsive-table table {
-        width: 100%;
-        table-layout: fixed;
-    }
-
     .attendance-mobile-list { display: none; }
 
-    .attendance-desktop-table { max-width: 72rem; margin-inline: auto; }
-    .attendance-desktop-table table { width: 100%; table-layout: fixed; }
+    .attendance-desktop-table,
+    .attendance-desktop-table [data-flux-table] {
+        width: 100%;
+        max-width: none;
+    }
+
+    .attendance-desktop-table table {
+        width: 100%;
+        table-layout: auto;
+    }
+
+    .attendance-desktop-table thead th:nth-child(1),
+    .attendance-desktop-table tbody td:nth-child(1) { width: 13%; }
+    .attendance-desktop-table thead th:nth-child(2),
+    .attendance-desktop-table tbody td:nth-child(2) { width: 14%; }
+    .attendance-desktop-table thead th:nth-child(3),
+    .attendance-desktop-table tbody td:nth-child(3) { width: 11%; }
+    .attendance-desktop-table thead th:nth-child(4),
+    .attendance-desktop-table tbody td:nth-child(4) { width: 19%; }
+    .attendance-desktop-table thead th:nth-child(5),
+    .attendance-desktop-table tbody td:nth-child(5) { width: 27%; }
+    .attendance-desktop-table thead th:nth-child(6),
+    .attendance-desktop-table tbody td:nth-child(6) { width: 7%; }
+    .attendance-desktop-table thead th:nth-child(7),
+    .attendance-desktop-table tbody td:nth-child(7) { width: 9%; }
 
     @media (max-width: 767px) {
         .attendance-responsive-table .attendance-desktop-table { display: none; }
@@ -372,7 +390,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                 <div class="attendance-mobile-list gap-3">
                 @forelse ($records as $record)
                     <article wire:key="attendance-mobile-{{ $record->id }}" class="flex gap-3 rounded-xl border border-sanmal-border bg-sanmal-surface-primary p-3 shadow-sm dark:border-sanmal-border-dark dark:bg-sanmal-surface-primary-dark">
-                        <div class="w-20 shrink-0">
+                        <div class="w-20 shrink-0 self-center">
                             @if ($record->selfie_path)
                                 <x-ui.photo-preview
                                     :src="route('admin.attendance.selfie', $record)"
@@ -404,16 +422,12 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                                 <p class="mt-1 truncate text-xs text-[var(--sanmal-text-muted)]">{{ $record->project_code_snapshot ? $record->project_code_snapshot.' · ' : '' }}{{ $record->project_name_snapshot }}</p>
                             @endif
                             <div class="mt-3 flex flex-wrap items-center justify-end gap-1.5">
-                                <flux:modal.trigger :name="'attendance-detail-'.$record->id">
-                                    <x-ui.button size="xs" variant="outline" icon="eye">{{ __('Detail') }}</x-ui.button>
-                                </flux:modal.trigger>
-                                @if ($record->latitude !== null && $record->longitude !== null)
-                                    <a href="https://www.google.com/maps?q={{ $record->latitude }},{{ $record->longitude }}" target="_blank" rel="noopener noreferrer" class="inline-flex min-h-7 items-center justify-center rounded-md border border-sanmal-border px-2 text-xs font-medium text-sanmal-brand-blue dark:border-sanmal-border-dark dark:text-sanmal-brand-yellow-dark">{{ __('Peta') }}</a>
-                                @endif
-                                @if (in_array($record->type, [AttendanceType::ClockIn, AttendanceType::ClockOut], true) && $record->employee->user_id !== auth()->id())
                                     <flux:modal.trigger :name="'attendance-correction-'.$record->id">
                                         <x-ui.button size="xs" variant="outline">{{ __('Koreksi') }}</x-ui.button>
                                     </flux:modal.trigger>
+                                <flux:modal.trigger :name="'attendance-detail-'.$record->id">
+                                    <x-ui.button size="xs" variant="outline" icon="eye">{{ __('Detail') }}</x-ui.button>
+                                </flux:modal.trigger>
                                 @endif
                             </div>
                         </div>
@@ -437,15 +451,15 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                 <div class="pt-1">{{ $records->links() }}</div>
             </div>
             <div class="attendance-desktop-table">
-            <flux:table class="w-full table-fixed" :paginate="$records" pagination:scroll-to="#attendance-records">
+            <flux:table class="w-full" :paginate="$records" pagination:scroll-to="#attendance-records">
                     <flux:table.columns>
-                        <flux:table.column sortable :sorted="$sortBy === 'recorded_at'" :direction="$sortDirection" wire:click="sort('recorded_at')" class="w-26 px-3 py-3 sm:py-2">{{ __('Waktu') }}</flux:table.column>
-                        <flux:table.column sortable :sorted="$sortBy === 'employee'" :direction="$sortDirection" wire:click="sort('employee')" class="w-34 px-3 py-3 sm:py-2">{{ __('Pegawai') }}</flux:table.column>
-                        <flux:table.column sortable :sorted="$sortBy === 'type'" :direction="$sortDirection" wire:click="sort('type')" class="w-20 px-3 py-3 sm:py-2">{{ __('Jenis') }}</flux:table.column>
-                        <flux:table.column sortable :sorted="$sortBy === 'work_type'" :direction="$sortDirection" wire:click="sort('work_type')" class="w-40 px-3 py-3 sm:py-2">{{ __('Kerja') }}</flux:table.column>
-                        <flux:table.column class="w-40 px-3 py-3 sm:py-2">{{ __('Lokasi GPS') }}</flux:table.column>
-                        <flux:table.column class="w-14 px-3 py-3 sm:py-2" align="center">{{ __('Foto') }}</flux:table.column>
-                        <flux:table.column class="w-28 px-3 py-3 sm:py-2">{{ __('Koreksi') }}</flux:table.column>
+                        <flux:table.column sortable :sorted="$sortBy === 'recorded_at'" :direction="$sortDirection" wire:click="sort('recorded_at')" class="px-3 py-3 sm:py-2">{{ __('Waktu') }}</flux:table.column>
+                        <flux:table.column sortable :sorted="$sortBy === 'employee'" :direction="$sortDirection" wire:click="sort('employee')" class="px-3 py-3 sm:py-2">{{ __('Pegawai') }}</flux:table.column>
+                        <flux:table.column sortable :sorted="$sortBy === 'type'" :direction="$sortDirection" wire:click="sort('type')" class="px-3 py-3 sm:py-2">{{ __('Jenis') }}</flux:table.column>
+                        <flux:table.column sortable :sorted="$sortBy === 'work_type'" :direction="$sortDirection" wire:click="sort('work_type')" class="px-3 py-3 sm:py-2">{{ __('Kerja') }}</flux:table.column>
+                        <flux:table.column class="px-3 py-3 sm:py-2">{{ __('Lokasi GPS') }}</flux:table.column>
+                        <flux:table.column class="px-3 py-3 sm:py-2" align="center">{{ __('Foto') }}</flux:table.column>
+                        <flux:table.column class="px-3 py-3 sm:py-2">{{ __('Koreksi') }}</flux:table.column>
                     </flux:table.columns>
                     <flux:table.rows>
                         @forelse ($records as $record)
