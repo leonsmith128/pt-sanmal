@@ -4,7 +4,7 @@
 
 ## 1. Tujuan halaman
 
-Halaman ini adalah workflow utama pegawai untuk melihat ringkasan kehadiran tanggal terpilih dan melakukan Clock In, Clock Out, atau konfirmasi mulai lembur. Prioritasnya mobile-first, dengan satu alur tindakan yang mudah ditemukan.
+Halaman ini adalah workflow utama pegawai untuk melihat ringkasan kehadiran tanggal terpilih dan melakukan Clock In, Clock Out, atau konfirmasi mulai lembur. Prioritasnya mobile-first, dengan satu alur tindakan yang mudah ditemukan. Jarak antarbagian utama halaman menggunakan `gap-4` agar susunan card lebih rapat.
 
 ## 2. Urutan konten
 
