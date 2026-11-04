@@ -436,6 +436,7 @@ new #[Title('Absensi')] class extends Component {
             :selected-date="$selectedDate"
             :selected-month-label="Carbon::parse($selectedDate)->translatedFormat('F Y')"
             :calendar-month-label="Carbon::parse($calendarMonth)->translatedFormat('F Y')"
+            :today-date="now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString()"
             :show-monthly-calendar="$showMonthlyCalendar"
         />
 
