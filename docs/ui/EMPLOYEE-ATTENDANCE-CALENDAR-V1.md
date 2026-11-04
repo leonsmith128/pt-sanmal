@@ -31,7 +31,7 @@ Provide a compact weekly calendar for daily navigation and a monthly calendar fo
 
 | Daily status service result | Calendar indicator | Color |
 |---|---|---|
-| `present` | Hadir | Soft pastel green `#80C995` |
+| `present` | Hadir | Green `#54B66F` |
 | `needs_review` | Perlu ditinjau | Warning amber `#B2640A` |
 | `no_record` | Tidak ada catatan | Subtle neutral gray |
 | Other domain statuses | No dot in this three-state indicator set | Not reclassified |
