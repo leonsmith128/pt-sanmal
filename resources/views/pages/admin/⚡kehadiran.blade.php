@@ -207,10 +207,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
 
 <section x-data="{ exportConfirmOpen: false, exportUrl: '', exportDescription: '' }" x-on:keydown.escape.window="exportConfirmOpen = false" class="w-full">
     <x-ui.page>
-        <x-admin.page-header
-            :title="__('Kehadiran Pegawai')"
-            :description="__('Pantau dan telusuri catatan absensi seluruh pegawai. Filter tanggal mengikuti kalender perusahaan (WITA).')"
-        />
+        <x-admin.page-header :title="__('Kehadiran Pegawai')" />
         @if (session('status'))
             <div role="status" class="rounded-lg border border-sanmal-success/30 bg-sanmal-success/10 px-4 py-3 text-sm text-sanmal-success dark:border-sanmal-success/50 dark:bg-sanmal-success/15">
                 {{ session('status') }}
@@ -228,29 +225,25 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
         @endphp
 
         <x-ui.card padding="p-0" class="overflow-hidden">
-            <div class="flex flex-col gap-2 border-b border-sanmal-border bg-sanmal-surface-secondary px-4 py-3 sm:flex-row sm:items-center sm:justify-between dark:border-sanmal-border-dark dark:bg-sanmal-surface-secondary-dark">
-                <div>
-                    <h2 class="font-semibold text-[var(--sanmal-text-primary)]">{{ __('Cakupan catatan') }}</h2>
-                    <p class="mt-0.5 text-sm text-[var(--sanmal-text-secondary)]">{{ __('Tanggal mengikuti kalender perusahaan WITA.') }}</p>
-                </div>
-                <x-ui.button
-                    size="sm"
-                    type="button"
-                    variant="outline"
-                    class="w-full sm:w-auto"
-                    icon="arrows-up-down"
-                    wire:click="resetAdditionalFilters"
-                >
-                    {{ __('Reset filter tambahan') }}
-                </x-ui.button>
-            </div>
-
-            <div class="p-4">
+            <div class="p-4 sm:p-5">
                 <x-admin.attendance-filters
                     :filters="['date', 'client', 'location', 'project', 'employee', 'search', 'attendance_type', 'work_type']"
                     :values="$this->filterValues"
                     :options="$this->filterOptions"
                 />
+
+                <div class="mt-3 flex justify-end border-t border-sanmal-border pt-3 dark:border-sanmal-border-dark">
+                    <x-ui.button
+                        size="sm"
+                        type="button"
+                        variant="outline"
+                        class="w-full sm:w-auto"
+                        icon="rotate-ccw"
+                        wire:click="resetAdditionalFilters"
+                    >
+                        {{ __('Reset filter') }}
+                    </x-ui.button>
+                </div>
             </div>
         </x-ui.card>
 
