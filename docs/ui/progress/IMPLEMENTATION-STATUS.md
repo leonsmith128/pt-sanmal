@@ -1,119 +1,82 @@
-# UI/UX V1 Implementation Status
+# UI/UX V1 — Status Implementasi
 
-> Status harus mencerminkan bukti, bukan rencana. Branch tracking: `docs/ui-v1-scope-and-pr-workflow` · [PR #27](https://github.com/leonsmith128/pt-sanmal/pull/27).
+> Snapshot: 4 November 2026. Tracking: branch `docs/ui-v1-scope-and-pr-workflow` · [PR #27](https://github.com/leonsmith128/pt-sanmal/pull/27). Periksa ulang source, branch HEAD, dan CI sebelum memakai snapshot ini untuk keputusan berikutnya.
 
-## Vocabulary
+## Cara membaca status
 
-- **Not started** — belum dikerjakan.
-- **In progress** — pekerjaan sedang berlangsung.
-- **Implemented, unverified** — source tersedia, tetapi pemeriksaan yang diperlukan belum lengkap.
-- **Verified** — pemeriksaan otomatis dan/atau visual yang relevan memiliki bukti sesuai klaim.
-- **Blocked** — dependency/keputusan menghalangi pekerjaan.
-- **Accepted limitation** — owner menerima gap yang terdokumentasi.
+- **Source implemented** berarti implementasi tersedia di branch; belum otomatis berarti tampilannya sudah benar di browser.
+- **Automated test passed** berarti test terkait benar-benar lulus pada run yang disebut.
+- **Browser/device QA passed** hanya boleh ditulis jika hasil browser atau perangkat dicatat di [Visual QA Log](VISUAL-QA-LOG.md).
+- Source review, test komponen, dan CI tidak menggantikan visual QA atau pengujian kamera/GPS pada perangkat nyata.
 
-Source inspection bukan browser QA. Component test bukan bukti seluruh workflow halaman. CI pass bukan bukti visual lintas viewport.
+## Ringkasan saat ini
 
-## Ringkasan milestone
+| Area | Kondisi source | Bukti otomatis terbaru | Browser/device QA |
+|---|---|---|---|
+| Design foundation dan token | Implemented. Palette, shell Flux inset, surface, dan aturan card dipusatkan di Design Foundation dan CSS aplikasi. | Tidak ada klaim bahwa seluruh halaman sudah lolos visual test. | Belum dilakukan secara menyeluruh. |
+| Shared UI primitives | 14 primitive `x-ui.*` tersedia. Dua utility tambahan: `x-ui.avatar` dan `x-ui.notification-dropdown`. `x-ui.sidebar-section` adalah helper navigasi shell. | Test button, card, layout, feedback, metadata, dan notification dropdown lulus pada run #1418. | Belum dilakukan secara menyeluruh. |
+| Application shell dan navigasi | Sidebar Admin/Manager berkelompok; Employee tetap tidak berkelompok. Mobile memakai header dan drawer, tanpa fixed bottom navigation. | Regression test shell/sidebar lulus pada run #1418. | Mobile, tablet, desktop, light/dark masih perlu diperiksa. |
+| Halaman Admin | Source review mencakup halaman Admin dan komponen terkait. Beberapa perbaikan filter, wrapping, density, dan layout sudah diterapkan. | Test yang terkait berjalan dalam CI; lihat hasil run terbaru di bawah. | Belum ada bukti QA lintas halaman dan viewport. |
+| Employee Dashboard | Layout V1, ringkasan bulanan, Pengajuan Saya, Akses Cepat, Aktivitas Terbaru, dan notifikasi tersedia. | Sebagian besar test dashboard lulus pada run #1418. Satu assertion test gagal karena mencari class divider pada seluruh HTML, termasuk bagian Aktivitas Terbaru. | Belum dilakukan. |
+| Employee Attendance | Urutan source: header pegawai → kalender → ringkasan jam → status kehadiran/lembur → satu form absensi → modal. Calendar, time summary, info card, dan photo preview dipisah menjadi Blade Components; satu Livewire SFC tetap menjadi orchestrator. | Test urutan halaman dan test pembuka kalender bulanan lulus pada run #1418. | Belum dilakukan; terutama alur kamera/GPS dan ukuran layar kecil. |
+| Kalender Absensi | Weekly calendar dan monthly picker enam baris tersedia. Indikator memakai status domain; `no_record` tidak diartikan sebagai absent. | Feature test pemilihan tanggal dan sinkronisasi kalender lulus pada run #1418. | Belum dilakukan pada viewport dan theme yang ditentukan. |
+| Photo preview | Komponen terpisah menampilkan thumbnail, modal foto penuh, unduh foto sementara, dan aksi foto ulang. | Test download foto dengan selfie tersedia lulus pada run #1418. Satu test render halaman gagal karena meminta markup preview saat halaman dibuka tanpa selfie. | Belum dilakukan; modal dan siklus capture perlu diuji di browser/perangkat. |
+| Accessibility dan interaction-state | Beberapa kontrol sudah memiliki label/semantics; audit menyeluruh belum selesai. | Test otomatis hanya memeriksa kontrak yang tercakup di masing-masing test. | Audit keyboard, focus, dialog, loading, error, dan touch target masih terbuka. |
 
-| Milestone | Status | Catatan |
-|---|---|---|
-| Fondasi reusable UI `x-ui.*` | **Implemented** | Seluruh 14 primitive bersama tersedia: badge, button, card, checkbox, empty-state, field, flash-message, input, metadata-item, page-header, page, section, select, textarea. Kontrak dan aturan penggunaan ada di [Reusable Blade Components](../REUSABLE-BLADE-COMPONENTS.md). |
-| Standardisasi token dan styling dasar | **Implemented; browser QA pending** | Light primary button memakai biru; dark primary dan secondary memakai tingkatan aksen kuning. Card linked/non-linked memakai token surface-card terpisah (light `#F8FCFF`, dark `#192B40`), sementara main panel dark tetap `#122235`; linked-card hover memakai elevated surface. Notification panel memakai surface token SanMal. Browser visual QA masih diperlukan. |
-| Adopsi komponen pada halaman | **Implemented, partial coverage** | Komponen telah diadopsi pada sejumlah halaman Admin, Employee, Shared, dan Authentication. Tidak berarti seluruh halaman telah didesain ulang atau semua markup satu-off harus diekstrak. Periksa source dan [Page Inventory](../PAGE-INVENTORY.md). |
-| Koreksi responsivitas temuan terakhir | **CI verified; visual pending** | Filter Admin Kehadiran, icon pada detail lembur, dan susunan tombol Pusat Permohonan telah diperbaiki. Full CI terbaru untuk branch ini lulus pada commit `e85558fa29a5050d42a3b609ccac4442d29ae665`, [run 1297](https://github.com/leonsmith128/pt-sanmal/actions/runs/41671815016). Browser visual recheck tetap belum dicatat. |
-| Kontrak data Employee Dashboard | **Policy approved; covered resolver, migration, and aggregation tests CI verified; browser and broader calendar review pending** | Kebijakan UTC, Office `Asia/Makassar`, Onsite berbasis GPS valid, fallback eksplisit, dan review tercatat di [Employee Dashboard Data Contract](../EMPLOYEE-DASHBOARD-DATA-CONTRACT.md). Resolver offline `aldesrahim/laravel-timezone-indonesia` v1.1.0 berada di balik `AttendanceTimezoneResolver`; event menyimpan `timezone_source`, dan fallback ditandai `needs_review`. Resolver, snapshot sesi, agregasi per timezone Clock In, batas tanggal, serta migrasi telah melewati full CI pada [run 1297](https://github.com/leonsmith128/pt-sanmal/actions/runs/41671815016) di MariaDB dan SQLite. Matriks kalender/timezone yang lebih luas dan browser/device QA masih diperlukan. |
-| Navigation shell and responsive sidebar | **Implemented; regression tests CI verified; browser QA pending** | Admin Dashboard is a standalone first item; Admin/Superadmin with a linked employee profile receive `Aktivitas Saya` beginning with a separate employee-scoped Dashboard Pribadi. Admin groups follow Operasional, Persetujuan, Data Master, Sistem; personal request labels are distinct from approval queues. Employee navigation remains ungrouped. Shell uses Flux `<flux:main inset>` with the page surface (`#E5EBF1` light / `#0B1623` dark); body and sidebar share the sidebar surface (`#CAD6E2` light / `#0B1623` dark) without a divider. Sidebar icon sizing and collapsed-state visibility passed the latest CI run 1297. Browser QA at mobile, tablet, and desktop widths remains pending. |
-| Employee notification dropdown | **Implemented; automated tests CI verified; browser QA pending** | Reusable `x-ui.notification-dropdown` menerima data dari caller, menampilkan maksimal 5 notifikasi terbaru, unread count/indicator, empty state, dan tautan ke daftar lengkap. Dashboard pegawai memasok data user-scoped; route baca yang ada tetap digunakan. Focused component dan endpoint ownership tests lulus dalam full CI run 1297. Popover memakai posisi fixed dan batas tinggi viewport untuk mobile/tablet, lalu posisi relatif di desktop. Ikon notifikasi pada header Employee Dashboard tetap tersedia pada viewport mobile. Browser QA lintas viewport masih diperlukan. |
-| Employee Dashboard V1 layout | **Implemented; automated tests and CI verified; browser QA pending** | Layout dan controller role branch tersedia. View menampilkan rincian pending leave/permission/sick berdasarkan nama jenis permohonan dan ikon notifikasi tetap tersedia di mobile. Ringkasan bulanan memakai grid dua kolom di bawah breakpoint `xl` dan empat kolom mulai `xl`; label serta nilai rata tengah tanpa separator. Card statistik Admin dan card tindakan Admin juga memakai susunan vertikal dengan label/nilai rata tengah. Feature test ditambahkan untuk breakdown pengajuan, employee scoping, exclusion status approved, status `no_record` yang tidak berubah menjadi `absent`, koreksi status harian, sesi tertutup/terbuka, pemisahan durasi kerja bersih dari lembur disetujui, koreksi timestamp efektif, atribusi sesi lintas tengah malam ke tanggal Clock In, penolakan durasi pada status perlu ditinjau, dan penandaan interval lembur di luar sesi absensi. Unit test tambahan memeriksa pemilihan interval overtime `actual`, `scheduled`, `manual`, sesi berjalan, pembatalan, interval tidak valid, serta overlap. UI memberi peringatan bila interval lembur final berada di luar sesi absensi; nilai final tetap dipertahankan dan hanya overlap yang berada dalam sesi dikurangkan dari jam kerja. Coverage tambahan kini mencakup Clock In/Clock Out duplikat, event Clock Out unanchored saat ada lebih dari satu anchor terbuka, beberapa interval lembur approved dalam satu sesi, interval efektif Clock Out yang tidak lebih akhir dari Clock In, sesi lintas tengah malam yang melewati pergantian bulan pada timezone `Asia/Makassar`, transisi lembur pending menjadi approved, serta kesesuaian klasifikasi harian Employee dan ringkasan Admin untuk pegawai/tanggal yang sama. Batasan yang masih tersisa: perluasan matriks kalender/timezone dan parity durasi kerja/lembur karena metrik tersebut belum ditampilkan pada Admin Dashboard. Resolver, migrasi, agregasi per sesi, dan regression tests yang tercakup telah lulus full CI run 1297 pada MariaDB dan SQLite. Browser QA belum dilakukan. Lihat [Employee Dashboard Layout V1](../EMPLOYEE-DASHBOARD-LAYOUT-V1.md). |
-| Audit source seluruh Views | **Source review completed; browser QA pending** | Seluruh kelompok page view Admin, Employee, Dashboard, Notifications, Settings, Authentication, layout, dan komponen bersama diperiksa ulang pada branch ini. Review mencakup struktur komposisi, adopsi primitive, surface/theme classes, responsive intent, dan kontrak interaksi yang tampak dari view. Satu mismatch tanggal ditemukan pada CTA Admin Dashboard: link rekap harian memakai tanggal server default, sementara kalender laporan memakai WITA. Controller kini memasok `todayDate` berbasis `Asia/Makassar` ke view dan regression test memeriksa pergantian tanggal UTC ke WITA. Audit juga mencatat beberapa surface Admin lama (terutama `x-admin.filter-panel` dan sebagian form/detail) masih memakai neutral `white/zinc` alih-alih token surface SanMal; normalisasi visual perlu dilakukan bertahap per halaman setelah QA, bukan lewat penggantian massal. Template `layouts/app/header.blade.php` serta varian auth `card`/`split` masih ada di source, sedangkan root layout aktif memakai `app.sidebar` dan auth wrapper aktif memakai `auth.simple`; verifikasi referensi sebelum menghapus template yang tampak tidak aktif. Ini bukan bukti browser rendering atau seluruh state runtime telah diuji. Pola native table, review list, Livewire SFC, dan Flux dipertahankan ketika semantiknya tepat. |
-| Responsive audit menyeluruh | **Source-level pass completed; browser/device QA pending** | Pemeriksaan source menemukan deklarasi responsive pada halaman in-scope, tetapi tidak dapat membuktikan overflow, clipping, scroll, atau perilaku aktual pada viewport. Lanjutkan QA berdasarkan [Visual QA Log](VISUAL-QA-LOG.md). |
-| Accessibility dan interaction-state audit | Not started | Keyboard, focus, semantics, touch target, loading/error/empty, dan theme. |
-| Final V1 review | Not started | Rekonsiliasi scope, test, visual QA, limitations, dan review PR sebelum merge. |
+## CI terbaru yang diperiksa
 
-## Employee Attendance — implementasi awal
+Run [#1418](https://github.com/leonsmith128/pt-sanmal/actions/runs/41771398379) dijalankan pada PR #27 tanggal 4 November 2026. Workflow menguji merge ref PR:
 
-- Tombol utama memakai label ringkas **Konfirmasi Lembur** ketika jadwal lembur sudah tiba; saat jadwal belum tiba, tombol tetap disabled dan pesan menjelaskan bahwa pengajuan harus dibatalkan sebelum Clock Out.
-- Backend sudah menegakkan larangan konfirmasi sebelum `scheduled_start_at`, validasi state pengajuan, dan pemblokiran Clock Out untuk pengajuan aktif yang belum dikonfirmasi. Pembatalan pegawai dibatasi pada state `scheduled`/`awaiting_photo` tanpa `start_record_id`.
-- Overtime card menampilkan waktu sejak jadwal tiba sebelum konfirmasi dan durasi aktual dari `startRecord.recorded_at` setelah konfirmasi. Tampilan timer hanya berjalan untuk pengajuan pada sesi yang masih terbuka; finalisasi admin tetap menjadi sumber durasi yang diakui.
-- Tombol pembatalan pengajuan tetap berada di overtime card sebagai satu-satunya jalan pegawai membuka blokir Clock Out.
-- Alur satu tombol: ketika belum ada foto, tombol utama memicu kamera; setelah foto berhasil diunggah, tombol berubah menjadi **Lanjutkan** untuk membuka modal konfirmasi. Tombol kamera sekunder dihapus dari halaman.
-- Kamera baru dibuka setelah izin lokasi diperiksa, koordinat segar didapatkan, dan reverse geocoding menghasilkan alamat snapshot. Shutter tetap manual; preview menyediakan foto ulang/gunakan foto; upload tetap melalui Livewire; pencatatan tetap menunggu konfirmasi dan validasi server.
-- Feature test menegaskan pemicu kamera dari tombol utama dan tahap **Lanjutkan**. Regression test lembur mencakup clock-out yang diblokir oleh jadwal aktif, pembatalan jadwal yang membuka kembali clock-out, dan state konfirmasi saat jadwal tiba.
-- GPS unavailable tetap merupakan kondisi yang ditandai untuk review oleh backend pada alur pencatatan yang menerima foto; alur kamera saat ini mensyaratkan GPS dan alamat siap sebelum membuka kamera. Kegagalan izin GPS/kamera dan urutan shutter-preview-upload masih memerlukan pengujian browser/device karena belum ada test runtime JavaScript khusus.
-- Pengujian browser/device untuk urutan GPS, izin kamera, shutter, preview, upload, dan error handling masih diperlukan.
-- Pass layout awal: ringkasan waktu dan form tindakan absensi kini ditempatkan sebelum pemilih tanggal/riwayat, sehingga aksi utama lebih cepat ditemukan pada mobile. Form diberi heading dan instruksi kontekstual sesuai mode Clock In, Clock Out, atau konfirmasi lembur. Kartu detail dan kalender tetap tersedia di bawah; hanya urutan presentasi yang diubah.
-- Regression test memastikan form tindakan muncul sebelum pemilih tanggal dan lulus dalam full CI run 1297. Urutan kamera, izin GPS, shutter, preview, dan upload tetap membutuhkan browser/device QA.
-- **Status: Implemented; automated CI verified, browser/device QA pending.** Full test suite dan pemeriksaan formatting Pint lulus pada run 1297. Pemeriksaan PHPStan terarah yang dikonfigurasi untuk tiga controller juga lulus; tetapi repository-wide PHPStan masih melaporkan 278 baseline errors dan langkah tersebut memakai `continue-on-error`, jadi static analysis seluruh repository belum dapat dinyatakan bersih. Regression coverage backend untuk pemblokiran Clock Out dan konfirmasi lembur ikut lulus. Browser/device QA untuk izin GPS/kamera, shutter, preview, upload, dan error handling masih diperlukan.
+- PR head: `7f887da6b44e2e43ea0c9e6ba1eb9764a4b36669`
+- Merge ref yang diuji: `48f992148f546cb06264e2aae928581f345984a7`
 
-## Cakupan fondasi reusable yang sudah tersedia
+<badge color="danger">CI belum lulus</badge>
 
-- **Layout:** `x-ui.page`, `x-ui.page-header`, `x-ui.section`.
-- **Action:** `x-ui.button`.
-- **Surface:** `x-ui.card`.
-- **Form:** `x-ui.field`, `x-ui.input`, `x-ui.select`, `x-ui.textarea`, `x-ui.checkbox`.
-- **Feedback:** `x-ui.flash-message`, `x-ui.empty-state`.
-- **Status dan metadata:** `x-ui.badge`, `x-ui.metadata-item`.
-- **Identity:** `x-ui.avatar` untuk foto profil dan fallback inisial berbentuk lingkaran; sudah diterapkan pada header Dashboard dan avatar menu profil desktop/mobile yang teridentifikasi. Halaman Profil berada di `resources/views/pages/employee/⚡employee-profile.blade.php` dan masih memakai `flux:avatar` untuk mendukung Livewire temporary photo preview; migrasi ke `x-ui.avatar` belum diperlukan tanpa bukti bahwa kontrak preview tetap terjaga.
-- **Navigation utility:** `x-ui.notification-dropdown` (domain-aware; data disediakan oleh controller).
+| Pemeriksaan | Hasil |
+|---|---|
+| Vite asset build | Passed |
+| Pint untuk file PHP yang berubah | Passed |
+| Targeted PHPStan untuk changed application code | Passed |
+| Repository-wide static analysis | Step selesai, tetapi baseline error repository ditoleransi oleh `continue-on-error`; jangan menyebut seluruh repository bersih |
+| MariaDB 11 | **275 passed, 2 failed, 1 skipped** — 1.122 assertions |
+| SQLite | Skipped karena test MariaDB gagal |
+| Kesimpulan workflow | **Failure** |
 
-Komponen generik tidak mengambil alih business logic, authorization, route construction, enum-to-label/color mapping, query, atau state workflow. Domain adapter tetap dipertahankan bila dibutuhkan. Jangan menambah wrapper hanya untuk menghilangkan markup yang belum terbukti berulang.
+### Dua kegagalan test yang perlu ditindaklanjuti
 
-## Adopsi halaman yang tercatat
+1. **Photo preview — `AttendancePagesTest.php:207`**
 
-- Admin: halaman monitoring kehadiran, CRUD/review yang diaudit, employee/project/client/location, serta beberapa detail dan dashboard memakai primitive sesuai kebutuhan.
-- Employee: attendance, attendance history, correction submission, leave request, overtime, profile, dan beberapa halaman pendukung memakai primitive layout/form/status yang relevan.
-- Shared dan Authentication: dashboard, notifications, account security, login, confirm-password, forgot-password, dan reset-password telah mengadopsi primitive terkait.
+   Test `attendance page renders a separate full-size photo preview...` mengharapkan string `previewOpen` pada GET halaman absensi tanpa selfie. Namun `x-attendance.photo-preview` memang hanya merender markup ketika selfie tersedia dan previewable. Test khusus download yang mengisi selfie justru lulus. Perbaiki skenario/assertion test agar menguji state kosong dan state dengan selfie secara terpisah; jangan menghapus conditional render hanya untuk membuat test lulus.
 
-Daftar ini adalah ringkasan adopsi yang tercatat, bukan klaim seluruh halaman telah selesai direview secara visual. Gunakan [Page Inventory](../PAGE-INVENTORY.md) untuk cakupan halaman dan inspeksi source branch sebelum mengubah status.
+2. **Dashboard — `DashboardTest.php:103`**
 
-## Catatan verifikasi
+   Test `dashboard metric cards center labels and values without separators` memakai `assertDontSee('divide-sanmal-border')` terhadap seluruh HTML. Class divider memang dipakai pada daftar Aktivitas Terbaru, bukan sebagai separator di grid Ringkasan Bulan Ini. Persempit assertion ke elemen grid statistik yang sedang diuji; jangan menghapus divider yang memang digunakan oleh daftar aktivitas.
 
-- Button: CI lulus pada commit `00d255c1d5384eb312e7842e85954c8ef7c9ca15`, [run 1004](https://github.com/leonsmith128/pt-sanmal/actions/runs/41543440506). Owner mengonfirmasi visual QA primary button pada light/dark dan beberapa ukuran layar; detail browser/device/viewport tidak tercatat di [Visual QA Log](VISUAL-QA-LOG.md).
-- Form, layout, card, feedback, badge, metadata: focused tests tersedia dalam source; jangan mengklaim test suite terbaru lulus kecuali run yang sesuai sudah diperiksa.
-- Responsive fixes terakhir: CI lulus pada commit `6da6b96ee1e8be19126cba43a62d6ec51aaf22ca`, [run 1065](https://github.com/leonsmith128/pt-sanmal/actions/runs/41566842563). Ini tidak menggantikan visual recheck halaman terkait.
-- Tidak ada klaim bahwa seluruh halaman telah melewati browser/device QA.
+Test kalender bulanan, urutan konten halaman absensi, dan download foto dengan selfie lulus pada run yang sama. Hal ini tidak mengubah kesimpulan bahwa workflow CI secara keseluruhan masih gagal.
 
-## Handoff ke tahap berikutnya
+## Keputusan desain dan arsitektur yang sudah diterapkan
 
-Tahap standardisasi reusable component ditutup sebagai fondasi implementasi. Kontrak data Employee Dashboard telah diterapkan pada resolver, persistence, dan agregasi yang tercakup oleh full CI run 1297; browser/device dan matriks kalender/timezone yang lebih luas masih terbuka. Jangan mengulang audit komponen generik kecuali ditemukan gap konkret dari penggunaan nyata.
+- Gunakan Flux UI dan primitive `x-ui.*` yang tersedia; jangan membuat design system paralel.
+- Employee mobile-first; Admin mengutamakan keterbacaan informasi desktop/tablet dan tetap mobile-friendly.
+- Card standar memakai surface token, tanpa border pada container luar, dan shadow untuk elevation. Border tetap boleh dipakai pada control, divider, tabel, atau kelompok inset jika memang menyampaikan struktur.
+- Satu Livewire SFC menjadi orchestrator halaman interaktif. Blade Components memisahkan markup visual. Actions menangani proses bisnis; Services menangani kalkulasi/klasifikasi domain. Nested Livewire hanya jika state/lifecycle independen benar-benar diperlukan.
+- Kalender dan ringkasan jam adalah Blade Components; state tanggal tetap dimiliki parent Attendance SFC.
+- Camera component tetap terpisah dari photo-preview component. Jangan mengubah lifecycle kamera, GPS, watermark, upload, atau attendance submission sebagai pekerjaan visual tanpa scope dan test khusus.
 
-Employee Dashboard V1 layout, controller role branch, aggregation service, dan view tersedia di source. Rincian jenis pengajuan tertunda dan visibilitas ikon notifikasi mobile telah diperbaiki. Feature test dan unit test untuk status, sesi ambigu/duplikat, batas bulan/timezone, transisi approval lembur, daily-status parity Employee/Admin, dan beberapa interval lembur telah lulus full CI run 1297 pada MariaDB dan SQLite.
+## Pekerjaan tersisa — urutan yang disarankan
 
-Resolver timezone menggunakan dependency offline `aldesrahim/laravel-timezone-indonesia` v1.1.0 melalui `App\Services\AttendanceTimezoneResolver`. Clock In Office menyimpan `Asia/Makassar`; Clock In Onsite memakai IANA timezone hasil koordinat GPS yang valid; bila GPS/resolver tidak dapat menentukan zona, sistem memakai fallback WITA dengan `timezone_source=fallback` dan status harian `needs_review`. Clock Out dan konfirmasi mulai lembur mewarisi timezone dari anchor Clock In. Migration `timezone_source`, test resolver, dan snapshot sesi telah lulus full CI run 1297 pada MariaDB dan SQLite.
+1. Perbaiki dua assertion CI di atas dengan menguji container/state yang tepat.
+2. Jalankan ulang CI dan pastikan MariaDB serta SQLite selesai; jangan menyatakan lulus sebelum workflow terbaru benar-benar hijau.
+3. Lakukan browser QA Employee Dashboard, Employee Attendance, dan halaman Admin pada 360–390 px, 414–430 px, 768 px, 1024 px, dan 1280–1440 px; periksa light/dark jika didukung.
+4. Uji alur kamera/GPS pada perangkat nyata melalui HTTPS: permission, lokasi siap/gagal, orientasi, shutter, preview, foto ulang, upload, dan konfirmasi.
+5. Selesaikan accessibility dan interaction-state review.
+6. Rekonsiliasi seluruh scope V1 dan bukti QA sebelum meminta persetujuan merge PR #27.
 
-Gap yang masih terbuka: perluasan matriks kalender/timezone dan browser QA responsif. Kalender laporan Admin ditetapkan ke WITA dan diterapkan pada dashboard, rekap harian, monitoring kehadiran, serta ekspor CSV; cakupan automated test yang ada telah lulus full CI run 1297. Lanjutkan dengan browser QA lintas viewport dan perangkat. Admin Dashboard saat ini hanya menyajikan ringkasan status harian, sehingga parity durasi kerja/lembur belum dapat dibandingkan tanpa memperluas scope tampilan Admin. Pertahankan route, authorization, validation, Livewire, query/filter, export, camera/GPS, attendance timestamp, dan domain workflow. Catat test dan browser QA aktual di [Visual QA Log](VISUAL-QA-LOG.md).
+## Dokumen sumber
 
-
-## Navigation shell — implementasi awal
-
-- Layout utama memakai `<flux:main inset>` dengan `lg:ms-0`, tetap menjadi sibling langsung sidebar/header. Sidebar inline menyatu dengan body surface tanpa divider; main inset memakai page surface. Body serta sidebar memakai tinggi viewport `dvh`.
-- Employee memakai header atas dan drawer sidebar pada layar kecil; fixed bottom navigation dihapus. Daftar Employee tidak memakai grouping dan memuat Beranda, Absensi, Riwayat, Permohonan, serta Lembur.
-- Link aktivitas pribadi Manager memakai label yang sama dengan Employee. Label item Admin dipersingkat sementara grouping Operasional, Master Data, dan Permohonan tetap dipertahankan.
-- Komponen baru `x-ui.sidebar-section` menjaga tinggi baris heading. Saat sidebar terbuka, heading tampil; saat collapsed, heading diganti separator Flux subtle sehingga item ikon tidak bergeser naik. Employee tidak menggunakan komponen ini.
-- Ikon item sidebar distandardisasi menjadi 20px persegi dengan ukuran tetap pada kondisi expanded/collapsed.
-- Inset Main menjadi pemilik spacing shell. Padding root `x-ui.page` yang menggandakan gutter telah dihapus dari Rekap Harian, Persetujuan Permohonan, Riwayat Absensi, Pusat Permohonan, form Koreksi/Permohonan, dan Notifikasi. `x-ui.page` tetap mengatur lebar konten per halaman; halaman Absensi Pegawai diperlebar dari `max-w-xl` ke lebar default `max-w-7xl` agar tidak tampak sempit di desktop.
-- Regression test menghitung 15 item navigasi Admin, lima separator grouping, tidak adanya separator pada Employee, dan lebar halaman Absensi; seluruhnya lulus full CI run 1297.
-- **Status: Implemented; automated CI verified, browser QA pending.** Browser QA pada 360–430px, 768–1024px, dan 1280–1440px masih diperlukan. Periksa khusus outer margin, permukaan konten utama, lebar konten halaman Absensi, dan tinggi/posisi separator pada sidebar expanded/collapsed.
-
-## Employee Attendance — weekly and monthly calendar
-
-- Weekly calendar uses seven Monday-first date columns, selected-date styling, a separate today outline, and previous/next week plus Hari Ini controls.
-- Monthly date picker uses a centered six-row grid, month navigation, adjacent-month dates, close control, Escape, and backdrop dismissal. Selecting a date synchronizes the existing `selectedDate` state and closes the picker.
-- Daily indicators are sourced in batches from `DailyAttendanceStatusService::forEmployeesDateRange()`: `present` uses green `#54B66F`, `needs_review` uses warning amber, and `no_record` uses a subtle gray dot. There is no visible legend.
-- Other domain states (incomplete, leave, sick, permission, explicit absence) are not silently relabelled as one of the three selected indicators. No record is not interpreted as absent.
-- Camera, GPS, evidence upload, attendance submission, overtime, and history workflows are unchanged.
-- Feature coverage added for the 42-cell monthly grid, month navigation, date selection, and selected-date synchronization.
-- Calendar presentation now lives in `x-attendance.calendar`; weekly/monthly date-grid data remains owned by the parent Livewire SFC, while `AttendanceCalendarService` centralizes batch status classification and `x-attendance.calendar-indicator` centralizes dot color/accessible status labels. `x-attendance.time-summary` owns the three time-summary cards. This keeps one page-level state owner without introducing nested Livewire components.
-- **Status: Source and regression test implemented.** On PR CI run [1393](https://github.com/leonsmith128/pt-sanmal/actions/runs/41766870500), Pint and changed-application-code PHPStan passed, and the new monthly-calendar feature test passed on MariaDB. The full MariaDB test step still failed on two unrelated existing assertions: the photo-preview test expects `previewOpen`, and the Employee Dashboard test expects the obsolete absence of `divide-sanmal-border`. SQLite was skipped because the MariaDB test step failed. Repository-wide PHPStan retains its documented baseline debt and is configured as non-blocking. Browser QA remains pending at 360–390px, 414–430px, 768px, 1024px, and 1280–1440px in light/dark themes. See [Employee Attendance Calendar V1](../EMPLOYEE-ATTENDANCE-CALENDAR-V1.md).
-
-## Employee Attendance — layout and photo preview
-
-- Main attendance action remains the final element inside the attendance form, after the camera component and validation messages. It is not sticky or fixed; the page retains normal document scrolling when the photo preview or lower history content increases page height.
-- `x-attendance.photo-preview` owns the captured-selfie thumbnail and full-size centered modal. The image keeps its intrinsic aspect ratio (`object-contain`) and is constrained to the viewport; the modal closes through its close control, clicking the backdrop outside the preview, or Escape.
-- `x-attendance.camera` remains dedicated to camera/GPS capture and watermark behavior; its source was restored unchanged after preview responsibilities were extracted.
-- The full-size preview modal now includes a download link for the same temporary image shown in the preview. Its `arrow-down-tray` icon is a valid Heroicons v2 name. Status cards use a shared minimum height, flexible content area, and the approved borderless shadow surface to reduce layout movement between dates with and without records.
-- Calendar and time-summary markup were extracted into Blade Components; the page remains a single Livewire SFC orchestrator. Business workflows remain in the existing Actions, and calendar status classification is handled by `AttendanceCalendarService`.
-- Retake action and the existing camera/GPS/watermark/Livewire submission flow remain unchanged.
-- Attendance summary and form surfaces now use the approved SanMal light/dark card and border tokens.
-- Regression coverage was updated for the standalone preview component, its temporary-photo download action, and full-width bottom action placement.
-- **Status: Implemented; CI verification pending for the latest PR head. Browser/device QA remains pending**, especially 360–390px and 414–430px widths, centered modal placement and backdrop dismissal, and the full camera → preview → retake → confirm sequence.
+- [Design Foundation](../DESIGN-FOUNDATION.md) — aturan visual dan token.
+- [Page Inventory](../PAGE-INVENTORY.md) — halaman yang masuk cakupan.
+- [Component Catalog](../COMPONENT-CATALOG.md) dan [Reusable Blade Components](../REUSABLE-BLADE-COMPONENTS.md) — peta dan kontrak komponen.
+- [Employee Attendance Layout V1](../EMPLOYEE-ATTENDANCE-LAYOUT-V1.md) dan [Calendar V1](../EMPLOYEE-ATTENDANCE-CALENDAR-V1.md) — spesifikasi halaman absensi.
+- [Employee Dashboard Layout V1](../EMPLOYEE-DASHBOARD-LAYOUT-V1.md) dan [Data Contract](../EMPLOYEE-DASHBOARD-DATA-CONTRACT.md) — tampilan dan definisi data dashboard.
+- [Visual QA Log](VISUAL-QA-LOG.md) — bukti browser/device aktual.
