@@ -4,6 +4,7 @@
         gap="5"
         x-data="{
             detailOpen: false,
+            filterOpen: false,
             selectedEvent: null,
             lastTrigger: null,
             openEvent(event, trigger) {
@@ -35,6 +36,20 @@
                 <x-ui.button href="{{ route('attendance') }}" variant="primary" icon="clock" class="min-w-0 flex-1 whitespace-nowrap sm:flex-none">
                     {{ __('Absen') }}
                 </x-ui.button>
+                <x-ui.button
+                    type="button"
+                    variant="outline"
+                    icon="funnel"
+                    x-on:click="filterOpen = !filterOpen"
+                    x-bind:aria-expanded="filterOpen.toString()"
+                    aria-controls="attendance-history-filter-panel"
+                    class="min-w-0 flex-1 whitespace-nowrap sm:flex-none"
+                >
+                    {{ __('Filter') }}
+                    @if ($activeFilterCount > 0)
+                        <span class="ml-1 inline-flex min-w-5 items-center justify-center rounded-full bg-blue-100 px-1.5 py-0.5 text-[11px] font-semibold tabular-nums text-blue-800 dark:bg-blue-900/50 dark:text-blue-200">{{ $activeFilterCount }}</span>
+                    @endif
+                </x-ui.button>
             </div>
         </x-ui.page-header>
 
@@ -65,7 +80,17 @@
             </x-ui.card>
         </section>
 
-        <x-ui.card padding="p-4 sm:p-5">
+        <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-zinc-600 dark:text-zinc-300" aria-live="polite">
+            <span>
+                <span class="font-medium text-zinc-900 dark:text-zinc-100">{{ __('Periode:') }}</span>
+                {{ \Illuminate\Support\Carbon::parse($filters['from'])->locale('id')->translatedFormat('j F Y') }}
+                – {{ \Illuminate\Support\Carbon::parse($filters['to'])->locale('id')->translatedFormat('j F Y') }}
+            </span>
+            <span class="text-zinc-400" aria-hidden="true">·</span>
+            <span>{{ $filters['direction'] === 'desc' ? __('Terbaru dahulu') : __('Terlama dahulu') }}</span>
+        </div>
+
+        <x-ui.card padding="p-4 sm:p-5" x-show="filterOpen" x-cloak x-transition id="attendance-history-filter-panel">
             <section>
             <div class="mb-4">
                 <flux:heading size="lg">{{ __('Filter riwayat') }}</flux:heading>

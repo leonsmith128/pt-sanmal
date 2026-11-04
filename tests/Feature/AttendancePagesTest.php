@@ -88,6 +88,24 @@ test('attendance history date filters use shared controls and retain submitted v
         ->assertSee(__('Reset'));
 });
 
+test('attendance history counts only applied date and direction filters', function () {
+    $employee = userWithRole(UserRole::Employee);
+
+    $this->actingAs($employee)
+        ->get(route('attendance-history.index', [
+            'from' => '2026-10-01',
+            'to' => '2026-10-31',
+            'direction' => 'asc',
+        ]))
+        ->assertOk()
+        ->assertSee(__('Terlama dahulu'))
+        ->assertSee('Periode:')
+        ->assertViewHas('activeFilterCount', 2)
+        ->assertViewHas('filters', fn (array $filters): bool => $filters['from'] === '2026-10-01'
+            && $filters['to'] === '2026-10-31'
+            && $filters['direction'] === 'asc');
+});
+
 test('saved address snapshots are visible to employees and admins', function () {
     $employee = userWithRole(UserRole::Employee);
     $admin = userWithRole(UserRole::Admin);

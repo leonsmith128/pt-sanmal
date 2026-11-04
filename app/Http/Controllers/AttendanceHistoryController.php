@@ -95,6 +95,8 @@ class AttendanceHistoryController extends Controller
             'dateGroups' => $groupsPaginator,
             'summary' => $summary,
             'filters' => $filters,
+            'activeFilterCount' => ($request->query->has('from') || $request->query->has('to') ? 1 : 0)
+                + ($filters['direction'] !== 'desc' ? 1 : 0),
         ]);
     }
 
