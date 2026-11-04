@@ -68,7 +68,13 @@ test('employees can visit their own attendance history', function () {
         ->assertSee('grid grid-cols-3 gap-2 sm:gap-3', false)
         ->assertSee('flex w-full flex-row gap-2 sm:w-auto', false)
         ->assertSee('whitespace-nowrap sm:flex-none', false)
-        ->assertSee('name="direction"', false);
+        ->assertSee('aria-controls="attendance-history-filter-panel"', false)
+        ->assertSee('x-show="filterOpen"', false)
+        ->assertSee('x-bind:aria-expanded="filterOpen.toString()"', false)
+        ->assertSee(__('Periode:'))
+        ->assertSee(__('Terbaru dahulu'))
+        ->assertSee('name="direction"', false)
+        ->assertViewHas('activeFilterCount', 0);
 });
 
 test('attendance history date filters use shared controls and retain submitted values', function () {
@@ -85,7 +91,9 @@ test('attendance history date filters use shared controls and retain submitted v
         ->assertSee('name="to"', false)
         ->assertSee('value="2026-11-03"', false)
         ->assertSee(__('Terapkan'))
-        ->assertSee(__('Reset'));
+        ->assertSee(__('Reset'))
+        ->assertSee('aria-controls="attendance-history-filter-panel"', false)
+        ->assertViewHas('activeFilterCount', 1);
 });
 
 test('attendance history counts only applied date and direction filters', function () {
