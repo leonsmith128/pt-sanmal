@@ -123,11 +123,11 @@
                     />
 
                     <div class="min-w-0 flex-1">
-                        <p class="text-sm text-zinc-600 dark:text-zinc-400">{{ __('Selamat datang,') }}</p>
+                        <p class="text-sm text-[var(--sanmal-text-secondary)]">{{ __('Selamat datang,') }}</p>
                         <h1 class="truncate text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 sm:text-2xl">
                             {{ $dashboardUser->name }}
                         </h1>
-                        <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                        <p class="mt-1 text-sm text-[var(--sanmal-text-muted)]">
                             {{ $employeeDashboard['today'] }}
                         </p>
                     </div>
@@ -180,22 +180,22 @@
 
                     <div class="mt-4 grid grid-cols-2 gap-4 text-center xl:grid-cols-4">
                         <div class="flex flex-col items-center justify-center text-center">
-                            <p class="text-sm text-zinc-600 dark:text-zinc-400">{{ __('Hari hadir') }}</p>
+                            <p class="text-sm text-[var(--sanmal-text-secondary)]">{{ __('Hari hadir') }}</p>
                             <p class="mt-2 text-2xl font-semibold tabular-nums">{{ $monthly['presentDays'] }}</p>
                         </div>
                         <div class="flex flex-col items-center justify-center text-center">
-                            <p class="text-sm text-zinc-600 dark:text-zinc-400">{{ __('Total jam kerja') }}</p>
+                            <p class="text-sm text-[var(--sanmal-text-secondary)]">{{ __('Total jam kerja') }}</p>
                             <p class="mt-2 text-2xl font-semibold tabular-nums">{{ $formatDuration($monthly['workMinutes']) }}</p>
                             @if ($monthly['workIsProvisional'])
                                 <p class="mt-1 text-xs text-amber-700 dark:text-amber-300">{{ __('Termasuk sesi berjalan') }}</p>
                             @endif
                         </div>
                         <div class="flex flex-col items-center justify-center text-center">
-                            <p class="text-sm text-zinc-600 dark:text-zinc-400">{{ __('Belum lengkap') }}</p>
+                            <p class="text-sm text-[var(--sanmal-text-secondary)]">{{ __('Belum lengkap') }}</p>
                             <p class="mt-2 text-2xl font-semibold tabular-nums">{{ $monthly['incompleteDays'] }}</p>
                         </div>
                         <div class="flex flex-col items-center justify-center text-center">
-                            <p class="text-sm text-zinc-600 dark:text-zinc-400">{{ __('Total lembur') }}</p>
+                            <p class="text-sm text-[var(--sanmal-text-secondary)]">{{ __('Total lembur') }}</p>
                             <p class="mt-2 text-2xl font-semibold tabular-nums">{{ $formatDuration($monthly['overtimeMinutes']) }}</p>
                             @if ($monthly['overtimeIsProvisional'])
                                 <p class="mt-1 text-xs text-amber-700 dark:text-amber-300">{{ __('Termasuk lembur berjalan') }}</p>
@@ -213,32 +213,32 @@
                             <div class="flex items-start justify-between gap-3">
                                 <div>
                                     <h2 class="font-semibold">{{ __('Pengajuan Saya') }}</h2>
-                                    <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-400">{{ __('Pengajuan yang masih menunggu keputusan') }}</p>
+                                    <p class="mt-1 text-sm text-[var(--sanmal-text-secondary)]">{{ __('Pengajuan yang masih menunggu keputusan') }}</p>
                                 </div>
                                 <x-ui.badge :color="$pending['total'] > 0 ? 'amber' : 'zinc'">{{ $pending['total'] }}</x-ui.badge>
                             </div>
 
                             <div class="mt-4 grid grid-cols-3 gap-3 text-center text-sm">
                                 <div class="flex flex-col items-center text-center">
-                                    <p class="text-zinc-500 dark:text-zinc-400">{{ __('Koreksi') }}</p>
+                                    <p class="text-[var(--sanmal-text-muted)]">{{ __('Koreksi') }}</p>
                                     <p class="mt-1 text-lg font-semibold tabular-nums">{{ $pending['corrections'] }}</p>
                                 </div>
                                 <div class="flex flex-col items-center text-center">
-                                    <p class="text-zinc-500 dark:text-zinc-400">{{ __('Lembur') }}</p>
+                                    <p class="text-[var(--sanmal-text-muted)]">{{ __('Lembur') }}</p>
                                     <p class="mt-1 text-lg font-semibold tabular-nums">{{ $pending['overtime'] }}</p>
                                 </div>
                                 <div class="flex flex-col items-center text-center">
-                                    <p class="text-zinc-500 dark:text-zinc-400">{{ __('Izin/cuti/sakit') }}</p>
+                                    <p class="text-[var(--sanmal-text-muted)]">{{ __('Izin/cuti/sakit') }}</p>
                                     <p class="mt-1 text-lg font-semibold tabular-nums">{{ $pending['leave'] }}</p>
                                 </div>
                             </div>
 
                             @if ($pending['leaveBreakdown']->isNotEmpty())
-                                <div class="mt-4 border-t border-zinc-100 pt-3 dark:border-zinc-800">
-                                    <p class="mb-2 text-xs font-medium text-zinc-500 dark:text-zinc-400">{{ __('Rincian permohonan') }}</p>
+                                <div class="mt-4 border-t border-sanmal-border pt-3 dark:border-sanmal-border-dark">
+                                    <p class="mb-2 text-xs font-medium text-[var(--sanmal-text-muted)]">{{ __('Rincian permohonan') }}</p>
                                     <ul class="flex flex-wrap gap-2 text-xs">
                                         @foreach ($pending['leaveBreakdown'] as $type => $count)
-                                            <li class="rounded-full bg-zinc-100 px-3 py-1.5 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
+                                            <li class="rounded-full bg-sanmal-surface-inset px-3 py-1.5 text-[var(--sanmal-text-secondary)] dark:bg-sanmal-surface-inset-dark">
                                                 {{ $type }}: <span class="font-semibold tabular-nums">{{ $count }}</span>
                                             </li>
                                         @endforeach
@@ -268,20 +268,20 @@
                         <x-ui.card>
                             <div class="flex items-center justify-between gap-3">
                                 <h2 class="font-semibold">{{ __('Aktivitas absensi terbaru') }}</h2>
-                                <a href="{{ route('attendance-history.index') }}" class="text-sm font-medium text-sanmal-700 hover:underline dark:text-sanmal-300">{{ __('Lihat riwayat') }}</a>
+                                <a href="{{ route('attendance-history.index') }}" class="text-sm font-medium text-sanmal-brand-blue hover:underline dark:text-sanmal-brand-blue-light">{{ __('Lihat riwayat') }}</a>
                             </div>
 
-                            <div class="mt-3 divide-y divide-zinc-100 dark:divide-zinc-800">
+                            <div class="mt-3 divide-y divide-sanmal-border dark:divide-sanmal-border-dark">
                                 @forelse ($employeeDashboard['recentAttendance'] as $record)
                                     <div class="flex flex-wrap items-center justify-between gap-2 py-3 first:pt-0 last:pb-0">
                                         <div>
                                             <p class="font-medium">{{ $record->type->label() }}</p>
-                                            <p class="text-sm text-zinc-500 dark:text-zinc-400">{{ $record->effectiveRecordedAtLocal()->translatedFormat('d M Y, H:i') }}</p>
+                                            <p class="text-sm text-[var(--sanmal-text-muted)]">{{ $record->effectiveRecordedAtLocal()->translatedFormat('d M Y, H:i') }}</p>
                                         </div>
                                         <x-ui.badge>{{ $record->work_type->label() }}</x-ui.badge>
                                     </div>
                                 @empty
-                                    <p class="py-5 text-sm text-zinc-500">{{ __('Belum ada aktivitas absensi.') }}</p>
+                                    <p class="py-5 text-sm text-[var(--sanmal-text-muted)]">{{ __('Belum ada aktivitas absensi.') }}</p>
                                 @endforelse
                             </div>
                         </x-ui.card>
