@@ -212,9 +212,11 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
         table-layout: fixed;
     }
 
-    @media (max-width: 1023px) {
+    @media (max-width: 1279px) {
         .attendance-responsive-table {
+            max-height: none;
             overflow-x: hidden;
+            overflow-y: visible;
         }
 
         .attendance-responsive-table table,
