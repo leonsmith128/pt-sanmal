@@ -371,3 +371,19 @@ it('renders the attendance export confirmation with an Alpine-bound link', funct
         ->assertSee('x-bind:href="exportUrl"', false)
         ->assertSee('Konfirmasi dan ekspor');
 });
+
+
+it('renders attendance rows with responsive card labels and a fixed-width table layout', function () {
+    $admin = attendancePageAdmin();
+
+    Livewire::actingAs($admin)
+        ->test('pages::admin.kehadiran')
+        ->assertSee('attendance-responsive-table', false)
+        ->assertSee('class="w-full table-fixed"', false)
+        ->assertSee('data-label="Waktu"', false)
+        ->assertSee('data-label="Pegawai"', false)
+        ->assertSee('data-label="Jenis kerja / Project"', false)
+        ->assertSee('data-label="Lokasi GPS"', false)
+        ->assertSee('data-label="Bukti foto"', false)
+        ->assertSee('data-label="Koreksi"', false);
+});
