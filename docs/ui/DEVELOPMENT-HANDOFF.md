@@ -28,6 +28,7 @@ Jangan membaca seluruh dokumentasi secara berurutan untuk setiap task. Gunakan j
 - Bukti browser/perangkat: [Visual QA Log](progress/VISUAL-QA-LOG.md).
 
 Tidak perlu membaca audit lama atau semua spesifikasi fitur yang tidak terkait. Dokumen aktif adalah panduan; source, route, test, dan hasil browser aktual adalah kebenaran implementasi.
+
 ## Konteks produk
 
 SanMal adalah aplikasi internal absensi dan administrasi pegawai PT SanMal Calibration Laboratory.
