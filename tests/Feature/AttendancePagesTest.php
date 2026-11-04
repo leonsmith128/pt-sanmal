@@ -394,3 +394,25 @@ test('attendance page orders calendar, time summary, status cards, and one atten
         ->and($formPosition)->toBeLessThan($actionPosition)
         ->and($actionPosition)->toBeLessThan($formClosePosition);
 });
+
+test('attendance calendar opens a monthly grid and synchronizes the selected date back to the week', function () {
+    $employee = userWithRole(UserRole::Employee);
+
+    $component = Livewire::actingAs($employee)
+        ->test('pages::employee.attendance')
+        ->assertSee('aria-label="Buka kalender bulanan"', false)
+        ->set('selectedDate', '2026-11-18')
+        ->call('openMonthlyCalendar')
+        ->assertSet('showMonthlyCalendar', true)
+        ->assertSet('calendarMonth', '2026-11-01');
+
+    expect(substr_count($component->html(), 'attendance-month-day-'))->toBe(42);
+
+    $component
+        ->call('shiftCalendarMonth', 1)
+        ->assertSet('calendarMonth', '2026-12-01')
+        ->call('selectCalendarDate', '2026-12-02')
+        ->assertSet('selectedDate', '2026-12-02')
+        ->assertSet('calendarMonth', '2026-12-01')
+        ->assertSet('showMonthlyCalendar', false);
+});
