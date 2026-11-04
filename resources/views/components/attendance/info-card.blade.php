@@ -4,7 +4,7 @@
     'statusColor' => 'zinc',
 ])
 
-<section {{ $attributes->class(['rounded-xl border border-neutral-200 p-3 dark:border-neutral-700']) }}>
+<section {{ $attributes->class(['rounded-xl border border-sanmal-border bg-sanmal-surface-card p-3 dark:border-sanmal-border-dark dark:bg-sanmal-surface-card-dark']) }}>
     <div class="flex items-start justify-between gap-2">
         <flux:text class="text-sm">{{ $title }}</flux:text>
         <flux:badge :color="$statusColor">{{ $status }}</flux:badge>
