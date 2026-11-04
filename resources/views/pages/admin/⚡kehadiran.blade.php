@@ -238,7 +238,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                         type="button"
                         variant="outline"
                         class="w-full sm:w-auto"
-                        icon="rotate-ccw"
+                        icon="arrow-path"
                         wire:click="resetAdditionalFilters"
                     >
                         {{ __('Reset filter') }}
