@@ -458,7 +458,7 @@ new #[Title('Absensi')] class extends Component {
                 @foreach ($this->weekCalendarDays as $day)
                     @php
                         $indicatorClass = match ($day['indicator']) {
-                            'present' => 'bg-[#80C995]',
+                            'present' => 'bg-[#54B66F]',
                             'review' => 'bg-[#B2640A]',
                             'none' => 'bg-slate-400/70 dark:bg-slate-400/60',
                             default => null,
@@ -518,7 +518,7 @@ new #[Title('Absensi')] class extends Component {
                         @foreach ($this->monthDays as $day)
                             @php
                                 $indicatorClass = match ($day['indicator']) {
-                                    'present' => 'bg-[#80C995]',
+                                    'present' => 'bg-[#54B66F]',
                                     'review' => 'bg-[#B2640A]',
                                     'none' => 'bg-slate-400/70 dark:bg-slate-400/60',
                                     default => null,
