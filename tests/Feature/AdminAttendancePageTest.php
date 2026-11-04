@@ -372,7 +372,6 @@ it('renders the attendance export confirmation with an Alpine-bound link', funct
         ->assertSee('Konfirmasi dan ekspor');
 });
 
-
 it('renders attendance rows with responsive card labels and a fixed-width table layout', function () {
     $admin = attendancePageAdmin();
 
@@ -389,7 +388,6 @@ it('renders attendance rows with responsive card labels and a fixed-width table 
         ->assertSee('data-label="Koreksi"', false);
 });
 
-
 it('renders a compact mobile disclosure for the admin attendance filters', function () {
     $admin = attendancePageAdmin();
 
@@ -401,7 +399,6 @@ it('renders a compact mobile disclosure for the admin attendance filters', funct
         ->assertSee('x-show="filtersOpen"', false)
         ->assertSee('lg:grid-cols-5', false);
 });
-
 
 it('keeps the active filter count visible while the filter controls are collapsed', function () {
     $admin = attendancePageAdmin();
