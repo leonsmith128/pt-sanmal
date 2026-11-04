@@ -213,71 +213,10 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
     }
 
     @media (max-width: 1279px) {
-        .attendance-responsive-table table,
-        .attendance-responsive-table tbody {
-            display: block;
-            width: 100%;
-        }
-
-        .attendance-responsive-table thead {
+        .attendance-responsive-table .attendance-desktop-table {
             display: none;
         }
-
-        .attendance-responsive-table tbody tr {
-            display: block;
-            margin: 0.75rem;
-            overflow: hidden;
-            border: 1px solid var(--sanmal-border);
-            border-radius: 0.75rem;
-            background: var(--sanmal-surface-primary);
-        }
-
-        .dark .attendance-responsive-table tbody tr {
-            border-color: var(--sanmal-border-dark);
-            background: var(--sanmal-surface-primary-dark);
-        }
-
-        .attendance-responsive-table tbody td {
-            display: grid;
-            grid-template-columns: minmax(6.5rem, 34%) minmax(0, 1fr);
-            align-items: start;
-            gap: 0.75rem;
-            width: 100%;
-            padding: 0.625rem 0.75rem;
-            border-bottom: 1px solid var(--sanmal-border);
-            white-space: normal;
-            overflow-wrap: anywhere;
-        }
-
-        .dark .attendance-responsive-table tbody td {
-            border-color: var(--sanmal-border-dark);
-        }
-
-        .attendance-responsive-table tbody td:last-child {
-            border-bottom: 0;
-        }
-
-        .attendance-responsive-table tbody td::before {
-            content: attr(data-label);
-            color: var(--sanmal-text-secondary);
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-
-        .attendance-responsive-table tbody td[colspan] {
-            display: block;
-        }
-
-        .attendance-responsive-table tbody td[colspan]::before {
-            content: none;
-        }
-
-        .attendance-responsive-table tbody tr:has(td[colspan]) {
-            border: 0;
-            background: transparent;
-        }
-    }
-</style>
+    }</style>
 
 <section x-data="{ exportConfirmOpen: false, exportUrl: '', exportDescription: '' }" x-on:keydown.escape.window="exportConfirmOpen = false" class="w-full">
     <x-ui.page>
@@ -424,10 +363,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                     :warning="__('Ekspor menggunakan satu baris per pegawai per tanggal. Tanggal tanpa event absensi tetap disertakan. Periksa kembali cakupan sebelum melanjutkan.')"
                 />
             </div>
-        </x-ui.card>
-
-        <x-ui.card padding="p-0" class="overflow-hidden">
-            <div id="attendance-records" data-record-count="{{ $records->total() }}" class="attendance-responsive-table px-2 pb-2 sm:px-3 sm:pb-3 [&_thead]:sticky [&_thead]:top-0 [&_thead]:z-20 [&_thead]:bg-sanmal-surface-secondary dark:[&_thead]:bg-sanmal-surface-secondary-dark">
+            <div id="attendance-records" data-record-count="{{ $records->total() }}" class="attendance-responsive-table px-3 py-3 sm:px-4 sm:py-4 [&_thead]:sticky [&_thead]:top-0 [&_thead]:z-20 [&_thead]:bg-sanmal-surface-secondary dark:[&_thead]:bg-sanmal-surface-secondary-dark">
                 <flux:table class="w-full table-fixed" :paginate="$records" pagination:scroll-to="#attendance-records">
                     <flux:table.columns>
                         <flux:table.column sortable :sorted="$sortBy === 'recorded_at'" :direction="$sortDirection" wire:click="sort('recorded_at')" class="w-26 px-3 py-3 sm:py-2">{{ __('Waktu') }}</flux:table.column>
