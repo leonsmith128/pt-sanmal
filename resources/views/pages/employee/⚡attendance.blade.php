@@ -494,12 +494,14 @@ new #[Title('Absensi')] class extends Component {
                     :event-label="$mode === 'overtime_start' ? 'Lembur' : ($mode === 'clock_in' ? 'Clock In' : 'Clock Out')"
                     :selfie="$selfie"
                 />
+
+                <x-attendance.photo-preview :selfie="$selfie" />
             @endif
 
                         @error('form') <flux:text class="text-red-500">{{ $message }}</flux:text> @enderror
             @error('workType') <flux:text class="text-red-500">{{ $message }}</flux:text> @enderror
 
-            <div class="flex items-center gap-2 pt-1">
+            <div class="flex w-full items-center gap-2 pt-1">
                 @if ($mode === 'overtime_locked')
                     <x-ui.button type="button" variant="primary" class="min-w-0 flex-1" disabled icon="lock-closed">
                         {{ __('Konfirmasi Lembur') }}
