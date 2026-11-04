@@ -4,8 +4,20 @@
     $activeFilterCount = collect($values)->filter(fn ($value) => filled($value))->count();
 @endphp
 
-<div data-active-filter-count="{{ $activeFilterCount }}" class="grid w-full min-w-0 grid-cols-1 items-end gap-x-3 gap-y-2 sm:grid-cols-2 xl:grid-cols-4">
-    <div class="col-span-full flex items-center justify-between gap-2 pb-1">
+<div x-data="{ filtersOpen: false }" data-active-filter-count="{{ $activeFilterCount }}" class="w-full min-w-0">
+    <button
+        type="button"
+        class="mb-3 flex w-full items-center justify-between rounded-lg border border-sanmal-border bg-sanmal-surface-primary px-3 py-2.5 text-sm font-medium text-[var(--sanmal-text-primary)] lg:hidden dark:border-sanmal-border-dark dark:bg-sanmal-surface-primary-dark"
+        x-on:click="filtersOpen = ! filtersOpen"
+        x-bind:aria-expanded="filtersOpen.toString()"
+        aria-controls="admin-attendance-filter-controls"
+    >
+        <span>{{ __('Filter') }} ({{ $activeFilterCount }})</span>
+        <flux:icon name="chevron-down" variant="micro" />
+    </button>
+
+    <div id="admin-attendance-filter-controls" x-show="filtersOpen" class="grid w-full min-w-0 grid-cols-1 items-end gap-x-3 gap-y-2 sm:grid-cols-2 xl:grid-cols-4 lg:!grid">
+    <div class="col-span-full hidden items-center justify-between gap-2 pb-1 lg:flex">
         <h3 class="text-sm font-semibold text-[var(--sanmal-text-primary)]">{{ __('Filter absensi') }}</h3>
         <span class="text-xs text-[var(--sanmal-text-secondary)]">{{ $activeFilterCount }} {{ __('filter aktif') }}</span>
     </div>
