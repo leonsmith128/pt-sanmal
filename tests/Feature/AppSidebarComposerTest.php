@@ -3,6 +3,7 @@
 use App\Enums\UserRole;
 use App\Models\Employee;
 use App\Models\User;
+use App\View\Composers\AppSidebarComposer;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Str;
@@ -65,7 +66,7 @@ test('application sidebar composer safely handles a guest view context', functio
     auth()->logout();
 
     $view = view('partials.head');
-    app(App\View\Composers\AppSidebarComposer::class)->compose($view);
+    app(AppSidebarComposer::class)->compose($view);
     $data = $view->getData();
 
     expect($data['sidebarUser'])->toBeNull()
