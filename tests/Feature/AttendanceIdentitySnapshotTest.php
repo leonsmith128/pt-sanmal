@@ -114,10 +114,9 @@ it('captures master identity at clock in and reuses it after master names change
         ->assertSee('Client Sebelum')
         ->assertSee('Project Sebelum')
         ->assertSee('Site Sebelum')
-        // Current Client/Project names appear in history-backed filter options;
-        // the event detail continues to use historical snapshots, and the moved-to
-        // Location is absent because no attendance event references it.
+        // Current master names appear in history-backed filter options;
+        // the event detail continues to use the historical snapshots above.
         ->assertSee('Client Sesudah')
         ->assertSee('Project Sesudah')
-        ->assertDontSee('Site Sesudah');
+        ->assertSee('Site Sesudah');
 });
