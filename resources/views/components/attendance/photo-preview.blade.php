@@ -19,7 +19,7 @@
                 class="block h-auto w-auto max-h-48 max-w-full rounded-lg object-contain"
             />
             <span class="mt-1 inline-flex items-center gap-1 text-xs font-medium text-[var(--sanmal-text-secondary)]">
-                <flux:icon name="maximize-2" variant="micro" />
+                <flux:icon name="arrows-pointing-out" variant="micro" />
                 {{ __('Lihat foto ukuran penuh') }}
             </span>
         </button>
