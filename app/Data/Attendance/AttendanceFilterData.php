@@ -2,10 +2,7 @@
 
 namespace App\Data\Attendance;
 
-use App\Models\AttendanceRecord;
-use App\Models\Employee;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Collection;
 
 final readonly class AttendanceFilterData
 {
@@ -49,75 +46,45 @@ final readonly class AttendanceFilterData
 
     public function withDateRange(string $from, string $to): self
     {
-        return new self($from, $to, $this->employeeId, $this->clientId, $this->locationId, $this->projectId, $this->search, $this->attendanceType, $this->workType);
-    }
-
-    public function hasEventConstraints(): bool
-    {
-        return $this->clientId !== null || $this->locationId !== null || $this->projectId !== null
-            || $this->attendanceType !== null || $this->workType !== null;
-    }
-
-    /** @param Collection<int, AttendanceRecord> $events */
-    public function matchesDay(Employee $employee, Collection $events): bool
-    {
-        if ($this->employeeId !== null && $employee->id !== $this->employeeId) {
-            return false;
-        }
-
-        if ($this->hasEventConstraints()) {
-            return $events->contains(fn (AttendanceRecord $event): bool => $this->matchesEvent($event, $employee));
-        }
-
-        if ($this->search !== null && ! $this->matchesEmployeeSearch($employee)) {
-            return $events->contains(fn (AttendanceRecord $event): bool => $this->containsText($event->notes, $this->search));
-        }
-
-        return true;
-    }
-
-    private function matchesEvent(AttendanceRecord $event, Employee $employee): bool
-    {
-        if ($this->clientId !== null && $event->project?->client_id !== $this->clientId) return false;
-        if ($this->locationId !== null && $event->location_id !== $this->locationId) return false;
-        if ($this->projectId !== null && $event->project_id !== $this->projectId) return false;
-        if ($this->attendanceType !== null && $event->type->value !== $this->attendanceType) return false;
-        if ($this->workType !== null && $event->work_type->value !== $this->workType) return false;
-
-        if ($this->search !== null && ! $this->matchesEmployeeSearch($employee)
-            && ! $this->containsText($event->notes, $this->search)) return false;
-
-        return true;
-    }
-
-    private function matchesEmployeeSearch(Employee $employee): bool
-    {
-        return $this->search === null
-            || $this->containsText($employee->user?->name, $this->search)
-            || $this->containsText($employee->employee_number, $this->search);
-    }
-
-    private function containsText(?string $value, string $needle): bool
-    {
-        return $value !== null && mb_stripos($value, $needle) !== false;
+        return new self(
+            from: $from,
+            to: $to,
+            employeeId: $this->employeeId,
+            clientId: $this->clientId,
+            locationId: $this->locationId,
+            projectId: $this->projectId,
+            search: $this->search,
+            attendanceType: $this->attendanceType,
+            workType: $this->workType,
+        );
     }
 
     private static function date(mixed $value): ?string
     {
-        return is_string($value) && Carbon::canBeCreatedFromFormat($value, 'Y-m-d') ? $value : null;
+        if (! is_string($value) || ! Carbon::canBeCreatedFromFormat($value, 'Y-m-d')) {
+            return null;
+        }
+
+        return $value;
     }
 
     private static function positiveInteger(mixed $value): ?int
     {
-        if (! is_int($value) && (! is_string($value) || ! ctype_digit($value))) return null;
-        $value = (int) $value;
+        if (! is_int($value) && (! is_string($value) || ! ctype_digit($value))) {
+            return null;
+        }
 
-        return $value > 0 ? $value : null;
+        $integer = (int) $value;
+
+        return $integer > 0 ? $integer : null;
     }
 
     private static function text(mixed $value): ?string
     {
-        if (! is_string($value)) return null;
+        if (! is_string($value)) {
+            return null;
+        }
+
         $value = trim($value);
 
         return $value !== '' ? $value : null;
