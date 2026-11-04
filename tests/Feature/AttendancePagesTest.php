@@ -196,7 +196,7 @@ test('attendance camera controls reflect camera availability and video readiness
         ->assertSee('$dispatch(\'attendance-camera-open\')', false)
         ->assertSee(__('Absen Masuk'));
 });
-test('attendance camera preserves the captured photo ratio and provides a full-size preview popover', function () {
+test('attendance page renders a separate full-size photo preview and full-width action below the camera', function () {
     $this->actingAs(userWithRole(UserRole::Employee));
 
     $this->get(route('attendance'))
@@ -206,6 +206,7 @@ test('attendance camera preserves the captured photo ratio and provides a full-s
         ->assertSee('previewOpen', false)
         ->assertSee('attendance-photo-preview', false)
         ->assertSee('max-h-[75vh]', false)
+        ->assertSee('flex w-full items-center gap-2 pt-1', false)
         ->assertSee(__('Lihat foto ukuran penuh'));
 });
 
