@@ -124,13 +124,28 @@ new #[Title('Profil Pegawai')] class extends Component {
         </div>
 
         <form wire:submit="saveProfilePhoto" class="mt-5 space-y-4">
-            <x-ui.input
-                name="photo"
-                type="file"
-                wire:model="photo"
-                :label="__('Foto profil')"
-                accept="image/jpeg,image/png,image/webp"
-            />
+            <x-ui.field name="photo" id="photo" :label="__('Foto profil')">
+                <div x-data class="flex items-center gap-3">
+                    <input
+                        x-ref="photoInput"
+                        id="photo"
+                        name="photo"
+                        type="file"
+                        wire:model="photo"
+                        accept="image/jpeg,image/png,image/webp"
+                        class="sr-only"
+                    />
+
+                    <x-ui.button
+                        type="button"
+                        variant="outline"
+                        size="xs"
+                        x-on:click="$refs.photoInput.click()"
+                    >
+                        Pilih file
+                    </x-ui.button>
+                </div>
+            </x-ui.field>
 
             <div class="flex flex-wrap gap-2">
                 <x-ui.button type="submit" variant="primary" wire:loading.attr="disabled" wire:target="photo,saveProfilePhoto">
