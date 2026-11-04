@@ -442,6 +442,8 @@ it('renders mobile attendance cards with a photo column, compact actions, and a 
         ->test('pages::admin.kehadiran')
         ->assertSee('attendance-mobile-list', false)
         ->assertSee('h-24 w-20 rounded-lg object-cover', false)
+        ->assertSee('justify-end gap-1.5', false)
+        ->assertSee('.attendance-desktop-table { max-width: 72rem; margin-inline: auto; }', false)
         ->assertSee(__('Detail'))
         ->assertDontSee('Tampilkan detail')
         ->assertSee('attendance-detail-'.$record->id, false)
