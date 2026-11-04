@@ -40,7 +40,7 @@ class DailyAttendanceExportService
             $rangeEnd = $month->copy()->endOfMonth()->min($end);
 
             $employeesQuery->with('user')->orderBy('id')->chunkById(100, function (Collection $employees) use (
-                $statusService, $rangeStart, $rangeEnd, $filters, $stream
+                $statusService, $rangeStart, $rangeEnd, $recordFilter, $stream
             ): void {
                 /** @var Collection<int, Employee> $employees */
                 $statuses = $statusService->forEmployeesDateRange($employees, $rangeStart, $rangeEnd, 'Asia/Makassar');
