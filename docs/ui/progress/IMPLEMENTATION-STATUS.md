@@ -28,7 +28,7 @@
 
 Run [#1460](https://github.com/leonsmith128/pt-sanmal/actions/runs/41781436683) selesai pada 4 November 2026 dan menguji PR head `91f58f27fca388163ee17007c2ca20e2ddc0433a`. Setelah commit tersebut, perubahan branch hanya dokumentasi; source aplikasi dan test yang diuji tidak berubah.
 
-<badge>CI passed</badge>
+**Status: CI passed.**
 
 | Pemeriksaan | Hasil |
 |---|---|
