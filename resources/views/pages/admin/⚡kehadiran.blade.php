@@ -214,7 +214,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
 
     .attendance-mobile-list { display: none; }
 
-    @media (max-width: 1279px) {
+    @media (max-width: 767px) {
         .attendance-responsive-table .attendance-desktop-table { display: none; }
         .attendance-mobile-list { display: grid; }
     }
