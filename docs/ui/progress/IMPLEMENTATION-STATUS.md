@@ -158,3 +158,16 @@ The Admin Attendance activity table now uses a fixed-width table layout on deskt
 Automated regression coverage checks the responsive wrapper, fixed-width table class, and mobile field labels. Browser/device QA has not yet been performed; verify actual overflow, card spacing, table readability, pagination, dialog, photo preview, map links, and correction form at the viewport checkpoints in [Visual QA Log](VISUAL-QA-LOG.md).
 
 The mobile filter panel now starts collapsed behind a compact **Filter (n)** disclosure; desktop keeps the complete filter grid visible. Filters remain Livewire live-bound, so no separate Apply action was introduced.
+
+## Admin Attendance layout refinement — 5 November 2026
+
+Follow-up refinements based on browser feedback:
+
+- The activity table is inset from the card edges with horizontal padding; Flux table bleed was removed so the inset is not canceled by negative bleed spacing.
+- The Export trigger keeps its download icon, label, and chevron in one horizontal inline group.
+- The filter panel is collapsible at all breakpoints. Its header remains visible while collapsed and displays the active-filter count.
+- Desktop filter controls use a five-column grid at large widths. With the current nine controls (including the two date fields), the controls occupy two rows. Smaller breakpoints retain responsive two-/three-column layouts.
+- The reset action remains outside the collapsible controls, so it is still available while the panel is closed.
+- Filter state and Livewire bindings are unchanged.
+
+Automated tests cover the active count, disclosure markup, desktop grid, table inset, and export trigger alignment. Browser QA is still required to verify the rendered spacing and exact two-row fit at supported desktop widths.
