@@ -69,7 +69,7 @@ Mode yang ditangani halaman: `clock_in`, `clock_out`, `overtime_start`, `overtim
 ## 7. Kamera dan photo preview
 
 - `x-attendance.camera` bertanggung jawab atas capture kamera, GPS, dan watermark. Jangan memindahkan tanggung jawab tersebut ke photo-preview.
-- `x-attendance.photo-preview` adalah komponen terpisah. Komponen hanya tampil ketika selfie tersedia dan dapat dipreview.
+- `x-attendance.photo-preview` adalah wrapper domain yang hanya tampil ketika selfie tersedia dan dapat dipreview. Dialog dan interaksi pratinjau menggunakan primitive generik `x-ui.photo-preview` agar pola modal foto dapat digunakan kembali pada halaman lain.
 - Thumbnail membuka modal foto ukuran penuh yang terpusat, mempertahankan rasio gambar dengan `object-contain`, dan dibatasi ukuran viewport.
 - Modal menyediakan tombol tutup, penutupan melalui backdrop dan Escape, serta tautan **Unduh** untuk file sementara yang sama dengan foto preview.
 - Aksi **Foto ulang** tetap tersedia dan memanggil action parent untuk membersihkan selfie serta snapshot terkait.
