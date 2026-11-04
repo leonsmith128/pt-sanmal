@@ -396,10 +396,17 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                             @if ($record->latitude !== null && $record->longitude !== null)
                                 <a href="https://www.google.com/maps?q={{ $record->latitude }},{{ $record->longitude }}" target="_blank" rel="noopener noreferrer" class="inline-flex min-h-10 items-center justify-center rounded-lg border border-sanmal-border px-3 text-sm font-medium text-sanmal-brand-blue dark:border-sanmal-border-dark dark:text-sanmal-brand-yellow-dark">{{ __('Peta') }}</a>
                             @endif
+                            @if (in_array($record->type, [AttendanceType::ClockIn, AttendanceType::ClockOut], true) && $record->employee->user_id !== auth()->id())
+                                <flux:modal.trigger :name="'attendance-correction-'.$record->id">
+                                    <button type="button" class="inline-flex min-h-10 items-center justify-center rounded-lg border border-sanmal-border px-3 text-sm font-medium text-sanmal-brand-blue dark:border-sanmal-border-dark dark:text-sanmal-brand-yellow-dark">{{ __('Koreksi') }}</button>
+                                </flux:modal.trigger>
+                            @endif
                         </div>
                     </article>
                 @empty
-                    <x-admin.empty-state :message="__('Tidak ada catatan pada filter ini.')" />
+                    @if ($notYetPresent->isEmpty())
+                        <x-admin.empty-state :message="__('Tidak ada catatan pada filter ini.')" />
+                    @endif
                 @endforelse
                 @foreach ($notYetPresent as $employee)
                     <article wire:key="attendance-mobile-not-present-{{ $employee->id }}" class="rounded-xl border border-sanmal-border bg-sanmal-surface-primary p-3 dark:border-sanmal-border-dark dark:bg-sanmal-surface-primary-dark">
