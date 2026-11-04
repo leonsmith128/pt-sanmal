@@ -9,6 +9,7 @@
     $sizeClass = match ($size) {
         'xs' => 'size-7 text-[10px]',
         'sm' => 'size-8 text-xs',
+        'compact' => 'size-12 text-sm',
         'lg' => 'size-14 text-base',
         'xl' => 'size-20 text-xl',
         default => 'size-10 text-sm',
