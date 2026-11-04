@@ -44,6 +44,7 @@ test('employees can visit the attendance clock page', function () {
         ->assertOk()
         ->assertSee(__('Absensi'))
         ->assertSee('Selamat datang')
+        ->assertSee('text-xl font-bold tracking-tight', false)
         ->assertSee('size-12', false)
         ->assertDontSee(__('Kehadiran Pegawai'))
         ->assertSee('max-w-7xl', false);
