@@ -13,7 +13,7 @@ use Illuminate\Support\Collection;
 
 class DailyAttendanceExportService
 {
-    public function stream(Builder $employeesQuery, Carbon $start, Carbon $end, DailyAttendanceStatusService $statusService, AttendanceFilterData $filters = new AttendanceFilterData()): void
+    public function stream(Builder $employeesQuery, Carbon $start, Carbon $end, DailyAttendanceStatusService $statusService, AttendanceFilterData $filters = new AttendanceFilterData): void
     {
         $stream = fopen('php://output', 'w');
 
