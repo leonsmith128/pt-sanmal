@@ -85,21 +85,41 @@ new #[Title('Profil Pegawai')] class extends Component {
         :description="__('Kelola foto profil dan informasi kontak Anda. Data identitas dan kepegawaian dikelola oleh admin.')"
     />
 
+    @php
+        $profilePhotoSrc = $photo?->isPreviewable()
+            ? $photo->temporaryUrl()
+            : auth()->user()->profilePhotoUrl();
+    @endphp
+
     <x-ui.card padding="p-6">
         <div class="flex flex-col gap-5 sm:flex-row sm:items-center">
-            <flux:avatar
-                :src="$photo?->isPreviewable() ? $photo->temporaryUrl() : auth()->user()->profilePhotoUrl()"
-                :name="auth()->user()->name"
-                :initials="auth()->user()->initials()"
-                size="xl"
-            />
+            @if ($profilePhotoSrc)
+                <x-ui.photo-preview
+                    :src="$profilePhotoSrc"
+                    :alt="__('Foto profil')"
+                    :title="__('Foto profil')"
+                    :trigger-label="__('Perbesar foto profil')"
+                    class="rounded-full"
+                >
+                    <x-ui.avatar
+                        :src="$profilePhotoSrc"
+                        :name="auth()->user()->name"
+                        :initials="auth()->user()->initials()"
+                        size="xl"
+                        class="cursor-zoom-in"
+                    />
+                </x-ui.photo-preview>
+            @else
+                <x-ui.avatar
+                    :name="auth()->user()->name"
+                    :initials="auth()->user()->initials()"
+                    size="xl"
+                />
+            @endif
 
             <div class="min-w-0 flex-1">
                 <flux:heading>{{ auth()->user()->name }}</flux:heading>
                 <flux:text class="mt-1">{{ auth()->user()->email }}</flux:text>
-                <flux:text class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-                    JPG, PNG, atau WebP. Maksimal 2 MB.
-                </flux:text>
             </div>
         </div>
 
@@ -133,8 +153,6 @@ new #[Title('Profil Pegawai')] class extends Component {
 
     <x-ui.card padding="p-6">
         <flux:heading size="lg">Informasi pribadi</flux:heading>
-        <flux:subheading class="mt-1">Nomor telepon dapat Anda perbarui sendiri.</flux:subheading>
-
         <form wire:submit="saveContactDetails" class="mt-5 space-y-5">
             <x-ui.input
                 name="phone"
