@@ -60,7 +60,11 @@ test('employees can visit their own attendance history', function () {
         ->assertOk()
         ->assertSee(__('Riwayat Absensi'))
         ->assertSee(__('Ekspor rekap harian (CSV)'))
-        ->assertSee(__('Belum ada catatan absensi'));
+        ->assertSee(__('Belum ada riwayat absensi'))
+        ->assertSee(__('Hari hadir'))
+        ->assertSee(__('Absensi lengkap'))
+        ->assertSee(__('Perlu ditinjau'))
+        ->assertSee('name="direction"', false);
 });
 
 test('attendance history date filters use shared controls and retain submitted values', function () {
@@ -588,4 +592,71 @@ test('attendance history keeps a cross-midnight clock-out in its clock-in anchor
         ->assertViewHas('summary', fn (array $summary): bool => $summary['present_days'] === 1
             && $summary['complete_days'] === 1
             && $summary['needs_review_days'] === 0);
+});
+
+
+test('attendance history renders date groups and event detail dialog using the canonical daily status data', function () {
+    $this->travelTo(Carbon::parse('2026-11-04 12:00:00', 'Asia/Makassar'));
+
+    $employee = userWithRole(UserRole::Employee);
+    $record = AttendanceRecord::create([
+        'employee_id' => $employee->employee->id,
+        'type' => AttendanceType::ClockIn,
+        'work_type' => WorkType::Office,
+        'recorded_at' => Carbon::parse('2026-11-03 08:00:00', 'Asia/Makassar')->utc(),
+        'timezone' => 'Asia/Makassar',
+        'attendance_date' => '2026-11-03',
+        'location_status' => 'captured',
+        'latitude' => -5.1477,
+        'longitude' => 119.4327,
+        'accuracy_m' => 12,
+        'address_snapshot' => null,
+        'selfie_path' => 'selfies/'.$employee->employee->id.'/2026/11/attendance.jpg',
+        'selfie_source' => 'camera',
+    ]);
+
+    $this->actingAs($employee)
+        ->get(route('attendance-history.index', [
+            'from' => '2026-11-01',
+            'to' => '2026-11-04',
+        ]))
+        ->assertOk()
+        ->assertSee(__('Riwayat per tanggal'))
+        ->assertSee(__('Hari hadir'))
+        ->assertSee(__('Lihat detail'))
+        ->assertSee('attendance-event-detail-title', false)
+        ->assertSee('openEvent(JSON.parse(atob($el.dataset.event)), $el)', false)
+        ->assertSee(route('attendance-history.selfie', $record), false)
+        ->assertSee(route('attendance-history.selfie.download', $record), false)
+        ->assertSee(route('attendance-history.export', [
+            'from' => '2026-11-01',
+            'to' => '2026-11-04',
+        ]), false)
+        ->assertViewHas('dateGroups', fn ($groups): bool => $groups->total() === 1
+            && $groups->first()['date'] === '2026-11-03'
+            && $groups->first()['events']->count() === 1);
+});
+
+test('attendance history does not expose a map link for unverified GPS coordinates', function () {
+    $employee = userWithRole(UserRole::Employee);
+    AttendanceRecord::create([
+        'employee_id' => $employee->employee->id,
+        'type' => AttendanceType::ClockIn,
+        'work_type' => WorkType::Office,
+        'recorded_at' => now(),
+        'timezone' => 'Asia/Makassar',
+        'attendance_date' => now('Asia/Makassar')->toDateString(),
+        'location_status' => 'unavailable',
+        'latitude' => -5.1477,
+        'longitude' => 119.4327,
+    ]);
+
+    $response = $this->actingAs($employee)->get(route('attendance-history.index', [
+        'from' => now('Asia/Makassar')->toDateString(),
+        'to' => now('Asia/Makassar')->toDateString(),
+    ]))->assertOk();
+
+    expect($response->getContent())
+        ->not->toContain('https://www.google.com/maps/search/?api=1&amp;query=')
+        ->toContain('attendance-event-detail-title');
 });
