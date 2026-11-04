@@ -257,7 +257,9 @@ These wrap Flux UI and provide label/description/error integration. Inspect thei
 
 ### Card and surface
 - Reuse `x-ui.card` when the content is genuinely a card/surface.
-- The shared card uses a shadow-only treatment without a border. Light cards use `sanmal-surface-card`; dark cards use `sanmal-surface-card-dark`. Linked cards may use the secondary surface on hover.
+- **All cards are borderless and use shadow for elevation; do not add border utilities to card containers.** This applies consistently across every page and card type, including standalone summary/status cards and form cards.
+- The shared `x-ui.card` uses a shadow-only treatment without a border. Light cards use `sanmal-surface-card`; dark cards use `sanmal-surface-card-dark`. Linked cards may use the secondary surface on hover.
+- Borders remain appropriate for controls, dividers, tables, and inset/secondary groups when they communicate structure; they are not a substitute for card shadow.
 - Both linked and non-linked card variants must use the same theme surface tokens; do not leave one variant on generic white/zinc surfaces.
 - Do not wrap every section in a card. Avoid card-in-card.
 - Use semantic `article`, `section`, list, or table markup when it better represents the content.
