@@ -380,8 +380,6 @@ it('renders attendance rows with responsive card labels and a fixed-width table 
         ->assertSee('attendance-responsive-table', false)
         ->assertSee('attendance-responsive-table p-3 sm:p-4', false)
         ->assertSee('attendance-mobile-list', false)
-        ->assertSee('Tampilkan detail')
-        ->assertSee('Koreksi timestamp')
         ->assertDontSee('attendance-responsive-table px-2 pb-2 sm:px-3 sm:pb-3', false)
         ->assertDontSee('max-h-[70vh] overflow-y-auto overflow-x-hidden', false)
         ->assertSee('table-fixed', false)
@@ -423,3 +421,25 @@ it('renders the export action in a horizontal inline group', function () {
         ->assertSee('inline-flex items-center gap-2 whitespace-nowrap', false)
         ->assertSee('Export');
 });
+
+it('renders mobile attendance details and the per-record timestamp correction modal', function () {
+    $admin = attendancePageAdmin();
+    $employee = attendancePageEmployee('Pegawai Modal Koreksi');
+
+    $record = AttendanceRecord::query()->create([
+        'employee_id' => $employee->id,
+        'type' => AttendanceType::ClockIn,
+        'work_type' => WorkType::Office,
+        'recorded_at' => '2026-11-02 01:00:00',
+        'timezone' => 'Asia/Makassar',
+        'attendance_date' => '2026-11-02',
+    ]);
+
+    Livewire::actingAs($admin)
+        ->test('pages::admin.kehadiran')
+        ->assertSee('Tampilkan detail')
+        ->assertSee('Koreksi timestamp')
+        ->assertSee('attendance-correction-'.$record->id, false)
+        ->assertSee(route('admin.kehadiran.correct-timestamp', $record), false);
+});
+
