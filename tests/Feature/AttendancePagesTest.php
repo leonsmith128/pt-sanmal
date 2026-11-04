@@ -1,16 +1,19 @@
 <?php
 
 use App\Enums\AttendanceType;
+use App\Enums\DailyAttendanceStatus;
 use App\Enums\OvertimeApprovalStatus;
 use App\Enums\OvertimeState;
 use App\Enums\UserRole;
 use App\Enums\WorkType;
 use App\Models\AttendanceRecord;
+use App\Models\DailyStatusCorrection;
 use App\Models\Employee;
 use App\Models\OvertimeRequest;
 use App\Models\User;
 use App\Support\AttendanceSelfie;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 
