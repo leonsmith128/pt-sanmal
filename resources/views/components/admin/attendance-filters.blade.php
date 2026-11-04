@@ -7,18 +7,22 @@
 <div x-data="{ filtersOpen: false }" data-active-filter-count="{{ $activeFilterCount }}" class="w-full min-w-0">
     <button
         type="button"
-        class="mb-3 flex w-full items-center justify-between rounded-lg border border-sanmal-border bg-sanmal-surface-primary px-3 py-2.5 text-sm font-medium text-[var(--sanmal-text-primary)] lg:hidden dark:border-sanmal-border-dark dark:bg-sanmal-surface-primary-dark"
+        class="flex w-full items-center justify-between gap-3 rounded-lg border border-sanmal-border bg-sanmal-surface-primary px-3 py-2.5 text-sm text-[var(--sanmal-text-primary)] dark:border-sanmal-border-dark dark:bg-sanmal-surface-primary-dark"
         x-on:click="filtersOpen = ! filtersOpen"
         x-bind:aria-expanded="filtersOpen.toString()"
         aria-controls="admin-attendance-filter-controls"
     >
-        <span>{{ __('Filter') }} ({{ $activeFilterCount }})</span>
-        <flux:icon name="chevron-down" variant="micro" />
+        <span class="flex min-w-0 items-center gap-2">
+            <span class="font-semibold">{{ __('Filter absensi') }}</span>
+            <span class="rounded-full bg-sanmal-surface-secondary px-2 py-0.5 text-xs text-[var(--sanmal-text-secondary)] dark:bg-sanmal-surface-secondary-dark">
+                {{ $activeFilterCount }} {{ __('aktif') }}
+            </span>
+        </span>
+        <flux:icon name="chevron-down" variant="micro" class="shrink-0 transition-transform" x-bind:class="filtersOpen ? 'rotate-180' : ''" />
     </button>
 
-    <div id="admin-attendance-filter-controls" x-cloak x-show="filtersOpen" class="grid w-full min-w-0 grid-cols-1 items-end gap-x-3 gap-y-2 sm:grid-cols-2 xl:grid-cols-4 lg:!grid">
-    <div class="col-span-full hidden items-center justify-between gap-2 pb-1 lg:flex">
-        <h3 class="text-sm font-semibold text-[var(--sanmal-text-primary)]">{{ __('Filter absensi') }}</h3>
+    <div id="admin-attendance-filter-controls" x-cloak x-show="filtersOpen" x-collapse class="mt-3 grid w-full min-w-0 grid-cols-1 items-end gap-x-2 gap-y-3 sm:grid-cols-2 lg:grid-cols-5">
+    <div class="col-span-full flex items-center justify-between gap-2 pb-1">
         <span class="text-xs text-[var(--sanmal-text-secondary)]">{{ $activeFilterCount }} {{ __('filter aktif') }}</span>
     </div>
 
