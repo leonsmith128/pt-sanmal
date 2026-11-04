@@ -541,7 +541,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                             <flux:table.row :key="'not-present-'.$employee->id">
                                 <flux:table.cell data-label="Waktu" class="whitespace-nowrap px-3 py-2">—</flux:table.cell>
                                 <flux:table.cell data-label="Pegawai" class="px-3 py-2">{{ $employee->user->name }}</flux:table.cell>
-                                <flux:table.cell class="px-3 py-2">
+                                <flux:table.cell data-label="Jenis" class="px-3 py-2">
                                     <x-ui.badge color="amber">{{ __('Belum ada absensi') }}</x-ui.badge>
                                 </flux:table.cell>
                                 <flux:table.cell class="px-3 py-2">—</flux:table.cell>
