@@ -300,3 +300,10 @@ Authentication layouts and authentication page views were deliberately excluded 
 - `unseenRequestDecisions`: the sum of approved/rejected, unseen Leave Requests, Overtime Requests, and Attendance Corrections for the employee profile (zero when no employee profile exists).
 
 The composer preserves the previous query predicates and limits. It owns data preparation only; the Blade shell still owns role-based navigation markup, route selection, and presentation. Do not move authorization decisions or navigation definitions into the composer. Focused feature tests cover manager notification data, employee context, and a guest-safe composer invocation.
+
+
+### Admin Attendance responsive records
+
+The Admin Attendance activity card keeps its heading and records together. The record region has equal outer padding; table header and body cells use matching horizontal and vertical padding. At mobile widths (below 768px), the desktop table is replaced by record cards with employee, event type, local timestamp, expandable details, and photo/map actions. Mobile pagination remains available.
+
+Timestamp correction is opened in a per-record Flux modal from desktop and mobile. The existing POST endpoint remains responsible for validation, authorization, timeline checks, immutable source timestamp, and audit logging. The modal changes presentation only. Do not add a review/decision action to this page; review belongs to the separate attendance-correction request workflow.
