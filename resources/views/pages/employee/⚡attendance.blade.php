@@ -222,7 +222,7 @@ new #[Title('Absensi')] class extends Component {
         abort_unless(Carbon::hasFormat($date, 'Y-m-d') && (collect($this->weekDays)->contains(fn ($day) => $day['date'] === $date) || $date === now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString()), 422);
         $this->selectedDate = $date;
         $this->calendarMonth = Carbon::parse($date)->startOfMonth()->toDateString();
-        unset($this->weekCalendarDays, $this->monthDays, $this->history, $this->selectedDateOvertimeRequests);
+        unset($this->weekDays, $this->weekCalendarDays, $this->monthDays, $this->history, $this->selectedDateOvertimeRequests);
     }
 
     public function shiftWeek(int $direction): void
