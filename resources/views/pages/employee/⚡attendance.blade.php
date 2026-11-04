@@ -424,142 +424,6 @@ new #[Title('Absensi')] class extends Component {
             </div>
         </div>
 
-        {{-- Form absensi --}}
-        <form id="attendance-form" wire:submit="confirm('{{ $mode }}')" class="flex flex-col gap-5 rounded-xl border border-sanmal-border bg-sanmal-surface-card p-4 dark:border-sanmal-border-dark dark:bg-sanmal-surface-card-dark sm:p-5 {{ $selectedDate !== now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString() ? 'hidden' : '' }}">
-            <div class="space-y-1">
-                <flux:heading size="sm">
-                    {{ match ($mode) {
-                        'clock_in' => __('Mulai absensi'),
-                        'clock_out' => __('Selesaikan sesi kerja'),
-                        'overtime_start' => __('Konfirmasi mulai lembur'),
-                        'overtime_locked' => __('Jadwal lembur belum dimulai'),
-                        'clock_in_blocked' => __('Absensi hari ini sudah digunakan'),
-                        default => __('Absensi'),
-                    } }}
-                </flux:heading>
-                <flux:text class="text-sm">
-                    {{ match ($mode) {
-                        'clock_in' => __('Pilih lokasi kerja, ambil foto, lalu konfirmasi absensi masuk.'),
-                        'clock_out' => __('Ambil foto dan konfirmasi untuk mengakhiri sesi kerja.'),
-                        'overtime_start' => __('Ambil foto untuk mencatat konfirmasi mulai lembur.'),
-                        'overtime_locked' => __('Konfirmasi lembur tersedia setelah waktu jadwal dimulai.'),
-                        'clock_in_blocked' => __('Sesi absensi untuk tanggal ini sudah digunakan.'),
-                        default => __('Ikuti langkah berikut untuk melanjutkan absensi.'),
-                    } }}
-                </flux:text>
-            </div>
-
-            @if ($mode === 'clock_in_blocked')
-                <flux:callout variant="info" icon="lock-closed">
-                    <flux:callout.heading>{{ __('Absensi hari ini sudah digunakan') }}</flux:callout.heading>
-                    <flux:callout.text>
-                        {{ __('Anda sudah melakukan Clock In pada tanggal ini. Sesi kedua tidak dapat dibuat setelah Clock Out.') }}
-                    </flux:callout.text>
-                </flux:callout>
-            @elseif ($mode === 'overtime_locked')
-                <flux:callout variant="warning" icon="lock-closed">
-                    <flux:callout.heading>{{ __('Menunggu jadwal lembur') }}</flux:callout.heading>
-                    <flux:callout.text>
-                        {{ __('Konfirmasi Lembur tersedia setelah jadwal mulai:') }}
-                        <strong>{{ $sessionOvertime->scheduledStartLocal()->format('d M Y, H:i') }}</strong>.
-                        {{ __('Tombol Clock Out tidak tersedia selama pengajuan ini masih aktif. Jika tidak jadi lembur, batalkan pengajuan terlebih dahulu.') }}
-                    </flux:callout.text>
-                </flux:callout>
-            @elseif ($mode === 'clock_in')
-                <x-ui.select name="workType" wire:model.live="workType" :label="__('Jenis lokasi kerja')">
-                    <flux:select.option value="office">{{ __('Kantor') }}</flux:select.option>
-                    <flux:select.option value="onsite">{{ __('Onsite (Proyek)') }}</flux:select.option>
-                </x-ui.select>
-
-                @if ($workType === 'office')
-                    @if ($this->officeLocations->isEmpty())
-                        <flux:text class="text-red-500">{{ __('Belum ada lokasi kantor aktif. Hubungi admin.') }}</flux:text>
-                    @elseif ($this->officeLocations->count() === 1)
-                        <div class="rounded-lg border border-sanmal-border bg-sanmal-surface-secondary p-3 text-sm dark:border-sanmal-border-dark dark:bg-sanmal-surface-secondary-dark">
-                            <span class="font-medium">{{ __('Lokasi kantor') }}:</span>
-                            {{ $this->officeLocations->first()->name }}
-                        </div>
-                    @else
-                        <x-ui.select name="locationId" wire:model="locationId" :label="__('Kantor')">
-                            @foreach ($this->officeLocations as $office)
-                                <flux:select.option value="{{ $office->id }}">{{ $office->name }}</flux:select.option>
-                            @endforeach
-                        </x-ui.select>
-                    @endif
-                @else
-                    @if ($this->projects->isEmpty())
-                        <flux:text class="text-red-500">{{ __('Belum ada proyek aktif yang tersedia untuk absensi. Hubungi admin.') }}</flux:text>
-                    @else
-                        <x-ui.select name="projectId" wire:model.live="projectId" :label="__('Proyek')">
-                            @foreach ($this->projects as $project)
-                                <flux:select.option value="{{ $project->id }}">
-                                    {{ $project->code }} — {{ $project->name }} ({{ $project->client->name }})
-                                </flux:select.option>
-                            @endforeach
-                        </x-ui.select>
-                        @if ($selectedProject = $this->projects->firstWhere('id', (int) $projectId))
-                            <div class="rounded-lg border border-sanmal-border bg-sanmal-surface-secondary p-3 text-sm dark:border-sanmal-border-dark dark:bg-sanmal-surface-secondary-dark">
-                                <p><span class="font-medium">{{ __('Client') }}:</span> {{ $selectedProject->client->name }}</p>
-                                <p><span class="font-medium">{{ __('Lokasi Site') }}:</span> {{ $selectedProject->location->name }}</p>
-                                <p><span class="font-medium">{{ __('Jenis layanan') }}:</span> {{ $selectedProject->project_type->label() }}</p>
-                            </div>
-                        @endif
-                    @endif
-                 @endif
-            @elseif ($mode === 'overtime_start')
-                <flux:text>{{ __('Konfirmasi mulai lembur memerlukan foto dan lokasi terbaru. Sesi kerja utama tetap berjalan.') }}</flux:text>
-            @endif
-
-            @if (! in_array($mode, ['overtime_locked', 'clock_in_blocked'], true))
-                <x-attendance.camera
-                    :name="Auth::user()->name"
-                    :event-label="$mode === 'overtime_start' ? 'Lembur' : ($mode === 'clock_in' ? 'Clock In' : 'Clock Out')"
-                />
-
-                <x-attendance.photo-preview :selfie="$selfie" />
-            @endif
-
-                        @error('form') <flux:text class="text-red-500">{{ $message }}</flux:text> @enderror
-            @error('workType') <flux:text class="text-red-500">{{ $message }}</flux:text> @enderror
-
-
-            <div class="{{ $selectedDate !== now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString() ? 'hidden' : '' }}">
-                        <div class="flex w-full items-center gap-2 pt-1">
-                            @if ($mode === 'overtime_locked')
-                                <x-ui.button type="button" variant="primary" class="min-w-0 flex-1" disabled icon="lock-closed">
-                                    {{ __('Konfirmasi Lembur') }}
-                                </x-ui.button>
-                            @elseif ($mode === 'clock_in_blocked')
-                                <x-ui.button type="button" variant="primary" class="min-w-0 flex-1" disabled icon="lock-closed">
-                                    {{ __('Sesi hari ini sudah digunakan') }}
-                                </x-ui.button>
-                            @else
-                                @if ($selfie)
-                                    <x-ui.button
-                                        type="submit"
-                                        variant="primary"
-                                        class="min-w-0 flex-1"
-                                        wire:loading.attr="disabled"
-                                        wire:target="confirm,submit,selfie"
-                                    >
-                                        {{ __('Lanjutkan') }}
-                                    </x-ui.button>
-                                @else
-                                    <x-ui.button
-                                        type="button"
-                                        variant="primary"
-                                        class="min-w-0 flex-1" form="attendance-form"
-                                        x-on:click="$dispatch('attendance-camera-open')"
-                                    >
-                                        {{ match ($mode) { 'clock_in' => __('Absen Masuk'), 'overtime_start' => __('Konfirmasi Lembur'), default => __('Absen Pulang') } }}
-                                    </x-ui.button>
-                                @endif
-                            @endif
-                        </div>
-                    </div>
-
-        </form>
-
         <div class="grid grid-cols-1 items-stretch gap-3 sm:grid-cols-2">
             <x-attendance.info-card class="min-w-0 flex-1 basis-64"
                 :title="__('Status kehadiran')"
@@ -671,6 +535,142 @@ new #[Title('Absensi')] class extends Component {
                 @endif
             </x-attendance.info-card>
         </div>
+
+
+
+        {{-- Form absensi --}}
+        <form id="attendance-form" wire:submit="confirm('{{ $mode }}')" class="flex flex-col gap-5 rounded-xl border border-sanmal-border bg-sanmal-surface-card p-4 dark:border-sanmal-border-dark dark:bg-sanmal-surface-card-dark sm:p-5 {{ $selectedDate !== now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString() ? 'hidden' : '' }}">
+            <div class="space-y-1">
+                <flux:heading size="sm">
+                    {{ match ($mode) {
+                        'clock_in' => __('Mulai absensi'),
+                        'clock_out' => __('Selesaikan sesi kerja'),
+                        'overtime_start' => __('Konfirmasi mulai lembur'),
+                        'overtime_locked' => __('Jadwal lembur belum dimulai'),
+                        'clock_in_blocked' => __('Absensi hari ini sudah digunakan'),
+                        default => __('Absensi'),
+                    } }}
+                </flux:heading>
+                <flux:text class="text-sm">
+                    {{ match ($mode) {
+                        'clock_in' => __('Pilih lokasi kerja, ambil foto, lalu konfirmasi absensi masuk.'),
+                        'clock_out' => __('Ambil foto dan konfirmasi untuk mengakhiri sesi kerja.'),
+                        'overtime_start' => __('Ambil foto untuk mencatat konfirmasi mulai lembur.'),
+                        'overtime_locked' => __('Konfirmasi lembur tersedia setelah waktu jadwal dimulai.'),
+                        'clock_in_blocked' => __('Sesi absensi untuk tanggal ini sudah digunakan.'),
+                        default => __('Ikuti langkah berikut untuk melanjutkan absensi.'),
+                    } }}
+                </flux:text>
+            </div>
+
+            @if ($mode === 'clock_in_blocked')
+                <flux:callout variant="info" icon="lock-closed">
+                    <flux:callout.heading>{{ __('Absensi hari ini sudah digunakan') }}</flux:callout.heading>
+                    <flux:callout.text>
+                        {{ __('Anda sudah melakukan Clock In pada tanggal ini. Sesi kedua tidak dapat dibuat setelah Clock Out.') }}
+                    </flux:callout.text>
+                </flux:callout>
+            @elseif ($mode === 'overtime_locked')
+                <flux:callout variant="warning" icon="lock-closed">
+                    <flux:callout.heading>{{ __('Menunggu jadwal lembur') }}</flux:callout.heading>
+                    <flux:callout.text>
+                        {{ __('Konfirmasi Lembur tersedia setelah jadwal mulai:') }}
+                        <strong>{{ $sessionOvertime->scheduledStartLocal()->format('d M Y, H:i') }}</strong>.
+                        {{ __('Tombol Clock Out tidak tersedia selama pengajuan ini masih aktif. Jika tidak jadi lembur, batalkan pengajuan terlebih dahulu.') }}
+                    </flux:callout.text>
+                </flux:callout>
+            @elseif ($mode === 'clock_in')
+                <x-ui.select name="workType" wire:model.live="workType" :label="__('Jenis lokasi kerja')">
+                    <flux:select.option value="office">{{ __('Kantor') }}</flux:select.option>
+                    <flux:select.option value="onsite">{{ __('Onsite (Proyek)') }}</flux:select.option>
+                </x-ui.select>
+
+                @if ($workType === 'office')
+                    @if ($this->officeLocations->isEmpty())
+                        <flux:text class="text-red-500">{{ __('Belum ada lokasi kantor aktif. Hubungi admin.') }}</flux:text>
+                    @elseif ($this->officeLocations->count() === 1)
+                        <div class="rounded-lg border border-sanmal-border bg-sanmal-surface-secondary p-3 text-sm dark:border-sanmal-border-dark dark:bg-sanmal-surface-secondary-dark">
+                            <span class="font-medium">{{ __('Lokasi kantor') }}:</span>
+                            {{ $this->officeLocations->first()->name }}
+                        </div>
+                    @else
+                        <x-ui.select name="locationId" wire:model="locationId" :label="__('Kantor')">
+                            @foreach ($this->officeLocations as $office)
+                                <flux:select.option value="{{ $office->id }}">{{ $office->name }}</flux:select.option>
+                            @endforeach
+                        </x-ui.select>
+                    @endif
+                @else
+                    @if ($this->projects->isEmpty())
+                        <flux:text class="text-red-500">{{ __('Belum ada proyek aktif yang tersedia untuk absensi. Hubungi admin.') }}</flux:text>
+                    @else
+                        <x-ui.select name="projectId" wire:model.live="projectId" :label="__('Proyek')">
+                            @foreach ($this->projects as $project)
+                                <flux:select.option value="{{ $project->id }}">
+                                    {{ $project->code }} — {{ $project->name }} ({{ $project->client->name }})
+                                </flux:select.option>
+                            @endforeach
+                        </x-ui.select>
+                        @if ($selectedProject = $this->projects->firstWhere('id', (int) $projectId))
+                            <div class="rounded-lg border border-sanmal-border bg-sanmal-surface-secondary p-3 text-sm dark:border-sanmal-border-dark dark:bg-sanmal-surface-secondary-dark">
+                                <p><span class="font-medium">{{ __('Client') }}:</span> {{ $selectedProject->client->name }}</p>
+                                <p><span class="font-medium">{{ __('Lokasi Site') }}:</span> {{ $selectedProject->location->name }}</p>
+                                <p><span class="font-medium">{{ __('Jenis layanan') }}:</span> {{ $selectedProject->project_type->label() }}</p>
+                            </div>
+                        @endif
+                    @endif
+                 @endif
+            @elseif ($mode === 'overtime_start')
+                <flux:text>{{ __('Konfirmasi mulai lembur memerlukan foto dan lokasi terbaru. Sesi kerja utama tetap berjalan.') }}</flux:text>
+            @endif
+
+            @if (! in_array($mode, ['overtime_locked', 'clock_in_blocked'], true))
+                <x-attendance.camera
+                    :name="Auth::user()->name"
+                    :event-label="$mode === 'overtime_start' ? 'Lembur' : ($mode === 'clock_in' ? 'Clock In' : 'Clock Out')"
+                />
+
+                <x-attendance.photo-preview :selfie="$selfie" />
+            @endif
+
+                        @error('form') <flux:text class="text-red-500">{{ $message }}</flux:text> @enderror
+            @error('workType') <flux:text class="text-red-500">{{ $message }}</flux:text> @enderror
+
+
+                    <div class="flex w-full items-center gap-2 pt-1">
+                        @if ($mode === 'overtime_locked')
+                            <x-ui.button type="button" variant="primary" class="min-w-0 flex-1" disabled icon="lock-closed">
+                                {{ __('Konfirmasi Lembur') }}
+                            </x-ui.button>
+                        @elseif ($mode === 'clock_in_blocked')
+                            <x-ui.button type="button" variant="primary" class="min-w-0 flex-1" disabled icon="lock-closed">
+                                {{ __('Sesi hari ini sudah digunakan') }}
+                            </x-ui.button>
+                        @else
+                            @if ($selfie)
+                                <x-ui.button
+                                    type="submit"
+                                    variant="primary"
+                                    class="min-w-0 flex-1"
+                                    wire:loading.attr="disabled"
+                                    wire:target="confirm,submit,selfie"
+                                >
+                                    {{ __('Lanjutkan') }}
+                                </x-ui.button>
+                            @else
+                                <x-ui.button
+                                    type="button"
+                                    variant="primary"
+                                    class="min-w-0 flex-1"
+                                    x-on:click="$dispatch('attendance-camera-open')"
+                                >
+                                    {{ match ($mode) { 'clock_in' => __('Absen Masuk'), 'overtime_start' => __('Konfirmasi Lembur'), default => __('Absen Pulang') } }}
+                                </x-ui.button>
+                            @endif
+                        @endif
+                    </div>
+
+        </form>
 
 
 
