@@ -422,13 +422,17 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                                 <p class="mt-1 truncate text-xs text-[var(--sanmal-text-muted)]">{{ $record->project_code_snapshot ? $record->project_code_snapshot.' · ' : '' }}{{ $record->project_name_snapshot }}</p>
                             @endif
                             <div class="mt-3 flex flex-wrap items-center justify-end gap-1.5">
+                                @if (in_array($record->type, [AttendanceType::ClockIn, AttendanceType::ClockOut], true) && $record->employee->user_id !== auth()->id())
                                     <flux:modal.trigger :name="'attendance-correction-'.$record->id">
                                         <x-ui.button size="xs" variant="outline">{{ __('Koreksi') }}</x-ui.button>
                                     </flux:modal.trigger>
+                                @endif
+                                @if ($record->latitude !== null && $record->longitude !== null)
+                                    <a href="https://www.google.com/maps?q={{ $record->latitude }},{{ $record->longitude }}" target="_blank" rel="noopener noreferrer" class="inline-flex min-h-7 items-center justify-center rounded-md border border-sanmal-border px-2 text-xs font-medium text-sanmal-brand-blue dark:border-sanmal-border-dark dark:text-sanmal-brand-yellow-dark">{{ __('Peta') }}</a>
+                                @endif
                                 <flux:modal.trigger :name="'attendance-detail-'.$record->id">
                                     <x-ui.button size="xs" variant="outline" icon="eye">{{ __('Detail') }}</x-ui.button>
                                 </flux:modal.trigger>
-                                @endif
                             </div>
                         </div>
                     </article>
