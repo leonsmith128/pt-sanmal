@@ -640,17 +640,17 @@ new #[Title('Absensi')] class extends Component {
         <div class="{{ $selectedDate !== now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString() ? 'hidden' : '' }}">
             <div class="flex w-full items-center gap-2 pt-1">
                 @if ($mode === 'overtime_locked')
-                    <x-ui.button type="button" form="attendance-form" variant="primary" class="min-w-0 flex-1" form="attendance-form" disabled icon="lock-closed">
+                    <x-ui.button type="button" variant="primary" class="min-w-0 flex-1" disabled icon="lock-closed">
                         {{ __('Konfirmasi Lembur') }}
                     </x-ui.button>
                 @elseif ($mode === 'clock_in_blocked')
-                    <x-ui.button type="button" form="attendance-form" variant="primary" class="min-w-0 flex-1" form="attendance-form" disabled icon="lock-closed">
+                    <x-ui.button type="button" form="attendance-form" variant="primary" class="min-w-0 flex-1" disabled icon="lock-closed">
                         {{ __('Sesi hari ini sudah digunakan') }}
                     </x-ui.button>
                 @else
                     @if ($selfie)
                         <x-ui.button
-                            type="submit" form="attendance-form"
+                            type="submit"
                             variant="primary"
                             class="min-w-0 flex-1" form="attendance-form"
                             wire:loading.attr="disabled"
