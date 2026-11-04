@@ -282,7 +282,7 @@ Authentication layouts and authentication page views were deliberately excluded 
 
 ### Sidebar data preparation
 
-`AppSidebarComposer` is registered only for the `layouts::app.sidebar` view from `AppServiceProvider`. The composer supplies the variables consumed by the shell:
+`AppSidebarComposer` is registered from `AppServiceProvider` for the resolved anonymous-component view pattern `*::app.sidebar`. Laravel generates the anonymous component namespace from its path, so the resolved name is hash-prefixed (for example, `<hash>::app.sidebar`) rather than the literal `layouts::app.sidebar`. The composer supplies the variables consumed by the shell:
 - `sidebarUser` and the related `sidebarEmployee` profile;
 - `isManager` and `isEmployee` role flags;
 - unread system-notification count and the five latest notifications;
