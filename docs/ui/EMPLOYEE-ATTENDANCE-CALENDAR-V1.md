@@ -10,7 +10,7 @@ Provide a compact weekly calendar for daily navigation and a monthly calendar fo
 ## 2. Weekly calendar
 
 - Seven columns, Monday through Sunday.
-- Header shows the selected date's month and year.
+- Header shows the selected date's month and year. No helper description is displayed beneath the month heading.
 - Previous/next week controls and a **Hari ini** action remain available.
 - Calendar icon opens the monthly picker.
 - Each date shows weekday, day number, and a small status dot when one of the three agreed indicator states applies.
