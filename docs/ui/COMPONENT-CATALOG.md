@@ -26,6 +26,7 @@ Do not copy a documented API into a page without checking the implementation on 
 | Status | `x-ui.badge`, `x-admin.request-status-badge` | Generic indicator vs domain-specific status mapping | [Reusable components](REUSABLE-BLADE-COMPONENTS.md) |
 | Metadata | `x-ui.metadata-item` | Semantic label/value pair inside a description list | [Reusable components](REUSABLE-BLADE-COMPONENTS.md) |
 | Identity utility | `x-ui.avatar` | Circular avatar with image/initials fallback | [Reusable components](REUSABLE-BLADE-COMPONENTS.md) |
+| Employee identity composition | `x-employee.identity-header` | Shared employee greeting, name, avatar sizing, supporting description, and optional action slot | [Reusable components](REUSABLE-BLADE-COMPONENTS.md) |
 | Media preview | `x-ui.photo-preview` | Shared full-size photo dialog; accepts an avatar or thumbnail trigger and optional download link | [Reusable components](REUSABLE-BLADE-COMPONENTS.md) |
 | Notification utility | `x-ui.notification-dropdown` | User-scoped notification preview; data is supplied by the caller | [Reusable components](REUSABLE-BLADE-COMPONENTS.md) |
 | Attendance composition | `x-attendance.calendar`, `x-attendance.calendar-indicator`, `x-attendance.time-summary`, `x-attendance.info-card`, `x-attendance.photo-preview`, `x-attendance.camera` | Attendance-specific presentation and browser capture. Parent SFC owns page state; camera and photo preview retain separate responsibilities | [Attendance Layout V1](EMPLOYEE-ATTENDANCE-LAYOUT-V1.md) |
