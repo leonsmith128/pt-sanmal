@@ -117,7 +117,7 @@ test('profile photo URL serves the stored image without requiring a public stora
     expect($user->profilePhotoUrl())->toBe(route('profile-photo.show', ['user' => $user->id]));
 });
 
-test('employee profile renders the saved photo as a modal preview trigger', function () {
+test('employee profile renders the saved photo as a modal preview trigger in a focused page layout', function () {
     Storage::fake('public');
 
     $path = UploadedFile::fake()->image('profile.jpg')->store('profile-photos', 'public');
@@ -126,6 +126,7 @@ test('employee profile renders the saved photo as a modal preview trigger', func
     $this->actingAs($user)
         ->get('/profil')
         ->assertOk()
+        ->assertSee('max-w-3xl', false)
         ->assertSee('Perbesar foto profil')
         ->assertSee($user->profilePhotoUrl(), false)
         ->assertSee('role="dialog"', false);
