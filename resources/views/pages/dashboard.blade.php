@@ -143,7 +143,7 @@
                         <div class="min-w-0 space-y-2">
                             <div class="flex flex-wrap items-center gap-2">
                                 <p class="text-sm font-semibold text-[var(--sanmal-text-primary)]">{{ __('Status absensi hari ini') }}</p>
-                                <x-ui.badge :color="$statusColor" class="px-3 py-1 font-semibold">{{ $todayStatus['label'] }}</x-ui.badge>
+                                <x-ui.badge :color="$statusColor" class="shrink-0 px-2 py-0.5 text-xs font-semibold leading-4">{{ $todayStatus['label'] }}</x-ui.badge>
                             </div>
 
                             <div class="flex flex-wrap gap-x-5 gap-y-2 text-sm text-[var(--sanmal-text-secondary)]">
@@ -215,7 +215,7 @@
                                     <h2 class="font-semibold">{{ __('Pengajuan Saya') }}</h2>
                                     <p class="mt-1 text-sm text-[var(--sanmal-text-secondary)]">{{ __('Pengajuan yang masih menunggu keputusan') }}</p>
                                 </div>
-                                <x-ui.badge :color="$pending['total'] > 0 ? 'amber' : 'zinc'">{{ $pending['total'] }}</x-ui.badge>
+                                <x-ui.badge :color="$pending['total'] > 0 ? 'amber' : 'zinc'" class="shrink-0 px-2 py-0.5 text-xs leading-4">{{ $pending['total'] }}</x-ui.badge>
                             </div>
 
                             <div class="mt-4 grid grid-cols-3 gap-3 text-center text-sm">
