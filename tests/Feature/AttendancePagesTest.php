@@ -207,7 +207,8 @@ test('attendance page renders a separate full-size photo preview and full-width 
         ->assertSee('attendance-photo-preview', false)
         ->assertSee('max-h-[75vh]', false)
         ->assertSee('flex w-full items-center gap-2 pt-1', false)
-        ->assertSee(__('Lihat foto ukuran penuh'));
+        ->assertDontSee(__('Lihat foto ukuran penuh'))
+        ->assertDontSee('object-cover', false);
 });
 
 test('employees receive an ungrouped sidebar and mobile header drawer without bottom navigation', function () {
