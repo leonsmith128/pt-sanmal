@@ -18,10 +18,6 @@
                 alt="{{ __('Pratinjau foto absensi') }}"
                 class="block h-auto w-auto max-h-48 max-w-full rounded-lg object-contain"
             />
-            <span class="mt-1 inline-flex items-center gap-1 text-xs font-medium text-[var(--sanmal-text-secondary)]">
-                <flux:icon name="arrows-pointing-out" variant="micro" />
-                {{ __('Lihat foto ukuran penuh') }}
-            </span>
         </button>
 
         <div
@@ -51,6 +47,9 @@
                 alt="{{ __('Foto absensi dalam ukuran asli') }}"
                 class="block h-auto w-auto max-h-[75vh] max-w-[calc(100vw-3.5rem)] rounded-lg object-contain"
             />
+        </div>
+        <div class="mt-2">
+            <flux:button type="button" size="sm" icon="arrow-path" wire:click="retakeSelfie">{{ __('Foto ulang') }}</flux:button>
         </div>
     </div>
 @endif
