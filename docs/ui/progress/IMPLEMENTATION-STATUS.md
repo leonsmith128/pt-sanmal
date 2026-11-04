@@ -99,7 +99,7 @@ Gap yang masih terbuka: perluasan matriks kalender/timezone dan browser QA respo
 
 - Weekly calendar uses seven Monday-first date columns, selected-date styling, a separate today outline, and previous/next week plus Hari Ini controls.
 - Monthly date picker uses a centered six-row grid, month navigation, adjacent-month dates, close control, Escape, and backdrop dismissal. Selecting a date synchronizes the existing `selectedDate` state and closes the picker.
-- Daily indicators are sourced in batches from `DailyAttendanceStatusService::forEmployeesDateRange()`: `present` uses success green, `needs_review` uses warning amber, and `no_record` uses a subtle gray dot. There is no visible legend.
+- Daily indicators are sourced in batches from `DailyAttendanceStatusService::forEmployeesDateRange()`: `present` uses green `#54B66F`, `needs_review` uses warning amber, and `no_record` uses a subtle gray dot. There is no visible legend.
 - Other domain states (incomplete, leave, sick, permission, explicit absence) are not silently relabelled as one of the three selected indicators. No record is not interpreted as absent.
 - Camera, GPS, evidence upload, attendance submission, overtime, and history workflows are unchanged.
 - Feature coverage added for the 42-cell monthly grid, month navigation, date selection, and selected-date synchronization.
