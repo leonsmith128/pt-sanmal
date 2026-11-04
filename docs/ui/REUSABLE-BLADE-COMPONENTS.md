@@ -108,7 +108,7 @@ Page views should compose primitives and domain components, while retaining:
 
 ## Current standardization status
 
-The shared reusable component foundation is implemented. It contains 14 core `x-ui.*` primitives plus two shared utilities (`x-ui.avatar` and `x-ui.notification-dropdown`). The shell-specific `x-ui.sidebar-section` navigation composition helper is documented separately below and is not counted as a generic primitive:
+The shared reusable component foundation is implemented. It contains 14 core `x-ui.*` primitives plus three shared utilities (`x-ui.avatar`, `x-ui.photo-preview`, and `x-ui.notification-dropdown`). The shell-specific `x-ui.sidebar-section` navigation composition helper is documented separately below and is not counted as a generic primitive:
 
 - Layout: `page`, `page-header`, `section`.
 - Action: `button`.
