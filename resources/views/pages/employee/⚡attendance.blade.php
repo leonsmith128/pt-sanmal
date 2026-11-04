@@ -696,11 +696,11 @@ new #[Title('Absensi')] class extends Component {
 
             <div class="flex w-full items-center gap-2 pt-1">
                         @if ($mode === 'overtime_locked')
-                            <x-ui.button type="button" variant="primary" class="min-w-0 flex-1" disabled icon="lock-closed">
+                            <x-ui.button type="button" variant="primary" class="min-h-12 min-w-0 flex-1" disabled icon="lock-closed">
                                 {{ __('Konfirmasi Lembur') }}
                             </x-ui.button>
                         @elseif ($mode === 'clock_in_blocked')
-                            <x-ui.button type="button" variant="primary" class="min-w-0 flex-1" disabled icon="lock-closed">
+                            <x-ui.button type="button" variant="primary" class="min-h-12 min-w-0 flex-1" disabled icon="lock-closed">
                                 {{ __('Sesi hari ini sudah digunakan') }}
                             </x-ui.button>
                         @else
@@ -708,7 +708,7 @@ new #[Title('Absensi')] class extends Component {
                                 <x-ui.button
                                     type="submit"
                                     variant="primary"
-                                    class="min-w-0 flex-1"
+                                    class="min-h-12 min-w-0 flex-1"
                                     wire:loading.attr="disabled"
                                     wire:target="confirm,submit,selfie"
                                 >
@@ -718,7 +718,7 @@ new #[Title('Absensi')] class extends Component {
                                 <x-ui.button
                                     type="button"
                                     variant="primary"
-                                    class="min-w-0 flex-1"
+                                    class="min-h-12 min-w-0 flex-1"
                                     x-on:click="$dispatch('attendance-camera-open')"
                                 >
                                     {{ match ($mode) { 'clock_in' => __('Absen Masuk'), 'overtime_start' => __('Konfirmasi Lembur'), default => __('Absen Pulang') } }}
@@ -797,6 +797,7 @@ new #[Title('Absensi')] class extends Component {
                         wire:click="submit('{{ $mode }}')"
                         wire:loading.attr="disabled"
                         wire:target="submit"
+                        class="min-h-12"
                     >
                         {{ match ($mode) { 'clock_in' => __('Ya, Absen Masuk'), 'overtime_start' => __('Ya, Konfirmasi Lembur'), default => __('Ya, Absen Pulang') } }}
                     </x-ui.button>
@@ -887,7 +888,7 @@ new #[Title('Absensi')] class extends Component {
                 @error('form') <flux:text class="text-sm text-red-600 dark:text-red-400">{{ $message }}</flux:text> @enderror
                 <div class="flex justify-end gap-2">
                     <flux:modal.close><x-ui.button variant="ghost">{{ __('Batal') }}</x-ui.button></flux:modal.close>
-                    <x-ui.button type="submit" variant="primary" wire:loading.attr="disabled" wire:target="requestOvertime">{{ __('Kirim pengajuan') }}</x-ui.button>
+                    <x-ui.button type="submit" variant="primary" class="min-h-12" wire:loading.attr="disabled" wire:target="requestOvertime">{{ __('Kirim pengajuan') }}</x-ui.button>
                 </div>
             </form>
         </flux:modal>
