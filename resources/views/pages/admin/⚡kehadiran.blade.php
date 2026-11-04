@@ -214,6 +214,9 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
 
     .attendance-mobile-list { display: none; }
 
+    .attendance-desktop-table { max-width: 72rem; margin-inline: auto; }
+    .attendance-desktop-table table { width: 100%; table-layout: fixed; }
+
     @media (max-width: 767px) {
         .attendance-responsive-table .attendance-desktop-table { display: none; }
         .attendance-mobile-list { display: grid; }
@@ -400,7 +403,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                             @if ($record->project_name_snapshot)
                                 <p class="mt-1 truncate text-xs text-[var(--sanmal-text-muted)]">{{ $record->project_code_snapshot ? $record->project_code_snapshot.' · ' : '' }}{{ $record->project_name_snapshot }}</p>
                             @endif
-                            <div class="mt-3 flex flex-wrap items-center gap-1.5">
+                            <div class="mt-3 flex flex-wrap items-center justify-end gap-1.5">
                                 <flux:modal.trigger :name="'attendance-detail-'.$record->id">
                                     <x-ui.button size="xs" variant="outline" icon="eye">{{ __('Detail') }}</x-ui.button>
                                 </flux:modal.trigger>
