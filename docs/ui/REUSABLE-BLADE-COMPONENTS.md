@@ -28,13 +28,15 @@ Generic components that can be used by admin, employee, and authentication pages
 | `x-ui.checkbox` | Standard single checkbox with shared description and validation feedback | Optional `name`, `id`, `label`, `description`, `checked`, and `showError`; label remains adjacent to the checkbox as rendered by `flux:checkbox`, and remaining attributes are forwarded to the interactive control |
 | `x-ui.badge` | Consistent status and compact indicator presentation | Slot content, optional Flux badge `color` (default `zinc`), and forwarded presentation attributes |
 | `x-ui.metadata-item` | Semantic label/value pair inside a description list | Required `label`, slot for the value, optional `labelClass` and `valueClass`, and mergeable wrapper attributes |
-| `x-ui.avatar` | Consistent circular user avatar with image/initials fallback | Optional `name`, `initials`, `src`, and `size` (`xs`, `sm`, `md` default, `lg`, `xl`); forwards presentation and accessibility attributes |
+| `x-ui.avatar` | Consistent circular user avatar with image/initials fallback | Optional `name`, `initials`, `src`, and `size` (`xs`, `sm`, `md` default, `lg`, `xl`); enforces a square circular crop and forwards presentation/accessibility attributes |
+| `x-ui.photo-preview` | Reusable image trigger and responsive full-size preview dialog | Required `src`; optional `alt`, `title`, `triggerLabel`, `downloadUrl`, `downloadName`; accepts a trigger slot so avatar or thumbnail components can open the same modal. Attendance wrapper supplies download and retake behavior. |
 | `x-ui.notification-dropdown` | Reusable notification preview popover | Required `notifications` collection (latest items, limited by caller) and optional `unreadCount`; renders unread indicators, per-item read navigation, empty state, and the existing all-notifications route. Data retrieval remains in the controller/view model, not the component |
 
 Metadata and status component rules:
 - Use `x-ui.metadata-item` only as a direct item inside a semantic `<dl>`; the component supplies the wrapper plus `<dt>` and `<dd>`, not the parent grid or surface.
 - Use `label-class` and `value-class` when a page needs a denser metadata hierarchy; keep the actual value in the slot so links, badges, and conditional content remain page-owned.
 - Use `x-ui.badge` for compact status/type indicators where the page needs the shared Flux badge contract.
+- Use `x-ui.photo-preview` when an image should open in a shared full-size dialog; supply a trigger slot for custom thumbnails/avatars and keep page-specific actions outside the generic component.
 - Use `x-ui.notification-dropdown` when a page header needs the shared notification preview. The caller supplies a user-scoped latest-notification collection and unread count; do not add queries or authorization decisions to the component. Pass the existing enum color and label through; do not move status mapping into the component.
 - Keep semantic page wrappers such as `<article>` when the content is a record. `x-ui.card` renders a `div` or an anchor, so it is not a replacement when an article/list-item semantic is required.
 - Do not create a dedicated employee-card or generic table component from one page's markup. Reuse the existing primitives first; extract a larger pattern only after multiple pages share the same structure and interaction contract.
@@ -114,7 +116,7 @@ The shared reusable component foundation is implemented. It contains 14 core `x-
 - Form: `field`, `input`, `select`, `textarea`, `checkbox`.
 - Feedback: `flash-message`, `empty-state`.
 - Status/metadata: `badge`, `metadata-item`.
-- Shared utilities: `avatar`, `notification-dropdown`.
+- Shared utilities: `avatar`, `photo-preview`, `notification-dropdown`.
 
 The primitives are used across selected Admin, Employee, Shared, and Authentication pages. Adoption is intentionally based on semantic fit; it does not require converting every page wrapper, native control, table, or one-off markup into a generic component.
 
