@@ -118,7 +118,7 @@ The shared reusable component foundation is implemented. It contains 14 core `x-
 
 The primitives are used across selected Admin, Employee, Shared, and Authentication pages. Adoption is intentionally based on semantic fit; it does not require converting every page wrapper, native control, table, or one-off markup into a generic component.
 
-Focused component tests exist for the layout, button, card, feedback, form controls, badge, and metadata components. CI has passed on the latest responsive-fix commit `6da6b96ee1e8be19126cba43a62d6ec51aaf22ca` ([run 1065](https://github.com/leonsmith128/pt-sanmal/actions/runs/41566842563)). This is not a claim that all focused tests were run in one latest aggregate suite or that every page passed visual QA.
+Focused component tests exist for the layout, button, card, feedback, form controls, badge, and metadata components. The latest aggregate CI result and any failing assertions are tracked in [Implementation Status](progress/IMPLEMENTATION-STATUS.md); do not treat historical CI runs as proof that the current branch is green. Component tests are not browser QA and do not prove every page passed visual review.
 
 The latest targeted page fixes cover:
 - Admin Attendance filter width and mobile-first control layout.
