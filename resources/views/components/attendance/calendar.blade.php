@@ -23,35 +23,17 @@
     </div>
     <div class="grid grid-cols-7 gap-1 sm:gap-1.5">
         @foreach ($weekDays as $day)
-            @php
-                $indicatorClass = match ($day['indicator']) {
-                    'present' => 'bg-[#54B66F]',
-                    'review' => 'bg-[#B2640A]',
-                    'none' => 'bg-slate-400/70 dark:bg-slate-400/60',
-                    default => null,
-                };
-                $indicatorLabel = match ($day['indicator']) {
-                    'present' => __('Hadir'),
-                    'review' => __('Perlu ditinjau'),
-                    'none' => __('Tidak ada catatan'),
-                    default => null,
-                };
-            @endphp
             <button
                 type="button"
                 wire:key="attendance-week-day-{{ $day['date'] }}"
                 wire:click="selectDate('{{ $day['date'] }}')"
-                aria-label="{{ trim($day['label'].' '.$day['day'].' '.$indicatorLabel) }}"
+                aria-label="{{ $day['label'] }} {{ $day['day'] }}"
                 aria-pressed="{{ $selectedDate === $day['date'] ? 'true' : 'false' }}"
                 class="flex min-h-12 min-w-0 flex-col items-center justify-center gap-1 rounded-xl px-0.5 py-2 text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sanmal-brand-blue {{ $selectedDate === $day['date'] ? 'bg-[#0E3B6B] text-white dark:bg-[#D9A72E] dark:text-[#172033]' : 'text-[var(--sanmal-text-secondary)] hover:bg-sanmal-surface-secondary dark:hover:bg-sanmal-surface-elevated-dark' }} {{ $day['today'] && $selectedDate !== $day['date'] ? 'ring-1 ring-[#0E3B6B] dark:ring-[#D9A72E]' : '' }}"
             >
                 <span class="text-xs {{ $selectedDate === $day['date'] ? 'opacity-85' : 'text-[var(--sanmal-text-muted)]' }}">{{ $day['label'] }}</span>
                 <span class="text-base font-semibold tabular-nums">{{ $day['day'] }}</span>
-                <span class="flex h-1.5 items-center justify-center">
-                    @if ($indicatorClass)
-                        <span class="size-1.5 rounded-full {{ $indicatorClass }}" aria-hidden="true"></span>
-                    @endif
-                </span>
+                <x-attendance.calendar-indicator :status="$day['indicator']" />
             </button>
         @endforeach
     </div>
@@ -78,34 +60,16 @@
                     <span class="py-2 text-xs font-medium text-[var(--sanmal-text-muted)]">{{ $weekday }}</span>
                 @endforeach
                 @foreach ($monthDays as $day)
-                    @php
-                        $indicatorClass = match ($day['indicator']) {
-                            'present' => 'bg-[#54B66F]',
-                            'review' => 'bg-[#B2640A]',
-                            'none' => 'bg-slate-400/70 dark:bg-slate-400/60',
-                            default => null,
-                        };
-                        $indicatorLabel = match ($day['indicator']) {
-                            'present' => __('Hadir'),
-                            'review' => __('Perlu ditinjau'),
-                            'none' => __('Tidak ada catatan'),
-                            default => null,
-                        };
-                    @endphp
                     <button
                         type="button"
                         wire:key="attendance-month-day-{{ $day['date'] }}"
                         wire:click="selectCalendarDate('{{ $day['date'] }}')"
-                        aria-label="{{ trim($day['date'].' '.$indicatorLabel) }}"
+                        aria-label="{{ $day['date'] }}"
                         aria-pressed="{{ $selectedDate === $day['date'] ? 'true' : 'false' }}"
                         class="flex min-h-11 flex-col items-center justify-center gap-0.5 rounded-lg text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sanmal-brand-blue {{ $selectedDate === $day['date'] ? 'bg-[#0E3B6B] font-semibold text-white dark:bg-[#D9A72E] dark:text-[#172033]' : ($day['inMonth'] ? 'text-[var(--sanmal-text-primary)] hover:bg-sanmal-surface-secondary dark:hover:bg-sanmal-surface-elevated-dark' : 'text-[var(--sanmal-text-muted)] opacity-60 hover:bg-sanmal-surface-secondary dark:hover:bg-sanmal-surface-elevated-dark') }} {{ $day['today'] && $selectedDate !== $day['date'] ? 'ring-1 ring-[#0E3B6B] dark:ring-[#D9A72E]' : '' }}"
                     >
                         <span class="tabular-nums">{{ $day['day'] }}</span>
-                        <span class="flex h-1.5 items-center justify-center">
-                            @if ($indicatorClass)
-                                <span class="size-1.5 rounded-full {{ $indicatorClass }}" aria-hidden="true"></span>
-                            @endif
-                        </span>
+                        <x-attendance.calendar-indicator :status="$day['indicator']" />
                     </button>
                 @endforeach
             </div>
