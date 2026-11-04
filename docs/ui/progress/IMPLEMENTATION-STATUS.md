@@ -103,7 +103,7 @@ Gap yang masih terbuka: perluasan matriks kalender/timezone dan browser QA respo
 - Other domain states (incomplete, leave, sick, permission, explicit absence) are not silently relabelled as one of the three selected indicators. No record is not interpreted as absent.
 - Camera, GPS, evidence upload, attendance submission, overtime, and history workflows are unchanged.
 - Feature coverage added for the 42-cell monthly grid, month navigation, date selection, and selected-date synchronization.
-- **Status: Source and regression test updated; CI verification pending. Browser QA pending** at 360–390px, 414–430px, 768px, 1024px, and 1280–1440px in light/dark themes. See [Employee Attendance Calendar V1](../EMPLOYEE-ATTENDANCE-CALENDAR-V1.md).
+- **Status: Source and regression test implemented.** On PR CI run [1393](https://github.com/leonsmith128/pt-sanmal/actions/runs/41766870500), Pint and changed-application-code PHPStan passed, and the new monthly-calendar feature test passed on MariaDB. The full MariaDB test step still failed on two unrelated existing assertions: the photo-preview test expects `previewOpen`, and the Employee Dashboard test expects the obsolete absence of `divide-sanmal-border`. SQLite was skipped because the MariaDB test step failed. Repository-wide PHPStan retains its documented baseline debt and is configured as non-blocking. Browser QA remains pending at 360–390px, 414–430px, 768px, 1024px, and 1280–1440px in light/dark themes. See [Employee Attendance Calendar V1](../EMPLOYEE-ATTENDANCE-CALENDAR-V1.md).
 
 ## Employee Attendance — layout and photo preview
 
