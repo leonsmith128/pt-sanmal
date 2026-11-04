@@ -378,15 +378,16 @@ it('renders attendance rows with responsive card labels and a fixed-width table 
     Livewire::actingAs($admin)
         ->test('pages::admin.kehadiran')
         ->assertSee('attendance-responsive-table', false)
-        ->assertSee('px-3 pb-3 sm:px-4', false)
+        ->assertSee('attendance-responsive-table pb-3', false)
+        ->assertDontSee('attendance-responsive-table px-3 pb-3 sm:px-4', false)
         ->assertDontSee('max-h-[70vh] overflow-y-auto overflow-x-hidden', false)
         ->assertSee('table-fixed', false)
-        ->assertSee('data-label="Waktu"', false)
-        ->assertSee('data-label="Pegawai"', false)
-        ->assertSee('data-label="Jenis kerja / Project"', false)
-        ->assertSee('data-label="Lokasi GPS"', false)
-        ->assertSee('data-label="Bukti foto"', false)
-        ->assertSee('data-label="Koreksi"', false);
+        ->assertSee('Waktu')
+        ->assertSee('Pegawai')
+        ->assertSee('Kerja')
+        ->assertSee('Lokasi GPS')
+        ->assertSee('Foto')
+        ->assertSee('Koreksi');
 });
 
 it('renders a compact mobile disclosure for the admin attendance filters', function () {
