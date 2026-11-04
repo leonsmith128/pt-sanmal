@@ -77,6 +77,22 @@ Contract:
 - The greeting and description are caller-provided; keep employee identity data and date formatting in the page.
 - The shared name heading uses the Dashboard typography on both pages. Do not duplicate the header markup in either page.
 
+### Employee Attendance History page composition
+
+The Employee Attendance History page uses page-local Blade composition rather than introducing another shared component. Its date-group article, event row, summary indicators, and event-detail dialog are currently specific to this page and do not yet have a demonstrated cross-page reuse contract.
+
+Implementation contract:
+- The Controller supplies `dateGroups`, `summary`, and resolved `filters`; the view must not reclassify daily status or rebuild session-date attribution.
+- Render one article per date group. Status-only groups (for example, an approved leave or administrative correction) must remain visible even when `events` is empty.
+- Keep event order supplied by `DailyAttendanceStatusService`; keep date-group pagination at 10 dates per page.
+- Use Flux controls and existing `x-ui.*` primitives for page actions, filters, and status indicators. Keep the event-detail dialog page-local because its payload and evidence fields are specific to attendance history.
+- Alpine.js owns only transient dialog state and focus restoration. It must not make business decisions or change server-side filters.
+- Photo URLs must continue using the authenticated employee selfie routes. Do not expose storage paths or replace private routes with public URLs.
+- Only provide a map link when GPS status is `captured` and coordinates are within valid latitude/longitude bounds. Otherwise show the stored address or `Alamat tidak tersedia`.
+- The CSV export link must include the resolved visible date range, including the current-month default.
+
+No additional reusable Blade component was extracted in this batch. Revisit extraction only if the same date-group/event-detail contract is adopted by another page.
+
 ### 2. Domain/layout components (`x-admin.*`, `x-attendance.*`, etc.)
 
 Components that encode a repeated page pattern or domain-specific presentation:
