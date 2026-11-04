@@ -589,4 +589,3 @@ test('attendance history keeps a cross-midnight clock-out in its clock-in anchor
             && $summary['complete_days'] === 1
             && $summary['needs_review_days'] === 0);
 });
-
