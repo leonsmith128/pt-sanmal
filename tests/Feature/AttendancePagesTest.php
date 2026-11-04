@@ -10,6 +10,7 @@ use App\Models\Employee;
 use App\Models\OvertimeRequest;
 use App\Models\User;
 use App\Support\AttendanceSelfie;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 
@@ -219,7 +220,7 @@ test('attendance photo preview provides a download link for the captured tempora
 
     Livewire::actingAs($employee)
         ->test('pages::employee.attendance')
-        ->set('selfie', \Illuminate\Http\UploadedFile::fake()->image('attendance.jpg'))
+        ->set('selfie', UploadedFile::fake()->image('attendance.jpg'))
         ->assertSee('download="foto-absensi.', false)
         ->assertSee(__('Unduh'));
 });
