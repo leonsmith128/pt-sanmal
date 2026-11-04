@@ -64,7 +64,7 @@ test('application sidebar composer supplies employee data when the actual Blade 
 test('application sidebar composer safely handles a guest view context', function () {
     auth()->logout();
 
-    $view = view('layouts::app.sidebar');
+    $view = view('partials.head');
     app(App\View\Composers\AppSidebarComposer::class)->compose($view);
     $data = $view->getData();
 
