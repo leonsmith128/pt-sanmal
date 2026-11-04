@@ -171,11 +171,6 @@
                             <ol class="divide-y divide-zinc-100 dark:divide-zinc-800">
                                 @foreach ($group['events'] as $record)
                                     @php
-                                        $eventColor = match ($record->type->value) {
-                                            'clock_in' => 'green',
-                                            'clock_out' => 'blue',
-                                            default => 'amber',
-                                        };
                                         $validCoordinates = $record->location_status === 'captured'
                                             && is_numeric($record->latitude)
                                             && is_numeric($record->longitude)
@@ -191,6 +186,7 @@
                                             'timezone' => $record->timezone,
                                             'timezoneSource' => $record->timezone_source,
                                             'locationStatus' => $record->location_status,
+                                            'gpsVerified' => $validCoordinates,
                                             'accuracy' => $record->accuracy_m,
                                             'latitude' => $record->latitude,
                                             'longitude' => $record->longitude,
@@ -211,9 +207,9 @@
                                         <div class="flex min-w-0 items-start gap-3">
                                             <span class="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
                                                 @if ($record->type->value === 'clock_in')
-                                                    <flux:icon name="arrow-right-on-rectangle" class="size-4" />
+                                                    <flux:icon name="clock" class="size-4" />
                                                 @elseif ($record->type->value === 'clock_out')
-                                                    <flux:icon name="arrow-left-on-rectangle" class="size-4" />
+                                                    <flux:icon name="clock" class="size-4" />
                                                 @else
                                                     <flux:icon name="clock" class="size-4" />
                                                 @endif
@@ -247,6 +243,7 @@
                                                 x-on:click="openEvent(JSON.parse(atob($el.dataset.event)), $el)"
                                                 class="inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-sm font-medium text-blue-700 transition hover:bg-blue-50 focus-visible:outline-2 focus-visible:outline-blue-600 dark:text-blue-300 dark:hover:bg-blue-950/30"
                                                 aria-haspopup="dialog"
+                                                aria-controls="attendance-event-detail-dialog"
                                             >
                                                 {{ __('Lihat detail') }}
                                                 <flux:icon name="chevron-right" class="size-4" />
@@ -271,6 +268,7 @@
             x-transition.opacity
             x-on:click.self="closeEvent()"
             x-trap.noscroll="detailOpen"
+            id="attendance-event-detail-dialog"
             role="dialog"
             aria-modal="true"
             aria-labelledby="attendance-event-detail-title"
@@ -326,7 +324,7 @@
                             </div>
                             <div>
                                 <dt class="text-xs text-zinc-500 dark:text-zinc-400">{{ __('Status GPS') }}</dt>
-                                <dd class="mt-1 font-medium" x-text="selectedEvent?.locationStatus === 'captured' ? 'Terekam' : 'Tidak terverifikasi'"></dd>
+                                <dd class="mt-1 font-medium" x-text="selectedEvent?.gpsVerified ? 'Terverifikasi' : 'Tidak terverifikasi'"></dd>
                             </div>
                             <div>
                                 <dt class="text-xs text-zinc-500 dark:text-zinc-400">{{ __('Akurasi') }}</dt>
