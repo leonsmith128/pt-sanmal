@@ -17,10 +17,9 @@
                 aria-haspopup="dialog"
                 aria-expanded="{{ $showMonthlyCalendar ? 'true' : 'false' }}"
                 aria-controls="attendance-month-calendar-dialog"
-                class="group inline-flex min-h-10 max-w-full items-center gap-1.5 rounded-lg px-2 -ml-2 text-left text-[var(--sanmal-text-primary)] transition hover:bg-sanmal-surface-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sanmal-brand-blue dark:hover:bg-sanmal-surface-elevated-dark"
+                class="inline-flex min-h-10 max-w-full whitespace-nowrap rounded-lg px-2 -ml-2 text-left text-[var(--sanmal-text-primary)] transition hover:bg-sanmal-surface-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sanmal-brand-blue dark:hover:bg-sanmal-surface-elevated-dark"
             >
                 <flux:heading size="sm">{{ $selectedMonthLabel }}</flux:heading>
-                <span aria-hidden="true" class="text-sm text-[var(--sanmal-text-muted)] transition-transform group-hover:translate-y-0.5">⌄</span>
             </button>
         </div>
         <div class="flex shrink-0 items-center gap-0.5">
