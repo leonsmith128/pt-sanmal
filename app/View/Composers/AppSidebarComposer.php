@@ -36,7 +36,7 @@ final class AppSidebarComposer
             'unreadSystemNotifications' => $user?->unreadNotifications()->count() ?? 0,
             'latestSystemNotifications' => $user
                 ? $user->notifications()->latest()->limit(5)->get()
-                : new Collection(),
+                : new Collection,
             'unseenRequestDecisions' => $unseenRequestDecisions,
         ]);
     }
