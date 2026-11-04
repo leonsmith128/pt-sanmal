@@ -379,6 +379,7 @@ it('renders attendance rows with responsive card labels and a fixed-width table 
     Livewire::actingAs($admin)
         ->test('pages::admin.kehadiran')
         ->assertSee('attendance-responsive-table', false)
+        ->assertSee('px-3 pb-3 sm:px-4', false)
         ->assertSee('class="w-full table-fixed"', false)
         ->assertSee('data-label="Waktu"', false)
         ->assertSee('data-label="Pegawai"', false)
@@ -394,8 +395,29 @@ it('renders a compact mobile disclosure for the admin attendance filters', funct
 
     Livewire::actingAs($admin)
         ->test('pages::admin.kehadiran')
-        ->assertSee('Filter (0)')
+        ->assertSee('Filter absensi')
+        ->assertSee('0 aktif')
         ->assertSee('aria-controls="admin-attendance-filter-controls"', false)
         ->assertSee('x-show="filtersOpen"', false)
-        ->assertSee('lg:!grid', false);
+        ->assertSee('lg:grid-cols-5', false);
+});
+
+
+it('keeps the active filter count visible while the filter controls are collapsed', function () {
+    $admin = attendancePageAdmin();
+
+    Livewire::actingAs($admin)
+        ->test('pages::admin.kehadiran')
+        ->set('search', 'Makassar')
+        ->assertSee('1 aktif')
+        ->assertSee('x-show="filtersOpen"', false);
+});
+
+it('renders the export label and chevron together in a horizontal inline group', function () {
+    $admin = attendancePageAdmin();
+
+    Livewire::actingAs($admin)
+        ->test('pages::admin.kehadiran')
+        ->assertSee('inline-flex items-center gap-2 whitespace-nowrap', false)
+        ->assertSee('chevron-down');
 });
