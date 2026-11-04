@@ -36,6 +36,8 @@ new #[Title('Absensi')] class extends Component {
     public $selfie = null;
     public string $selfieSource = 'camera';
     public string $selectedDate = '';
+    public string $calendarMonth = '';
+    public bool $showMonthlyCalendar = false;
     public string $overtimeReason = '';
     public string $overtimeStartAt = '';
     public ?int $selectedOvertimeId = null;
@@ -56,6 +58,7 @@ new #[Title('Absensi')] class extends Component {
         abort_unless($user->is_active && $user->employee, 403);
 
         $this->selectedDate = now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString();
+        $this->calendarMonth = Carbon::parse($this->selectedDate)->startOfMonth()->toDateString();
         $this->locationId = $this->officeLocations->first()?->id;
         $this->projectId = $this->projects->first()?->id;
     }
@@ -122,11 +125,104 @@ new #[Title('Absensi')] class extends Component {
         ])->all();
     }
 
+    private function attendanceIndicatorsForRange(string $startDate, string $endDate): array
+    {
+        $statuses = app(DailyAttendanceStatusService::class)->forEmployeesDateRange(
+            collect([$this->employee]),
+            $startDate,
+            $endDate,
+        );
+
+        return collect($statuses[$this->employee->id] ?? [])
+            ->mapWithKeys(fn (array $day, string $date) => [
+                $date => match ($day['status']) {
+                    'present' => 'present',
+                    'needs_review' => 'review',
+                    'no_record' => 'none',
+                    default => null,
+                },
+            ])
+            ->all();
+    }
+
+    #[Computed]
+    public function weekCalendarDays(): array
+    {
+        $days = $this->weekDays;
+        $indicators = $this->attendanceIndicatorsForRange($days[0]['date'], $days[6]['date']);
+
+        return collect($days)->map(fn (array $day) => [
+            ...$day,
+            'indicator' => $indicators[$day['date']] ?? null,
+        ])->all();
+    }
+
+    #[Computed]
+    public function monthDays(): array
+    {
+        $month = Carbon::parse($this->calendarMonth ?: $this->selectedDate)->startOfMonth();
+        $start = $month->copy()->startOfWeek(Carbon::MONDAY);
+        $end = $start->copy()->addDays(41);
+        $indicators = $this->attendanceIndicatorsForRange($start->toDateString(), $end->toDateString());
+
+        return collect(range(0, 41))->map(function (int $offset) use ($start, $month, $indicators): array {
+            $date = $start->copy()->addDays($offset);
+
+            return [
+                'date' => $date->toDateString(),
+                'day' => $date->format('j'),
+                'inMonth' => $date->month === $month->month,
+                'today' => $date->isSameDay(now(RecordAttendance::DEFAULT_TIMEZONE)),
+                'indicator' => $indicators[$date->toDateString()] ?? null,
+            ];
+        })->all();
+    }
+
+    public function openMonthlyCalendar(): void
+    {
+        $this->calendarMonth = Carbon::parse($this->selectedDate)->startOfMonth()->toDateString();
+        $this->showMonthlyCalendar = true;
+        unset($this->monthDays);
+    }
+
+    public function closeMonthlyCalendar(): void
+    {
+        $this->showMonthlyCalendar = false;
+    }
+
+    public function shiftCalendarMonth(int $direction): void
+    {
+        abort_unless(in_array($direction, [-1, 1], true), 422);
+
+        $this->calendarMonth = Carbon::parse($this->calendarMonth)
+            ->startOfMonth()
+            ->addMonths($direction)
+            ->toDateString();
+
+        unset($this->monthDays);
+    }
+
+    public function selectCalendarDate(string $date): void
+    {
+        abort_unless(
+            Carbon::hasFormat($date, 'Y-m-d')
+                && collect($this->monthDays)->contains(fn (array $day) => $day['date'] === $date),
+            422,
+        );
+
+        $this->selectedDate = $date;
+        $this->calendarMonth = Carbon::parse($date)->startOfMonth()->toDateString();
+        $this->showMonthlyCalendar = false;
+
+        unset($this->weekDays, $this->weekCalendarDays, $this->monthDays, $this->history, $this->selectedDateOvertimeRequests);
+    }
+
     public function selectDate(string $date): void
     {
         abort_unless(Carbon::hasFormat($date, 'Y-m-d') && (collect($this->weekDays)->contains(fn ($day) => $day['date'] === $date) || $date === now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString()), 422);
         $this->selectedDate = $date;
-        unset($this->history, $this->selectedDateOvertimeRequests);
+        $this->calendarMonth = Carbon::parse($date)->startOfMonth()->toDateString();
+        unset($this->weekCalendarDays, $this->monthDays, $this->history, $this->selectedDateOvertimeRequests);
     }
 
     public function shiftWeek(int $direction): void
@@ -134,7 +230,8 @@ new #[Title('Absensi')] class extends Component {
         abort_unless(in_array($direction, [-1, 1], true), 422);
         $current = Carbon::parse($this->selectedDate ?: now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString());
         $this->selectedDate = $current->addWeeks($direction)->startOfWeek(Carbon::MONDAY)->toDateString();
-        unset($this->weekDays, $this->history, $this->selectedDateOvertimeRequests);
+        $this->calendarMonth = Carbon::parse($this->selectedDate)->startOfMonth()->toDateString();
+        unset($this->weekDays, $this->weekCalendarDays, $this->monthDays, $this->history, $this->selectedDateOvertimeRequests);
     }
 
     public function requestOvertime(): void
@@ -344,27 +441,115 @@ new #[Title('Absensi')] class extends Component {
                 : ($this->hasClockInToday ? 'clock_in_blocked' : 'clock_in');
         @endphp
 
-        <section class="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
-            <div class="mb-3 flex items-center justify-between gap-3">
-                <div>
+        <x-ui.card padding="p-4" class="rounded-2xl">
+            <div class="mb-3 flex items-center justify-between gap-2">
+                <div class="min-w-0">
                     <flux:heading size="sm">{{ Carbon::parse($selectedDate)->translatedFormat('F Y') }}</flux:heading>
                     <flux:text class="text-sm">{{ __('Pilih tanggal untuk melihat riwayat.') }}</flux:text>
                 </div>
-                <div class="flex gap-1">
+                <div class="flex shrink-0 items-center gap-0.5">
                     <x-ui.button size="sm" variant="ghost" icon="chevron-left" wire:click="shiftWeek(-1)" aria-label="{{ __('Minggu sebelumnya') }}" />
                     <x-ui.button size="sm" variant="ghost" icon="chevron-right" wire:click="shiftWeek(1)" aria-label="{{ __('Minggu berikutnya') }}" />
+                    <x-ui.button size="sm" variant="ghost" icon="calendar-days" wire:click="openMonthlyCalendar" aria-label="{{ __('Buka kalender bulanan') }}" />
                     <x-ui.button size="sm" variant="ghost" wire:click="selectDate('{{ now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString() }}')">{{ __('Hari ini') }}</x-ui.button>
                 </div>
             </div>
-            <div class="grid grid-cols-7 gap-1.5">
-                @foreach ($this->weekDays as $day)
-                    <button type="button" wire:click="selectDate('{{ $day['date'] }}')" class="flex min-w-0 flex-col items-center gap-1 rounded-xl px-1 py-2.5 text-sm transition {{ $selectedDate === $day['date'] ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900' : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800' }}">
-                        <span class="text-xs {{ $selectedDate === $day['date'] ? 'opacity-80' : 'text-zinc-500' }}">{{ $day['label'] }}</span>
-                        <span class="flex size-8 items-center justify-center rounded-full {{ $day['today'] && $selectedDate !== $day['date'] ? 'ring-1 ring-zinc-400' : '' }} font-semibold">{{ $day['day'] }}</span>
+            <div class="grid grid-cols-7 gap-1 sm:gap-1.5">
+                @foreach ($this->weekCalendarDays as $day)
+                    @php
+                        $indicatorClass = match ($day['indicator']) {
+                            'present' => 'bg-[#258640]',
+                            'review' => 'bg-[#B2640A]',
+                            'none' => 'bg-slate-400/70 dark:bg-slate-400/60',
+                            default => null,
+                        };
+                        $indicatorLabel = match ($day['indicator']) {
+                            'present' => __('Hadir'),
+                            'review' => __('Perlu ditinjau'),
+                            'none' => __('Tidak ada catatan'),
+                            default => null,
+                        };
+                    @endphp
+                    <button
+                        type="button"
+                        wire:key="attendance-week-day-{{ $day['date'] }}"
+                        wire:click="selectDate('{{ $day['date'] }}')"
+                        aria-label="{{ $day['label'] }} {{ $day['day'] }} {{ $indicatorLabel }}"
+                        aria-pressed="{{ $selectedDate === $day['date'] ? 'true' : 'false' }}"
+                        class="flex min-h-12 min-w-0 flex-col items-center justify-center gap-1 rounded-xl px-0.5 py-2 text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sanmal-brand-blue {{ $selectedDate === $day['date'] ? 'bg-[#0E3B6B] text-white dark:bg-[#D9A72E] dark:text-[#172033]' : 'text-[var(--sanmal-text-secondary)] hover:bg-sanmal-surface-secondary dark:hover:bg-sanmal-surface-elevated-dark' }} {{ $day['today'] && $selectedDate !== $day['date'] ? 'ring-1 ring-[#0E3B6B] dark:ring-[#D9A72E]' : '' }}"
+                    >
+                        <span class="text-xs {{ $selectedDate === $day['date'] ? 'opacity-85' : 'text-[var(--sanmal-text-muted)]' }}">{{ $day['label'] }}</span>
+                        <span class="text-base font-semibold tabular-nums">{{ $day['day'] }}</span>
+                        <span class="flex h-1.5 items-center justify-center">
+                            @if ($indicatorClass)
+                                <span class="size-1.5 rounded-full {{ $indicatorClass }}" aria-hidden="true"></span>
+                            @endif
+                        </span>
                     </button>
                 @endforeach
             </div>
-        </section>
+        </x-ui.card>
+
+        @if ($showMonthlyCalendar)
+            <div
+                class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+                role="presentation"
+                wire:click.self="closeMonthlyCalendar"
+                x-on:keydown.escape.window="$wire.closeMonthlyCalendar()"
+            >
+                <section
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="attendance-month-calendar-title"
+                    class="w-full max-w-md rounded-2xl bg-sanmal-surface-card p-4 text-[var(--sanmal-text-primary)] shadow-2xl dark:bg-sanmal-surface-card-dark sm:p-5"
+                >
+                    <div class="mb-4 flex items-center justify-between gap-3">
+                        <flux:heading id="attendance-month-calendar-title" size="lg">{{ Carbon::parse($calendarMonth)->translatedFormat('F Y') }}</flux:heading>
+                        <div class="flex items-center gap-1">
+                            <x-ui.button size="sm" variant="ghost" icon="chevron-left" wire:click="shiftCalendarMonth(-1)" aria-label="{{ __('Bulan sebelumnya') }}" />
+                            <x-ui.button size="sm" variant="ghost" icon="chevron-right" wire:click="shiftCalendarMonth(1)" aria-label="{{ __('Bulan berikutnya') }}" />
+                            <x-ui.button size="sm" variant="ghost" icon="x-mark" wire:click="closeMonthlyCalendar" aria-label="{{ __('Tutup kalender bulanan') }}" />
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-7 gap-1 text-center">
+                        @foreach ([__('Sen'), __('Sel'), __('Rab'), __('Kam'), __('Jum'), __('Sab'), __('Min')] as $weekday)
+                            <span class="py-2 text-xs font-medium text-[var(--sanmal-text-muted)]">{{ $weekday }}</span>
+                        @endforeach
+                        @foreach ($this->monthDays as $day)
+                            @php
+                                $indicatorClass = match ($day['indicator']) {
+                                    'present' => 'bg-[#258640]',
+                                    'review' => 'bg-[#B2640A]',
+                                    'none' => 'bg-slate-400/70 dark:bg-slate-400/60',
+                                    default => null,
+                                };
+                                $indicatorLabel = match ($day['indicator']) {
+                                    'present' => __('Hadir'),
+                                    'review' => __('Perlu ditinjau'),
+                                    'none' => __('Tidak ada catatan'),
+                                    default => null,
+                                };
+                            @endphp
+                            <button
+                                type="button"
+                                wire:key="attendance-month-day-{{ $day['date'] }}"
+                                wire:click="selectCalendarDate('{{ $day['date'] }}')"
+                                aria-label="{{ $day['date'] }} {{ $indicatorLabel }}"
+                                aria-pressed="{{ $selectedDate === $day['date'] ? 'true' : 'false' }}"
+                                class="flex min-h-11 flex-col items-center justify-center gap-0.5 rounded-lg text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sanmal-brand-blue {{ $selectedDate === $day['date'] ? 'bg-[#0E3B6B] font-semibold text-white dark:bg-[#D9A72E] dark:text-[#172033]' : ($day['inMonth'] ? 'text-[var(--sanmal-text-primary)] hover:bg-sanmal-surface-secondary dark:hover:bg-sanmal-surface-elevated-dark' : 'text-[var(--sanmal-text-muted)] opacity-60 hover:bg-sanmal-surface-secondary dark:hover:bg-sanmal-surface-elevated-dark') }} {{ $day['today'] && $selectedDate !== $day['date'] ? 'ring-1 ring-[#0E3B6B] dark:ring-[#D9A72E]' : '' }}"
+                            >
+                                <span class="tabular-nums">{{ $day['day'] }}</span>
+                                <span class="flex h-1.5 items-center justify-center">
+                                    @if ($indicatorClass)
+                                        <span class="size-1.5 rounded-full {{ $indicatorClass }}" aria-hidden="true"></span>
+                                    @endif
+                                </span>
+                            </button>
+                        @endforeach
+                    </div>
+                </section>
+            </div>
+        @endif
 
         {{-- Ringkasan waktu kerja --}}
         @php
