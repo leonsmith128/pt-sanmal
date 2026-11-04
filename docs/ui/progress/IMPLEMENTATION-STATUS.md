@@ -171,3 +171,14 @@ Follow-up refinements based on browser feedback:
 - Filter state and Livewire bindings are unchanged.
 
 Automated tests cover the active count, disclosure markup, desktop grid, table inset, and export trigger alignment. Browser QA is still required to verify the rendered spacing and exact two-row fit at supported desktop widths.
+
+
+## Application shell consolidation — 5 November 2026
+
+- Confirmed `resources/views/layouts/app.blade.php` as the single configured authenticated application layout. It delegates to the SanMal role-aware sidebar shell and renders routed content inside `<flux:main inset>`.
+- Removed the legacy starter-kit `resources/views/layouts/app/header.blade.php` alternative from this branch. The active sidebar shell remains unchanged.
+- Retained `x-desktop-user-menu` because it is used by the active sidebar layout. Retained the existing `x-ui.page`, `x-ui.page-header`, and `x-ui.section` primitives; no parallel page-layout abstraction was added.
+- Authentication layouts and authentication page views were explicitly excluded and were not changed.
+- Updated the Page Inventory and Reusable Blade Components documentation with the shell contract and scope boundary.
+- Sidebar data extraction into a View Composer, broader component cleanup, and page-folder consolidation remain separate follow-up stages.
+- This is source-level consolidation only. Browser/device QA and exhaustive dynamic-reference indexing are not claimed; see the audit scope in [Reusable Blade Components](../REUSABLE-BLADE-COMPONENTS.md).
