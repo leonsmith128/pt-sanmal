@@ -86,6 +86,7 @@ Implementation contract:
 - Render one article per date group. Status-only groups (for example, an approved leave or administrative correction) must remain visible even when `events` is empty.
 - Keep event order supplied by `DailyAttendanceStatusService`; keep date-group pagination at 10 dates per page.
 - Use Flux controls and existing `x-ui.*` primitives for page actions, filters, and status indicators. Keep the event-detail dialog page-local because its payload and evidence fields are specific to attendance history.
+- Use `x-ui.card` for the summary indicators, filter surface, empty state, and each date-group surface. Keep the semantic `<article>` nested inside the date-group card because `x-ui.card` renders a `div` (or an anchor when `href` is supplied). These surfaces use the component's borderless `shadow-sm` treatment; do not add a second border/shadow wrapper around them.
 - Alpine.js owns only transient dialog state and focus restoration. It must not make business decisions or change server-side filters.
 - Photo URLs must continue using the authenticated employee selfie routes. Do not expose storage paths or replace private routes with public URLs.
 - Only provide a map link when GPS status is `captured` and coordinates are within valid latitude/longitude bounds. Otherwise show the stored address or `Alamat tidak tersedia`.
