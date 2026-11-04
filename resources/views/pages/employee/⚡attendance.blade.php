@@ -492,7 +492,6 @@ new #[Title('Absensi')] class extends Component {
                 <x-attendance.camera
                     :name="Auth::user()->name"
                     :event-label="$mode === 'overtime_start' ? 'Lembur' : ($mode === 'clock_in' ? 'Clock In' : 'Clock Out')"
-                    :selfie="$selfie"
                 />
 
                 <x-attendance.photo-preview :selfie="$selfie" />
