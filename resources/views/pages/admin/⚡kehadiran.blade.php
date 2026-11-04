@@ -205,6 +205,84 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
     }
 }; ?>
 
+
+<style>
+    .attendance-responsive-table table {
+        width: 100%;
+        table-layout: fixed;
+    }
+
+    @media (max-width: 1023px) {
+        .attendance-responsive-table {
+            overflow-x: hidden;
+        }
+
+        .attendance-responsive-table table,
+        .attendance-responsive-table tbody {
+            display: block;
+            width: 100%;
+        }
+
+        .attendance-responsive-table thead {
+            display: none;
+        }
+
+        .attendance-responsive-table tbody tr {
+            display: block;
+            margin: 0.75rem;
+            overflow: hidden;
+            border: 1px solid var(--sanmal-border);
+            border-radius: 0.75rem;
+            background: var(--sanmal-surface-primary);
+        }
+
+        .dark .attendance-responsive-table tbody tr {
+            border-color: var(--sanmal-border-dark);
+            background: var(--sanmal-surface-primary-dark);
+        }
+
+        .attendance-responsive-table tbody td {
+            display: grid;
+            grid-template-columns: minmax(6.5rem, 34%) minmax(0, 1fr);
+            align-items: start;
+            gap: 0.75rem;
+            width: 100%;
+            padding: 0.625rem 0.75rem;
+            border-bottom: 1px solid var(--sanmal-border);
+            white-space: normal;
+            overflow-wrap: anywhere;
+        }
+
+        .dark .attendance-responsive-table tbody td {
+            border-color: var(--sanmal-border-dark);
+        }
+
+        .attendance-responsive-table tbody td:last-child {
+            border-bottom: 0;
+        }
+
+        .attendance-responsive-table tbody td::before {
+            content: attr(data-label);
+            color: var(--sanmal-text-secondary);
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .attendance-responsive-table tbody td[colspan] {
+            display: block;
+        }
+
+        .attendance-responsive-table tbody td[colspan]::before {
+            content: none;
+        }
+
+        .attendance-responsive-table tbody tr:has(td[colspan]) {
+            border: 0;
+            background: transparent;
+        }
+    }
+</style>
+
 <section x-data="{ exportConfirmOpen: false, exportUrl: '', exportDescription: '' }" x-on:keydown.escape.window="exportConfirmOpen = false" class="w-full">
     <x-ui.page>
         <x-admin.page-header :title="__('Kehadiran Pegawai')" />
@@ -355,8 +433,8 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                 </flux:dropdown>
             </div>
 
-            <div id="attendance-records" data-record-count="{{ $records->total() }}" class="max-h-[70vh] overflow-auto [--flux-bleed:0.5rem] [&_thead]:sticky [&_thead]:top-0 [&_thead]:z-20 [&_thead]:bg-sanmal-surface-secondary dark:[&_thead]:bg-sanmal-surface-secondary-dark">
-                <flux:table bleed :paginate="$records" pagination:scroll-to="#attendance-records">
+            <div id="attendance-records" data-record-count="{{ $records->total() }}" class="attendance-responsive-table max-h-[70vh] overflow-y-auto overflow-x-hidden [--flux-bleed:0.5rem] [&_thead]:sticky [&_thead]:top-0 [&_thead]:z-20 [&_thead]:bg-sanmal-surface-secondary dark:[&_thead]:bg-sanmal-surface-secondary-dark">
+                <flux:table bleed class="w-full table-fixed" :paginate="$records" pagination:scroll-to="#attendance-records">
                     <flux:table.columns>
                         <flux:table.column sortable :sorted="$sortBy === 'recorded_at'" :direction="$sortDirection" wire:click="sort('recorded_at')" class="w-26 px-3 py-2">{{ __('Waktu') }}</flux:table.column>
                         <flux:table.column sortable :sorted="$sortBy === 'employee'" :direction="$sortDirection" wire:click="sort('employee')" class="w-34 px-3 py-2">{{ __('Pegawai') }}</flux:table.column>
@@ -369,22 +447,22 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                     <flux:table.rows>
                         @forelse ($records as $record)
                             <flux:table.row :key="$record->id">
-                                <flux:table.cell class="whitespace-normal px-3 py-2">
+                                <flux:table.cell data-label="Waktu" class="whitespace-normal px-3 py-2">
                                     <p class="font-medium text-[var(--sanmal-text-primary)]">{{ $record->effectiveRecordedAtLocal()->format('d M Y') }}</p>
                                     <p class="text-xs text-[var(--sanmal-text-secondary)]">{{ $record->effectiveRecordedAtLocal()->format('H:i T') }}</p>
                                     @if ($record->approvedCorrection)
                                         <p class="mt-1 text-xs text-[var(--sanmal-text-muted)]">{{ __('Asli:') }} {{ $record->recordedAtLocal()->format('d M, H:i T') }}</p>
                                     @endif
                                 </flux:table.cell>
-                                <flux:table.cell class="px-3 py-2" title="{{ $record->employee->user->name }}">
+                                <flux:table.cell data-label="Pegawai" class="px-3 py-2" title="{{ $record->employee->user->name }}">
                                     <span class="block truncate font-medium text-[var(--sanmal-text-primary)]">{{ $record->employee->user->name }}</span>
                                 </flux:table.cell>
-                                <flux:table.cell class="px-3 py-2">
+                                <flux:table.cell data-label="Jenis" class="px-3 py-2">
                                     <x-ui.badge :color="$record->type === AttendanceType::ClockIn ? 'green' : 'blue'">
                                         {{ $record->type->label() }}
                                     </x-ui.badge>
                                 </flux:table.cell>
-                                <flux:table.cell class="whitespace-normal px-3 py-2">
+                                <flux:table.cell data-label="Jenis kerja / Project" class="whitespace-normal px-3 py-2">
                                     <p class="text-sm text-[var(--sanmal-text-primary)]">{{ $record->work_type->label() }}</p>
                                     @if ($record->project_name_snapshot)
                                         <div class="mt-1 max-w-full">
@@ -399,7 +477,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                                         </div>
                                     @endif
                                 </flux:table.cell>
-                                <flux:table.cell class="whitespace-normal px-3 py-2">
+                                <flux:table.cell data-label="Lokasi GPS" class="whitespace-normal px-3 py-2">
                                     @if ($record->latitude !== null && $record->longitude !== null)
                                         <a href="https://www.google.com/maps?q={{ $record->latitude }},{{ $record->longitude }}" target="_blank" rel="noopener noreferrer" class="block break-words text-sm leading-5 text-sanmal-brand-blue underline decoration-sanmal-brand-blue/30 underline-offset-2 transition hover:decoration-current focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sanmal-brand-blue dark:text-sanmal-brand-yellow-dark dark:decoration-sanmal-brand-yellow-dark/40 dark:focus-visible:outline-sanmal-brand-yellow-dark">
                                             <span class="sr-only">{{ __('Alamat tersimpan:') }}</span>
@@ -409,7 +487,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                                         <span class="block break-words text-sm text-[var(--sanmal-text-muted)]">{{ $record->address_snapshot ?: '—' }}</span>
                                     @endif
                                 </flux:table.cell>
-                                <flux:table.cell class="px-3 py-2" align="center">
+                                <flux:table.cell data-label="Bukti foto" class="px-3 py-2" align="center">
                                     @if ($record->selfie_path)
                                         <x-ui.photo-preview
                                             :src="route('admin.attendance.selfie', $record)"
@@ -426,7 +504,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                                         —
                                     @endif
                                 </flux:table.cell>
-                                <flux:table.cell class="px-3 py-2">
+                                <flux:table.cell data-label="Koreksi" class="px-3 py-2">
                                     @if (in_array($record->type, [AttendanceType::ClockIn, AttendanceType::ClockOut], true) && $record->employee->user_id !== auth()->id())
                                         <details class="max-w-full whitespace-normal">
                                             <summary class="inline-flex cursor-pointer items-center rounded-md border border-sanmal-border bg-sanmal-surface-primary px-2.5 py-1.5 text-xs font-medium text-sanmal-brand-blue transition hover:bg-sanmal-surface-secondary dark:border-sanmal-border-dark dark:bg-sanmal-surface-inset-dark dark:text-sanmal-brand-yellow-dark dark:hover:bg-sanmal-surface-elevated-dark">{{ __('Koreksi timestamp') }}</summary>
@@ -461,8 +539,8 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
 
                         @foreach ($notYetPresent as $employee)
                             <flux:table.row :key="'not-present-'.$employee->id">
-                                <flux:table.cell class="whitespace-nowrap px-3 py-2">—</flux:table.cell>
-                                <flux:table.cell class="px-3 py-2">{{ $employee->user->name }}</flux:table.cell>
+                                <flux:table.cell data-label="Waktu" class="whitespace-nowrap px-3 py-2">—</flux:table.cell>
+                                <flux:table.cell data-label="Pegawai" class="px-3 py-2">{{ $employee->user->name }}</flux:table.cell>
                                 <flux:table.cell class="px-3 py-2">
                                     <x-ui.badge color="amber">{{ __('Belum ada absensi') }}</x-ui.badge>
                                 </flux:table.cell>
