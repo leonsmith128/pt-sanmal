@@ -213,12 +213,6 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
     }
 
     @media (max-width: 1279px) {
-        .attendance-responsive-table {
-            max-height: none;
-            overflow-x: hidden;
-            overflow-y: visible;
-        }
-
         .attendance-responsive-table table,
         .attendance-responsive-table tbody {
             display: block;
@@ -437,7 +431,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                 </flux:dropdown>
             </div>
 
-            <div id="attendance-records" data-record-count="{{ $records->total() }}" class="attendance-responsive-table max-h-[70vh] overflow-y-auto overflow-x-hidden px-3 pb-3 sm:px-4 [&_thead]:sticky [&_thead]:top-0 [&_thead]:z-20 [&_thead]:bg-sanmal-surface-secondary dark:[&_thead]:bg-sanmal-surface-secondary-dark">
+            <div id="attendance-records" data-record-count="{{ $records->total() }}" class="attendance-responsive-table px-3 pb-3 sm:px-4 [&_thead]:sticky [&_thead]:top-0 [&_thead]:z-20 [&_thead]:bg-sanmal-surface-secondary dark:[&_thead]:bg-sanmal-surface-secondary-dark">
                 <flux:table class="w-full table-fixed" :paginate="$records" pagination:scroll-to="#attendance-records">
                     <flux:table.columns>
                         <flux:table.column sortable :sorted="$sortBy === 'recorded_at'" :direction="$sortDirection" wire:click="sort('recorded_at')" class="w-26 px-3 py-2">{{ __('Waktu') }}</flux:table.column>
