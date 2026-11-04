@@ -422,7 +422,7 @@ it('renders the export action in a horizontal inline group', function () {
         ->assertSee('Export');
 });
 
-it('renders mobile attendance details and the per-record timestamp correction modal', function () {
+it('renders mobile attendance cards with a photo column, compact actions, and a full detail modal', function () {
     $admin = attendancePageAdmin();
     $employee = attendancePageEmployee('Pegawai Modal Koreksi');
 
@@ -433,11 +433,23 @@ it('renders mobile attendance details and the per-record timestamp correction mo
         'recorded_at' => '2026-11-02 01:00:00',
         'timezone' => 'Asia/Makassar',
         'attendance_date' => '2026-11-02',
+        'address_snapshot' => 'Jl. Kalibrasi No. 1, Makassar',
+        'latitude' => -5.1477,
+        'longitude' => 119.4327,
     ]);
 
     Livewire::actingAs($admin)
         ->test('pages::admin.kehadiran')
-        ->assertSee('Tampilkan detail')
+        ->assertSee('attendance-mobile-list', false)
+        ->assertSee('h-24 w-20 rounded-lg object-cover', false)
+        ->assertSee(__('Detail'))
+        ->assertDontSee('Tampilkan detail')
+        ->assertSee('attendance-detail-'.$record->id, false)
+        ->assertSee('Detail absensi')
+        ->assertSee('Jenis kerja')
+        ->assertSee('Alamat GPS')
+        ->assertSee('Koordinat GPS')
+        ->assertSee('Jl. Kalibrasi No. 1, Makassar')
         ->assertSee('Koreksi timestamp')
         ->assertSee('attendance-correction-'.$record->id, false)
         ->assertSee(route('admin.kehadiran.correct-timestamp', $record), false);
