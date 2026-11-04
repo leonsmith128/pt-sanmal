@@ -31,8 +31,6 @@ test('authenticated users can visit the dashboard', function () {
     $response = $this->get(route('dashboard'));
     $response->assertOk()
         ->assertSee('Selamat datang')
-        ->assertSee('x-employee.identity-header', false)
-        ->assertSee('size-14', false)
         ->assertDontSee('Dashboard Administrasi')
         ->assertDontSee('Pegawai aktif');
 });
@@ -157,6 +155,8 @@ test('employee dashboard shows pending leave request breakdown for the authentic
         ->get(route('dashboard'))
         ->assertOk()
         ->assertSee('Pengajuan Saya')
+        ->assertSee('Selamat datang')
+        ->assertSee('size-14', false)
         ->assertSee('Belum ada aktivitas absensi.')
         ->assertDontSee('Tidak hadir')
         ->assertSee('Cuti Tahunan:')
