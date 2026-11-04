@@ -197,21 +197,26 @@ test('attendance camera controls reflect camera availability and video readiness
         ->assertSee('$dispatch(\'attendance-camera-open\')', false)
         ->assertSee(__('Absen Masuk'));
 });
-test('attendance page renders a separate full-size photo preview and full-width action below the camera', function () {
-    $this->actingAs(userWithRole(UserRole::Employee));
+test('attendance page renders the shared full-size photo preview when a selfie is available', function () {
+    $employee = userWithRole(UserRole::Employee);
 
-    $this->get(route('attendance'))
+    $this->actingAs($employee)
+        ->get(route('attendance'))
         ->assertOk()
-        ->assertSee('object-contain', false)
         ->assertSee('watermarkPreview', false)
+        ->assertSee('flex w-full items-center gap-2 pt-1', false)
+        ->assertDontSee(__('Lihat foto ukuran penuh'));
+
+    Livewire::actingAs($employee)
+        ->test('pages::employee.attendance')
+        ->set('selfie', UploadedFile::fake()->image('attendance.jpg'))
         ->assertSee('previewOpen', false)
-        ->assertSee('attendance-photo-preview', false)
+        ->assertSee('role="dialog"', false)
         ->assertSee('fixed inset-0 z-50 flex items-center justify-center', false)
         ->assertSee('x-on:click.self="previewOpen = false"', false)
         ->assertSee('aria-modal="true"', false)
         ->assertSee('max-h-[calc(100dvh-7rem)]', false)
-        ->assertSee('flex w-full items-center gap-2 pt-1', false)
-        ->assertDontSee(__('Lihat foto ukuran penuh'))
+        ->assertSee('download="foto-absensi.', false)
         ->assertDontSee('object-cover', false);
 });
 
@@ -378,7 +383,7 @@ test('attendance page orders calendar, time summary, status cards, and one atten
 
     $html = $this->get(route('attendance'))
         ->assertOk()
-        ->assertSee(__('Pilih tanggal untuk melihat riwayat.'))
+        ->assertSee('wire:click="openMonthlyCalendar"', false)
         ->assertSee(__('Total kerja'))
         ->assertSee(__('Status kehadiran'))
         ->assertSee(__('Lembur'))
@@ -386,7 +391,7 @@ test('attendance page orders calendar, time summary, status cards, and one atten
         ->assertSee(__('Absen Masuk'))
         ->getContent();
 
-    $calendarPosition = strpos($html, __('Pilih tanggal untuk melihat riwayat.'));
+    $calendarPosition = strpos($html, 'wire:click="openMonthlyCalendar"');
     $summaryPosition = strpos($html, __('Total kerja'));
     $statusPosition = strpos($html, __('Status kehadiran'));
     $formPosition = strpos($html, 'id="attendance-form"');
@@ -411,7 +416,8 @@ test('attendance calendar opens a monthly grid and synchronizes the selected dat
 
     $component = Livewire::actingAs($employee)
         ->test('pages::employee.attendance')
-        ->assertSee('aria-label="Buka kalender bulanan"', false)
+        ->assertSee('wire:click="openMonthlyCalendar"', false)
+        ->assertSee('aria-controls="attendance-month-calendar-dialog"', false)
         ->set('selectedDate', '2026-11-18')
         ->call('openMonthlyCalendar')
         ->assertSet('showMonthlyCalendar', true)
