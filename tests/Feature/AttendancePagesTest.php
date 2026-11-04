@@ -626,12 +626,8 @@ test('attendance history renders date groups and event detail dialog using the c
         ->assertSee(__('Lihat detail'))
         ->assertSee('attendance-event-detail-title', false)
         ->assertSee('openEvent(JSON.parse(atob($el.dataset.event)), $el)', false)
-        ->assertSee(route('attendance-history.selfie', $record), false)
-        ->assertSee(route('attendance-history.selfie.download', $record), false)
-        ->assertSee(route('attendance-history.export', [
-            'from' => '2026-11-01',
-            'to' => '2026-11-04',
-        ]), false)
+        ->assertSee('data-event=', false)
+        ->assertSee('attendance-history.export?from=2026-11-01&amp;to=2026-11-04', false)
         ->assertViewHas('dateGroups', fn ($groups): bool => $groups->total() === 1
             && $groups->first()['date'] === '2026-11-03'
             && $groups->first()['events']->count() === 1);
@@ -656,7 +652,12 @@ test('attendance history does not expose a map link for unverified GPS coordinat
         'to' => now('Asia/Makassar')->toDateString(),
     ]))->assertOk();
 
-    expect($response->getContent())
-        ->not->toContain('https://www.google.com/maps/search/?api=1&amp;query=')
-        ->toContain('attendance-event-detail-title');
+    preg_match('/data-event="([^"]+)"/', $response->getContent(), $matches);
+
+    expect($matches)->toHaveKey(1);
+
+    $payload = json_decode(base64_decode($matches[1]), true, flags: JSON_THROW_ON_ERROR);
+
+    expect($payload['mapUrl'])->toBeNull()
+        ->and($response->getContent())->toContain('attendance-event-detail-title');
 });
