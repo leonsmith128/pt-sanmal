@@ -16,7 +16,7 @@
         <flux:icon name="chevron-down" variant="micro" />
     </button>
 
-    <div id="admin-attendance-filter-controls" x-show="filtersOpen" class="grid w-full min-w-0 grid-cols-1 items-end gap-x-3 gap-y-2 sm:grid-cols-2 xl:grid-cols-4 lg:!grid">
+    <div id="admin-attendance-filter-controls" x-cloak x-show="filtersOpen" class="grid w-full min-w-0 grid-cols-1 items-end gap-x-3 gap-y-2 sm:grid-cols-2 xl:grid-cols-4 lg:!grid">
     <div class="col-span-full hidden items-center justify-between gap-2 pb-1 lg:flex">
         <h3 class="text-sm font-semibold text-[var(--sanmal-text-primary)]">{{ __('Filter absensi') }}</h3>
         <span class="text-xs text-[var(--sanmal-text-secondary)]">{{ $activeFilterCount }} {{ __('filter aktif') }}</span>
@@ -77,4 +77,5 @@
             @endforeach
         </x-ui.select>
     @endif
+    </div>
 </div>
