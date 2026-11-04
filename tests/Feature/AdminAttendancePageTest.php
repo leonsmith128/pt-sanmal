@@ -387,3 +387,15 @@ it('renders attendance rows with responsive card labels and a fixed-width table 
         ->assertSee('data-label="Bukti foto"', false)
         ->assertSee('data-label="Koreksi"', false);
 });
+
+
+it('renders a compact mobile disclosure for the admin attendance filters', function () {
+    $admin = attendancePageAdmin();
+
+    Livewire::actingAs($admin)
+        ->test('pages::admin.kehadiran')
+        ->assertSee('Filter (0)')
+        ->assertSee('aria-controls="admin-attendance-filter-controls"', false)
+        ->assertSee('x-show="filtersOpen"', false)
+        ->assertSee('lg:!grid', false);
+});
