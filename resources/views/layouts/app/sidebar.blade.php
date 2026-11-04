@@ -4,21 +4,6 @@
         @include('partials.head')
     </head>
     <body class="min-h-dvh bg-sanmal-surface-sidebar dark:bg-sanmal-surface-page-dark">
-        @php
-            $sidebarUser = auth()->user();
-            $sidebarEmployee = $sidebarUser->employee;
-            $isManager = $sidebarUser->isManager();
-            $isEmployee = $sidebarUser->isEmployee();
-            $unreadSystemNotifications = $sidebarUser->unreadNotifications()->count();
-            $latestSystemNotifications = $sidebarUser->notifications()->latest()->limit(5)->get();
-
-            $unseenRequestDecisions = $sidebarEmployee
-                ? $sidebarEmployee->leaveRequests()->whereIn('status', ['approved', 'rejected'])->whereNull('decision_seen_at')->count()
-                    + $sidebarEmployee->overtimeRequests()->whereIn('approval_status', ['approved', 'rejected'])->whereNull('decision_seen_at')->count()
-                    + $sidebarEmployee->attendanceCorrections()->whereIn('status', ['approved', 'rejected'])->whereNull('decision_seen_at')->count()
-                : 0;
-        @endphp
-
         <flux:sidebar
             sticky
             :collapsible="$isManager ? true : 'mobile'"
