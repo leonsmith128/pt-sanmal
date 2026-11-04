@@ -545,3 +545,48 @@ test('attendance history summary respects administrative present corrections wit
             && $groups->first()['date'] === '2026-11-03'
             && $groups->first()['events']->isEmpty());
 });
+
+test('attendance history keeps a cross-midnight clock-out in its clock-in anchor date group', function () {
+    $this->travelTo(Carbon::parse('2026-11-05 12:00:00', 'Asia/Makassar'));
+
+    $employee = userWithRole(UserRole::Employee);
+
+    $clockIn = AttendanceRecord::create([
+        'employee_id' => $employee->employee->id,
+        'type' => AttendanceType::ClockIn,
+        'work_type' => WorkType::Office,
+        'recorded_at' => Carbon::parse('2026-11-03 23:30:00', 'Asia/Makassar')->utc(),
+        'timezone' => 'Asia/Makassar',
+        'attendance_date' => '2026-11-03',
+    ]);
+
+    AttendanceRecord::create([
+        'employee_id' => $employee->employee->id,
+        'session_anchor_id' => $clockIn->id,
+        'type' => AttendanceType::ClockOut,
+        'work_type' => WorkType::Office,
+        'recorded_at' => Carbon::parse('2026-11-04 01:00:00', 'Asia/Makassar')->utc(),
+        'timezone' => 'Asia/Makassar',
+        'attendance_date' => '2026-11-04',
+    ]);
+
+    $this->actingAs($employee)
+        ->get(route('attendance-history.index', [
+            'from' => '2026-11-03',
+            'to' => '2026-11-03',
+        ]))
+        ->assertOk()
+        ->assertViewHas('dateGroups', function ($groups): bool {
+            $group = $groups->first();
+
+            return $groups->total() === 1
+                && $group['date'] === '2026-11-03'
+                && $group['events']->count() === 2
+                && $group['events']->last()->type === AttendanceType::ClockOut
+                && $group['events']->last()->effectiveRecordedAtLocal()->toDateString() === '2026-11-04';
+        })
+        ->assertViewHas('summary', fn (array $summary): bool => $summary['present_days'] === 1
+            && $summary['complete_days'] === 1
+            && $summary['needs_review_days'] === 0);
+});
+
