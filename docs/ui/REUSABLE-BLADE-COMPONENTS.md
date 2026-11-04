@@ -280,4 +280,12 @@ This inventory is a focused layout/shell audit, not a blanket declaration that e
 
 Authentication layouts and authentication page views were deliberately excluded from this batch at the project owner's request. No file under `resources/views/layouts/auth/` or `resources/views/pages/auth/` was changed.
 
-Sidebar data extraction into a View Composer is a separate follow-up. Do not mix that change into shell consolidation without a dedicated contract for notification queries, role data, and request-decision badges.
+### Sidebar data preparation
+
+`AppSidebarComposer` is registered only for the `layouts.app.sidebar` view from `AppServiceProvider`. The composer supplies the variables consumed by the shell:
+- `sidebarUser` and the related `sidebarEmployee` profile;
+- `isManager` and `isEmployee` role flags;
+- unread system-notification count and the five latest notifications;
+- `unseenRequestDecisions`: the sum of approved/rejected, unseen Leave Requests, Overtime Requests, and Attendance Corrections for the employee profile (zero when no employee profile exists).
+
+The composer preserves the previous query predicates and limits. It owns data preparation only; the Blade shell still owns role-based navigation markup, route selection, and presentation. Do not move authorization decisions or navigation definitions into the composer. Focused feature tests cover manager notification data, employee context, and a guest-safe composer invocation.
