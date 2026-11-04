@@ -102,6 +102,14 @@ The primary action is theme-aware: blue in light theme and yellow in dark theme.
 
 Use semantic colors consistently. A status color must not be the only way to communicate meaning; include readable text or an accessible label.
 
+### Surface usage rules
+
+- Use `x-ui.card` for standard content cards so light/dark backgrounds, text color, radius, and shadow remain centralized.
+- Use the approved `surface/secondary` or `surface/inset` tokens for nested groups, chips, and recessed content; always provide the matching dark token.
+- Use the `border` token pair for dividers and outlines. Do not introduce one-off `white`, `zinc`, or `gray` backgrounds/borders inside standardized cards.
+- Use the shared `--sanmal-text-primary`, `--sanmal-text-secondary`, and `--sanmal-text-muted` variables for neutral text hierarchy. Reserve semantic colors for actual status and feedback.
+- A component may have a different layout by role or page, but its surface palette must remain consistent with the shared design tokens.
+
 ## 4. Typography
 
 Inter is the proposed working typeface for the design foundation. **Do not assume it is already loaded or configured in the Laravel application.** Before implementation, inspect the existing font assets, CSS imports, and layout. Prefer the font already shipped by the application unless a deliberate font change is approved.
