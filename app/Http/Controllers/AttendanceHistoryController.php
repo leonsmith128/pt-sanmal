@@ -40,7 +40,7 @@ class AttendanceHistoryController extends Controller
         // service, so session anchors, approved timestamp corrections, and timezone
         // snapshots keep exactly the same attribution rules.
         $dateGroups = collect($dailyStatuses)
-            ->filter(fn (array $daily): bool => $daily['events']->isNotEmpty())
+            ->filter(fn (array $daily): bool => $daily['status'] !== 'no_record')
             ->map(fn (array $daily, string $date): array => [
                 'date' => $date,
                 'status' => $daily['status'],
