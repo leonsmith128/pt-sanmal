@@ -280,6 +280,15 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                     $weekEnd = $today->copy()->endOfWeek(Carbon::SUNDAY);
                     $monthStart = $today->copy()->startOfMonth();
                     $monthEnd = $today->copy()->endOfMonth();
+                    $customDateRange = AttendanceFilterData::fromArray([
+                        'from' => $dateFrom,
+                        'to' => $dateTo,
+                    ]);
+                    $customExportDateDescription = $customDateRange->from !== null
+                        ? 'Rentang tanggal mengikuti filter aktif: '
+                            .Carbon::parse($customDateRange->from)->translatedFormat('d M Y')
+                            .' sampai '.Carbon::parse($customDateRange->to)->translatedFormat('d M Y').'.'
+                        : 'Tidak ada filter tanggal. Ekspor mencakup seluruh riwayat yang tersedia sampai hari ini.';
                     $activeExportFilters = [];
                     if ($employeeId !== '') {
                         $selectedEmployee = $this->employees->firstWhere('id', (int) $employeeId);
@@ -318,7 +327,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                     <flux:menu>
                         <flux:menu.item
                             :href="route('admin.kehadiran.export', [...$exportFilters, 'from' => $today->toDateString(), 'to' => $today->toDateString()])"
-                            x-on:click.prevent="exportUrl = $el.href; exportDescription = 'Laporan seluruh pegawai untuk {{ $today->translatedFormat('d M Y') }}.'; exportConfirmOpen = true"
+                            x-on:click.prevent="exportUrl = $el.href; exportDescription = 'Laporan absensi tanggal {{ $today->translatedFormat('d M Y') }}. Seluruh filter aktif tetap diterapkan.'; exportConfirmOpen = true"
                             icon="calendar-days"
                         >
                             {{ __('Hari ini') }}
@@ -344,7 +353,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                                 'from' => $dateFrom,
                                 'to' => $dateTo,
                             ], fn ($value) => $value !== ''))"
-                            x-on:click.prevent="exportUrl = $el.href; exportDescription = '{{ $dateFrom || $dateTo ? 'Rentang tanggal mengikuti filter aktif: '.($dateFrom ? Carbon::parse($dateFrom)->translatedFormat('d M Y') : 'riwayat paling awal').' sampai '.($dateTo ? Carbon::parse($dateTo)->translatedFormat('d M Y') : 'hari ini').'.' : 'Tidak ada filter tanggal. Ekspor mencakup seluruh riwayat yang tersedia sampai hari ini.' }} Filter pegawai, pencarian, jenis absensi, dan jenis kerja yang aktif tetap diterapkan.'; exportConfirmOpen = true"
+                            x-on:click.prevent="exportUrl = $el.href; exportDescription = '{{ $customExportDateDescription }} Seluruh filter tambahan yang aktif tetap diterapkan.'; exportConfirmOpen = true"
                             icon="arrow-down-tray"
                         >
                             {{ __('Sesuai filter tanggal') }}
