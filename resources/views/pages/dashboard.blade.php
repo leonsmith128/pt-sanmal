@@ -92,7 +92,7 @@
                 />
 
                 <x-ui.empty-state>
-                    <h2 class="font-semibold text-zinc-900 dark:text-zinc-100">{{ __('Profil pegawai belum tersedia') }}</h2>
+                    <h2 class="font-semibold text-[var(--sanmal-text-primary)]">{{ __('Profil pegawai belum tersedia') }}</h2>
                     <p class="mt-1">{{ __('Akun ini belum terhubung dengan profil pegawai. Hubungi administrator untuk melanjutkan.') }}</p>
                 </x-ui.empty-state>
             @else
@@ -124,7 +124,7 @@
 
                     <div class="min-w-0 flex-1">
                         <p class="text-sm text-[var(--sanmal-text-secondary)]">{{ __('Selamat datang,') }}</p>
-                        <h1 class="truncate text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 sm:text-2xl">
+                        <h1 class="truncate text-xl font-bold tracking-tight text-[var(--sanmal-text-primary)] sm:text-2xl">
                             {{ $dashboardUser->name }}
                         </h1>
                         <p class="mt-1 text-sm text-[var(--sanmal-text-muted)]">
@@ -142,11 +142,11 @@
                     <div class="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
                         <div class="min-w-0 space-y-2">
                             <div class="flex flex-wrap items-center gap-2">
-                                <p class="text-sm font-semibold text-zinc-700 dark:text-zinc-200">{{ __('Status absensi hari ini') }}</p>
+                                <p class="text-sm font-semibold text-[var(--sanmal-text-primary)]">{{ __('Status absensi hari ini') }}</p>
                                 <x-ui.badge :color="$statusColor" class="px-3 py-1 font-semibold">{{ $todayStatus['label'] }}</x-ui.badge>
                             </div>
 
-                            <div class="flex flex-wrap gap-x-5 gap-y-2 text-sm text-zinc-600 dark:text-zinc-300">
+                            <div class="flex flex-wrap gap-x-5 gap-y-2 text-sm text-[var(--sanmal-text-secondary)]">
                                 @if ($employeeDashboard['todayClockIn'])
                                     <span>{{ __('Masuk') }}: {{ $employeeDashboard['todayClockIn']->effectiveRecordedAtLocal()->format('H:i') }}</span>
                                 @endif
