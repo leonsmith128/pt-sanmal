@@ -393,9 +393,11 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                         : 'Filter tambahan: tidak ada; seluruh pegawai masuk dalam cakupan laporan.';
                 @endphp
                 <flux:dropdown position="bottom" align="end">
-                    <x-ui.button size="sm" variant="outline" class="w-full sm:w-auto" icon="arrow-down-tray">
-                        {{ __('Export') }}
-                        <flux:icon name="chevron-down" variant="micro" />
+                    <x-ui.button size="sm" variant="outline" class="w-full flex-row items-center justify-center gap-2 whitespace-nowrap sm:w-auto" icon="arrow-down-tray">
+                        <span class="inline-flex items-center gap-2 whitespace-nowrap">
+                            {{ __('Export') }}
+                            <flux:icon name="chevron-down" variant="micro" />
+                        </span>
                     </x-ui.button>
                     <flux:menu>
                         <flux:menu.item
@@ -435,8 +437,8 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                 </flux:dropdown>
             </div>
 
-            <div id="attendance-records" data-record-count="{{ $records->total() }}" class="attendance-responsive-table max-h-[70vh] overflow-y-auto overflow-x-hidden [--flux-bleed:0.5rem] [&_thead]:sticky [&_thead]:top-0 [&_thead]:z-20 [&_thead]:bg-sanmal-surface-secondary dark:[&_thead]:bg-sanmal-surface-secondary-dark">
-                <flux:table bleed class="w-full table-fixed" :paginate="$records" pagination:scroll-to="#attendance-records">
+            <div id="attendance-records" data-record-count="{{ $records->total() }}" class="attendance-responsive-table max-h-[70vh] overflow-y-auto overflow-x-hidden px-3 pb-3 sm:px-4 [&_thead]:sticky [&_thead]:top-0 [&_thead]:z-20 [&_thead]:bg-sanmal-surface-secondary dark:[&_thead]:bg-sanmal-surface-secondary-dark">
+                <flux:table class="w-full table-fixed" :paginate="$records" pagination:scroll-to="#attendance-records">
                     <flux:table.columns>
                         <flux:table.column sortable :sorted="$sortBy === 'recorded_at'" :direction="$sortDirection" wire:click="sort('recorded_at')" class="w-26 px-3 py-2">{{ __('Waktu') }}</flux:table.column>
                         <flux:table.column sortable :sorted="$sortBy === 'employee'" :direction="$sortDirection" wire:click="sort('employee')" class="w-34 px-3 py-2">{{ __('Pegawai') }}</flux:table.column>
