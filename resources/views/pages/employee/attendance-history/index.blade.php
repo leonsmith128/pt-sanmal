@@ -39,33 +39,34 @@
         </x-ui.page-header>
 
         <section aria-label="{{ __('Ringkasan kehadiran') }}" class="grid grid-cols-1 gap-3 sm:grid-cols-3">
-            <article class="rounded-xl bg-sanmal-surface-card p-4 dark:bg-sanmal-surface-card-dark">
+            <x-ui.card padding="p-4">>
                 <div class="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
                     <flux:icon name="calendar" class="size-4" />
                     {{ __('Hari hadir') }}
                 </div>
                 <p class="mt-2 text-2xl font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">{{ number_format($summary['present_days']) }}</p>
                 <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{{ __('Termasuk koreksi hadir dari admin.') }}</p>
-            </article>
-            <article class="rounded-xl bg-sanmal-surface-card p-4 dark:bg-sanmal-surface-card-dark">
+            </x-ui.card>
+            <x-ui.card padding="p-4">>
                 <div class="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
                     <flux:icon name="check-circle" class="size-4" />
                     {{ __('Absensi lengkap') }}
                 </div>
                 <p class="mt-2 text-2xl font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">{{ number_format($summary['complete_days']) }}</p>
                 <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{{ __('Memiliki Clock In dan Clock Out yang valid.') }}</p>
-            </article>
-            <article class="rounded-xl bg-sanmal-surface-card p-4 dark:bg-sanmal-surface-card-dark">
+            </x-ui.card>
+            <x-ui.card padding="p-4">>
                 <div class="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
                     <flux:icon name="exclamation-triangle" class="size-4" />
                     {{ __('Perlu ditinjau') }}
                 </div>
                 <p class="mt-2 text-2xl font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">{{ number_format($summary['needs_review_days']) }}</p>
                 <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{{ __('Tanggal dengan bukti atau status yang perlu diperiksa.') }}</p>
-            </article>
+            </x-ui.card>
         </section>
 
-        <section class="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900 sm:p-5">
+        <x-ui.card padding="p-4 sm:p-5">
+            <section>
             <div class="mb-4">
                 <flux:heading size="lg">{{ __('Filter riwayat') }}</flux:heading>
                 <flux:text class="mt-1 text-sm">{{ __('Pilih rentang tanggal dan urutan kelompok tanggal.') }}</flux:text>
@@ -96,7 +97,8 @@
                     </x-ui.button>
                 </div>
             </form>
-        </section>
+            </section>
+        </x-ui.card>
 
         <div class="flex flex-wrap items-center justify-between gap-2">
             <div>
@@ -107,11 +109,11 @@
         </div>
 
         @if ($dateGroups->isEmpty())
-            <div class="rounded-2xl border border-dashed border-zinc-300 px-5 py-12 text-center dark:border-zinc-700">
+            <x-ui.card padding="p-5" class="text-center">
                 <flux:icon name="calendar" class="mx-auto size-9 text-zinc-400" />
                 <flux:heading size="md" class="mt-3">{{ __('Belum ada riwayat absensi') }}</flux:heading>
                 <flux:text class="mt-1">{{ __('Tidak ada status kehadiran atau event pada rentang tanggal ini. Coba ubah filter tanggal.') }}</flux:text>
-            </div>
+            </x-ui.card>
         @else
             <div class="space-y-3">
                 @foreach ($dateGroups as $group)
@@ -126,7 +128,8 @@
                             default => 'zinc',
                         };
                     @endphp
-                    <article class="overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900">
+                    <x-ui.card padding="p-0" class="overflow-hidden">
+                        <article>
                         <header class="flex flex-col gap-3 border-b border-zinc-100 px-4 py-4 dark:border-zinc-800 sm:flex-row sm:items-center sm:justify-between sm:px-5">
                             <div class="min-w-0">
                                 <h2 class="font-semibold text-zinc-900 dark:text-zinc-100">
@@ -253,7 +256,8 @@
                                 @endforeach
                             </ol>
                         @endif
-                    </article>
+                        </article>
+                    </x-ui.card>
                 @endforeach
             </div>
 
