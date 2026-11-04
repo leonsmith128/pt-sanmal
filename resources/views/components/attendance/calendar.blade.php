@@ -2,6 +2,7 @@
     'weekDays' => [],
     'monthDays' => [],
     'selectedDate',
+    'selectedMonthLabel',
     'calendarMonthLabel',
     'showMonthlyCalendar' => false,
 ])
@@ -9,7 +10,7 @@
 <x-ui.card padding="p-4" class="rounded-2xl">
     <div class="mb-3 flex items-center justify-between gap-2">
         <div class="min-w-0">
-            <flux:heading size="sm">{{ $calendarMonthLabel }}</flux:heading>
+            <flux:heading size="sm">{{ $selectedMonthLabel }}</flux:heading>
             <flux:text class="text-sm">{{ __('Pilih tanggal untuk melihat riwayat.') }}</flux:text>
         </div>
         <div class="flex shrink-0 items-center gap-0.5">
