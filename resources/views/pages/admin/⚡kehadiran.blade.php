@@ -217,7 +217,8 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
     @media (max-width: 1279px) {
         .attendance-responsive-table .attendance-desktop-table { display: none; }
         .attendance-mobile-list { display: grid; }
-    }</style>
+    }
+</style>
 
 <section x-data="{ exportConfirmOpen: false, exportUrl: '', exportDescription: '' }" x-on:keydown.escape.window="exportConfirmOpen = false" class="w-full">
     <x-ui.page>
@@ -496,28 +497,6 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                                     @endif
                                 </flux:table.cell>
                             </flux:table.row>
-                            <flux:modal :name="'attendance-correction-'.$record->id" class="max-w-md">
-                                <form method="POST" action="{{ route('admin.kehadiran.correct-timestamp', $record) }}" class="grid gap-4">
-                                    @csrf
-                                    <div>
-                                        <flux:heading size="lg">{{ __('Koreksi timestamp') }}</flux:heading>
-                                        <flux:text class="mt-1">{{ $record->employee->user->name }} · {{ $record->type->label() }}</flux:text>
-                                    </div>
-                                    <label class="grid gap-1 text-sm">
-                                        <span class="font-medium">{{ __('Waktu efektif') }}</span>
-                                        <input type="datetime-local" name="recorded_at_local" required value="{{ $record->effectiveRecordedAtLocal()->format('Y-m-d\\TH:i') }}" class="rounded-md border-sanmal-border bg-sanmal-surface-primary text-sm dark:border-sanmal-border-dark dark:bg-sanmal-surface-inset-dark">
-                                    </label>
-                                    <label class="grid gap-1 text-sm">
-                                        <span class="font-medium">{{ __('Alasan wajib') }}</span>
-                                        <textarea name="reason" required minlength="5" maxlength="2000" rows="3" class="rounded-md border-sanmal-border bg-sanmal-surface-primary text-sm dark:border-sanmal-border-dark dark:bg-sanmal-surface-inset-dark"></textarea>
-                                    </label>
-                                    <p class="text-xs text-[var(--sanmal-text-muted)]">{{ __('Timestamp bukti asli tidak diubah; perubahan dicatat di audit log.') }}</p>
-                                    <div class="flex justify-end gap-2">
-                                        <flux:modal.close><x-ui.button type="button" variant="outline">{{ __('Batal') }}</x-ui.button></flux:modal.close>
-                                        <x-ui.button type="submit" variant="primary">{{ __('Simpan koreksi') }}</x-ui.button>
-                                    </div>
-                                </form>
-                            </flux:modal>
                         @empty
                             @if ($notYetPresent->isEmpty())
                                 <flux:table.row>
@@ -544,6 +523,30 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                     </flux:table.rows>
                 </flux:table>
             </div>
+            @foreach ($records as $record)
+                            <flux:modal :name="'attendance-correction-'.$record->id" class="max-w-md">
+                                <form method="POST" action="{{ route('admin.kehadiran.correct-timestamp', $record) }}" class="grid gap-4">
+                                    @csrf
+                                    <div>
+                                        <flux:heading size="lg">{{ __('Koreksi timestamp') }}</flux:heading>
+                                        <flux:text class="mt-1">{{ $record->employee->user->name }} · {{ $record->type->label() }}</flux:text>
+                                    </div>
+                                    <label class="grid gap-1 text-sm">
+                                        <span class="font-medium">{{ __('Waktu efektif') }}</span>
+                                        <input type="datetime-local" name="recorded_at_local" required value="{{ $record->effectiveRecordedAtLocal()->format('Y-m-d\\TH:i') }}" class="rounded-md border-sanmal-border bg-sanmal-surface-primary text-sm dark:border-sanmal-border-dark dark:bg-sanmal-surface-inset-dark">
+                                    </label>
+                                    <label class="grid gap-1 text-sm">
+                                        <span class="font-medium">{{ __('Alasan wajib') }}</span>
+                                        <textarea name="reason" required minlength="5" maxlength="2000" rows="3" class="rounded-md border-sanmal-border bg-sanmal-surface-primary text-sm dark:border-sanmal-border-dark dark:bg-sanmal-surface-inset-dark"></textarea>
+                                    </label>
+                                    <p class="text-xs text-[var(--sanmal-text-muted)]">{{ __('Timestamp bukti asli tidak diubah; perubahan dicatat di audit log.') }}</p>
+                                    <div class="flex justify-end gap-2">
+                                        <flux:modal.close><x-ui.button type="button" variant="outline">{{ __('Batal') }}</x-ui.button></flux:modal.close>
+                                        <x-ui.button type="submit" variant="primary">{{ __('Simpan koreksi') }}</x-ui.button>
+                                    </div>
+                                </form>
+                            </flux:modal>
+            @endforeach
             </div>
         </x-ui.card>
     </x-ui.page>
