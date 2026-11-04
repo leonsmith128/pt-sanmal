@@ -436,3 +436,108 @@ test('attendance calendar opens a monthly grid and synchronizes the selected dat
         ->assertSet('calendarMonth', '2026-12-01')
         ->assertSet('showMonthlyCalendar', false);
 });
+
+test('attendance history defaults to the current WITA month through today', function () {
+    $this->travelTo(Carbon::parse('2026-11-04 12:00:00', 'Asia/Makassar'));
+
+    $employee = userWithRole(UserRole::Employee);
+
+    foreach (['2026-10-31', '2026-11-03', '2026-11-05'] as $date) {
+        AttendanceRecord::create([
+            'employee_id' => $employee->employee->id,
+            'type' => AttendanceType::ClockIn,
+            'work_type' => WorkType::Office,
+            'recorded_at' => Carbon::parse($date.' 08:00:00', 'Asia/Makassar')->utc(),
+            'timezone' => 'Asia/Makassar',
+            'attendance_date' => $date,
+        ]);
+    }
+
+    $this->actingAs($employee)
+        ->get(route('attendance-history.index'))
+        ->assertOk()
+        ->assertSee('name="from"', false)
+        ->assertSee('value="2026-11-01"', false)
+        ->assertSee('name="to"', false)
+        ->assertSee('value="2026-11-04"', false)
+        ->assertViewHas('filters', fn (array $filters): bool => $filters['from'] === '2026-11-01'
+            && $filters['to'] === '2026-11-04');
+});
+
+test('attendance history paginates by date groups and keeps every event for a date together', function () {
+    $this->travelTo(Carbon::parse('2026-11-20 12:00:00', 'Asia/Makassar'));
+
+    $employee = userWithRole(UserRole::Employee);
+
+    for ($offset = 0; $offset < 11; $offset++) {
+        $date = Carbon::parse('2026-11-01')->addDays($offset)->toDateString();
+
+        $clockIn = AttendanceRecord::create([
+            'employee_id' => $employee->employee->id,
+            'type' => AttendanceType::ClockIn,
+            'work_type' => WorkType::Office,
+            'recorded_at' => Carbon::parse($date.' 08:00:00', 'Asia/Makassar')->utc(),
+            'timezone' => 'Asia/Makassar',
+            'attendance_date' => $date,
+        ]);
+
+        AttendanceRecord::create([
+            'employee_id' => $employee->employee->id,
+            'session_anchor_id' => $clockIn->id,
+            'type' => AttendanceType::ClockOut,
+            'work_type' => WorkType::Office,
+            'recorded_at' => Carbon::parse($date.' 17:00:00', 'Asia/Makassar')->utc(),
+            'timezone' => 'Asia/Makassar',
+            'attendance_date' => $date,
+        ]);
+    }
+
+    $this->actingAs($employee)
+        ->get(route('attendance-history.index', [
+            'from' => '2026-11-01',
+            'to' => '2026-11-11',
+            'page' => 2,
+        ]))
+        ->assertOk()
+        ->assertViewHas('dateGroups', function ($groups): bool {
+            $lastPageGroup = $groups->first();
+
+            return $groups->total() === 11
+                && $groups->perPage() === 10
+                && $groups->count() === 1
+                && $lastPageGroup['date'] === '2026-11-01'
+                && $lastPageGroup['events']->count() === 2
+                && $lastPageGroup['events']->first()->type === AttendanceType::ClockIn
+                && $lastPageGroup['events']->last()->type === AttendanceType::ClockOut;
+        })
+        ->assertViewHas('summary', fn (array $summary): bool => $summary['present_days'] === 11
+            && $summary['complete_days'] === 11
+            && $summary['needs_review_days'] === 0);
+});
+
+test('attendance history summary respects administrative present corrections without inventing events', function () {
+    $this->travelTo(Carbon::parse('2026-11-04 12:00:00', 'Asia/Makassar'));
+
+    $employee = userWithRole(UserRole::Employee);
+    $admin = userWithRole(UserRole::Admin);
+
+    DailyStatusCorrection::create([
+        'employee_id' => $employee->employee->id,
+        'attendance_date' => '2026-11-03',
+        'status' => DailyAttendanceStatus::Present,
+        'reason' => 'Koreksi administratif.',
+        'created_by' => $admin->id,
+    ]);
+
+    $this->actingAs($employee)
+        ->get(route('attendance-history.index', [
+            'from' => '2026-11-01',
+            'to' => '2026-11-04',
+        ]))
+        ->assertOk()
+        ->assertViewHas('summary', fn (array $summary): bool => $summary['present_days'] === 1
+            && $summary['complete_days'] === 0
+            && $summary['needs_review_days'] === 0)
+        ->assertViewHas('dateGroups', fn ($groups): bool => $groups->total() === 0);
+});
+\n
