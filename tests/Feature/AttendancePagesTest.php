@@ -43,6 +43,9 @@ test('employees can visit the attendance clock page', function () {
     $this->get(route('attendance'))
         ->assertOk()
         ->assertSee(__('Absensi'))
+        ->assertSee('Selamat datang')
+        ->assertSee('x-employee.identity-header', false)
+        ->assertSee('size-12', false)
         ->assertDontSee(__('Kehadiran Pegawai'))
         ->assertSee('max-w-7xl', false);
 });
