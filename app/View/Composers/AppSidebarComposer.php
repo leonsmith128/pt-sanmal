@@ -1,10 +1,10 @@
 <?php
 
-namespace App\\View\\Composers;
+namespace App\View\Composers;
 
-use Illuminate\\Support\\Collection;
-use Illuminate\\Support\\Facades\\Auth;
-use Illuminate\\View\\View;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\View\View;
 
 final class AppSidebarComposer
 {
