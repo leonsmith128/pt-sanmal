@@ -343,6 +343,17 @@ it('renders page header actions in a responsive wrapper when provided', function
         ->assertSee(__('Rekap harian'));
 });
 
+it('keeps the attendance filter panel compact and removes redundant page descriptions', function () {
+    $admin = attendancePageAdmin();
+
+    Livewire::actingAs($admin)
+        ->test('pages::admin.kehadiran')
+        ->assertSeeInOrder(['Filter absensi', 'Reset filter', 'Aktivitas terbaru', 'Export'])
+        ->assertDontSee('Cakupan catatan')
+        ->assertDontSee('Tanggal mengikuti kalender perusahaan WITA.')
+        ->assertDontSee('Pantau dan telusuri catatan absensi seluruh pegawai.');
+});
+
 it('renders the attendance export confirmation with an Alpine-bound link', function () {
     $admin = attendancePageAdmin();
 
