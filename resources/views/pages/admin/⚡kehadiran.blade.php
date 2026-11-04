@@ -416,11 +416,13 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                             'divider_before' => true,
                         ],
                     ];
+                @endphp
+
                 <x-admin.attendance-export
                     :options="$exportOptions"
                     :filter-summary="$exportFilterSummary"
                     :warning="__('Ekspor menggunakan satu baris per pegawai per tanggal. Tanggal tanpa event absensi tetap disertakan. Periksa kembali cakupan sebelum melanjutkan.')"
-                /></flux:dropdown>
+                />
             </div>
 
             <div id="attendance-records" data-record-count="{{ $records->total() }}" class="attendance-responsive-table px-3 pb-3 sm:px-4 [&_thead]:sticky [&_thead]:top-0 [&_thead]:z-20 [&_thead]:bg-sanmal-surface-secondary dark:[&_thead]:bg-sanmal-surface-secondary-dark">
