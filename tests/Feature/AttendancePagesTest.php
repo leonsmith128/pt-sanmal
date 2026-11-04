@@ -541,5 +541,5 @@ test('attendance history summary respects administrative present corrections wit
         ->assertViewHas('summary', fn (array $summary): bool => $summary['present_days'] === 1
             && $summary['complete_days'] === 0
             && $summary['needs_review_days'] === 0)
-        ->assertViewHas('dateGroups', fn ($groups): bool => $groups->total() === 0);
+        ->assertViewHas('dateGroups', fn ($groups): bool => $groups->total() === 1\n            && $groups->first()['date'] === '2026-11-03'\n            && $groups->first()['events']->isEmpty());
 });
