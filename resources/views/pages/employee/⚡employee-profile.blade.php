@@ -79,7 +79,7 @@ new #[Title('Profil Pegawai')] class extends Component {
     }
 }; ?>
 
-<x-ui.page gap="6">
+<x-ui.page max-width="3xl" gap="6">
     <x-ui.page-header
         :title="__('Profil Pegawai')"
         :description="__('Kelola foto profil dan informasi kontak Anda. Data identitas dan kepegawaian dikelola oleh admin.')"
@@ -181,6 +181,4 @@ new #[Title('Profil Pegawai')] class extends Component {
             </div>
         </form>
     </x-ui.card>
-
-
 </x-ui.page>
