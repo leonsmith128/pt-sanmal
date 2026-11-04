@@ -589,15 +589,15 @@ new #[Title('Absensi')] class extends Component {
 
         {{-- Ringkasan jam --}}
         <div class="grid grid-cols-3 gap-2">
-            <div class="rounded-xl border border-sanmal-border bg-sanmal-surface-card p-3 text-center dark:border-sanmal-border-dark dark:bg-sanmal-surface-card-dark">
+            <div class="rounded-xl bg-sanmal-surface-card p-3 text-center shadow-sm dark:bg-sanmal-surface-card-dark dark:shadow-black/20">
                 <flux:text class="text-xs">{{ __('Masuk') }}</flux:text>
                 <flux:heading size="lg">{{ $clockInForDisplay?->effectiveRecordedAtLocal()->format('H:i') ?? '—' }}</flux:heading>
             </div>
-            <div class="rounded-xl border border-sanmal-border bg-sanmal-surface-card p-3 text-center dark:border-sanmal-border-dark dark:bg-sanmal-surface-card-dark">
+            <div class="rounded-xl bg-sanmal-surface-card p-3 text-center shadow-sm dark:bg-sanmal-surface-card-dark dark:shadow-black/20">
                 <flux:text class="text-xs">{{ __('Pulang') }}</flux:text>
                 <flux:heading size="lg">{{ $clockOutRecord?->effectiveRecordedAtLocal()->format('H:i') ?? '—' }}</flux:heading>
             </div>
-            <div class="rounded-xl border border-sanmal-border bg-sanmal-surface-card p-3 text-center dark:border-sanmal-border-dark dark:bg-sanmal-surface-card-dark">
+            <div class="rounded-xl bg-sanmal-surface-card p-3 text-center shadow-sm dark:bg-sanmal-surface-card-dark dark:shadow-black/20">
                 <flux:text class="text-xs">{{ __('Total kerja') }}</flux:text>
                 <flux:heading size="sm">
                     @if ($workedMinutes !== null)
@@ -722,7 +722,7 @@ new #[Title('Absensi')] class extends Component {
         </div>
 
         {{-- Form absensi --}}
-        <form id="attendance-form" wire:submit="confirm('{{ $mode }}')" class="flex flex-col gap-5 rounded-xl border border-sanmal-border bg-sanmal-surface-card p-4 dark:border-sanmal-border-dark dark:bg-sanmal-surface-card-dark sm:p-5 {{ $selectedDate !== now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString() ? 'hidden' : '' }}">
+        <form id="attendance-form" wire:submit="confirm('{{ $mode }}')" class="flex flex-col gap-5 rounded-xl bg-sanmal-surface-card p-4 shadow-sm dark:bg-sanmal-surface-card-dark dark:shadow-black/20 sm:p-5 {{ $selectedDate !== now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString() ? 'hidden' : '' }}">
             <div class="space-y-1">
                 <flux:heading size="sm">
                     {{ match ($mode) {
