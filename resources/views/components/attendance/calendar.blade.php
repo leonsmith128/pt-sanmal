@@ -12,7 +12,6 @@
     <div class="mb-3 flex items-center justify-between gap-2">
         <div class="min-w-0">
             <flux:heading size="sm">{{ $selectedMonthLabel }}</flux:heading>
-            <flux:text class="text-sm">{{ __('Pilih tanggal untuk melihat riwayat.') }}</flux:text>
         </div>
         <div class="flex shrink-0 items-center gap-0.5">
             <x-ui.button size="sm" variant="ghost" icon="chevron-left" wire:click="shiftWeek(-1)" aria-label="{{ __('Minggu sebelumnya') }}" />
