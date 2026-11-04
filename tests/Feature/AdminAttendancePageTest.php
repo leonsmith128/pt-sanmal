@@ -379,6 +379,7 @@ it('renders attendance rows with responsive card labels and a fixed-width table 
         ->test('pages::admin.kehadiran')
         ->assertSee('attendance-responsive-table', false)
         ->assertSee('px-3 pb-3 sm:px-4', false)
+        ->assertDontSee('max-h-[70vh] overflow-y-auto overflow-x-hidden', false)
         ->assertSee('class="w-full table-fixed"', false)
         ->assertSee('data-label="Waktu"', false)
         ->assertSee('data-label="Pegawai"', false)
