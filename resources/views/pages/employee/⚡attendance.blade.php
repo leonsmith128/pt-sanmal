@@ -407,7 +407,7 @@ new #[Title('Absensi')] class extends Component {
             :src="$attendanceUser->profilePhotoUrl()"
             :greeting="__('Selamat datang,')"
             :description="$employeeDescription"
-            avatar-size="compact"
+            avatar-size="lg"
         >
             <x-slot:actions>
                 <a href="{{ route('notifications.index') }}" wire:navigate aria-label="{{ __('Buka notifikasi') }}" title="{{ __('Notifikasi') }}" class="relative flex size-10 shrink-0 items-center justify-center rounded-full text-zinc-600 transition hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800">
