@@ -38,14 +38,24 @@
             >
                 <div class="mb-2 flex items-center justify-between gap-4">
                     <span class="text-sm font-medium">{{ __('Pratinjau foto') }}</span>
-                    <button
-                        type="button"
-                        x-on:click="previewOpen = false"
-                        class="rounded-md p-1 text-[var(--sanmal-text-secondary)] transition hover:bg-sanmal-surface-secondary focus-visible:outline-2 focus-visible:outline-blue-600"
-                        aria-label="{{ __('Tutup pratinjau foto') }}"
-                    >
-                        <flux:icon name="x-mark" variant="micro" />
-                    </button>
+                    <div class="flex items-center gap-2">
+                        <a
+                            href="{{ $selfie->temporaryUrl() }}"
+                            download="foto-absensi.{{ $selfie->guessExtension() ?: 'jpg' }}"
+                            class="inline-flex min-h-9 items-center gap-2 rounded-lg px-3 text-sm font-medium text-[var(--sanmal-text-secondary)] transition hover:bg-sanmal-surface-secondary focus-visible:outline-2 focus-visible:outline-blue-600"
+                        >
+                            <flux:icon name="arrow-down-tray" variant="micro" />
+                            {{ __('Unduh') }}
+                        </a>
+                        <button
+                            type="button"
+                            x-on:click="previewOpen = false"
+                            class="rounded-md p-1 text-[var(--sanmal-text-secondary)] transition hover:bg-sanmal-surface-secondary focus-visible:outline-2 focus-visible:outline-blue-600"
+                            aria-label="{{ __('Tutup pratinjau foto') }}"
+                        >
+                            <flux:icon name="x-mark" variant="micro" />
+                        </button>
+                    </div>
                 </div>
                 <img
                     src="{{ $selfie->temporaryUrl() }}"
