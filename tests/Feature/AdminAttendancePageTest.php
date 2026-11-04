@@ -458,4 +458,3 @@ it('renders mobile attendance cards with a photo column, compact actions, and a 
         ->assertSee('attendance-correction-'.$record->id, false)
         ->assertSee(route('admin.kehadiran.correct-timestamp', $record), false);
 });
-
