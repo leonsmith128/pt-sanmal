@@ -403,7 +403,7 @@ new #[Title('Absensi')] class extends Component {
         </div>
 
         {{-- Form absensi --}}
-        <form wire:submit="confirm('{{ $mode }}')" class="flex flex-col gap-5 rounded-xl border border-sanmal-border bg-sanmal-surface-card p-4 dark:border-sanmal-border-dark dark:bg-sanmal-surface-card-dark sm:p-5 {{ $selectedDate !== now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString() ? 'hidden' : '' }}">
+        <form id="attendance-form" wire:submit="confirm('{{ $mode }}')" class="flex flex-col gap-5 rounded-xl border border-sanmal-border bg-sanmal-surface-card p-4 dark:border-sanmal-border-dark dark:bg-sanmal-surface-card-dark sm:p-5 {{ $selectedDate !== now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString() ? 'hidden' : '' }}">
             <div class="space-y-1">
                 <flux:heading size="sm">
                     {{ match ($mode) {
@@ -500,38 +500,7 @@ new #[Title('Absensi')] class extends Component {
                         @error('form') <flux:text class="text-red-500">{{ $message }}</flux:text> @enderror
             @error('workType') <flux:text class="text-red-500">{{ $message }}</flux:text> @enderror
 
-            <div class="flex w-full items-center gap-2 pt-1">
-                @if ($mode === 'overtime_locked')
-                    <x-ui.button type="button" variant="primary" class="min-w-0 flex-1" disabled icon="lock-closed">
-                        {{ __('Konfirmasi Lembur') }}
-                    </x-ui.button>
-                @elseif ($mode === 'clock_in_blocked')
-                    <x-ui.button type="button" variant="primary" class="min-w-0 flex-1" disabled icon="lock-closed">
-                        {{ __('Sesi hari ini sudah digunakan') }}
-                    </x-ui.button>
-                @else
-                    @if ($selfie)
-                        <x-ui.button
-                            type="submit"
-                            variant="primary"
-                            class="min-w-0 flex-1"
-                            wire:loading.attr="disabled"
-                            wire:target="confirm,submit,selfie"
-                        >
-                            {{ __('Lanjutkan') }}
-                        </x-ui.button>
-                    @else
-                        <x-ui.button
-                            type="button"
-                            variant="primary"
-                            class="min-w-0 flex-1"
-                            x-on:click="$dispatch('attendance-camera-open')"
-                        >
-                            {{ match ($mode) { 'clock_in' => __('Absen Masuk'), 'overtime_start' => __('Konfirmasi Lembur'), default => __('Absen Pulang') } }}
-                        </x-ui.button>
-                    @endif
-                @endif
-            </div>
+
         </form>
 
         <section class="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
@@ -666,6 +635,41 @@ new #[Title('Absensi')] class extends Component {
                     </flux:modal.trigger>
                 @endif
             </x-attendance.info-card>
+        </div>
+
+        <div class="{{ $selectedDate !== now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString() ? 'hidden' : '' }}">
+            <div class="flex w-full items-center gap-2 pt-1">
+                @if ($mode === 'overtime_locked')
+                    <x-ui.button type="button" form="attendance-form" variant="primary" class="min-w-0 flex-1" form="attendance-form" disabled icon="lock-closed">
+                        {{ __('Konfirmasi Lembur') }}
+                    </x-ui.button>
+                @elseif ($mode === 'clock_in_blocked')
+                    <x-ui.button type="button" form="attendance-form" variant="primary" class="min-w-0 flex-1" form="attendance-form" disabled icon="lock-closed">
+                        {{ __('Sesi hari ini sudah digunakan') }}
+                    </x-ui.button>
+                @else
+                    @if ($selfie)
+                        <x-ui.button
+                            type="submit" form="attendance-form"
+                            variant="primary"
+                            class="min-w-0 flex-1" form="attendance-form"
+                            wire:loading.attr="disabled"
+                            wire:target="confirm,submit,selfie"
+                        >
+                            {{ __('Lanjutkan') }}
+                        </x-ui.button>
+                    @else
+                        <x-ui.button
+                            type="button"
+                            variant="primary"
+                            class="min-w-0 flex-1" form="attendance-form"
+                            x-on:click="$dispatch('attendance-camera-open')"
+                        >
+                            {{ match ($mode) { 'clock_in' => __('Absen Masuk'), 'overtime_start' => __('Konfirmasi Lembur'), default => __('Absen Pulang') } }}
+                        </x-ui.button>
+                    @endif
+                @endif
+            </div>
         </div>
 
         {{-- Modal konfirmasi sebelum absensi dikirim --}}
