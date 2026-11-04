@@ -11,12 +11,21 @@
 <x-ui.card padding="p-4" class="rounded-2xl">
     <div class="mb-3 flex items-center justify-between gap-2">
         <div class="min-w-0">
-            <flux:heading size="sm">{{ $selectedMonthLabel }}</flux:heading>
+            <button
+                type="button"
+                wire:click="openMonthlyCalendar"
+                aria-haspopup="dialog"
+                aria-expanded="{{ $showMonthlyCalendar ? 'true' : 'false' }}"
+                aria-controls="attendance-month-calendar-dialog"
+                class="group inline-flex min-h-10 max-w-full items-center gap-1.5 rounded-lg px-2 -ml-2 text-left text-[var(--sanmal-text-primary)] transition hover:bg-sanmal-surface-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sanmal-brand-blue dark:hover:bg-sanmal-surface-elevated-dark"
+            >
+                <flux:heading size="sm">{{ $selectedMonthLabel }}</flux:heading>
+                <span aria-hidden="true" class="text-sm text-[var(--sanmal-text-muted)] transition-transform group-hover:translate-y-0.5">⌄</span>
+            </button>
         </div>
         <div class="flex shrink-0 items-center gap-0.5">
             <x-ui.button size="sm" variant="ghost" icon="chevron-left" wire:click="shiftWeek(-1)" aria-label="{{ __('Minggu sebelumnya') }}" />
             <x-ui.button size="sm" variant="ghost" icon="chevron-right" wire:click="shiftWeek(1)" aria-label="{{ __('Minggu berikutnya') }}" />
-            <x-ui.button size="sm" variant="ghost" icon="calendar-days" wire:click="openMonthlyCalendar" aria-label="{{ __('Buka kalender bulanan') }}" />
             <x-ui.button size="sm" variant="ghost" wire:click="selectDate('{{ $todayDate }}')">{{ __('Hari ini') }}</x-ui.button>
         </div>
     </div>
@@ -44,7 +53,7 @@
         wire:click.self="closeMonthlyCalendar"
         x-on:keydown.escape.window="$wire.closeMonthlyCalendar()"
     >
-        <section role="dialog" aria-modal="true" aria-labelledby="attendance-month-calendar-title" class="w-full max-w-md rounded-2xl bg-sanmal-surface-card p-4 text-[var(--sanmal-text-primary)] shadow-2xl dark:bg-sanmal-surface-card-dark sm:p-5">
+        <section id="attendance-month-calendar-dialog" role="dialog" aria-modal="true" aria-labelledby="attendance-month-calendar-title" class="w-full max-w-md rounded-2xl bg-sanmal-surface-card p-4 text-[var(--sanmal-text-primary)] shadow-2xl dark:bg-sanmal-surface-card-dark sm:p-5">
             <div class="mb-4 flex items-center justify-between gap-3">
                 <flux:heading id="attendance-month-calendar-title" size="lg">{{ $calendarMonthLabel }}</flux:heading>
                 <div class="flex items-center gap-1">
