@@ -31,7 +31,7 @@
 
 | Halaman / workflow | Fokus review |
 |---|---|
-| Attendance / Clock In-Out | Prioritas mobile; kamera, GPS, izin, kesiapan capture, lokasi kerja, bukti, upload, konfirmasi, error |
+| Attendance / Clock In-Out | Prioritas mobile; kamera, GPS, izin, kesiapan capture, lokasi kerja, bukti, upload, konfirmasi, error. Lihat [Attendance Layout V1](EMPLOYEE-ATTENDANCE-LAYOUT-V1.md) dan [Calendar V1](EMPLOYEE-ATTENDANCE-CALENDAR-V1.md) |
 | Employee profile | Hierarki informasi, nilai kosong/panjang, section responsif |
 | Attendance history | Filter, event, snapshot, timestamp asli/efektif, bukti, pagination, ekspor |
 | Attendance correction submission | Pemilihan record/timestamp, alasan, attachment, validasi mobile |
