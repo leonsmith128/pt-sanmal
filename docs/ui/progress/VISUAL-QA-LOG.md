@@ -94,3 +94,9 @@ The activity table source now has a fixed-width desktop layout and a stacked car
 **Browser/device QA: Not run.** Verify at 360–390 px, 414–430 px, 768 px, 1024 px, and 1280–1440 px in supported themes. Specifically inspect whether the stacked rows eliminate horizontal overflow; whether long employee names, addresses, and project snapshots wrap correctly; and whether pagination, photo preview, map links, project context, and timestamp correction remain usable. Automated regression tests do not replace this review.
 
 The mobile filter disclosure was added to the source. Browser QA must confirm that it starts collapsed on mobile, opens/closes by keyboard and touch, reflects the active-filter count, and remains expanded appropriately while users change Livewire-bound values. Desktop filter controls must remain visible without requiring a click.
+
+## Admin Attendance layout refinement — 5 November 2026
+
+Source adjustments: inset the table from the card edges; align the Export label and chevron horizontally; make the filter panel collapsible at all breakpoints while keeping the active-filter count in its always-visible header; use five desktop columns for the nine filter controls; keep Reset filter available outside the collapsed region.
+
+**Browser QA: Pending.** Check the table inset against card edges, export trigger alignment, filter collapse/expand and active count, reset availability while collapsed, and whether the nine controls fit into exactly two rows at the actual desktop viewport width.
