@@ -17,8 +17,7 @@ test('application sidebar composer prepares manager navigation and system notifi
         'read_at' => null,
     ]);
 
-    $view = view('layouts.app.sidebar');
-    app(AppSidebarComposer::class)->compose($view);
+    $view = view('layouts::app.sidebar');
     $data = $view->getData();
 
     expect($data['sidebarUser']->is($user))->toBeTrue()
@@ -35,7 +34,7 @@ test('application sidebar composer prepares employee decision badge data', funct
     $user->forceFill(['role' => UserRole::Employee])->save();
     $employee = Employee::query()->create(['user_id' => $user->id]);
 
-    $view = view('layouts.app.sidebar');
+    $view = view('layouts::app.sidebar');
     app(AppSidebarComposer::class)->compose($view);
     $data = $view->getData();
 
@@ -49,7 +48,7 @@ test('application sidebar composer prepares employee decision badge data', funct
 test('application sidebar composer safely handles a guest view context', function () {
     auth()->logout();
 
-    $view = view('layouts.app.sidebar');
+    $view = view('layouts::app.sidebar');
     app(AppSidebarComposer::class)->compose($view);
     $data = $view->getData();
 
