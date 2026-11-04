@@ -205,7 +205,10 @@ test('attendance page renders a separate full-size photo preview and full-width 
         ->assertSee('watermarkPreview', false)
         ->assertSee('previewOpen', false)
         ->assertSee('attendance-photo-preview', false)
-        ->assertSee('max-h-[75vh]', false)
+        ->assertSee('fixed inset-0 z-50 flex items-center justify-center', false)
+        ->assertSee('x-on:click.self="previewOpen = false"', false)
+        ->assertSee('aria-modal="true"', false)
+        ->assertSee('max-h-[calc(100dvh-7rem)]', false)
         ->assertSee('flex w-full items-center gap-2 pt-1', false)
         ->assertDontSee(__('Lihat foto ukuran penuh'))
         ->assertDontSee('object-cover', false);
