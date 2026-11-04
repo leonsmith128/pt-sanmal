@@ -221,7 +221,6 @@
                                             <div class="min-w-0">
                                                 <div class="flex flex-wrap items-center gap-2">
                                                     <p class="font-medium text-zinc-900 dark:text-zinc-100">{{ $record->type->label() }}</p>
-                                                    <x-ui.badge :color="$eventColor">{{ $record->type->label() }}</x-ui.badge>
                                                     @if ($record->approvedCorrection)
                                                         <x-ui.badge color="amber">{{ __('Waktu dikoreksi') }}</x-ui.badge>
                                                     @endif
