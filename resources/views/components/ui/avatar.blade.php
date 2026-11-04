@@ -19,5 +19,5 @@
     :name="$name"
     :initials="$initials"
     :src="$src"
-    {{ $attributes->class(['shrink-0 rounded-full [&_img]:rounded-full', $sizeClass]) }}
+    {{ $attributes->class(['aspect-square shrink-0 overflow-hidden rounded-full [&_img]:h-full [&_img]:w-full [&_img]:rounded-full [&_img]:object-cover', $sizeClass]) }}
 />
