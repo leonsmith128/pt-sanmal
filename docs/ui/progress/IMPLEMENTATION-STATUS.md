@@ -180,5 +180,5 @@ Automated tests cover the active count, disclosure markup, desktop grid, table i
 - Retained `x-desktop-user-menu` because it is used by the active sidebar layout. Retained the existing `x-ui.page`, `x-ui.page-header`, and `x-ui.section` primitives; no parallel page-layout abstraction was added.
 - Authentication layouts and authentication page views were explicitly excluded and were not changed.
 - Updated the Page Inventory and Reusable Blade Components documentation with the shell contract and scope boundary.
-- Sidebar data extraction into a View Composer, broader component cleanup, and page-folder consolidation remain separate follow-up stages.
+- Sidebar data preparation is now extracted to `App\\View\\Composers\\AppSidebarComposer`, registered only for `layouts.app.sidebar`. It preserves role flags, employee profile lookup, the latest five system notifications, unread count, and the combined unseen decision badge count. Focused feature tests cover manager, employee, and guest contexts.
 - This is source-level consolidation only. Browser/device QA and exhaustive dynamic-reference indexing are not claimed; see the audit scope in [Reusable Blade Components](../REUSABLE-BLADE-COMPONENTS.md).
