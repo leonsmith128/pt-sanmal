@@ -594,7 +594,6 @@ test('attendance history keeps a cross-midnight clock-out in its clock-in anchor
             && $summary['needs_review_days'] === 0);
 });
 
-
 test('attendance history renders date groups and event detail dialog using the canonical daily status data', function () {
     $this->travelTo(Carbon::parse('2026-11-04 12:00:00', 'Asia/Makassar'));
 
