@@ -27,7 +27,9 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->configureDefaults();
 
-        View::composer('layouts::app.sidebar', AppSidebarComposer::class);
+        // Anonymous component namespaces are generated from the component path, so the
+        // namespace hash is installation-specific. Match the resolved sidebar view.
+        View::composer('*::app.sidebar', AppSidebarComposer::class);
     }
 
     /**
