@@ -10,9 +10,9 @@ Provide a compact weekly calendar for daily navigation and a monthly calendar fo
 ## 2. Weekly calendar
 
 - Seven columns, Monday through Sunday.
-- Header shows the selected date's month and year. No helper description is displayed beneath the month heading.
+- The selected date's month and year are displayed as a text button that opens the monthly picker. Style it as a readable, semibold heading with a subtle chevron, comfortable click target, hover surface, and visible keyboard-focus ring.
+- Do not display a separate calendar icon/button or helper description beneath the month heading.
 - Previous/next week controls and a **Hari ini** action remain available.
-- Calendar icon opens the monthly picker.
 - Each date shows weekday, day number, and a small status dot when one of the three agreed indicator states applies.
 - Selected date uses SanMal brand blue in light theme and the approved warm yellow primary accent in dark theme.
 - Today receives an outline when it is not selected.
