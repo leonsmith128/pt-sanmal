@@ -27,6 +27,7 @@ Do not copy a documented API into a page without checking the implementation on 
 | Metadata | `x-ui.metadata-item` | Semantic label/value pair inside a description list | [Reusable components](REUSABLE-BLADE-COMPONENTS.md) |
 | Identity utility | `x-ui.avatar` | Consistent avatar with image/initials fallback | [Reusable components](REUSABLE-BLADE-COMPONENTS.md) |
 | Notification utility | `x-ui.notification-dropdown` | User-scoped notification preview; data is supplied by the caller | [Reusable components](REUSABLE-BLADE-COMPONENTS.md) |
+| Attendance composition | `x-attendance.calendar`, `calendar-indicator`, `time-summary`, `info-card`, `photo-preview`, `camera` | Attendance-specific presentation and browser capture. Parent SFC owns page state; camera and photo preview retain separate responsibilities | [Attendance Layout V1](EMPLOYEE-ATTENDANCE-LAYOUT-V1.md) |
 | Admin patterns | `x-admin.filter-panel`, `x-admin.page-header`, domain adapters | Repeated Admin composition and domain presentation | [Architecture guide](../ARCHITECTURE-AND-DEVELOPMENT.md) |
 | Data presentation | Native table, Flux table, review list, article/card | Match semantics and interaction to the data, not a universal visual wrapper | [Design Foundation](DESIGN-FOUNDATION.md) |
 
