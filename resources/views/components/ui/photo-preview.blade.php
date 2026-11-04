@@ -8,7 +8,7 @@
 ])
 
 @php
-    $previewId = 'photo-preview-'.\\Illuminate\\Support\\Str::uuid();
+    $previewId = 'photo-preview-'.\Illuminate\Support\Str::uuid();
     $titleId = $previewId.'-title';
 @endphp
 
