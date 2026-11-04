@@ -84,7 +84,7 @@ The mockup includes a decorative encouragement card. This is lowest priority. In
 - All Employee Dashboard cards use the shared shadow-only `x-ui.card` surface: `sanmal-surface-card` in light theme and `sanmal-surface-card-dark` in dark theme. Do not leave individual cards on generic white/zinc backgrounds or add one-off borders.
 - Use semantic sections and headings; avoid card-in-card nesting. Header-adjacent count/status badges should use compact sizing and must not visually dominate their labels.
 - Keep four statistic cards visually consistent; semantic accent colors may distinguish categories but text labels remain mandatory.
-- Use compact, consistent spacing and restrained borders/shadows. Do not copy the mockup's sample numbers, sample employee name, dates, notification count, or fabricated activity.
+- Use compact, consistent spacing and restrained borders/shadows. The employee dashboard page flow uses `gap-4` between its major sections; the Admin Dashboard retains its existing `gap-6` spacing. Do not copy the mockup's sample numbers, sample employee name, dates, notification count, or fabricated activity.
 - Respect light and dark themes supported by the application.
 
 ## 4. Responsive acceptance criteria
