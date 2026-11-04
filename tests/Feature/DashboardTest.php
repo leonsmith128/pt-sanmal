@@ -156,6 +156,7 @@ test('employee dashboard shows pending leave request breakdown for the authentic
         ->assertOk()
         ->assertSee('Pengajuan Saya')
         ->assertSee('Selamat datang')
+        ->assertSee('text-xl font-bold tracking-tight', false)
         ->assertSee('size-14', false)
         ->assertSee('Belum ada aktivitas absensi.')
         ->assertDontSee('Tidak hadir')
