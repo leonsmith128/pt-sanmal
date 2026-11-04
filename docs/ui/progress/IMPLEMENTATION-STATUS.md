@@ -156,3 +156,5 @@ The Admin Attendance activity table now uses a fixed-width table layout on deskt
 - The existing filter, export, query, authorization, and timezone contracts are unchanged.
 
 Automated regression coverage checks the responsive wrapper, fixed-width table class, and mobile field labels. Browser/device QA has not yet been performed; verify actual overflow, card spacing, table readability, pagination, dialog, photo preview, map links, and correction form at the viewport checkpoints in [Visual QA Log](VISUAL-QA-LOG.md).
+
+The mobile filter panel now starts collapsed behind a compact **Filter (n)** disclosure; desktop keeps the complete filter grid visible. Filters remain Livewire live-bound, so no separate Apply action was introduced.
