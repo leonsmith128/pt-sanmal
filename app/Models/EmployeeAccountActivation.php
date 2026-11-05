@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 #[Fillable(['user_id', 'token_hash', 'expires_at', 'consumed_at'])]
 class EmployeeAccountActivation extends Model
 {
+    protected $hidden = ['token_hash'];
     protected function casts(): array
     {
         return [

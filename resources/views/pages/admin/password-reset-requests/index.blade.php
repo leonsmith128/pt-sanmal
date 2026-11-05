@@ -23,13 +23,14 @@
 
                         @if ($resetRequest->status === 'pending')
                             <div class="flex flex-wrap gap-2">
-                                <form method="POST" action="{{ route('admin.password-reset-requests.approve', $resetRequest) }}">
+                                <form method="POST" action="{{ route('admin.password-reset-requests.approve', $resetRequest) }}" class="flex flex-col gap-2">
                                     @csrf
+                                    <x-ui.textarea name="review_note" :label="__('Catatan (opsional)')" rows="2" />
                                     <x-ui.button type="submit" variant="primary">{{ __('Setujui') }}</x-ui.button>
                                 </form>
-                                <form method="POST" action="{{ route('admin.password-reset-requests.reject', $resetRequest) }}" class="flex gap-2">
+                                <form method="POST" action="{{ route('admin.password-reset-requests.reject', $resetRequest) }}" class="flex flex-col gap-2">
                                     @csrf
-                                    <input type="hidden" name="review_note" value="Ditolak oleh administrator."/>
+                                    <x-ui.textarea name="review_note" :label="__('Alasan penolakan')" rows="2" required />
                                     <x-ui.button type="submit" variant="outline">{{ __('Tolak') }}</x-ui.button>
                                 </form>
                             </div>
