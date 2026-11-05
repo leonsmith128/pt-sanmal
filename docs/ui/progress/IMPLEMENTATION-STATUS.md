@@ -227,3 +227,18 @@ The Admin Overtime queue was refined in source commit `45b36286cc95b99185b114ff2
 - The existing status filter, route, query, model data, status enums, authorization, and review actions are unchanged.
 
 A feature assertion was added to `OvertimeWorkflowTest` for the responsive mobile/desktop wrappers and both status dimensions. CI is pending. Browser/device QA has not been performed; see [Visual QA Log](VISUAL-QA-LOG.md).
+
+
+## Employee workflow and Location form token alignment — 5 November 2026
+
+A final source pass aligned remaining employee workflow surfaces with the SanMal design tokens in commit `f38a551befc48ef6626c7108dde1711d19a6d002`:
+
+- Employee Attendance supporting metadata, overtime snapshot panels, and evidence details now use SanMal text, inset-surface, and divider tokens. Camera, GPS, snapshot, capture, preview, and submit behavior were not changed.
+- Employee Profile upload feedback, Employee Overtime history, Notifications, Attendance Correction submission, and Leave Request creation use shared text/surface/divider tokens rather than raw zinc utility colors.
+- Location creation's Client/Office context inset uses the same SanMal surface treatment.
+- Employee Attendance History remains unchanged because its V1 scope is already implemented and was explicitly marked to be preserved.
+- No business logic, route, form field, Livewire state/action, camera/GPS flow, or request contract changed.
+
+CI run [#41981290455](https://github.com/leonsmith128/pt-sanmal/actions/runs/41981290455) passed on commit `4630b19645af39fbfb676343def4e12d538cbc8e`, including Pint, repository and changed-code static analysis, MariaDB tests, and SQLite tests. The later Blade-only token alignment commit `f38a551befc48ef6626c7108dde1711d19a6d002` has a new CI run queued; do not treat that latest head as fully verified until its run completes.
+
+Browser/device visual QA has not been performed. See [Visual QA Log](VISUAL-QA-LOG.md).

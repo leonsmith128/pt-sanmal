@@ -131,3 +131,14 @@ The queue now renders compact cards below `md` and a semantic table from `md` up
 **Automated coverage:** `OvertimeWorkflowTest` asserts the responsive wrappers, employee, reason, both status labels, and detail route. CI result is pending.
 
 **Browser/device QA: Not run.** Check 360–390 px, 414–430 px, 768 px, 1024 px, and 1280–1440 px in light/dark themes. Confirm cards remain scannable, desktop columns do not become cramped, the horizontal scroll stays inside the table region, status badges remain distinct, and pagination remains reachable.
+
+
+## Employee workflow token alignment — source follow-up (5 November 2026)
+
+Source commit: `f38a551befc48ef6626c7108dde1711d19a6d002`.
+
+The employee Attendance supporting metadata, Employee Profile upload feedback, Employee Overtime history, Notifications, Attendance Correction form, Leave Request form, and Location creation context now use SanMal text, surface, and divider tokens. Camera/GPS behavior and request contracts were not changed. Employee Attendance History was intentionally left untouched as a completed V1 scope.
+
+**Automated coverage:** existing feature tests remain the regression coverage for the affected workflows. CI run #41981290455 passed on the preceding test-fix commit and covered Pint, static analysis, MariaDB, and SQLite. CI for this later token-only source commit is queued and must be checked before merge.
+
+**Browser/device QA: Not run.** Check the affected pages at 360–390 px, 414–430 px, 768 px, 1024 px, and 1280–1440 px in light/dark themes. Pay particular attention to Attendance supporting panels and long evidence text, mobile form action separators, notification text wrapping, and Location context surfaces. Confirm camera/GPS interactions remain unchanged through manual smoke testing; source-only token changes do not establish device compatibility.
