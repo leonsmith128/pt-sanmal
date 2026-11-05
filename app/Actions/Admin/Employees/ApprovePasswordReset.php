@@ -15,6 +15,7 @@ class ApprovePasswordReset
 {
     public function handle(PasswordResetRequest $passwordResetRequest, User $reviewer, ?string $note = null): bool
     {
+        $requestId = $passwordResetRequest->id;
         $token = Str::random(64);
         $expiresAt = now()->addHours(24);
 
@@ -58,7 +59,7 @@ class ApprovePasswordReset
             ]);
 
             PasswordResetRequest::query()
-                ->where('user_id', $user->id)
+                ->whereKey($requestId)
                 ->where('status', 'approved')
                 ->whereNull('used_at')
                 ->update([

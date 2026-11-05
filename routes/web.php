@@ -40,7 +40,9 @@ Route::post('ajukan-reset-password', [EmployeePasswordResetController::class, 's
     ->middleware('throttle:3,1')
     ->name('password-reset.request.store');
 Route::get('reset-password-disetujui/{token}', [EmployeePasswordResetController::class, 'show'])->name('password-reset.show');
-Route::post('reset-password-disetujui/{token}', [EmployeePasswordResetController::class, 'store'])->name('password-reset.store');
+Route::post('reset-password-disetujui/{token}', [EmployeePasswordResetController::class, 'store'])
+    ->middleware('throttle:5,1')
+    ->name('password-reset.store');
 
 Route::middleware(['auth', EnsureUserIsActive::class])->group(function () {
     Route::get('ganti-password-awal', [FirstPasswordChangeController::class, 'create'])->name('account.password.first-change');

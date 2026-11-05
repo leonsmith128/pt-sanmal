@@ -29,7 +29,7 @@ class AdminPasswordResetRequestController extends Controller
 
         return back()->with('status', $sent
             ? 'Permintaan disetujui dan tautan reset dikirim.'
-            : 'Permintaan disetujui, tetapi email gagal dikirim. Periksa konfigurasi email sebelum mengirim ulang.');
+            : 'Email gagal dikirim. Permintaan dikembalikan ke status menunggu agar admin dapat menyetujui kembali setelah konfigurasi email diperbaiki.');
     }
 
     public function reject(Request $request, PasswordResetRequest $passwordResetRequest): RedirectResponse
