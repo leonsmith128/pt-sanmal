@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class EmployeeAccountActivation extends Model
 {
     protected $hidden = ['token_hash'];
+
     protected function casts(): array
     {
         return [
