@@ -64,7 +64,7 @@
                 accept=".jpg,.jpeg,.png,.pdf"
             />
 
-            <div class="flex flex-col-reverse gap-2 border-t border-zinc-200 pt-4 dark:border-zinc-700 sm:flex-row sm:justify-end">
+            <div class="flex flex-col-reverse gap-2 border-t border-sanmal-border pt-4 dark:border-sanmal-border-dark sm:flex-row sm:justify-end">
                 <x-ui.button href="{{ route('leave-requests.index') }}" variant="ghost" class="w-full sm:w-auto">
                     {{ __('Batal') }}
                 </x-ui.button>

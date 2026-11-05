@@ -39,9 +39,9 @@
                     <article>
                         <div class="flex flex-wrap items-start justify-between gap-3">
                             <div class="min-w-0">
-                                <p class="font-medium text-zinc-900 dark:text-zinc-100">{{ __('Mulai terjadwal:') }} {{ $request->scheduledStartLocal()->format('D, d M Y · H:i') }}</p>
+                                <p class="font-medium text-[var(--sanmal-text-primary)]">{{ __('Mulai terjadwal:') }} {{ $request->scheduledStartLocal()->format('D, d M Y · H:i') }}</p>
                                 @if ($request->reason)
-                                    <p class="mt-1 whitespace-pre-line text-sm text-zinc-600 dark:text-zinc-300">{{ $request->reason }}</p>
+                                    <p class="mt-1 whitespace-pre-line text-sm text-[var(--sanmal-text-secondary)]">{{ $request->reason }}</p>
                                 @endif
                             </div>
                             <div class="flex flex-wrap gap-2">

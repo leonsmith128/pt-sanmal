@@ -493,15 +493,15 @@ new #[Title('Absensi')] class extends Component {
             >
                 <p>{{ Carbon::parse($selectedDate)->translatedFormat('d M Y') }}</p>
                 @if ($attendancePlace)
-                    <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{{ $attendancePlace }}</p>
+                    <p class="mt-1 text-sm text-[var(--sanmal-text-muted)]">{{ $attendancePlace }}</p>
                 @else
-                    <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{{ __('Lokasi belum tercatat') }}</p>
+                    <p class="mt-1 text-sm text-[var(--sanmal-text-muted)]">{{ __('Lokasi belum tercatat') }}</p>
                 @endif
                 @if ($attendanceAddress)
-                    <p class="mt-1 break-words text-sm text-zinc-500 dark:text-zinc-400">{{ $attendanceAddress }}</p>
+                    <p class="mt-1 break-words text-sm text-[var(--sanmal-text-muted)]">{{ $attendanceAddress }}</p>
                 @endif
                 @if ($clockInForDisplay)
-                    <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                    <p class="mt-1 text-sm text-[var(--sanmal-text-muted)]">
                         {{ __('Masuk') }}: {{ $clockInForDisplay?->effectiveRecordedAtLocal()->format('H:i') ?? '—' }}
                         <span aria-hidden="true">·</span>
                         {{ __('Pulang') }}: {{ $clockOutRecord?->effectiveRecordedAtLocal()->format('H:i') ?? '—' }}
@@ -520,17 +520,17 @@ new #[Title('Absensi')] class extends Component {
                     </p>
                 @endif
                 @forelse ($overtimeRequestsForDate as $overtimeItem)
-                    <div @class(['border-b border-zinc-200 pb-3 dark:border-zinc-700' => ! $loop->last, 'pt-2' => ! $loop->first])>
+                    <div @class(['border-b border-sanmal-border pb-3 dark:border-sanmal-border-dark' => ! $loop->last, 'pt-2' => ! $loop->first])>
                         <p>{{ __('Mulai terjadwal') }}: {{ $overtimeItem->scheduledStartLocal()->format('d M Y, H:i') }}</p>
                         @if ($overtimeItem->scheduledEndLocal())
-                            <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                            <p class="mt-1 text-sm text-[var(--sanmal-text-muted)]">
                                 {{ __('Selesai terjadwal (riwayat)') }}: {{ $overtimeItem->scheduledEndLocal()->format('d M Y, H:i') }}
                             </p>
                         @endif
                         <x-ui.badge class="mt-2" :color="$overtimeItem->state->badgeColor()">{{ $overtimeItem->state->label() }}</x-ui.badge>
                         <x-ui.badge class="mt-2" :color="$overtimeItem->approval_status->badgeColor()">{{ $overtimeItem->approval_status->label() }}</x-ui.badge>
                         @if ($overtimeItem->startRecord)
-                            <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-300">
+                            <p class="mt-2 text-sm text-[var(--sanmal-text-secondary)]">
                                 {{ __('Mulai aktual') }}: {{ $overtimeItem->startRecord->effectiveRecordedAtLocal()->format('d M Y, H:i') }}
                             </p>
                             @if ($session && $overtimeItem->id === $sessionOvertime?->id && $overtimeItem->isInProgress() && ! $overtimeItem->clockOutRecord)
@@ -542,23 +542,23 @@ new #[Title('Absensi')] class extends Component {
                                 </p>
                             @endif
                         @else
-                            <p class="mt-2 text-sm text-zinc-500 dark:text-zinc-400">{{ __('Mulai aktual') }}: —</p>
+                            <p class="mt-2 text-sm text-[var(--sanmal-text-muted)]">{{ __('Mulai aktual') }}: —</p>
                         @endif
                         @if ($overtimeItem->clockOutRecord)
-                            <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-300">
+                            <p class="mt-1 text-sm text-[var(--sanmal-text-secondary)]">
                                 {{ __('Selesai aktual') }}: {{ $overtimeItem->clockOutRecord->effectiveRecordedAtLocal()->format('d M Y, H:i') }}
                             </p>
                         @elseif ($overtimeItem->isInProgress())
-                            <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{{ __('Lembur sedang berjalan.') }}</p>
+                            <p class="mt-1 text-sm text-[var(--sanmal-text-muted)]">{{ __('Lembur sedang berjalan.') }}</p>
                         @endif
                         @if ($overtimeItem->finalized_at)
-                            <div class="mt-3 rounded-lg bg-zinc-50 p-3 text-sm dark:bg-zinc-800">
+                            <div class="mt-3 rounded-lg bg-sanmal-surface-inset p-3 text-sm dark:bg-sanmal-surface-inset-dark">
                                 <p class="font-medium">{{ __('Waktu final admin') }}</p>
                                 <p>{{ $overtimeItem->final_start_at?->copy()->setTimezone($overtimeItem->timezone)->format('d M Y, H:i') ?? '—' }}
                                     – {{ $overtimeItem->final_end_at?->copy()->setTimezone($overtimeItem->timezone)->format('d M Y, H:i') ?? '—' }}</p>
-                                <p class="mt-1 text-zinc-500 dark:text-zinc-400">{{ __('Sumber') }}: {{ $overtimeItem->finalization_source }}</p>
+                                <p class="mt-1 text-[var(--sanmal-text-muted)]">{{ __('Sumber') }}: {{ $overtimeItem->finalization_source }}</p>
                                 @if ($overtimeItem->finalization_reason)
-                                    <p class="mt-1 text-zinc-500 dark:text-zinc-400">{{ __('Alasan final admin') }}: {{ $overtimeItem->finalization_reason }}</p>
+                                    <p class="mt-1 text-[var(--sanmal-text-muted)]">{{ __('Alasan final admin') }}: {{ $overtimeItem->finalization_reason }}</p>
                                 @endif
                             </div>
                         @endif
@@ -580,7 +580,7 @@ new #[Title('Absensi')] class extends Component {
                         </button>
                     </div>
                 @empty
-                    <p class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('Belum ada pengajuan lembur untuk tanggal ini.') }}</p>
+                    <p class="text-sm text-[var(--sanmal-text-muted)]">{{ __('Belum ada pengajuan lembur untuk tanggal ini.') }}</p>
                 @endforelse
                 @if (
                     $selectedDate >= now(RecordAttendance::DEFAULT_TIMEZONE)->toDateString()
@@ -752,30 +752,30 @@ new #[Title('Absensi')] class extends Component {
 
                 <dl class="space-y-2 text-sm">
                     <div class="flex justify-between gap-4">
-                        <dt class="text-zinc-500">{{ __('Jenis absensi') }}</dt>
+                        <dt class="text-[var(--sanmal-text-muted)]">{{ __('Jenis absensi') }}</dt>
                         <dd class="font-medium">{{ match ($mode) { 'clock_in' => __('Masuk'), 'overtime_start' => __('Mulai lembur'), 'overtime_locked' => __('Mulai lembur'), default => __('Pulang') } }}</dd>
                     </div>
                     <div class="flex justify-between gap-4">
-                        <dt class="text-zinc-500">{{ __('Lokasi kerja') }}</dt>
+                        <dt class="text-[var(--sanmal-text-muted)]">{{ __('Lokasi kerja') }}</dt>
                         <dd class="font-medium">{{ $confirmWork ?? '—' }}</dd>
                     </div>
                     <div class="flex justify-between gap-4">
-                        <dt class="text-zinc-500">{{ __('Tempat / proyek') }}</dt>
+                        <dt class="text-[var(--sanmal-text-muted)]">{{ __('Tempat / proyek') }}</dt>
                         <dd class="text-right font-medium">{{ $confirmPlace ?? '—' }}</dd>
                     </div>
                     <div class="flex justify-between gap-4">
-                        <dt class="text-zinc-500">{{ __('Akurasi GPS') }}</dt>
+                        <dt class="text-[var(--sanmal-text-muted)]">{{ __('Akurasi GPS') }}</dt>
                         <dd class="font-medium">
                             @if ($accuracy !== null) &plusmn;{{ round((float) $accuracy) }} m @else — @endif
                         </dd>
                     </div>
-                    <div class="grid gap-1 border-t border-zinc-200 pt-2 dark:border-zinc-700">
-                        <dt class="text-zinc-500">{{ __('Alamat pada watermark dan bukti yang akan disimpan') }}</dt>
+                    <div class="grid gap-1 border-t border-sanmal-border pt-2 dark:border-sanmal-border-dark">
+                        <dt class="text-[var(--sanmal-text-muted)]">{{ __('Alamat pada watermark dan bukti yang akan disimpan') }}</dt>
                         <dd class="break-words font-medium">{{ filled($addressSnapshot ?? null) ? $addressSnapshot : __('Alamat belum tersedia untuk koordinat ini.') }}</dd>
-                        <p class="text-xs text-zinc-500">{{ __('Alamat yang ditampilkan di sini adalah snapshot yang sama dengan yang dikirim bersama foto.') }}</p>
+                        <p class="text-xs text-[var(--sanmal-text-muted)]">{{ __('Alamat yang ditampilkan di sini adalah snapshot yang sama dengan yang dikirim bersama foto.') }}</p>
                     </div>
                     <div class="flex justify-between gap-4">
-                        <dt class="text-zinc-500">{{ __('Sumber foto') }}</dt>
+                        <dt class="text-[var(--sanmal-text-muted)]">{{ __('Sumber foto') }}</dt>
                         <dd class="font-medium">{{ $selfieSource === 'upload' ? __('Unggah manual') : __('Kamera') }}</dd>
                     </div>
                 </dl>
@@ -819,41 +819,41 @@ new #[Title('Absensi')] class extends Component {
                         <x-ui.badge :color="$selectedOvertime->state->badgeColor()">{{ $selectedOvertime->state->label() }}</x-ui.badge>
                         <x-ui.badge :color="$selectedOvertime->approval_status->badgeColor()">{{ $selectedOvertime->approval_status->label() }}</x-ui.badge>
                     </div>
-                    <dl class="grid gap-3 rounded-xl bg-zinc-50 p-4 text-sm dark:bg-zinc-800">
+                    <dl class="grid gap-3 rounded-xl bg-sanmal-surface-inset p-4 text-sm dark:bg-sanmal-surface-inset-dark">
                         <div>
-                            <dt class="text-zinc-500">{{ __('Mulai terjadwal') }}</dt>
+                            <dt class="text-[var(--sanmal-text-muted)]">{{ __('Mulai terjadwal') }}</dt>
                             <dd class="mt-1 font-medium">{{ $selectedOvertime->scheduledStartLocal()->format('d M Y, H:i T') }}</dd>
                         </div>
                         <div>
-                            <dt class="text-zinc-500">{{ __('Mulai aktual') }}</dt>
+                            <dt class="text-[var(--sanmal-text-muted)]">{{ __('Mulai aktual') }}</dt>
                             <dd class="mt-1 font-medium">{{ $selectedOvertime->startRecord?->effectiveRecordedAtLocal()->format('d M Y, H:i T') ?? '—' }}</dd>
                         </div>
                         <div>
-                            <dt class="text-zinc-500">{{ __('Selesai aktual') }}</dt>
+                            <dt class="text-[var(--sanmal-text-muted)]">{{ __('Selesai aktual') }}</dt>
                             <dd class="mt-1 font-medium">{{ $selectedOvertime->clockOutRecord?->effectiveRecordedAtLocal()->format('d M Y, H:i T') ?? '—' }}</dd>
                         </div>
                         @if ($selectedOvertime->reason)
                             <div>
-                                <dt class="text-zinc-500">{{ __('Alasan') }}</dt>
+                                <dt class="text-[var(--sanmal-text-muted)]">{{ __('Alasan') }}</dt>
                                 <dd class="mt-1 whitespace-pre-line">{{ $selectedOvertime->reason }}</dd>
                             </div>
                         @endif
                         @if ($selectedOvertime->decision_note)
                             <div>
-                                <dt class="text-zinc-500">{{ __('Catatan admin') }}</dt>
+                                <dt class="text-[var(--sanmal-text-muted)]">{{ __('Catatan admin') }}</dt>
                                 <dd class="mt-1 whitespace-pre-line">{{ $selectedOvertime->decision_note }}</dd>
                             </div>
                         @endif
                         @if ($selectedOvertime->finalized_at)
                             <div>
-                                <dt class="text-zinc-500">{{ __('Waktu final admin') }}</dt>
+                                <dt class="text-[var(--sanmal-text-muted)]">{{ __('Waktu final admin') }}</dt>
                                 <dd class="mt-1 font-medium">
                                     {{ $selectedOvertime->final_start_at?->copy()->setTimezone($selectedOvertime->timezone)->format('d M Y, H:i') ?? '—' }}
                                     – {{ $selectedOvertime->final_end_at?->copy()->setTimezone($selectedOvertime->timezone)->format('d M Y, H:i') ?? '—' }}
                                 </dd>
-                                <dd class="mt-1 text-zinc-500">{{ __('Sumber') }}: {{ $selectedOvertime->finalization_source }}</dd>
+                                <dd class="mt-1 text-[var(--sanmal-text-muted)]">{{ __('Sumber') }}: {{ $selectedOvertime->finalization_source }}</dd>
                                 @if ($selectedOvertime->finalization_reason)
-                                    <dd class="mt-1 whitespace-pre-line text-zinc-500">{{ $selectedOvertime->finalization_reason }}</dd>
+                                    <dd class="mt-1 whitespace-pre-line text-[var(--sanmal-text-muted)]">{{ $selectedOvertime->finalization_reason }}</dd>
                                 @endif
                             </div>
                         @endif

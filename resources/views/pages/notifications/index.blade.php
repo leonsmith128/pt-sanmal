@@ -38,21 +38,21 @@
                         </div>
                         <div class="min-w-0 flex-1">
                             <div class="flex flex-wrap items-start justify-between gap-2">
-                                <h2 class="font-semibold text-zinc-900 dark:text-zinc-100">{{ $data['title'] ?? __('Notifikasi sistem') }}</h2>
+                                <h2 class="font-semibold text-[var(--sanmal-text-primary)]">{{ $data['title'] ?? __('Notifikasi sistem') }}</h2>
                                 @if (! $notification->read_at)
                                     <x-ui.badge color="sky">{{ __('Baru') }}</x-ui.badge>
                                 @endif
                             </div>
-                            <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-300">{{ $data['message'] ?? __('Ada pembaruan pada akun Anda.') }}</p>
+                            <p class="mt-1 text-sm text-[var(--sanmal-text-secondary)]">{{ $data['message'] ?? __('Ada pembaruan pada akun Anda.') }}</p>
                             @if ($isResolved)
-                                <p class="mt-2 text-xs font-medium text-zinc-500">{{ __('Tidak memerlukan tindakan — pengajuan terkait telah dibatalkan.') }}</p>
+                                <p class="mt-2 text-xs font-medium text-[var(--sanmal-text-muted)]">{{ __('Tidak memerlukan tindakan — pengajuan terkait telah dibatalkan.') }}</p>
                             @endif
                             <div class="mt-3 flex flex-wrap items-center justify-between gap-2">
-                                <time class="text-xs text-zinc-500" datetime="{{ $notification->created_at->toISOString() }}" title="{{ $notification->created_at->format('d M Y H:i:s') }}">
+                                <time class="text-xs text-[var(--sanmal-text-muted)]" datetime="{{ $notification->created_at->toISOString() }}" title="{{ $notification->created_at->format('d M Y H:i:s') }}">
                                     {{ __('Masuk') }} {{ $notification->created_at->timezone(config('app.timezone'))->translatedFormat('d M Y, H:i') }}
                                 </time>
                                 @if (! empty($data['resolved_at']))
-                                    <time class="text-xs text-zinc-500" datetime="{{ $data['resolved_at'] }}" title="{{ $data['resolved_at'] }}">
+                                    <time class="text-xs text-[var(--sanmal-text-muted)]" datetime="{{ $data['resolved_at'] }}" title="{{ $data['resolved_at'] }}">
                                         {{ __('Diperbarui') }} {{ \Illuminate\Support\Carbon::parse($data['resolved_at'])->timezone(config('app.timezone'))->translatedFormat('d M Y, H:i') }}
                                     </time>
                                 @endif

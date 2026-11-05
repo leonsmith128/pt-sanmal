@@ -40,7 +40,7 @@
                     {{ __('Sesi terbuka: Clock In #') }}{{ $openSession->id }} · {{ $openSession->recordedAtLocal()->format('d/m/Y H:i') }}. {{ __('Untuk lupa Clock Out, kosongkan event di atas dan pilih Clock Out.') }}
                 </flux:callout>
             @else
-                <flux:text class="text-sm text-zinc-500">{{ __('Tidak ada sesi terbuka untuk pengajuan Clock Out yang terlupa.') }}</flux:text>
+                <flux:text class="text-sm text-[var(--sanmal-text-muted)]">{{ __('Tidak ada sesi terbuka untuk pengajuan Clock Out yang terlupa.') }}</flux:text>
             @endif
 
             <x-ui.input
@@ -67,7 +67,7 @@
                 accept=".jpg,.jpeg,.png,.pdf"
             />
 
-            <div class="flex justify-end gap-2 border-t border-zinc-200 pt-4 dark:border-zinc-700">
+            <div class="flex justify-end gap-2 border-t border-sanmal-border pt-4 dark:border-sanmal-border-dark">
                 <x-ui.button href="{{ route('leave-requests.index') }}" variant="ghost">{{ __('Batal') }}</x-ui.button>
                 <x-ui.button type="submit" variant="primary">{{ __('Kirim koreksi') }}</x-ui.button>
             </div>

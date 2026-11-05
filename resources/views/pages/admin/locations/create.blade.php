@@ -31,16 +31,16 @@
                 <input type="hidden" name="client_id" value="{{ $selectedClient->id }}">
                 <input type="hidden" name="type" value="site">
 
-                <div class="rounded-lg bg-zinc-50 p-3 text-sm dark:bg-zinc-800">
-                    <p class="text-xs text-zinc-500">{{ __('Client') }}</p>
+                <div class="rounded-lg bg-sanmal-surface-inset p-3 text-sm dark:bg-sanmal-surface-inset-dark">
+                    <p class="text-xs text-[var(--sanmal-text-muted)]">{{ __('Client') }}</p>
                     <p class="font-medium">{{ $selectedClient->name }} ({{ $selectedClient->code }})</p>
                 </div>
             @elseif ($officeMode)
                 <input type="hidden" name="client_id" value="">
                 <input type="hidden" name="type" value="office">
 
-                <div class="rounded-lg bg-zinc-50 p-3 text-sm dark:bg-zinc-800">
-                    <p class="text-xs text-zinc-500">{{ __('Jenis Location') }}</p>
+                <div class="rounded-lg bg-sanmal-surface-inset p-3 text-sm dark:bg-sanmal-surface-inset-dark">
+                    <p class="text-xs text-[var(--sanmal-text-muted)]">{{ __('Jenis Location') }}</p>
                     <p class="font-medium">{{ __('Office Internal SanMal') }}</p>
                 </div>
             @else
