@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
 
 /*
@@ -54,7 +55,7 @@ function something()
  *
  * @return array{sheets: list<string>, text: string, xml: string, media: list<string>}
  */
-function xlsxContents(Illuminate\Testing\TestResponse $response): array
+function xlsxContents(TestResponse $response): array
 {
     $response->assertOk();
 
