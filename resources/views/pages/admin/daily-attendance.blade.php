@@ -17,23 +17,7 @@
 
         <div class="flex flex-wrap items-end justify-between gap-4">
             <x-admin.filter-panel>
-                <form
-                    method="GET"
-                    action="{{ route('admin.daily-attendance') }}"
-                    class="flex flex-wrap items-end gap-3"
-                >
-                    <x-ui.input
-                        type="date"
-                        name="date"
-                        :label="__('Tanggal rekap')"
-                        :value="$date"
-                        required
-                    />
-
-                    <x-ui.button type="submit" variant="primary">
-                        {{ __('Lihat') }}
-                    </x-ui.button>
-                </form>
+                <x-admin.date-calendar-filter :date="$date" />
             </x-admin.filter-panel>
 
             <x-admin.filter-panel>
