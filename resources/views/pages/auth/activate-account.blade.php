@@ -3,6 +3,7 @@
         <div class="space-y-2 text-center">
             <h1 class="text-2xl font-semibold">{{ __('Aktivasi akun pegawai') }}</h1>
             <p class="text-sm text-[var(--sanmal-text-muted)]">{{ __('Buat password pribadi untuk menyelesaikan aktivasi akun SanMal.') }}</p>
+            <p class="text-sm text-[var(--sanmal-text-muted)]">{{ __('Verifikasi email merupakan proses terpisah dan dapat dilakukan setelah masuk melalui menu Keamanan Akun.') }}</p>
         </div>
 
         <form method="POST" action="{{ route('employee-activation.store', ['token' => $token]) }}" class="space-y-4">

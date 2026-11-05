@@ -2,7 +2,7 @@
     <x-ui.page class="!max-w-xl gap-5">
         <x-admin.page-header
             :title="__('Buat Password Pribadi')"
-            :description="__('Untuk keamanan, ganti password sementara sebelum melanjutkan menggunakan aplikasi.')"
+            :description="__('Ganti password sementara untuk menyelesaikan aktivasi akun. Verifikasi email dilakukan terpisah melalui menu Keamanan Akun setelah Anda masuk.')"
         />
 
         <x-ui.card padding="p-5 sm:p-6">
