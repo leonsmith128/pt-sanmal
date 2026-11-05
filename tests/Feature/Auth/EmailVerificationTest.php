@@ -18,12 +18,15 @@ test('email verification screen can be rendered', function () {
         ->assertOk();
 });
 
-test('unverified users are redirected to the email verification prompt', function () {
+test('unverified users can access the application because verification is independent from activation', function () {
     $user = User::factory()->unverified()->create();
+    \App\Models\Employee::query()->create(['user_id' => $user->id]);
 
     $this->actingAs($user)
         ->get(route('profile.edit'))
-        ->assertRedirect(route('verification.notice'));
+        ->assertOk();
+
+    expect($user->fresh()->hasVerifiedEmail())->toBeFalse();
 });
 
 test('email can be verified', function () {

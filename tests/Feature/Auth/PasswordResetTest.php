@@ -1,65 +1,106 @@
 <?php
 
+use App\Enums\UserRole;
+use App\Models\Employee;
+use App\Models\PasswordResetRequest;
 use App\Models\User;
-use Illuminate\Auth\Notifications\ResetPassword;
+use App\Notifications\PasswordResetApprovedNotification;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
-use Laravel\Fortify\Features;
 
-beforeEach(function () {
-    $this->skipUnlessFortifyHas(Features::resetPasswords());
+function passwordResetAdmin(): User
+{
+    $admin = User::factory()->create();
+    $admin->forceFill(['role' => UserRole::Admin, 'is_active' => true])->save();
+
+    return $admin;
+}
+
+function passwordResetEmployee(): User
+{
+    $user = User::factory()->create([
+        'email_verified_at' => null,
+        'must_change_password' => false,
+    ]);
+    $user->forceFill(['role' => UserRole::Employee, 'is_active' => true])->save();
+    Employee::query()->create(['user_id' => $user->id]);
+
+    return $user;
+}
+
+test('employee can request a password reset without revealing whether an email exists', function () {
+    $user = passwordResetEmployee();
+
+    $this->post(route('password-reset.request.store'), ['email' => $user->email])
+        ->assertRedirect()
+        ->assertSessionHas('status');
+
+    $this->assertDatabaseHas('password_reset_requests', [
+        'user_id' => $user->id,
+        'status' => 'pending',
+    ]);
+
+    $this->post(route('password-reset.request.store'), ['email' => 'unknown@example.com'])
+        ->assertRedirect()
+        ->assertSessionHas('status');
+
+    expect(PasswordResetRequest::query()->count())->toBe(1);
 });
 
-test('reset password link screen can be rendered', function () {
-    $response = $this->get(route('password.request'));
-
-    $response->assertOk();
-});
-
-test('reset password link can be requested', function () {
+test('only an administrator can approve a pending reset request and issue a link', function () {
     Notification::fake();
 
-    $user = User::factory()->create();
+    $user = passwordResetEmployee();
+    $this->post(route('password-reset.request.store'), ['email' => $user->email]);
 
-    $this->post(route('password.request'), ['email' => $user->email]);
+    $resetRequest = PasswordResetRequest::query()->where('user_id', $user->id)->firstOrFail();
 
-    Notification::assertSentTo($user, ResetPassword::class);
+    $this->actingAs(passwordResetAdmin())
+        ->post(route('admin.password-reset-requests.approve', $resetRequest))
+        ->assertRedirect()
+        ->assertSessionHas('status');
+
+    expect($resetRequest->fresh()->status)->toBe('approved');
+    Notification::assertSentTo($user, PasswordResetApprovedNotification::class);
 });
 
-test('reset password screen can be rendered', function () {
+test('approved reset token can be used once and updates the password', function () {
     Notification::fake();
 
-    $user = User::factory()->create();
+    $user = passwordResetEmployee();
+    $this->post(route('password-reset.request.store'), ['email' => $user->email]);
+    $resetRequest = PasswordResetRequest::query()->where('user_id', $user->id)->firstOrFail();
 
-    $this->post(route('password.request'), ['email' => $user->email]);
+    $this->actingAs(passwordResetAdmin())
+        ->post(route('admin.password-reset-requests.approve', $resetRequest));
 
-    Notification::assertSentTo($user, ResetPassword::class, function ($notification) {
-        $response = $this->get(route('password.reset', $notification->token));
+    $notification = Notification::sent($user, PasswordResetApprovedNotification::class)->first();
+    $token = basename(parse_url($notification->resetUrl, PHP_URL_PATH));
 
-        $response->assertOk();
+    $payload = [
+        'password' => 'new-secure-password',
+        'password_confirmation' => 'new-secure-password',
+    ];
 
-        return true;
-    });
+    $this->post(route('password-reset.store', ['token' => $token]), $payload)
+        ->assertRedirect(route('login'));
+
+    expect(Hash::check('new-secure-password', $user->fresh()->password))->toBeTrue()
+        ->and($resetRequest->fresh()->status)->toBe('used');
+
+    $this->post(route('password-reset.store', ['token' => $token]), $payload)
+        ->assertStatus(422);
 });
 
-test('password can be reset with valid token', function () {
-    Notification::fake();
+test('employee cannot request reset while account is inactive or awaiting first password change', function () {
+    $inactive = passwordResetEmployee();
+    $inactive->forceFill(['is_active' => false])->save();
 
-    $user = User::factory()->create();
+    $pending = passwordResetEmployee();
+    $pending->forceFill(['must_change_password' => true])->save();
 
-    $this->post(route('password.request'), ['email' => $user->email]);
+    $this->post(route('password-reset.request.store'), ['email' => $inactive->email]);
+    $this->post(route('password-reset.request.store'), ['email' => $pending->email]);
 
-    Notification::assertSentTo($user, ResetPassword::class, function ($notification) use ($user) {
-        $response = $this->post(route('password.update'), [
-            'token' => $notification->token,
-            'email' => $user->email,
-            'password' => 'password',
-            'password_confirmation' => 'password',
-        ]);
-
-        $response
-            ->assertSessionHasNoErrors()
-            ->assertRedirect(route('login', absolute: false));
-
-        return true;
-    });
+    expect(PasswordResetRequest::query()->count())->toBe(0);
 });

@@ -21,7 +21,7 @@ it('denies employees access to administrative detail and decision endpoints', fu
     $targetEmployee = Employee::query()->create(['user_id' => $targetUser->id]);
 
     $this->actingAs($employee)
-        ->get(route('admin.employees.show', $targetEmployee))
+        ->post(route('admin.employees.temporary-password', $targetEmployee))
         ->assertForbidden();
 
     $this->actingAs($employee)
