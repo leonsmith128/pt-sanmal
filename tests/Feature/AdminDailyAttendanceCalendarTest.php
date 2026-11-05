@@ -1,8 +1,8 @@
 <?php
 
-use App\\Enums\\UserRole;
-use App\\Models\\Employee;
-use App\\Models\\User;
+use App\Enums\UserRole;
+use App\Models\Employee;
+use App\Models\User;
 
 it('renders the admin daily recap with the selected date in the calendar filter', function () {
     $admin = User::factory()->create();
