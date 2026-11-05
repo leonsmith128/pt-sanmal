@@ -79,6 +79,9 @@
                         <flux:sidebar.item icon="document-check" :href="route('admin.attendance-corrections.index')" :current="request()->routeIs('admin.attendance-corrections.*')" wire:navigate>
                             {{ __('Koreksi') }}
                         </flux:sidebar.item>
+                        <flux:sidebar.item icon="key-round" :href="route('admin.password-reset-requests.index')" :current="request()->routeIs('admin.password-reset-requests.*')" wire:navigate>
+                            {{ __('Reset Password') }}
+                        </flux:sidebar.item>
                     </x-ui.sidebar-section>
 
                     <x-ui.sidebar-section :heading="__('Data Master')">

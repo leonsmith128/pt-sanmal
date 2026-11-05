@@ -102,8 +102,8 @@
                                 <td class="max-w-40 break-words px-3 py-2">{{ $employee->employee_number ?: '—' }}</td>
                                 <td class="max-w-56 break-words px-3 py-2">{{ $employee->title?->name ?: '—' }}</td>
                                 <td class="whitespace-nowrap px-3 py-2">
-                                    <x-ui.badge :color="$employee->user->is_active ? 'green' : 'zinc'">
-                                        {{ $employee->user->is_active ? __('Aktif') : __('Nonaktif') }}
+                                    <x-ui.badge :color="! $employee->user->is_active ? 'zinc' : ($employee->user->must_change_password ? 'amber' : 'green')">
+                                        {{ ! $employee->user->is_active ? __('Nonaktif') : ($employee->user->must_change_password ? __('Menunggu aktivasi') : __('Aktif')) }}
                                     </x-ui.badge>
                                 </td>
                                 <td class="whitespace-nowrap px-3 py-2 text-right">
