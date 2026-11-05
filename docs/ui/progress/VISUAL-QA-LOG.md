@@ -100,3 +100,23 @@ The mobile filter disclosure was added to the source. Browser QA must confirm th
 Source adjustments: inset the table from the card edges; align the Export label and chevron horizontally; make the filter panel collapsible at all breakpoints while keeping the active-filter count in its always-visible header; use five desktop columns for the nine filter controls; keep Reset filter available outside the collapsed region.
 
 **Browser QA: Pending.** Check the table inset against card edges, export trigger alignment, filter collapse/expand and active count, reset availability while collapsed, and whether the nine controls fit into exactly two rows at the actual desktop viewport width.
+
+## Admin master data and review workflows — source follow-up (5 November 2026)
+
+Source commit: `ffc5566bedfb97adfbec7eca44b6cb1da198067d`.
+
+Scope: Client list/detail and Site sub-grid; Client/Location/Project/Employee forms; Project cards; Employee hybrid card/table; Leave Request quick status links and mobile cards/desktop table; Attendance Correction detail; Overtime queue/detail/finalization; Audit Log; daily attendance employee card tokens.
+
+**Automated coverage:** assertions were added or extended for Client and Site responsive grids, shared card surfaces, three-column Project cards, Employee card/table preservation, and the responsive Leave Request queue. CI result for this commit is pending and must be checked before merge.
+
+**Browser/device QA: Not run.** Review at 360–390 px, 414–430 px, 768 px, 1024 px, and 1280–1440 px in light and dark themes. Verify:
+- Client cards and nested Site grids do not become cramped; long Client/Site names and addresses wrap without pushing actions off-screen.
+- Project cards retain readable metadata and expandable details in one/two/three-column layouts.
+- Create/edit forms remain readable, validation messages stay adjacent to their fields, and submit/cancel actions remain reachable on mobile.
+- Employee mobile cards and the xl desktop table do not render simultaneously at the wrong breakpoint; the table's horizontal scroll remains scoped and keyboard accessible.
+- Leave Request status links preserve their selected state, mobile cards show the same essential information as the desktop table, and pagination remains consistent.
+- Correction/overtime detail and decision/finalization controls remain usable with long notes and validation errors.
+- Audit Log horizontal scrolling remains inside its labeled, focusable region.
+- Empty/loading/error states, focus-visible, touch target sizes, and layout stability remain acceptable in both themes.
+
+Source review and automated tests do not count as browser/device visual QA. Record actual browser/device, viewport, theme, scenario, result, and evidence before marking this scope visually verified.

@@ -197,3 +197,20 @@ Automated tests cover the active count, disclosure markup, desktop grid, table i
 - Targeted automated tests: `php artisan test --compact` over Auth, Attendance, Dashboard, Employee Profile, Request Center, Leave, Correction, Overtime, Notification, and Security feature tests — **147 passed, 1 skipped (671 assertions)**.
 - `npm run build` berhasil; build menampilkan notice opsional bahwa paket `fontaine` tidak terpasang. `git diff --check` lulus. Pint tidak dijalankan karena perubahan hanya Blade dan dokumentasi.
 - Browser/device QA belum dilakukan. Verifikasi layout, focus, scrolling, dan touch pada viewport/tema nyata masih diperlukan.
+
+
+## Admin master-data and approval-page design follow-up — 5 November 2026
+
+Source-level UI refinements were implemented on PR #27 at commit `ffc5566bedfb97adfbec7eca44b6cb1da198067d`:
+
+- Client list and detail now use shared SanMal card surfaces. Site summaries use a responsive sub-grid; Client detail Site cards use one, two, and three columns across mobile, tablet, and desktop.
+- Project monitoring cards now use the shared card primitive and a one/two/three-column responsive grid. Project create/edit forms use the standard `max-w-2xl` page width and card-wrapped form surface.
+- Client, Location, and Employee create/edit forms use the same shared form surface. No form field, method, action URL, validation rule, or submitted name was changed.
+- Employee management keeps its existing `lg:grid-cols-2 xl:hidden` mobile/tablet cards and the wide-screen semantic table. The table remains inside its own horizontally scrollable region.
+- Admin Leave Request review now has enum-driven quick status links, compact mobile cards, and the existing semantic table at medium and larger widths. The status values continue to use `LeaveRequestStatus`; no new status mapping was introduced.
+- Attendance correction and overtime detail/review surfaces use shared cards and inset tokens. Overtime approval, operational state, finalization, and photo-exception actions remain unchanged.
+- Audit Log retains a keyboard-focusable, labeled horizontal-scroll region inside the shared card. The daily attendance employee card and affected page metadata now use SanMal text/surface/divider tokens.
+- No route, controller, Eloquent query, authorization rule, validation, Livewire action/state, database schema, camera/GPS flow, attendance calculation, or export contract was changed.
+- No additional Flux icon import was necessary; existing Flux icons already cover the affected actions.
+
+Regression assertions were extended in `AdminClientLocationTest`, `AdminProjectTest`, and `AdminEmployeePageTest`. A responsive admin Leave Request queue assertion was added to `LeaveRequestWorkflowTest`. CI for the implementation commit is pending. Browser/device visual QA has not been performed; see [Visual QA Log](VISUAL-QA-LOG.md).
