@@ -20,7 +20,7 @@
                 <x-admin.date-calendar-filter :date="$date" />
             </x-admin.filter-panel>
 
-            <x-admin.filter-panel class="flex min-w-0 items-center !p-2 sm:!p-4">
+            <x-admin.filter-panel class="flex min-w-0 items-center !p-1.5 sm:!p-3">
                 <form
                     method="GET"
                     action="{{ route('admin.daily-attendance.export') }}"
