@@ -33,7 +33,7 @@
                 </fieldset>
 
                 <fieldset class="grid min-w-0 gap-4 sm:grid-cols-2">
-                    <legend class="mb-1 text-sm font-semibold text-[var(--sanmal-text-primary)]">
+                    <legend class="mb-1 text-sm font-semibold text-[var(--sanmal-text-primary)] sm:col-span-2">
                         {{ __('Data kepegawaian') }}
                     </legend>
 
