@@ -56,6 +56,29 @@ function overtimeRequest(Employee $employee, AttendanceRecord $clockIn, string $
     ]);
 }
 
+
+it('renders the admin overtime queue as mobile cards and a desktop table', function () {
+    $admin = User::factory()->create();
+    $admin->forceFill(['role' => UserRole::Admin, 'is_active' => true])->save();
+    Employee::create(['user_id' => $admin->id]);
+
+    $employee = overtimeEmployee();
+    $clockIn = overtimeClockIn($employee);
+    $request = overtimeRequest($employee, $clockIn, now()->addHour()->toDateTimeString());
+
+    $this->actingAs($admin)
+        ->get(route('admin.overtime-requests.index'))
+        ->assertOk()
+        ->assertSee('md:hidden', false)
+        ->assertSee('hidden overflow-hidden md:block', false)
+        ->assertSee('Status operasional')
+        ->assertSee($employee->user->name)
+        ->assertSee($request->reason)
+        ->assertSee($request->approval_status->label())
+        ->assertSee($request->state->label())
+        ->assertSee(route('admin.overtime-requests.show', $request), false);
+});
+
 it('records clock out when GPS is unavailable and flags location for review', function () {
     Storage::fake('local');
     $employee = overtimeEmployee();
