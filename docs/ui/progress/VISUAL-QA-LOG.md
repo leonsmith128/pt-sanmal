@@ -142,3 +142,14 @@ The employee Attendance supporting metadata, Employee Profile upload feedback, E
 **Automated coverage:** existing feature tests remain the regression coverage for the affected workflows. CI run #41981290455 passed on the preceding test-fix commit and covered Pint, static analysis, MariaDB, and SQLite. CI for this later token-only source commit is queued and must be checked before merge.
 
 **Browser/device QA: Not run.** Check the affected pages at 360–390 px, 414–430 px, 768 px, 1024 px, and 1280–1440 px in light/dark themes. Pay particular attention to Attendance supporting panels and long evidence text, mobile form action separators, notification text wrapping, and Location context surfaces. Confirm camera/GPS interactions remain unchanged through manual smoke testing; source-only token changes do not establish device compatibility.
+
+
+## Admin Leave Request and Overtime table scroll accessibility — source follow-up (5 November 2026)
+
+Source commit: `f9bcc443d77370182fa0aa1dfe471b40d05337bb`.
+
+The desktop/table presentations now expose the horizontal-scroll container as a named, keyboard-focusable region. The table content and review workflow are unchanged.
+
+**Automated coverage:** feature assertions check the localized region labels. CI run #41981528715 passed for the preceding token-alignment commit; CI for this final accessibility change is pending.
+
+**Browser/device QA: Not run.** Verify that keyboard focus can reach the region, arrow/trackpad scrolling behaves normally, screen-reader labels are meaningful, and the scroll container does not create document-level horizontal overflow at 768 px, 1024 px, and 1280–1440 px.

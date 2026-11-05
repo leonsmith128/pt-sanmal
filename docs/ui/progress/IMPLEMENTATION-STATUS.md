@@ -242,3 +242,14 @@ A final source pass aligned remaining employee workflow surfaces with the SanMal
 CI run [#41981290455](https://github.com/leonsmith128/pt-sanmal/actions/runs/41981290455) passed on commit `4630b19645af39fbfb676343def4e12d538cbc8e`, including Pint, repository and changed-code static analysis, MariaDB tests, and SQLite tests. The later Blade-only token alignment commit `f38a551befc48ef6626c7108dde1711d19a6d002` has a new CI run queued; do not treat that latest head as fully verified until its run completes.
 
 Browser/device visual QA has not been performed. See [Visual QA Log](VISUAL-QA-LOG.md).
+
+
+## Accessible horizontal scroll regions for review tables — 5 November 2026
+
+Admin Leave Request and Overtime desktop tables now expose their horizontally scrollable area as a keyboard-focusable region with a descriptive accessible label in source commit `f9bcc443d77370182fa0aa1dfe471b40d05337bb`.
+
+- Added `role="region"`, a localized `aria-label`, and `tabindex="0"` to the inner scroll containers; the outer shared card remains unchanged.
+- Regression assertions verify both region labels.
+- No table data, columns, status values, filters, routes, pagination, or review actions changed.
+- CI run [#41981528715](https://github.com/leonsmith128/pt-sanmal/actions/runs/41981528715) passed on the preceding token-alignment commit `f38a551befc48ef6626c7108dde1711d19a6d002`. CI for the latest region-accessibility commit is pending.
+- Browser/device QA remains not run; see [Visual QA Log](VISUAL-QA-LOG.md).
