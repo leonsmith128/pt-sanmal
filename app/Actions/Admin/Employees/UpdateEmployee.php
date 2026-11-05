@@ -27,6 +27,12 @@ class UpdateEmployee
 
             $user->forceFill($userAttributes)->save();
 
+            if (! $data['is_active']) {
+                $user->accountActivation()
+                    ->whereNull('consumed_at')
+                    ->update(['consumed_at' => now()]);
+            }
+
             $employee->update([
                 'employee_number' => $data['employee_number'] ?? null,
                 'phone' => $data['phone'] ?? null,

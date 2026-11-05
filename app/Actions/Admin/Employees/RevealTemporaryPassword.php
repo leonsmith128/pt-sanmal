@@ -10,6 +10,8 @@ class RevealTemporaryPassword
 {
     public function handle(Employee $employee): string
     {
+        abort_unless($employee->user->is_active, 404);
+
         $credential = $employee->user->accountCredential;
 
         abort_unless($credential, 404);
