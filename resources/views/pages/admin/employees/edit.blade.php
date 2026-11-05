@@ -219,7 +219,6 @@
                         <x-ui.button
                             type="button"
                             variant="primary"
-                            icon="clipboard"
                             x-on:click="copyTemporaryPassword()"
                             x-bind:disabled="copying"
                         >
@@ -266,12 +265,12 @@
                 <div class="flex flex-wrap gap-2">
                     <form method="POST" action="{{ route('admin.employees.resend-activation', $employee) }}">
                         @csrf
-                        <x-ui.button type="submit" variant="outline" icon="mail">{{ __('Kirim ulang tautan aktivasi') }}</x-ui.button>
+                        <x-ui.button type="submit" variant="outline">{{ __('Kirim ulang tautan aktivasi') }}</x-ui.button>
                     </form>
                     @if ($employee->user->accountCredential)
                         <form method="POST" action="{{ route('admin.employees.rotate-temporary-password', $employee) }}">
                             @csrf
-                            <x-ui.button type="submit" variant="outline" icon="refresh-cw">{{ __('Rotasi password sementara') }}</x-ui.button>
+                            <x-ui.button type="submit" variant="outline">{{ __('Rotasi password sementara') }}</x-ui.button>
                         </form>
                     @endif
                 </div>

@@ -389,7 +389,7 @@ test('collapsed admin sidebar keeps every navigation item visible as an icon', f
     @$document->loadHTML($response->getContent());
     $xpath = new DOMXPath($document);
 
-    expect($xpath->query('//*[@data-flux-sidebar-item]')->length)->toBe(15)
+    expect($xpath->query('//*[@data-flux-sidebar-item]')->length)->toBe(16)
         ->and(substr_count($response->getContent(), 'data-test="sidebar-group-separator"'))->toBe(5)
         ->and($response->getContent())->toContain('in-data-flux-sidebar-collapsed-desktop:not-in-data-flux-sidebar-group-dropdown:hidden')
         ->and($response->getContent())->toContain('data-flux-sidebar-item')
