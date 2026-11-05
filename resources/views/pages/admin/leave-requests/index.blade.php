@@ -17,18 +17,31 @@
                 ->all();
         @endphp
 
-        <nav class="flex flex-wrap gap-2" aria-label="{{ __('Filter cepat status permohonan') }}">
+        <div class="flex flex-wrap items-center gap-1.5" role="group" aria-label="{{ __('Filter cepat status permohonan') }}">
             @foreach ($statusPills as $statusValue => $statusLabel)
-                @php($isActive = (string) request('status', '') === (string) $statusValue)
+                @php
+                    $isActive = (string) request('status', '') === (string) $statusValue;
+                    $pillParams = array_merge(request()->except('page'), ['status' => $statusValue]);
+                    if ($statusValue === '') {
+                        unset($pillParams['status']);
+                    }
+                @endphp
                 <a
-                    href="{{ route('admin.leave-requests.index', $statusValue === '' ? [] : ['status' => $statusValue]) }}"
+                    href="{{ route('admin.leave-requests.index', $pillParams) }}"
                     @if ($isActive) aria-current="page" @endif
-                    class="inline-flex min-h-9 items-center rounded-full px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--sanmal-focus)] {{ $isActive ? 'bg-sanmal-brand-blue text-white dark:bg-sanmal-brand-yellow-dark dark:text-zinc-900' : 'bg-sanmal-surface-secondary text-[var(--sanmal-text-secondary)] hover:bg-sanmal-surface-inset dark:bg-sanmal-surface-secondary-dark dark:hover:bg-sanmal-surface-elevated-dark' }}"
+                    class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors {{ $isActive ? 'bg-sanmal-brand-blue text-white shadow-xs dark:bg-sanmal-brand-yellow-dark dark:text-zinc-900' : 'bg-sanmal-surface-card text-sanmal-text-secondary hover:bg-sanmal-surface-secondary hover:text-sanmal-text-primary dark:bg-sanmal-surface-card-dark dark:text-sanmal-text-muted dark:hover:bg-sanmal-surface-elevated-dark shadow-xs' }}"
                 >
-                    {{ $statusLabel }}
+                    @if ($statusValue === 'pending')
+                        <span class="size-1.5 rounded-full {{ $isActive ? 'bg-white dark:bg-zinc-900' : 'bg-amber-500' }}"></span>
+                    @elseif ($statusValue === 'approved')
+                        <span class="size-1.5 rounded-full {{ $isActive ? 'bg-white dark:bg-zinc-900' : 'bg-emerald-500' }}"></span>
+                    @elseif ($statusValue === 'rejected')
+                        <span class="size-1.5 rounded-full {{ $isActive ? 'bg-white dark:bg-zinc-900' : 'bg-red-500' }}"></span>
+                    @endif
+                    <span>{{ $statusLabel }}</span>
                 </a>
             @endforeach
-        </nav>
+        </div>
 
 
 
