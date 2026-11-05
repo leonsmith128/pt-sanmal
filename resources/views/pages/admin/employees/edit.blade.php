@@ -142,6 +142,7 @@
                             this.copied = false;
                             this.message = '';
                             this.manualPassword = '';
+                            let retrievedPassword = '';
 
                             try {
                                 const response = await fetch(@js(route('admin.employees.temporary-password', $employee)), {
@@ -163,14 +164,14 @@
                                     throw new Error('Respons password tidak valid.');
                                 }
 
-                                const password = data.password;
-                                const success = await this.copyText(password);
+                                retrievedPassword = data.password;
+                                const success = await this.copyText(retrievedPassword);
 
                                 if (success) {
                                     this.copied = true;
                                     this.message = 'Password berhasil disalin ke clipboard.';
                                 } else {
-                                    this.manualPassword = password;
+                                    this.manualPassword = retrievedPassword;
                                     this.message = 'Clipboard tidak tersedia. Salin password dari kolom berikut secara manual.';
                                     this.$nextTick(() => {
                                         this.$refs.manualPasswordInput?.focus();
@@ -178,19 +179,35 @@
                                     });
                                 }
                             } catch (error) {
-                                this.message = error.message || 'Password gagal disalin. Silakan coba kembali.';
+                                if (retrievedPassword) {
+                                    this.manualPassword = retrievedPassword;
+                                    this.message = 'Clipboard tidak tersedia. Salin password dari kolom berikut secara manual.';
+                                    this.$nextTick(() => {
+                                        this.$refs.manualPasswordInput?.focus();
+                                        this.$refs.manualPasswordInput?.select();
+                                    });
+                                } else {
+                                    this.message = error.message || 'Password gagal diambil. Silakan coba kembali.';
+                                }
                             } finally {
                                 this.copying = false;
                             }
                         },
                         async copyManualPassword() {
                             if (!this.manualPassword) return;
-                            const success = await this.copyText(this.manualPassword);
-                            if (success) {
-                                this.copied = true;
-                                this.message = 'Password berhasil disalin ke clipboard.';
-                                this.manualPassword = '';
-                            } else {
+
+                            try {
+                                const success = await this.copyText(this.manualPassword);
+                                if (success) {
+                                    this.copied = true;
+                                    this.message = 'Password berhasil disalin ke clipboard.';
+                                    this.manualPassword = '';
+                                } else {
+                                    this.$refs.manualPasswordInput?.focus();
+                                    this.$refs.manualPasswordInput?.select();
+                                    this.message = 'Tekan Ctrl+C atau gunakan Salin pada menu browser.';
+                                }
+                            } catch (error) {
                                 this.$refs.manualPasswordInput?.focus();
                                 this.$refs.manualPasswordInput?.select();
                                 this.message = 'Tekan Ctrl+C atau gunakan Salin pada menu browser.';

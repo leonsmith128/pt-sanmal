@@ -71,6 +71,7 @@ test('admin can copy the same temporary password repeatedly while employee canno
     $first = $this->actingAs($admin)
         ->postJson(route('admin.employees.temporary-password', $employee))
         ->assertOk()
+        ->assertHeader('Cache-Control', 'no-store, private')
         ->assertJsonPath('password', $temporaryPassword);
 
     $second = $this->actingAs($admin)
