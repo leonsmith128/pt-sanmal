@@ -132,3 +132,15 @@ it('shows the long pending status label on the employee management page', functi
         ->assertSee('Menunggu aktivasi / ganti password')
         ->assertSee('Akun nonaktif tidak dapat menggunakan aplikasi');
 });
+
+it('renders the employee data section heading across the two-column create form grid', function () {
+    $superadmin = User::factory()->create();
+    $superadmin->forceFill(['role' => UserRole::Superadmin, 'is_active' => true])->save();
+
+    $this->actingAs($superadmin)
+        ->get(route('admin.employees.create'))
+        ->assertOk()
+        ->assertSee('Data kepegawaian')
+        ->assertSee('sm:grid-cols-2', false)
+        ->assertSee('sm:col-span-2', false);
+});
