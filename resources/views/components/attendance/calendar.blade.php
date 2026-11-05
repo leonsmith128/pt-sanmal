@@ -9,11 +9,7 @@
     'interaction' => 'livewire',
 ])
 
-@if ($interaction === 'alpine')
-    <div class="w-full min-w-0 bg-transparent p-0 shadow-none">
-@else
-    <x-ui.card padding="p-3" class="w-full min-w-0 rounded-2xl">
-@endif
+<div class="w-full min-w-0 {{ $interaction === 'alpine' ? 'bg-transparent p-0 shadow-none' : 'rounded-2xl bg-sanmal-surface-card p-3 text-[var(--sanmal-text-primary)] shadow-sm dark:bg-sanmal-surface-card-dark dark:shadow-black/20' }}">
     <div class="mb-2 flex items-center justify-between gap-2">
         <div class="min-w-0">
             @if ($interaction === 'livewire')
@@ -55,11 +51,7 @@
             </button>
         @endforeach
     </div>
-@if ($interaction === 'alpine')
-    </div>
-@else
-    </x-ui.card>
-@endif
+</div>
 
 @if ($showMonthlyCalendar)
     <div
