@@ -36,7 +36,7 @@ class EmployeePasswordResetController extends Controller
                 && $resetRequest->status === 'approved'
                 && $resetRequest->used_at === null
                 && $resetRequest->expires_at?->isFuture()
-                && $resetRequest->user()->where('is_active', true)->exists(),
+                && $resetRequest->user()->where('is_active', true)->where('must_change_password', false)->exists(),
             404,
         );
 

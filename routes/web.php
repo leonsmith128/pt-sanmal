@@ -32,8 +32,12 @@ use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/login')->name('home');
 
-Route::get('aktivasi-akun/{token}', [EmployeeAccountActivationController::class, 'show'])->name('employee-activation.show');
-Route::post('aktivasi-akun/{token}', [EmployeeAccountActivationController::class, 'store'])->name('employee-activation.store');
+Route::get('aktivasi-akun/{token}', [EmployeeAccountActivationController::class, 'show'])
+    ->middleware('throttle:10,1')
+    ->name('employee-activation.show');
+Route::post('aktivasi-akun/{token}', [EmployeeAccountActivationController::class, 'store'])
+    ->middleware('throttle:5,1')
+    ->name('employee-activation.store');
 
 Route::get('ajukan-reset-password', [EmployeePasswordResetController::class, 'createRequest'])->name('password-reset.request.create');
 Route::post('ajukan-reset-password', [EmployeePasswordResetController::class, 'storeRequest'])
