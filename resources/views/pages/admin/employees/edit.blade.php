@@ -93,7 +93,7 @@
             </form>
         </x-ui.card>
 
-        @if ($employee->user->is_active && $employee->user->accountCredential)
+        @if ($employee->user->is_active && $employee->user->must_change_password && $employee->user->accountCredential)
             <x-ui.card padding="p-4" class="space-y-3">
                 <div>
                     <h2 class="font-semibold">{{ __('Password sementara') }}</h2>

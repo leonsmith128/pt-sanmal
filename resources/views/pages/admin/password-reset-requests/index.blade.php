@@ -18,7 +18,8 @@
                             <div class="flex flex-wrap items-center gap-2">
                                 <p class="font-semibold">{{ $resetRequest->user->name }}</p>
                                 @php
-                                    $statusLabel = match ($resetRequest->status) {
+                                    $isExpiredApproval = $resetRequest->status === 'approved' && $resetRequest->expires_at?->isPast();
+                                    $statusLabel = $isExpiredApproval ? __('Tautan kedaluwarsa') : match ($resetRequest->status) {
                                         'pending' => __('Menunggu tinjauan'),
                                         'approved' => __('Disetujui'),
                                         'rejected' => __('Ditolak'),
@@ -26,10 +27,9 @@
                                         'expired' => __('Kedaluwarsa / dibatalkan'),
                                         default => ucfirst($resetRequest->status),
                                     };
-                                    $statusColor = match ($resetRequest->status) {
+                                    $statusColor = $isExpiredApproval ? 'zinc' : match ($resetRequest->status) {
                                         'pending' => 'amber',
-                                        'approved' => 'green',
-                                        'used' => 'green',
+                                        'approved', 'used' => 'green',
                                         'rejected', 'expired' => 'zinc',
                                         default => 'zinc',
                                     };
