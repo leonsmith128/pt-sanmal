@@ -7,17 +7,43 @@
 
         <x-admin.flash-message />
 
-        <x-admin.filter-panel>
-            <form method="GET" class="flex flex-wrap items-end gap-3">
-                <x-ui.select name="status" :label="__('Status persetujuan')" :value="request('status')" class="min-w-48">
-                    <flux:select.option value="">{{ __('Semua status') }}</flux:select.option>
-                    <flux:select.option value="pending">{{ __('Menunggu') }}</flux:select.option>
-                    <flux:select.option value="approved">{{ __('Disetujui') }}</flux:select.option>
-                    <flux:select.option value="rejected">{{ __('Ditolak') }}</flux:select.option>
-                </x-ui.select>
-                <x-ui.button type="submit" variant="primary">{{ __('Filter') }}</x-ui.button>
-            </form>
-        </x-admin.filter-panel>
+        <div class="flex flex-wrap items-center gap-1.5" role="group" aria-label="{{ __('Filter cepat status persetujuan') }}">
+            @php
+                $statusPills = [
+                    '' => __('Semua'),
+                    'pending' => __('Menunggu'),
+                    'approved' => __('Disetujui'),
+                    'rejected' => __('Ditolak'),
+                ];
+            @endphp
+            @foreach ($statusPills as $statusValue => $statusLabel)
+                @php
+                    $isActive = request('status', '') === $statusValue;
+                    $pillParams = array_merge(request()->except('page'), ['status' => $statusValue]);
+                    if ($statusValue === '') {
+                        unset($pillParams['status']);
+                    }
+                @endphp
+                <a
+                    href="{{ route('admin.overtime-requests.index', $pillParams) }}"
+                    @class([
+                        'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors shadow-xs',
+                        'bg-sanmal-brand-blue text-white dark:bg-sanmal-brand-yellow-dark dark:text-zinc-900' => $isActive,
+                        'bg-sanmal-surface-card text-sanmal-text-secondary hover:bg-sanmal-surface-secondary hover:text-sanmal-text-primary dark:bg-sanmal-surface-card-dark dark:text-sanmal-text-muted dark:hover:bg-sanmal-surface-elevated-dark' => ! $isActive,
+                    ])
+                    @if ($isActive) aria-current="page" @endif
+                >
+                    @if ($statusValue === 'pending')
+                        <span class="size-1.5 rounded-full {{ $isActive ? 'bg-white dark:bg-zinc-900' : 'bg-amber-500' }}"></span>
+                    @elseif ($statusValue === 'approved')
+                        <span class="size-1.5 rounded-full {{ $isActive ? 'bg-white dark:bg-zinc-900' : 'bg-emerald-500' }}"></span>
+                    @elseif ($statusValue === 'rejected')
+                        <span class="size-1.5 rounded-full {{ $isActive ? 'bg-white dark:bg-zinc-900' : 'bg-red-500' }}"></span>
+                    @endif
+                    <span>{{ $statusLabel }}</span>
+                </a>
+            @endforeach
+        </div>
 
         <div class="space-y-3 md:hidden">
             @forelse ($requests as $request)
