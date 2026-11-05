@@ -46,8 +46,8 @@ Menyelesaikan pengelolaan akun pegawai dari pembuatan akun, aktivasi, kredensial
 - `is_active` menentukan akses aplikasi.
 - `must_change_password` menentukan kewajiban mengganti password.
 - `email_verified_at` hanya mencatat verifikasi kepemilikan email.
-- Aktivasi melalui email membuktikan akses ke email dan menyelesaikan password pertama.
-- Aktivasi melalui password sementara tidak mengisi `email_verified_at`; pegawai dapat menggunakan aplikasi setelah mengganti password tanpa menunggu verifikasi email.
+- Aktivasi melalui tautan email maupun password sementara hanya menyelesaikan aktivasi akun dan penggantian password pertama; keduanya tidak mengisi `email_verified_at`.
+- Verifikasi kepemilikan email tetap dilakukan melalui workflow verifikasi email Fortify yang terpisah di menu Keamanan Akun. Pegawai dapat menggunakan aplikasi setelah aktivasi tanpa menunggu verifikasi email.
 
 ### Pembuatan dan aktivasi akun
 

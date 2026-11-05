@@ -36,7 +36,6 @@ class CompleteEmployeeActivation
             $user->forceFill([
                 'password' => Hash::make($password),
                 'must_change_password' => false,
-                'email_verified_at' => now(),
             ])->save();
 
             $activation->forceFill(['consumed_at' => now()])->save();

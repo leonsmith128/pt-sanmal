@@ -108,7 +108,7 @@ test('first password change removes temporary credential without verifying email
         ->and(Hash::check('personal-password-value', $user->password))->toBeTrue();
 });
 
-test('activation link sets a password, verifies email, and cannot be reused', function () {
+test('activation link sets a password without verifying email and cannot be reused', function () {
     $employee = pendingAccountEmployee();
     $token = str_repeat('a', 64);
 
@@ -133,7 +133,7 @@ test('activation link sets a password, verifies email, and cannot be reused', fu
     $user = $employee->user->fresh();
 
     expect($user->must_change_password)->toBeFalse()
-        ->and($user->email_verified_at)->not->toBeNull()
+        ->and($user->email_verified_at)->toBeNull()
         ->and($user->accountCredential)->toBeNull()
         ->and($user->accountActivation->consumed_at)->not->toBeNull()
         ->and(Hash::check('activated-password-value', $user->password))->toBeTrue();
