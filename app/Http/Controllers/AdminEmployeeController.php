@@ -58,10 +58,13 @@ class AdminEmployeeController extends Controller
         $employee = $createEmployee->handle($data);
         $sent = $issueActivation->handle($employee->user);
 
+        if (! $sent) {
+            return redirect()->route('admin.employees.edit', $employee)
+                ->withErrors(['email' => 'Pegawai dibuat, tetapi email aktivasi gagal dikirim. Salin password sementara dan sampaikan melalui saluran aman.']);
+        }
+
         return redirect()->route('admin.employees.edit', $employee)
-            ->with('status', $sent
-                ? 'Pegawai dibuat dan tautan aktivasi telah dikirim. Password sementara tersedia melalui tindakan khusus admin.'
-                : 'Pegawai dibuat, tetapi email aktivasi gagal dikirim. Salin password sementara dan sampaikan melalui saluran aman.');
+            ->with('status', 'Pegawai dibuat dan tautan aktivasi telah dikirim. Password sementara tersedia melalui tindakan khusus admin.');
     }
 
     public function edit(Employee $employee): View
@@ -97,9 +100,13 @@ class AdminEmployeeController extends Controller
         if ($emailChanged && $employee->user->is_active && $employee->user->must_change_password) {
             $sent = $issueActivation->handle($employee->user);
 
-            return redirect()->route('admin.employees.edit', $employee)->with('status', $sent
-                ? 'Data pegawai diperbarui dan tautan aktivasi baru dikirim ke email terbaru.'
-                : 'Data pegawai diperbarui, tetapi email aktivasi gagal dikirim. Salin password sementara untuk onboarding manual.');
+            if (! $sent) {
+                return redirect()->route('admin.employees.edit', $employee)
+                    ->withErrors(['email' => 'Data diperbarui, tetapi email aktivasi gagal dikirim. Salin password sementara untuk onboarding manual.']);
+            }
+
+            return redirect()->route('admin.employees.edit', $employee)
+                ->with('status', 'Data pegawai diperbarui dan tautan aktivasi baru dikirim ke email terbaru.');
         }
 
         if ($emailChanged && $employee->user->is_active) {
@@ -127,17 +134,21 @@ class AdminEmployeeController extends Controller
         $rotatePassword->handle($employee);
         $sent = $issueActivation->handle($employee->user);
 
-        return back()->with('status', $sent
-            ? 'Password sementara dirotasi dan tautan aktivasi baru dikirim.'
-            : 'Password sementara dirotasi, tetapi email aktivasi gagal dikirim. Salin password baru melalui tindakan admin.');
+        if (! $sent) {
+            return back()->withErrors(['email' => 'Password sementara dirotasi, tetapi email aktivasi gagal dikirim. Salin password baru melalui tindakan admin.']);
+        }
+
+        return back()->with('status', 'Password sementara dirotasi dan tautan aktivasi baru dikirim.');
     }
 
     public function resendActivation(Employee $employee, IssueEmployeeActivation $issueActivation): RedirectResponse
     {
         $sent = $issueActivation->handle($employee->user);
 
-        return back()->with('status', $sent
-            ? 'Tautan aktivasi baru telah dikirim. Tautan sebelumnya tidak lagi berlaku.'
-            : 'Email aktivasi gagal dikirim. Password sementara tetap dapat disalin oleh admin.');
+        if (! $sent) {
+            return back()->withErrors(['email' => 'Email aktivasi gagal dikirim. Password sementara tetap dapat disalin oleh admin.']);
+        }
+
+        return back()->with('status', 'Tautan aktivasi baru telah dikirim. Tautan sebelumnya tidak lagi berlaku.');
     }
 }
