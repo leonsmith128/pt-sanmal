@@ -192,7 +192,7 @@
         @if ($requests->isEmpty())
             <x-ui.card padding="px-5 py-12 text-center">
                 <div class="mx-auto flex size-12 items-center justify-center rounded-full bg-sanmal-surface-secondary text-sanmal-text-muted dark:bg-sanmal-surface-inset-dark">
-                    <flux:icon name="inbox" class="size-6" />
+                    <flux:icon.file-check class="size-6" />
                 </div>
                 <flux:heading size="md" class="mt-4 font-semibold text-sanmal-text-primary">{{ __('Tidak ada permohonan yang cocok') }}</flux:heading>
                 <flux:text class="mt-1 text-sm text-sanmal-text-secondary">

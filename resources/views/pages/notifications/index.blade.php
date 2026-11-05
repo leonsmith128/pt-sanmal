@@ -22,13 +22,18 @@
                     $isResolved = ($data['event_status'] ?? null) === 'cancelled';
                     $url = $data['url'] ?? route('dashboard');
                 @endphp
-                <article @class([
-                    'rounded-xl border p-4 dark:border-zinc-700',
-                    'border-zinc-200 bg-white dark:bg-zinc-900' => $notification->read_at,
-                    'border-sky-200 bg-sky-50/60 dark:border-sky-900 dark:bg-sky-950/20' => ! $notification->read_at,
-                ])>
-                    <div class="flex items-start gap-3">
-                        <div class="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-full {{ $notification->read_at ? 'bg-zinc-100 text-zinc-500 dark:bg-zinc-800' : 'bg-sky-100 text-sky-700 dark:bg-sky-900 dark:text-sky-300' }}">
+                <x-ui.card
+                    padding="p-4 sm:p-5"
+                    @class([
+                        'relative overflow-hidden before:absolute before:inset-y-4 before:start-0 before:w-1 before:rounded-e-full before:bg-sanmal-brand-yellow-dark' => ! $notification->read_at,
+                    ])
+                >
+                    <article class="flex items-start gap-3">
+                        <div @class([
+                            'mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-full',
+                            'bg-sanmal-surface-secondary text-sanmal-text-muted dark:bg-sanmal-surface-inset-dark' => $notification->read_at,
+                            'bg-sanmal-surface-inset text-sanmal-brand-blue dark:bg-sanmal-surface-inset-dark dark:text-sanmal-brand-yellow-dark' => ! $notification->read_at,
+                        ])>
                             <flux:icon name="{{ $isResolved ? 'x-circle' : 'bell' }}" class="size-4" />
                         </div>
                         <div class="min-w-0 flex-1">
@@ -60,14 +65,14 @@
                                 </form>
                             </div>
                         </div>
-                    </div>
-                </article>
+                    </article>
+                </x-ui.card>
             @empty
-                <div class="rounded-xl border border-dashed border-zinc-300 p-8 text-center dark:border-zinc-700">
-                    <flux:icon name="bell" class="mx-auto size-8 text-zinc-400" />
+                <x-ui.card padding="p-8" class="text-center">
+                    <flux:icon name="bell" class="mx-auto size-8 text-sanmal-brand-blue dark:text-sanmal-brand-blue-light" />
                     <flux:heading size="md" class="mt-3">{{ __('Belum ada notifikasi') }}</flux:heading>
                     <flux:text class="mt-1">{{ __('Pemberitahuan sistem akan muncul di halaman ini.') }}</flux:text>
-                </div>
+                </x-ui.card>
             @endforelse
             {{ $notifications->links() }}
         </x-ui.section>

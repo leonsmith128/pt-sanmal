@@ -13,9 +13,9 @@
 
 | Area | Kondisi source | Bukti otomatis terbaru | Browser/device QA |
 |---|---|---|---|
-| Design foundation dan token | Implemented. Palette, shell Flux inset, surface, dan aturan card dipusatkan di Design Foundation dan CSS aplikasi. | Tidak ada klaim bahwa seluruh halaman sudah lolos visual test. | Belum dilakukan secara menyeluruh. |
+| Design foundation dan token | Implemented. Palette, full-width Flux main shell, surface, dan aturan card dipusatkan di Design Foundation dan CSS aplikasi. | Tidak ada klaim bahwa seluruh halaman sudah lolos visual test. | Belum dilakukan secara menyeluruh. |
 | Shared UI primitives | 14 primitive `x-ui.*` tersedia. Tiga utility tambahan: `x-ui.avatar`, `x-ui.photo-preview`, dan `x-ui.notification-dropdown`. `x-ui.sidebar-section` adalah helper navigasi shell. | Test button, card, layout, feedback, metadata, notification dropdown, dan photo preview lulus pada run #1460. | Belum dilakukan secara menyeluruh. |
-| Application shell dan navigasi | Sidebar Admin/Manager berkelompok; Employee tetap tidak berkelompok. Mobile memakai header dan drawer, tanpa fixed bottom navigation. Scrollbar auto-hide diterapkan hanya pada Flux inset main desktop: lebar tipis, thumb semi-transparan, tampil selama scrolling dan kembali transparan setelah 850 ms idle; hover pada thumb meningkatkan kontras di browser yang mendukung pseudo-element scrollbar. Scroll document mobile dan scrollbar komponen lain tidak diubah. | Regression test shell/sidebar lulus pada run #1418; build untuk perubahan scrollbar menunggu CI terbaru. | Browser QA scrollbar belum dilakukan pada desktop, Firefox/WebKit, light/dark, serta pemeriksaan bahwa mobile tetap document-scroll. |
+| Application shell dan navigasi | Sidebar Admin/Manager berkelompok; Employee tetap tidak berkelompok. Semua role memakai sidebar collapsible pada desktop dan header/drawer pada ponsel, tanpa fixed bottom navigation. Main menggunakan surface full-width tanpa inset dan mengikuti document scrolling, tanpa nested scroll container. | `AttendancePagesTest` dan `AppSidebarComposerTest` lokal: 33 passed (250 assertions); Pint check lulus. | Browser QA scroll/layout belum dilakukan pada desktop, Firefox/WebKit, light/dark, dan ponsel. |
 | Halaman Admin | Source review mencakup halaman Admin dan komponen terkait. Beberapa perbaikan filter, wrapping, density, dan layout sudah diterapkan. | Test yang terkait berjalan dalam CI; lihat hasil run terbaru di bawah. | Belum ada bukti QA lintas halaman dan viewport. |
 | Employee Dashboard | Layout V1, ringkasan bulanan, Pengajuan Saya, Akses Cepat, Aktivitas Terbaru, dan notifikasi tersedia. | Test dashboard lulus pada run #1460. Assertion divider diperbaiki agar hanya memeriksa container Ringkasan Bulan Ini, bukan seluruh halaman. | Belum dilakukan. |
 | Employee Profile | Source diperbarui: circular avatar melalui `x-ui.avatar`, modal pratinjau bersama `x-ui.photo-preview`, deskripsi redundan dihapus, dan pesan validasi upload menjadi feedback batas ukuran. URL foto tersimpan disajikan oleh endpoint authenticated yang tidak bergantung pada `public/storage` symlink. Follow-up 5 November membatasi lebar halaman ke `max-w-3xl` agar form/detail tidak melebar seperti halaman operasional. | Test route serving foto tanpa storage symlink dan render modal profil lulus pada run #1460. Regression assertion untuk lebar halaman ditambahkan pada commit `e660a63`; follow-up 5 November mengganti input file native yang melebar dengan input visually-hidden dan tombol pemicu sempit berukuran `xs`, lebih pendek daripada tombol Simpan foto. Regression assertions ditambahkan pada commit `fd93365`; CI follow-up belum terverifikasi. | Belum dilakukan. |
@@ -175,10 +175,25 @@ Automated tests cover the active count, disclosure markup, desktop grid, table i
 
 ## Application shell consolidation — 5 November 2026
 
-- Confirmed `resources/views/layouts/app.blade.php` as the single configured authenticated application layout. It delegates to the SanMal role-aware sidebar shell and renders routed content inside `<flux:main inset>`.
-- Removed the legacy starter-kit `resources/views/layouts/app/header.blade.php` alternative from this branch. The active sidebar shell remains unchanged.
+- Confirmed `resources/views/layouts/app.blade.php` as the single configured authenticated application layout. It delegates to the SanMal role-aware sidebar shell.
+- Removed the legacy starter-kit `resources/views/layouts/app/header.blade.php` alternative from this branch.
 - Retained `x-desktop-user-menu` because it is used by the active sidebar layout. Retained the existing `x-ui.page`, `x-ui.page-header`, and `x-ui.section` primitives; no parallel page-layout abstraction was added.
 - Authentication layouts and authentication page views were explicitly excluded and were not changed.
 - Updated the Page Inventory and Reusable Blade Components documentation with the shell contract and scope boundary.
 - Sidebar data preparation is extracted to `App\\View\\Composers\\AppSidebarComposer`. The composer is registered for `*::app.sidebar` because Laravel resolves the anonymous component namespace from its component path; the generated namespace is a hash and is not the literal `layouts::` alias. Feature tests render `<x-layouts::app.sidebar>` itself and verify manager/employee composer data, while a focused composer test covers the guest-safe data contract.
 - This is source-level consolidation only. Browser/device QA and exhaustive dynamic-reference indexing are not claimed; see the audit scope in [Reusable Blade Components](../REUSABLE-BLADE-COMPONENTS.md).
+
+## Full-width main and collapsible sidebar — 5 November 2026
+
+- Changed the shared authenticated main region to full-width `<flux:main>` presentation on every page.
+- Made desktop sidebar collapsing available to every authenticated role; mobile continues to use the shared header drawer toggle.
+- Preserved the shared page surface, normal document scrolling, role-aware navigation, and mobile navigation behavior.
+
+## Employee and authentication visual polish — 5 November 2026
+
+- Applied the existing SanMal palette and shared `x-ui.card` surface to employee request forms, overtime, and notifications; refined employee dashboard actions and attendance notification touch/focus affordance.
+- Refined the active Fortify `simple` layout with the shared logo, a restrained brand accent, left-aligned auth headings, and responsive form surface. Updated the login recovery-link placement and email-verification feedback; Fortify routes, fields, CSRF, and submission behavior remain unchanged.
+- Imported Lucide `shield-check`, `clock-3`, and `file-check` icons with `php artisan flux:icon` and used them in the shared auth header and employee empty states. Existing Flux Heroicons remain in use for standard action icons.
+- Targeted automated tests: `php artisan test --compact` over Auth, Attendance, Dashboard, Employee Profile, Request Center, Leave, Correction, Overtime, Notification, and Security feature tests — **147 passed, 1 skipped (671 assertions)**.
+- `npm run build` berhasil; build menampilkan notice opsional bahwa paket `fontaine` tidak terpasang. `git diff --check` lulus. Pint tidak dijalankan karena perubahan hanya Blade dan dokumentasi.
+- Browser/device QA belum dilakukan. Verifikasi layout, focus, scrolling, dan touch pada viewport/tema nyata masih diperlukan.

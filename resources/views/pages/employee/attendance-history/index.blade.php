@@ -135,7 +135,7 @@
 
         @if ($dateGroups->isEmpty())
             <x-ui.card padding="p-5" class="text-center">
-                <flux:icon name="calendar" class="mx-auto size-9 text-zinc-400" />
+                <flux:icon.calendar-days class="mx-auto size-9 text-sanmal-brand-blue dark:text-sanmal-brand-blue-light" />
                 <flux:heading size="md" class="mt-3">{{ __('Belum ada riwayat absensi') }}</flux:heading>
                 <flux:text class="mt-1">{{ __('Tidak ada status kehadiran atau event pada rentang tanggal ini. Coba ubah filter tanggal.') }}</flux:text>
             </x-ui.card>

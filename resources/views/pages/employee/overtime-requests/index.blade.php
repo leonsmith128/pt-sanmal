@@ -9,7 +9,7 @@
 
         <x-ui.flash-message />
 
-        <section class="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900">
+        <x-ui.card padding="p-5">
             <flux:heading size="lg">{{ __('Ajukan lembur') }}</flux:heading>
             <flux:text class="mt-1 text-sm">{{ __('Pengajuan dapat dibuat sebelum clock-in, termasuk beberapa hari sebelumnya. Jadwal hanya memerlukan waktu mulai; selesai lembur dicatat saat clock-out.') }}</flux:text>
             <form method="POST" action="{{ route('overtime-requests.store') }}" class="mt-5 flex flex-col gap-4">
@@ -30,40 +30,42 @@
                 @error('form') <flux:text class="text-sm text-red-600 dark:text-red-400">{{ $message }}</flux:text> @enderror
                 <x-ui.button type="submit" variant="primary" class="w-full sm:w-auto">{{ __('Kirim pengajuan') }}</x-ui.button>
             </form>
-        </section>
+        </x-ui.card>
 
         <x-ui.section id="riwayat-lembur" class="scroll-mt-6">
             <flux:heading size="lg">{{ __('Riwayat pengajuan lembur') }}</flux:heading>
             @forelse ($requests as $request)
-                <article class="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
-                    <div class="flex flex-wrap items-start justify-between gap-3">
-                        <div class="min-w-0">
-                            <p class="font-medium text-zinc-900 dark:text-zinc-100">{{ __('Mulai terjadwal:') }} {{ $request->scheduledStartLocal()->format('D, d M Y · H:i') }}</p>
-                            @if ($request->reason)
-                                <p class="mt-1 whitespace-pre-line text-sm text-zinc-600 dark:text-zinc-300">{{ $request->reason }}</p>
-                            @endif
+                <x-ui.card padding="p-4">
+                    <article>
+                        <div class="flex flex-wrap items-start justify-between gap-3">
+                            <div class="min-w-0">
+                                <p class="font-medium text-zinc-900 dark:text-zinc-100">{{ __('Mulai terjadwal:') }} {{ $request->scheduledStartLocal()->format('D, d M Y · H:i') }}</p>
+                                @if ($request->reason)
+                                    <p class="mt-1 whitespace-pre-line text-sm text-zinc-600 dark:text-zinc-300">{{ $request->reason }}</p>
+                                @endif
+                            </div>
+                            <div class="flex flex-wrap gap-2">
+                                <x-ui.badge :color="$request->approval_status->badgeColor()">{{ $request->approval_status->label() }}</x-ui.badge>
+                                <x-ui.badge :color="$request->state->badgeColor()">{{ $request->state->label() }}</x-ui.badge>
+                            </div>
                         </div>
-                        <div class="flex flex-wrap gap-2">
-                            <x-ui.badge :color="$request->approval_status->badgeColor()">{{ $request->approval_status->label() }}</x-ui.badge>
-                            <x-ui.badge :color="$request->state->badgeColor()">{{ $request->state->label() }}</x-ui.badge>
-                        </div>
-                    </div>
-                    @if ($request->decision_note)
-                        <p class="mt-3 rounded-lg bg-zinc-50 p-3 text-sm text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300"><strong>{{ __('Catatan admin:') }}</strong> {{ $request->decision_note }}</p>
-                    @endif
-                    @if (in_array($request->state->value, ['scheduled', 'awaiting_photo'], true) && $request->start_record_id === null)
-                        <form method="POST" action="{{ route('overtime-requests.cancel', $request) }}" class="mt-3" onsubmit="return confirm('Batalkan jadwal lembur ini? Setelah dibatalkan, Anda dapat clock-out jika sesi masih aktif.')">
-                            @csrf @method('PATCH')
-                            <x-ui.button type="submit" variant="danger" size="sm" icon="x-circle">{{ __('Batalkan Lembur') }}</x-ui.button>
-                        </form>
-                    @endif
-                </article>
+                        @if ($request->decision_note)
+                            <p class="mt-3 rounded-lg bg-zinc-50 p-3 text-sm text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300"><strong>{{ __('Catatan admin:') }}</strong> {{ $request->decision_note }}</p>
+                        @endif
+                        @if (in_array($request->state->value, ['scheduled', 'awaiting_photo'], true) && $request->start_record_id === null)
+                            <form method="POST" action="{{ route('overtime-requests.cancel', $request) }}" class="mt-3" onsubmit="return confirm('Batalkan jadwal lembur ini? Setelah dibatalkan, Anda dapat clock-out jika sesi masih aktif.')">
+                                @csrf @method('PATCH')
+                                <x-ui.button type="submit" variant="danger" size="sm" icon="x-circle">{{ __('Batalkan Lembur') }}</x-ui.button>
+                            </form>
+                        @endif
+                    </article>
+                </x-ui.card>
             @empty
-                <div class="rounded-2xl border border-dashed border-zinc-300 p-8 text-center dark:border-zinc-700">
-                    <flux:icon name="clock" class="mx-auto size-8 text-zinc-400" />
+                <x-ui.card padding="p-8" class="text-center">
+                    <flux:icon.clock-3 class="mx-auto size-8 text-sanmal-brand-blue dark:text-sanmal-brand-blue-light" />
                     <flux:heading size="md" class="mt-3">{{ __('Belum ada pengajuan lembur') }}</flux:heading>
                     <flux:text class="mt-1">{{ __('Pengajuan yang Anda buat akan muncul di sini.') }}</flux:text>
-                </div>
+                </x-ui.card>
             @endforelse
             <div>{{ $requests->links() }}</div>
         </x-ui.section>

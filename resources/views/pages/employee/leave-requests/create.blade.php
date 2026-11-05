@@ -16,9 +16,9 @@
             </flux:callout>
         @endif
 
-        <form method="POST" action="{{ route('leave-requests.store') }}" enctype="multipart/form-data"
-            class="space-y-5 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900 sm:p-6">
-            @csrf
+        <x-ui.card padding="p-4 sm:p-6">
+            <form method="POST" action="{{ route('leave-requests.store') }}" enctype="multipart/form-data" class="space-y-5">
+                @csrf
 
             <x-ui.select name="leave_type_id" :label="__('Jenis permohonan')" required>
                 <flux:select.option value="">{{ __('Pilih jenis permohonan') }}</flux:select.option>
@@ -72,6 +72,7 @@
                     {{ __('Kirim permohonan') }}
                 </x-ui.button>
             </div>
-        </form>
+            </form>
+        </x-ui.card>
     </x-ui.page>
 </x-layouts::app>

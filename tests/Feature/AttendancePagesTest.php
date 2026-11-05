@@ -280,6 +280,8 @@ test('employees receive an ungrouped sidebar and mobile header drawer without bo
     $response = $this->get(route('attendance'))
         ->assertOk()
         ->assertSee('data-flux-sidebar-toggle', false)
+        ->assertSee('collapsible="true"', false)
+        ->assertSee('data-flux-sidebar-collapse', false)
         ->assertSee('aria-label="Navigasi utama"', false)
         ->assertSee(__('Beranda'))
         ->assertSee(__('Absensi'))
@@ -329,7 +331,12 @@ test('Flux main is a direct body child on the key admin and employee pages', fun
         @$document->loadHTML($response->getContent());
         $xpath = new DOMXPath($document);
 
-        expect($xpath->query('//body/*[@data-flux-main]')->length)->toBe(1);
+        $main = $xpath->query('//body/*[@data-flux-main]')->item(0);
+
+        expect($xpath->query('//body/*[@data-flux-main]')->length)->toBe(1)
+            ->and($main?->getAttribute('class') ?? '')->not->toContain('overflow-y-auto')
+            ->and($main?->getAttribute('class') ?? '')->not->toContain('overscroll-contain')
+            ->and($response->getContent())->not->toContain('data-flux-main-inset');
     }
 
     $response = $this->actingAs($employee)->get(route('attendance'))->assertOk();
@@ -337,12 +344,16 @@ test('Flux main is a direct body child on the key admin and employee pages', fun
     @$document->loadHTML($response->getContent());
     $xpath = new DOMXPath($document);
 
+    $main = $xpath->query('//body/*[@data-flux-main]')->item(0);
+
     expect($xpath->query('//body/*[@data-flux-main]')->length)->toBe(1)
-        ->and($response->getContent())->toContain('inset')
+        ->and($main?->getAttribute('class') ?? '')->not->toContain('overflow-y-auto')
+        ->and($main?->getAttribute('class') ?? '')->not->toContain('overscroll-contain')
+        ->and($response->getContent())->not->toContain('data-flux-main-inset')
         ->and($response->getContent())->not->toContain('pb-[calc(4rem+env(safe-area-inset-bottom))]');
 });
 
-test('inline sidebar uses its dedicated surface while the inset main uses the page surface', function () {
+test('inline sidebar and full-width main use their dedicated surfaces', function () {
     $this->actingAs(userWithRole(UserRole::Admin));
 
     $this->get(route('admin.daily-attendance'))

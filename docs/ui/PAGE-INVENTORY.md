@@ -75,11 +75,11 @@ Saat route/halaman berubah, perbarui inventaris ini berdasarkan route dan source
 
 ## Source review checkpoint — 5 November 2026
 
-The Application Shell inventory was revalidated against the current PR branch. The active root layout is `resources/views/layouts/app.blade.php`, which delegates to `resources/views/layouts/app/sidebar.blade.php` and places page content inside `<flux:main inset>`. This remains the only supported authenticated application shell.
+The Application Shell inventory was revalidated against the current PR branch. The active root layout is `resources/views/layouts/app.blade.php`, which delegates to `resources/views/layouts/app/sidebar.blade.php`. Authenticated pages use the shared full-width `<flux:main>` region and the same collapsible sidebar across roles; this remains the only supported authenticated application shell.
 
 The legacy `resources/views/layouts/app/header.blade.php` starter-kit shell was removed in this refactor. It represented a separate header/navbar shell and duplicated responsibilities now owned by the SanMal sidebar shell. The shared `x-desktop-user-menu` component is retained because the active sidebar layout still uses it. The shared `x-app-logo` and `x-app-logo-icon` components are retained; do not classify them as unused based only on the removed header template.
 
-Authentication layouts and authentication page views were explicitly out of scope and were not modified. In particular, `layouts/auth.blade.php`, `layouts/auth/simple.blade.php`, `layouts/auth/card.blade.php`, `layouts/auth/split.blade.php`, and `pages/auth/*` remain untouched pending a separate authentication review.
+Authentication was later included in a focused visual pass: active routes use `layouts/auth/simple.blade.php` with the shared brand treatment, and `pages/auth/*` retain their Fortify forms and route contracts. `layouts/auth/card.blade.php` and `layouts/auth/split.blade.php` had no active references in the source scan and were left untouched.
 
 The existing `x-ui.page`, `x-ui.page-header`, and `x-ui.section` remain the page composition primitives. No parallel `x-layouts.page` system was introduced. `partials/head.blade.php` remains shared document-head infrastructure; `partials/settings-heading.blade.php` remains available for settings views. Other component families were inventoried but were not mass-deleted: removal requires a complete reference check and a demonstrated lack of runtime use.
 

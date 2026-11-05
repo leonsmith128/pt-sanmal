@@ -6,7 +6,7 @@
     <body class="min-h-dvh bg-sanmal-surface-sidebar dark:bg-sanmal-surface-page-dark">
         <flux:sidebar
             sticky
-            :collapsible="$isManager ? true : 'mobile'"
+            collapsible
             class="h-dvh min-h-dvh overflow-x-hidden bg-sanmal-surface-sidebar dark:bg-sanmal-surface-page-dark"
         >
             <flux:sidebar.header>
@@ -23,9 +23,7 @@
                         </flux:menu>
                     </flux:dropdown>
                 </div>
-                @if ($isManager)
-                    <flux:sidebar.collapse class="!opacity-100" />
-                @endif
+                <flux:sidebar.collapse class="!opacity-100" />
             </flux:sidebar.header>
 
             <flux:sidebar.nav aria-label="{{ __('Navigasi utama') }}">

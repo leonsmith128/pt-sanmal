@@ -14,9 +14,9 @@
             </flux:callout>
         @endif
 
-        <form method="POST" action="{{ route('attendance-corrections.store') }}" enctype="multipart/form-data"
-            class="space-y-4 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900 sm:p-6">
-            @csrf
+        <x-ui.card padding="p-4 sm:p-6">
+            <form method="POST" action="{{ route('attendance-corrections.store') }}" enctype="multipart/form-data" class="space-y-4">
+                @csrf
             <x-ui.select name="requested_type" :label="__('Jenis event')" required>
                 <flux:select.option value="clock_in" :selected="old('requested_type') === 'clock_in'">Clock In</flux:select.option>
                 <flux:select.option value="clock_out" :selected="old('requested_type', 'clock_out') === 'clock_out'">Clock Out</flux:select.option>
@@ -71,6 +71,7 @@
                 <x-ui.button href="{{ route('leave-requests.index') }}" variant="ghost">{{ __('Batal') }}</x-ui.button>
                 <x-ui.button type="submit" variant="primary">{{ __('Kirim koreksi') }}</x-ui.button>
             </div>
-        </form>
+            </form>
+        </x-ui.card>
     </x-ui.page>
 </x-layouts::app>

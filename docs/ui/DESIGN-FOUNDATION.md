@@ -79,7 +79,7 @@ The primary action is theme-aware: blue in light theme and yellow in dark theme.
 
 | Token | Light | Dark | Typical use |
 |---|---|---|---|
-| `surface/page` | `#F2F5F8` | `#0B1623` | Inset main page container |
+| `surface/page` | `#F2F5F8` | `#0B1623` | Application main background |
 | `surface/primary` | `#F8FCFF` | `#122235` | Main content panel |
 | `surface/card` | `#F9FAFC` | `#192B40` | Standard and linked cards; distinct from the main panel |
 | `surface/sidebar` | `#CAD6E2` | `#0B1623` | Body/shell and sidebar navigation surface; dark theme stays integrated |
@@ -155,15 +155,19 @@ Density means removing decorative whitespace, not shrinking everything. Do not h
 
 ### Application shell and content surface
 
-Keep the application shell visually continuous without making the sidebar and page indistinguishable: the `body` and sidebar use the sidebar surface (`bg-sanmal-surface-sidebar dark:bg-sanmal-surface-page-dark`). In light theme both are `#CAD6E2`; the inset main content uses the separate page surface (`bg-sanmal-surface-page dark:bg-sanmal-surface-page-dark`), which is `#F2F5F8`; in dark theme both remain integrated with the dark page surface. The sidebar has no separating border.
+Keep the application shell visually continuous without making the sidebar and page indistinguishable: the `body` and sidebar use the sidebar surface (`bg-sanmal-surface-sidebar dark:bg-sanmal-surface-page-dark`). In light theme both are `#CAD6E2`; the full-width main content uses the separate page surface (`bg-sanmal-surface-page dark:bg-sanmal-surface-page-dark`), which is `#F2F5F8`; in dark theme both remain integrated with the dark page surface. The sidebar has no separating border.
 
-The main content uses Flux's `<flux:main inset>` and applies the page surface directly to that element (`bg-sanmal-surface-page dark:bg-sanmal-surface-page-dark`). The inset page container is `#F2F5F8` in light theme; it does not change the body/sidebar surface. Standard and linked `x-ui.card` components keep the dedicated borderless card surface (`bg-sanmal-surface-card dark:bg-sanmal-surface-card-dark`): `#F9FAFC` in light theme and `#192B40` in dark theme, intentionally distinct from the main panel. The outer card uses shadow for elevation, not a border. Linked-card hover uses the elevated dark surface token. Keep the sidebar, optional header, and main as direct siblings. Flux owns the inset panel's rounded surface, desktop outer gutter, constrained viewport layout, and internal desktop scrolling; on smaller screens the panel becomes full width and the document scrolls normally. Do not recreate these behaviors with manual margin or overflow utilities.
+The main content uses `<flux:main>` without Flux's `inset` prop and applies the page surface directly to that element. Standard and linked `x-ui.card` components keep the dedicated borderless card surface (`bg-sanmal-surface-card dark:bg-sanmal-surface-card-dark`): `#F9FAFC` in light theme and `#192B40` in dark theme, intentionally distinct from the main background. The outer card uses shadow for elevation, not a border. Linked-card hover uses the elevated dark surface token. Keep the sidebar, optional header, and main as direct siblings. Let the document scroll normally at every viewport; do not turn the main region into a nested scroll container.
 
-Keep `p-0` on the main region to neutralize Flux's default inset padding because page content owns its internal spacing. Use `lg:ms-0` to remove the extra start offset beside the sidebar. Add `lg:mt-0` only when a desktop-visible Flux header is also present. Do not manually add `overflow-y-auto`, `overscroll-contain`, or duplicate desktop margin classes; these are already supplied by Flux inset.
+Keep `p-0` on the main region because page content owns its internal spacing. Use `lg:ms-0` to remove the extra start offset beside the sidebar. Add `lg:mt-0` only when a desktop-visible Flux header is also present. Do not add `overflow-y-auto`, `overscroll-contain`, fixed heights, or per-page overflow wrappers to the main region.
 
 Page content owns its own internal spacing. `x-ui.page` provides width, vertical flow, and section gap; do not add blanket horizontal padding to it or duplicate spacing already provided by a page-specific surface. When a page needs inner padding, apply it to the relevant page section/card, not the application shell.
 
 Preserve the employee mobile header and drawer toggle. Do not add a fixed bottom navigation bar.
+
+### Authentication pages
+
+Use the shared `layouts.auth.simple` layout for active authentication routes: a compact `max-w-md` form surface on the SanMal page surface, the shared brand logo, clear left-aligned form hierarchy, and visible focus states. Keep decoration restrained to the brand accent; do not add promotional copy, random quotes, ambient gradient effects, or a second authentication shell. Keep inputs and primary actions full-width on narrow screens, with recovery links placed separately from field labels. Authentication behavior, route, CSRF, and validation contracts remain owned by Fortify.
 
 ## 6. Button foundation
 
@@ -285,16 +289,16 @@ Choose based on data relationships:
 ### Navigation
 
 - Use Flux sidebar and header primitives for the shared application shell; do not build a parallel navigation system.
-- Apply `<flux:main inset>` for the rounded page-surface content panel. Keep sidebar, header, and main as direct layout siblings; use `lg:ms-0` on the main region to avoid double offsets (add `lg:mt-0` only if a desktop-visible header is present). Keep the page surface visible around the panel.
-- Treat the inset main as the full-width surface. Let `x-ui.page` own the page-specific content width; do not add Flux `container` at the main level as well as another page max-width unless the double constraint is intentional. Use narrower page widths for forms/details and wider widths for operational data pages.
-- The inset main already establishes the shell's content spacing. Avoid adding another padding utility to the root `x-ui.page` (for example `p-6` or `px-4 py-4 sm:px-6 sm:py-6`); use spacing inside the page's own sections/cards instead. This prevents the inset gutter and page padding from accumulating.
+- Use `<flux:main>` without `inset` for the full-width page-surface region. Keep sidebar, header, and main as direct layout siblings; use `lg:ms-0` on the main region (add `lg:mt-0` only if a desktop-visible header is present).
+- Let `x-ui.page` own the page-specific content width; do not add Flux `container` at the main level as well as another page max-width unless the double constraint is intentional. Use narrower page widths for forms/details and wider widths for operational data pages.
+- Keep the shared main region at `p-0`; page content owns its own spacing. Avoid blanket padding on the root `x-ui.page` (for example `p-6` or `px-4 py-4 sm:px-6 sm:py-6`); use spacing inside the page's own sections/cards instead.
 - Employee navigation is one ungrouped list: Beranda, Absensi, Riwayat, Permohonan, and Lembur. On phones, use the top header with a drawer toggle; do not use a fixed bottom navigation bar.
 - Admin Dashboard is a standalone first item, not a section/group heading. It remains the default landing page and represents company-wide monitoring.
 - Admin/Superadmin accounts with a linked employee profile also receive an `Aktivitas Saya` group, beginning with `Dashboard Pribadi`, followed by Absensi, Riwayat, Permohonan Saya, and Lembur Saya. The personal dashboard reuses employee-scoped aggregation and must never show company-wide data.
 - Follow the Admin navigation order: standalone Dashboard; Aktivitas Saya (only when an employee profile exists); Operasional; Persetujuan; Data Master; Sistem. Keep concise labels and do not add a group heading around the single Dashboard item.
 - Group headings must not disappear and collapse the vertical rhythm when the desktop sidebar is collapsed. Use `x-ui.sidebar-section`: the expanded state shows the heading, while the collapsed state replaces it with a subtle separator in the same fixed-height row. Employee navigation remains ungrouped and does not render separators.
 - Sidebar navigation icons use a consistent 20px square size and do not change size between expanded and collapsed states. Preserve the icon's aspect ratio, alignment, and non-shrinking behavior.
-- Responsive behavior follows the available width: drawer on phone, collapsible sidebar where appropriate on tablet, and persistent sidebar on desktop. Use viewport-relative `dvh` sizing for the shell. Do not create separate role-specific navigation implementations.
+- Every authenticated role uses the same collapsible sidebar on desktop and the drawer toggle on phones. Use viewport-relative `dvh` sizing for the shell. Do not create separate role-specific navigation implementations.
 
 ### Single branch and single PR
 

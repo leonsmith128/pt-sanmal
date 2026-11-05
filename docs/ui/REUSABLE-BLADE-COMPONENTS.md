@@ -243,7 +243,7 @@ The reusable component standardization phase is complete. Do not repeat the prim
 - `resources/views/layouts/app.blade.php` is the single authenticated application layout.
 - It delegates shell/navigation rendering to `resources/views/layouts/app/sidebar.blade.php`.
 - The sidebar layout owns the document structure, role-aware navigation, mobile header, toast group, Flux scripts, and the application sidebar.
-- Page content is rendered inside `<flux:main inset>`. Keep Flux Inset as the desktop application content/scroll container; do not introduce a second application shell or a competing header layout.
+- Page content is rendered inside the shared full-width `<flux:main>` region (without `inset`). Let the document scroll normally rather than adding a nested main scroll container; the shell owns the collapsible sidebar. Do not introduce a second application shell or a competing header layout.
 - Do not add page-specific document wrappers (`html`, `head`, `body`) inside routed page views.
 - New routed pages should use the configured default application layout unless a separately approved public/guest use case requires another layout.
 

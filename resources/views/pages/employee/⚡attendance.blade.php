@@ -410,7 +410,7 @@ new #[Title('Absensi')] class extends Component {
             avatar-size="lg"
         >
             <x-slot:actions>
-                <a href="{{ route('notifications.index') }}" wire:navigate aria-label="{{ __('Buka notifikasi') }}" title="{{ __('Notifikasi') }}" class="relative flex size-10 shrink-0 items-center justify-center rounded-full text-zinc-600 transition hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800">
+                <a href="{{ route('notifications.index') }}" wire:navigate aria-label="{{ __('Buka notifikasi') }}" title="{{ __('Notifikasi') }}" class="relative flex size-11 shrink-0 items-center justify-center rounded-full text-sanmal-brand-blue transition-colors hover:bg-sanmal-surface-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sanmal-brand-blue dark:text-sanmal-brand-blue-light dark:hover:bg-sanmal-surface-inset-dark dark:focus-visible:outline-sanmal-brand-blue-light">
                     <flux:icon name="bell" variant="outline" class="size-5" />
                     @if ($unreadCount > 0)
                         <span class="absolute right-0.5 top-0.5 flex min-h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-semibold text-white">{{ $unreadCount > 99 ? '99+' : $unreadCount }}</span>
