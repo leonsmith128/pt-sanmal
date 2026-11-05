@@ -21,7 +21,7 @@ class CreateEmployee
     public function handle(array $data): Employee
     {
         return DB::transaction(function () use ($data): Employee {
-            $temporaryPassword = Str::password(24);
+            $temporaryPassword = Str::password(24, symbols: false);
 
             $user = new User;
             $user->forceFill([
