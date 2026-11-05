@@ -31,7 +31,7 @@ class ApprovePasswordReset
                 ->where('user_id', $user->id)
                 ->where('status', 'approved')
                 ->whereNull('used_at')
-                ->whereKeyNot($request->id)
+                ->where('id', '!=', $request->id)
                 ->update(['status' => 'expired', 'token_hash' => null, 'expires_at' => null]);
 
             $request->forceFill([

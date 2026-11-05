@@ -25,7 +25,9 @@ class AdminEmployeeController extends Controller
                     ->where('employee_number', 'like', "%{$term}%")
                     ->orWhereHas('user', fn ($u) => $u->where('name', 'like', "%{$term}%")->orWhere('email', 'like', "%{$term}%")));
             })
-            ->when($request->filled('status'), fn ($query) => $query->whereHas('user', fn ($u) => $u->where('is_active', $request->status === 'active')))
+            ->when($request->status === 'active', fn ($query) => $query->whereHas('user', fn ($u) => $u->where('is_active', true)->where('must_change_password', false)))
+            ->when($request->status === 'pending', fn ($query) => $query->whereHas('user', fn ($u) => $u->where('is_active', true)->where('must_change_password', true)))
+            ->when($request->status === 'inactive', fn ($query) => $query->whereHas('user', fn ($u) => $u->where('is_active', false)))
             ->orderBy('employee_number')
             ->paginate(20)->withQueryString();
 

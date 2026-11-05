@@ -25,6 +25,7 @@
                     <x-ui.select name="status" :label="__('Status akun')" :value="request('status')">
                         <flux:select.option value="">{{ __('Semua') }}</flux:select.option>
                         <flux:select.option value="active">{{ __('Aktif') }}</flux:select.option>
+                        <flux:select.option value="pending">{{ __('Menunggu aktivasi') }}</flux:select.option>
                         <flux:select.option value="inactive">{{ __('Nonaktif') }}</flux:select.option>
                     </flux:select>
                 </div>
