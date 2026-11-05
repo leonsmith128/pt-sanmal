@@ -6,7 +6,6 @@ use App\Actions\Admin\Employees\CreateEmployee;
 use App\Actions\Admin\Employees\IssueEmployeeActivation;
 use App\Actions\Admin\Employees\RevealTemporaryPassword;
 use App\Actions\Admin\Employees\RotateTemporaryPassword;
-use App\Actions\Admin\Employees\RotateTemporaryPassword;
 use App\Actions\Admin\Employees\UpdateEmployee;
 use App\Models\Employee;
 use App\Models\Title;

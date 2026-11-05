@@ -228,3 +228,42 @@ test('deactivation revokes activation and password reset tokens without deleting
         ->and($resetRequest->fresh()->status)->toBe('expired')
         ->and($resetRequest->fresh()->token_hash)->toBeNull();
 });
+
+
+test('changing the email of a pending employee issues a new activation link to the new address', function () {
+    Notification::fake();
+
+    $employee = pendingAccountEmployee();
+    $oldToken = str_repeat('d', 64);
+
+    EmployeeAccountCredential::create([
+        'user_id' => $employee->user_id,
+        'temporary_password_encrypted' => Crypt::encryptString('temporary-password-value'),
+    ]);
+    EmployeeAccountActivation::create([
+        'user_id' => $employee->user_id,
+        'token_hash' => hash('sha256', $oldToken),
+        'expires_at' => now()->addHours(24),
+    ]);
+
+    $this->actingAs(accountManagementAdmin())
+        ->put(route('admin.employees.update', $employee), [
+            'name' => $employee->user->name,
+            'email' => 'new.address@example.com',
+            'employee_number' => $employee->employee_number,
+            'phone' => $employee->phone,
+            'title_id' => null,
+            'joined_at' => null,
+            'is_active' => true,
+        ])
+        ->assertRedirect();
+
+    $user = $employee->user->fresh();
+
+    expect($user->email)->toBe('new.address@example.com')
+        ->and($user->email_verified_at)->toBeNull()
+        ->and($user->accountActivation->token_hash)->not->toBe(hash('sha256', $oldToken))
+        ->and($user->accountActivation->consumed_at)->toBeNull();
+
+    Notification::assertSentTo($user, EmployeeAccountActivationNotification::class);
+});
