@@ -6,9 +6,9 @@ use App\Actions\Admin\Employees\ApprovePasswordReset;
 use App\Models\AuditLog;
 use App\Models\PasswordResetRequest;
 use App\Models\User;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class AdminPasswordResetRequestController extends Controller

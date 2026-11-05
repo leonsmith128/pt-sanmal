@@ -164,7 +164,6 @@ test('email change clears previous email verification', function () {
         ->and($employee->user->fresh()->email_verified_at)->toBeNull();
 });
 
-
 test('admin can rotate a temporary password and invalidate the previous activation link', function () {
     Notification::fake();
 
@@ -228,7 +227,6 @@ test('deactivation revokes activation and password reset tokens without deleting
         ->and($resetRequest->fresh()->status)->toBe('expired')
         ->and($resetRequest->fresh()->token_hash)->toBeNull();
 });
-
 
 test('changing the email of a pending employee issues a new activation link to the new address', function () {
     Notification::fake();
