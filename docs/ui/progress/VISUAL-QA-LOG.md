@@ -107,7 +107,7 @@ Source commit: `ffc5566bedfb97adfbec7eca44b6cb1da198067d`.
 
 Scope: Client list/detail and Site sub-grid; Client/Location/Project/Employee forms; Project cards; Employee hybrid card/table; Leave Request quick status links and mobile cards/desktop table; Attendance Correction detail; Overtime queue/detail/finalization; Audit Log; daily attendance employee card tokens.
 
-**Automated coverage:** assertions were added or extended for Client and Site responsive grids, shared card surfaces, three-column Project cards, Employee card/table preservation, and the responsive Leave Request queue. CI result for this commit is pending and must be checked before merge.
+**Automated coverage:** assertions were added or extended for Client and Site responsive grids, shared card surfaces, three-column Project cards, Employee card/table preservation, and the responsive Leave Request queue. CI run [#41981719951](https://github.com/leonsmith128/pt-sanmal/actions/runs/41981719951) passed on the latest source commit `f9bcc443d77370182fa0aa1dfe471b40d05337bb`.
 
 **Browser/device QA: Not run.** Review at 360–390 px, 414–430 px, 768 px, 1024 px, and 1280–1440 px in light and dark themes. Verify:
 - Client cards and nested Site grids do not become cramped; long Client/Site names and addresses wrap without pushing actions off-screen.
@@ -128,7 +128,7 @@ Source commit: `45b36286cc95b99185b114ff29f5a9e76c25d8c1`.
 
 The queue now renders compact cards below `md` and a semantic table from `md` upward. Both views show approval status and operational state separately.
 
-**Automated coverage:** `OvertimeWorkflowTest` asserts the responsive wrappers, employee, reason, both status labels, and detail route. CI result is pending.
+**Automated coverage:** `OvertimeWorkflowTest` asserts the responsive wrappers, employee, reason, both status labels, and detail route. CI run [#41981719951](https://github.com/leonsmith128/pt-sanmal/actions/runs/41981719951) passed on the latest source commit `f9bcc443d77370182fa0aa1dfe471b40d05337bb`.
 
 **Browser/device QA: Not run.** Check 360–390 px, 414–430 px, 768 px, 1024 px, and 1280–1440 px in light/dark themes. Confirm cards remain scannable, desktop columns do not become cramped, the horizontal scroll stays inside the table region, status badges remain distinct, and pagination remains reachable.
 
@@ -139,7 +139,7 @@ Source commit: `f38a551befc48ef6626c7108dde1711d19a6d002`.
 
 The employee Attendance supporting metadata, Employee Profile upload feedback, Employee Overtime history, Notifications, Attendance Correction form, Leave Request form, and Location creation context now use SanMal text, surface, and divider tokens. Camera/GPS behavior and request contracts were not changed. Employee Attendance History was intentionally left untouched as a completed V1 scope.
 
-**Automated coverage:** existing feature tests remain the regression coverage for the affected workflows. CI run #41981290455 passed on the preceding test-fix commit and covered Pint, static analysis, MariaDB, and SQLite. CI for this later token-only source commit is queued and must be checked before merge.
+**Automated coverage:** existing feature tests remain the regression coverage for the affected workflows. CI run [#41981719951](https://github.com/leonsmith128/pt-sanmal/actions/runs/41981719951) passed on the latest source commit and covered Pint, static analysis, MariaDB, and SQLite.
 
 **Browser/device QA: Not run.** Check the affected pages at 360–390 px, 414–430 px, 768 px, 1024 px, and 1280–1440 px in light/dark themes. Pay particular attention to Attendance supporting panels and long evidence text, mobile form action separators, notification text wrapping, and Location context surfaces. Confirm camera/GPS interactions remain unchanged through manual smoke testing; source-only token changes do not establish device compatibility.
 
@@ -150,6 +150,6 @@ Source commit: `f9bcc443d77370182fa0aa1dfe471b40d05337bb`.
 
 The desktop/table presentations now expose the horizontal-scroll container as a named, keyboard-focusable region. The table content and review workflow are unchanged.
 
-**Automated coverage:** feature assertions check the localized region labels. CI run #41981528715 passed for the preceding token-alignment commit; CI for this final accessibility change is pending.
+**Automated coverage:** feature assertions check the localized region labels. CI run [#41981719951](https://github.com/leonsmith128/pt-sanmal/actions/runs/41981719951) passed for this accessibility change, including Pint, static analysis, MariaDB, and SQLite.
 
 **Browser/device QA: Not run.** Verify that keyboard focus can reach the region, arrow/trackpad scrolling behaves normally, screen-reader labels are meaningful, and the scroll container does not create document-level horizontal overflow at 768 px, 1024 px, and 1280–1440 px.

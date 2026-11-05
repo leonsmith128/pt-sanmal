@@ -213,7 +213,7 @@ Source-level UI refinements were implemented on PR #27 at commit `ffc5566bedfb97
 - No route, controller, Eloquent query, authorization rule, validation, Livewire action/state, database schema, camera/GPS flow, attendance calculation, or export contract was changed.
 - No additional Flux icon import was necessary; existing Flux icons already cover the affected actions.
 
-Regression assertions were extended in `AdminClientLocationTest`, `AdminProjectTest`, and `AdminEmployeePageTest`. A responsive admin Leave Request queue assertion was added to `LeaveRequestWorkflowTest`. CI for the implementation commit is pending. Browser/device visual QA has not been performed; see [Visual QA Log](VISUAL-QA-LOG.md).
+Regression assertions were extended in `AdminClientLocationTest`, `AdminProjectTest`, and `AdminEmployeePageTest`. A responsive admin Leave Request queue assertion was added to `LeaveRequestWorkflowTest`. CI run [#41981719951](https://github.com/leonsmith128/pt-sanmal/actions/runs/41981719951) passed on source commit `f9bcc443d77370182fa0aa1dfe471b40d05337bb`, including Pint, repository and changed-code static analysis, MariaDB tests, and SQLite tests. Browser/device visual QA has not been performed; see [Visual QA Log](VISUAL-QA-LOG.md).
 
 
 ## Admin Overtime queue responsive presentation — 5 November 2026
@@ -226,7 +226,7 @@ The Admin Overtime queue was refined in source commit `45b36286cc95b99185b114ff2
 - Employee, scheduled start, reason, both statuses, detail navigation, and pagination remain available.
 - The existing status filter, route, query, model data, status enums, authorization, and review actions are unchanged.
 
-A feature assertion was added to `OvertimeWorkflowTest` for the responsive mobile/desktop wrappers and both status dimensions. CI is pending. Browser/device QA has not been performed; see [Visual QA Log](VISUAL-QA-LOG.md).
+A feature assertion was added to `OvertimeWorkflowTest` for the responsive mobile/desktop wrappers and both status dimensions. CI run [#41981719951](https://github.com/leonsmith128/pt-sanmal/actions/runs/41981719951) passed on source commit `f9bcc443d77370182fa0aa1dfe471b40d05337bb`. Browser/device QA has not been performed; see [Visual QA Log](VISUAL-QA-LOG.md).
 
 
 ## Employee workflow and Location form token alignment — 5 November 2026
@@ -239,7 +239,7 @@ A final source pass aligned remaining employee workflow surfaces with the SanMal
 - Employee Attendance History remains unchanged because its V1 scope is already implemented and was explicitly marked to be preserved.
 - No business logic, route, form field, Livewire state/action, camera/GPS flow, or request contract changed.
 
-CI run [#41981290455](https://github.com/leonsmith128/pt-sanmal/actions/runs/41981290455) passed on commit `4630b19645af39fbfb676343def4e12d538cbc8e`, including Pint, repository and changed-code static analysis, MariaDB tests, and SQLite tests. The later Blade-only token alignment commit `f38a551befc48ef6626c7108dde1711d19a6d002` has a new CI run queued; do not treat that latest head as fully verified until its run completes.
+CI run [#41981290455](https://github.com/leonsmith128/pt-sanmal/actions/runs/41981290455) passed on commit `4630b19645af39fbfb676343def4e12d538cbc8e`. The latest source commit `f9bcc443d77370182fa0aa1dfe471b40d05337bb` also passed CI run [#41981719951](https://github.com/leonsmith128/pt-sanmal/actions/runs/41981719951), including Pint, repository and changed-code static analysis, MariaDB tests, and SQLite tests. Browser/device visual QA remains not run.
 
 Browser/device visual QA has not been performed. See [Visual QA Log](VISUAL-QA-LOG.md).
 
@@ -251,5 +251,5 @@ Admin Leave Request and Overtime desktop tables now expose their horizontally sc
 - Added `role="region"`, a localized `aria-label`, and `tabindex="0"` to the inner scroll containers; the outer shared card remains unchanged.
 - Regression assertions verify both region labels.
 - No table data, columns, status values, filters, routes, pagination, or review actions changed.
-- CI run [#41981528715](https://github.com/leonsmith128/pt-sanmal/actions/runs/41981528715) passed on the preceding token-alignment commit `f38a551befc48ef6626c7108dde1711d19a6d002`. CI for the latest region-accessibility commit is pending.
+- CI run [#41981719951](https://github.com/leonsmith128/pt-sanmal/actions/runs/41981719951) passed on the latest source commit `f9bcc443d77370182fa0aa1dfe471b40d05337bb`, including the accessible scroll-region assertions.
 - Browser/device QA remains not run; see [Visual QA Log](VISUAL-QA-LOG.md).
