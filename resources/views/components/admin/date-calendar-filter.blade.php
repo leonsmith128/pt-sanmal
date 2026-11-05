@@ -1,8 +1,8 @@
 @props(['date'])
 
 @php
-    $selected = \\Illuminate\\Support\\Carbon::parse($date);
-    $weekStart = $selected->copy()->startOfWeek(\\Illuminate\\Support\\Carbon::MONDAY);
+    $selected = \Illuminate\Support\Carbon::parse($date);
+    $weekStart = $selected->copy()->startOfWeek(\Illuminate\Support\Carbon::MONDAY);
     $today = now('Asia/Makassar')->toDateString();
     $weekDays = collect(range(0, 6))->map(fn (int $offset) => [
         'date' => $weekStart->copy()->addDays($offset)->toDateString(),
