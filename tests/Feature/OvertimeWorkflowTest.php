@@ -70,6 +70,7 @@ it('renders the admin overtime queue as mobile cards and a desktop table', funct
         ->assertOk()
         ->assertSee('md:hidden', false)
         ->assertSee('hidden overflow-hidden md:block', false)
+        ->assertSee('Daftar pengajuan lembur; geser horizontal untuk melihat seluruh kolom', false)
         ->assertSee('Status operasional')
         ->assertSee($employee->user->name)
         ->assertSee($request->reason)

@@ -45,7 +45,7 @@
         </div>
 
         <x-ui.card padding="p-0" class="hidden overflow-hidden md:block">
-            <div class="overflow-x-auto">
+            <div class="overflow-x-auto" role="region" aria-label="{{ __('Daftar pengajuan lembur; geser horizontal untuk melihat seluruh kolom') }}" tabindex="0">
                 <table class="w-full min-w-[52rem] text-left text-sm">
                     <thead class="bg-sanmal-surface-secondary text-xs uppercase tracking-wide text-[var(--sanmal-text-muted)] dark:bg-sanmal-surface-secondary-dark">
                         <tr>

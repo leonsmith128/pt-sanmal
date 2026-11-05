@@ -48,6 +48,7 @@ it('renders responsive admin leave-request cards and status quick filters', func
         ->assertSee('Filter cepat status')
         ->assertSee('md:hidden', false)
         ->assertSee('hidden overflow-hidden md:block', false)
+        ->assertSee('Daftar permohonan; geser horizontal untuk melihat seluruh kolom', false)
         ->assertSee('Buka detail')
         ->assertSee('Menunggu');
 });
