@@ -92,6 +92,36 @@ test('approved reset token can be used once and updates the password', function 
         ->assertStatus(422);
 });
 
+test('approved reset requires at least eight characters and a number without requiring uppercase', function () {
+    Notification::fake();
+
+    $user = passwordResetEmployee();
+    $this->post(route('password-reset.request.store'), ['email' => $user->email]);
+    $resetRequest = PasswordResetRequest::query()->where('user_id', $user->id)->firstOrFail();
+
+    $this->actingAs(passwordResetAdmin())
+        ->post(route('admin.password-reset-requests.approve', $resetRequest));
+
+    $notification = Notification::sent($user, PasswordResetApprovedNotification::class)->first();
+    $token = basename(parse_url($notification->resetUrl, PHP_URL_PATH));
+
+    $this->from(route('password-reset.show', ['token' => $token]))
+        ->post(route('password-reset.store', ['token' => $token]), [
+            'password' => 'lowercaseonly',
+            'password_confirmation' => 'lowercaseonly',
+        ])
+        ->assertSessionHasErrors('password');
+
+    $this->from(route('password-reset.show', ['token' => $token]))
+        ->post(route('password-reset.store', ['token' => $token]), [
+            'password' => 'abc123',
+            'password_confirmation' => 'abc123',
+        ])
+        ->assertSessionHasErrors('password');
+
+    expect($resetRequest->fresh()->status)->toBe('approved');
+});
+
 test('employee cannot request reset while account is inactive or awaiting first password change', function () {
     $inactive = passwordResetEmployee();
     $inactive->forceFill(['is_active' => false])->save();
