@@ -49,7 +49,7 @@ test('admin creates employee account and profile atomically with encrypted tempo
 
     $temporaryPassword = Crypt::decryptString($user->accountCredential->temporary_password_encrypted);
 
-    expect($temporaryPassword)->toMatch('/\\A[A-Za-z0-9]{24}\\z/')
+    expect($temporaryPassword)->toMatch('/\\A(?=.*[A-Za-z])(?=.*[0-9])[A-Za-z0-9]{8}\\z/')
         ->and($user->role)->toBe(UserRole::Employee)
         ->and($user->is_active)->toBeTrue()
         ->and($user->must_change_password)->toBeTrue()
@@ -98,8 +98,8 @@ test('first password change removes temporary credential without verifying email
 
     $this->actingAs($employee->user)
         ->post(route('account.password.first-change.store'), [
-            'password' => 'personal-password-value',
-            'password_confirmation' => 'personal-password-value',
+            'password' => 'personalpassword1',
+            'password_confirmation' => 'personalpassword1',
         ])
         ->assertRedirect(route('dashboard'));
 
@@ -108,7 +108,7 @@ test('first password change removes temporary credential without verifying email
     expect($user->must_change_password)->toBeFalse()
         ->and($user->email_verified_at)->toBeNull()
         ->and($user->accountCredential)->toBeNull()
-        ->and(Hash::check('personal-password-value', $user->password))->toBeTrue();
+        ->and(Hash::check('personalpassword1', $user->password))->toBeTrue();
 });
 
 test('activation link sets a password without verifying email and cannot be reused', function () {
@@ -126,8 +126,8 @@ test('activation link sets a password without verifying email and cannot be reus
     ]);
 
     $payload = [
-        'password' => 'activated-password-value',
-        'password_confirmation' => 'activated-password-value',
+        'password' => 'activatedpassword1',
+        'password_confirmation' => 'activatedpassword1',
     ];
 
     $this->post(route('employee-activation.store', ['token' => $token]), $payload)
@@ -139,7 +139,7 @@ test('activation link sets a password without verifying email and cannot be reus
         ->and($user->email_verified_at)->toBeNull()
         ->and($user->accountCredential)->toBeNull()
         ->and($user->accountActivation->consumed_at)->not->toBeNull()
-        ->and(Hash::check('activated-password-value', $user->password))->toBeTrue();
+        ->and(Hash::check('activatedpassword1', $user->password))->toBeTrue();
 
     $this->post(route('employee-activation.store', ['token' => $token]), $payload)
         ->assertStatus(422);
