@@ -2,20 +2,23 @@
 
 namespace App\Http\Controllers;
 
+use App\Data\Attendance\AttendanceFilterData;
 use App\Enums\AttendanceType;
 use App\Models\AttendanceRecord;
 use App\Models\DailyStatusCorrection;
 use App\Models\Employee;
 use App\Models\LeaveRequest;
-use App\Services\DailyAttendanceExportService;
+use App\Services\AttendanceReportBuilder;
 use App\Services\DailyAttendanceStatusService;
+use App\Support\ReportFileName;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\View\View;
-use Symfony\Component\HttpFoundation\StreamedResponse;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class AttendanceHistoryController extends Controller
 {
@@ -100,30 +103,35 @@ class AttendanceHistoryController extends Controller
         ]);
     }
 
-    public function export(
-        Request $request,
-        DailyAttendanceStatusService $statusService,
-        DailyAttendanceExportService $exportService,
-    ): StreamedResponse {
+    public function export(Request $request, AttendanceReportBuilder $builder): BinaryFileResponse
+    {
         $user = $request->user();
         $employee = $user->employee;
 
         abort_unless($user->is_active && $employee, 403, 'Akun ini belum terhubung dengan data pegawai aktif.');
 
-        // Preserve the export endpoint's existing unfiltered behavior. The page
-        // supplies its selected period in the query string when exporting.
-        $filters = $this->validatedFilters($request);
-        $start = Carbon::parse($filters['from'] !== '' ? $filters['from'] : $this->earliestAvailableDate($employee), 'Asia/Makassar')->startOfDay();
-        $end = Carbon::parse($filters['to'] !== '' ? $filters['to'] : Carbon::now('Asia/Makassar')->toDateString(), 'Asia/Makassar')->startOfDay();
-        $employees = Employee::query()->whereKey($employee->id);
-        $filename = 'rekap-absensi-pegawai-'.$start->format('Ymd').'-'.$end->format('Ymd').'.csv';
+        // Rentang yang sama persis dengan halaman (default bulan berjalan + completeHistoryRange).
+        $filters = $this->completeHistoryRange($this->validatedFilters($request, useCurrentMonthDefault: true), $employee);
+        $start = Carbon::parse($filters['from'], 'Asia/Makassar')->startOfDay();
+        $end = Carbon::parse($filters['to'], 'Asia/Makassar')->startOfDay();
 
-        return response()->streamDownload(function () use ($employees, $start, $end, $statusService, $exportService): void {
-            $exportService->stream($employees, $start, $end, $statusService);
-        }, $filename, [
-            'Content-Type' => 'text/csv; charset=UTF-8',
-            'Cache-Control' => 'private, no-store, no-cache, must-revalidate',
-        ]);
+        $workbook = $builder->build(
+            Employee::query()->whereKey($employee->id),
+            $start,
+            $end,
+            'Asia/Makassar',
+            new AttendanceFilterData,
+            includeOvertime: true,
+            skipNoRecord: true,
+        );
+
+        $response = Excel::download(
+            $workbook,
+            ReportFileName::employee('riwayat-absensi', $employee->loadMissing('user'), ReportFileName::period($start, $end)),
+        );
+        $response->headers->set('Cache-Control', 'private, no-store, no-cache, must-revalidate');
+
+        return $response;
     }
 
     private function earliestAvailableDate(Employee $employee): string
