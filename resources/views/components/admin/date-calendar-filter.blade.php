@@ -42,6 +42,7 @@
         },
         choose(value) {
             this.selected = value;
+            this.month = value.slice(0, 7) + '-01';
             this.open = false;
         },
     }"
@@ -114,7 +115,7 @@
                 </template>
             </div>
             <div class="mt-3 flex items-center justify-between border-t border-sanmal-border pt-3 dark:border-sanmal-border-dark">
-                <button type="button" x-on:click="choose(today); month = today.slice(0, 7)" class="text-sm font-medium text-sanmal-brand-blue hover:underline dark:text-sanmal-brand-yellow">
+                <button type="button" x-on:click="choose(today)" class="text-sm font-medium text-sanmal-brand-blue hover:underline dark:text-sanmal-brand-yellow">
                     {{ __('Hari ini') }}
                 </button>
                 <button type="button" x-on:click="open = false" class="rounded-lg px-3 py-2 text-sm font-medium text-[var(--sanmal-text-secondary)] hover:bg-sanmal-surface-secondary dark:hover:bg-sanmal-surface-elevated-dark">
