@@ -305,3 +305,23 @@ test('admin employee index labels pending accounts consistently on desktop and m
         ->assertOk()
         ->assertSee('Menunggu aktivasi');
 });
+
+test('activation and first password change views render independently from email verification', function () {
+    $employee = pendingAccountEmployee();
+    $token = str_repeat('f', 64);
+
+    EmployeeAccountActivation::create([
+        'user_id' => $employee->user_id,
+        'token_hash' => hash('sha256', $token),
+        'expires_at' => now()->addHours(24),
+    ]);
+
+    $this->get(route('employee-activation.show', ['token' => $token]))
+        ->assertOk()
+        ->assertSee('Verifikasi email merupakan proses terpisah');
+
+    $this->actingAs($employee->user)
+        ->get(route('account.password.first-change'))
+        ->assertOk()
+        ->assertSee('Verifikasi email dilakukan terpisah');
+});

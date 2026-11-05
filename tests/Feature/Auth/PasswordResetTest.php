@@ -104,3 +104,42 @@ test('employee cannot request reset while account is inactive or awaiting first 
 
     expect(PasswordResetRequest::query()->count())->toBe(0);
 });
+
+test('employee request page and approved reset form are available in the account recovery flow', function () {
+    Notification::fake();
+
+    $this->get(route('password-reset.request.create'))
+        ->assertOk()
+        ->assertSee('Ajukan reset password');
+
+    $user = passwordResetEmployee();
+    $this->post(route('password-reset.request.store'), ['email' => $user->email]);
+
+    $resetRequest = PasswordResetRequest::query()->where('user_id', $user->id)->firstOrFail();
+
+    $this->actingAs(passwordResetAdmin())
+        ->post(route('admin.password-reset-requests.approve', $resetRequest))
+        ->assertRedirect();
+
+    $notification = Notification::sent($user, PasswordResetApprovedNotification::class)->first();
+    $token = basename(parse_url($notification->resetUrl, PHP_URL_PATH));
+
+    $this->get(route('password-reset.show', ['token' => $token]))
+        ->assertOk()
+        ->assertSee('Buat password baru');
+});
+
+test('admin reset queue displays pending requests and decision controls', function () {
+    $user = passwordResetEmployee();
+    $resetRequest = PasswordResetRequest::create([
+        'user_id' => $user->id,
+        'status' => 'pending',
+    ]);
+
+    $this->actingAs(passwordResetAdmin())
+        ->get(route('admin.password-reset-requests.index'))
+        ->assertOk()
+        ->assertSee($user->email)
+        ->assertSee('Setujui &amp; kirim tautan')
+        ->assertSee('Tolak permintaan');
+});
