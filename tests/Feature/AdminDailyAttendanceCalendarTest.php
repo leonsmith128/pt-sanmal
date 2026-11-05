@@ -14,12 +14,11 @@ it('renders the admin daily recap with the selected date in the calendar filter'
     $this->actingAs($admin)
         ->get(route('admin.daily-attendance', ['date' => '2026-11-03']))
         ->assertOk()
-        ->assertSee('admin-daily-attendance-calendar', false)
-        ->assertSee('Pilih tanggal rekap')
-        ->assertSee('selected:', false)
-        ->assertSee('month:', false)
+        ->assertSee('admin-calendar-select', false)
+        ->assertSee('attendance-week-day', false)
+        ->assertSee('calendar-days', false)
+        ->assertSee('type="date"', false)
         ->assertSee('2026-11-03')
-        ->assertDontSee('type="date"', false)
         ->assertSee('Unduh CSV');
 });
 
