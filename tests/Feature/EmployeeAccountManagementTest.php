@@ -19,6 +19,14 @@ function accountManagementAdmin(): User
     return $admin;
 }
 
+function accountManagementSuperadmin(): User
+{
+    $superadmin = User::factory()->create();
+    $superadmin->forceFill(['role' => UserRole::Superadmin, 'is_active' => true])->save();
+
+    return $superadmin;
+}
+
 function pendingAccountEmployee(): Employee
 {
     $user = User::factory()->create([
@@ -30,10 +38,10 @@ function pendingAccountEmployee(): Employee
     return Employee::query()->create(['user_id' => $user->id]);
 }
 
-test('admin creates employee account and profile atomically with encrypted temporary credential', function () {
+test('superadmin creates employee account and profile atomically with encrypted temporary credential', function () {
     Notification::fake();
 
-    $this->actingAs(accountManagementAdmin())
+    $this->actingAs(accountManagementSuperadmin())
         ->post(route('admin.employees.store'), [
             'name' => 'Pegawai Baru',
             'email' => 'pegawai.baru@example.com',

@@ -106,7 +106,13 @@ Route::middleware(['auth', EnsureUserIsActive::class, EnsurePasswordIsChanged::c
             Route::resource('pegawai', AdminEmployeeController::class)
                 ->parameters(['pegawai' => 'employee'])
                 ->names('employees')
-                ->except(['show', 'destroy']);
+                ->only(['index', 'edit', 'update']);
+
+            // Pembuatan akun pegawai baru: Superadmin saja. Admin tetap mengelola pegawai yang sudah ada.
+            Route::middleware(EnsureUserHasRole::using(UserRole::Superadmin))->group(function () {
+                Route::get('pegawai/create', [AdminEmployeeController::class, 'create'])->name('employees.create');
+                Route::post('pegawai', [AdminEmployeeController::class, 'store'])->name('employees.store');
+            });
 
             Route::post('pegawai/{employee}/password-sementara', [AdminEmployeeController::class, 'revealTemporaryPassword'])
                 ->middleware('throttle:10,1')
