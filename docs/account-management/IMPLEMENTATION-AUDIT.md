@@ -21,13 +21,13 @@ Menyelesaikan pengelolaan akun pegawai dari pembuatan akun, aktivasi, kredensial
 
 ### HTTP, autentikasi, dan otorisasi
 
-- `AdminEmployeeController` saat ini menangani index, create, store, edit, dan update.
-- `store()` menggunakan `User::create()` dengan atribut role/status/`must_change_password` yang tidak fillable. Hal yang sama terjadi pada `update()` untuk `is_active`. Ini berisiko membuat nilai sensitif tidak tersimpan sebagaimana dimaksud.
-- `store()` membuat password acak 40 karakter tetapi tidak menyediakan workflow aktivasi, tidak menyimpan salinan terenkripsi yang dapat diambil admin, dan tidak mengirim undangan aktivasi.
-- Route resource pegawai mengecualikan `destroy`, tetapi belum mengecualikan `show`; controller tidak memiliki method `show()`. Route resource perlu diselaraskan dengan method yang benar-benar tersedia.
+- `AdminEmployeeController` menangani index, create, store, edit, dan update.
+- Pada baseline, `store()` menggunakan `User::create()` dengan atribut role/status/`must_change_password` yang tidak fillable. Hal yang sama terjadi pada `update()` untuk `is_active`. Ini berisiko membuat nilai sensitif tidak tersimpan sebagaimana dimaksud.
+- Pada baseline, `store()` membuat password acak 40 karakter tetapi tidak menyediakan workflow aktivasi, tidak menyimpan salinan terenkripsi yang dapat diambil admin, dan tidak mengirim undangan aktivasi.
+- Pada baseline, route resource pegawai mengecualikan `destroy`, tetapi belum mengecualikan `show`; controller tidak memiliki method `show()`. Route resource perlu diselaraskan dengan method yang benar-benar tersedia.
 - `EnsureUserIsActive` sudah melindungi grup route terautentikasi.
-- Grup route aplikasi saat ini menerapkan middleware `verified` secara global. Ini bertentangan dengan keputusan bahwa pegawai yang menggunakan password sementara boleh menyelesaikan aktivasi dan menggunakan aplikasi tanpa harus memverifikasi email terlebih dahulu.
-- `must_change_password` belum ditegakkan oleh middleware pada route aplikasi.
+- Pada baseline, grup route aplikasi menerapkan middleware `verified` secara global. Ini bertentangan dengan keputusan bahwa pegawai yang menggunakan password sementara boleh menyelesaikan aktivasi dan menggunakan aplikasi tanpa harus memverifikasi email terlebih dahulu.
+- Pada baseline, `must_change_password` belum ditegakkan oleh middleware pada route aplikasi.
 - Fortify mengaktifkan `Features::resetPasswords()` dan `Features::emailVerification()`. Reset bawaan mengirim token melalui broker Laravel dan tidak mensyaratkan approval pada `password_reset_requests`; jalur ini harus ditutup agar tidak melewati workflow persetujuan.
 - `ResetUserPassword` hanya mengganti password dan belum menghapus secret sementara atau mengelola lifecycle aktivasi.
 - Route admin memakai middleware role Admin/Superadmin. UI bukan pengganti otorisasi server.
@@ -41,6 +41,14 @@ Menyelesaikan pengelolaan akun pegawai dari pembuatan akun, aktivasi, kredensial
 
 ## 2. Keputusan produk yang telah disetujui
 
+### Otorisasi pengelolaan pegawai
+
+- **Superadmin** dapat melihat daftar pegawai, membuat akun baru, mengubah data pegawai, dan menjalankan tindakan pengelolaan akun.
+- **Admin** dapat melihat daftar pegawai, mengubah data pegawai yang sudah ada, dan menjalankan tindakan pengelolaan akun yang disediakan untuk Admin. Admin **tidak boleh membuat akun pegawai baru**.
+- **Employee** tidak boleh mengakses halaman atau endpoint pengelolaan pegawai.
+- Hak membuat akun wajib dilindungi di backend. Menyembunyikan tombol Tambah Pegawai dari Admin hanya merupakan penyesuaian UI, bukan mekanisme otorisasi.
+- Role tidak boleh ditentukan dari input form atau nilai yang dikirim browser. Pembuatan akun pegawai menetapkan role Employee di server.
+
 ### Aktivasi dan verifikasi email adalah proses terpisah
 
 - `is_active` menentukan akses aplikasi.
@@ -51,11 +59,11 @@ Menyelesaikan pengelolaan akun pegawai dari pembuatan akun, aktivasi, kredensial
 
 ### Pembuatan dan aktivasi akun
 
-1. Admin membuat User dan Employee dalam satu database transaction.
-2. Sistem menghasilkan password sementara kuat; hash menjadi password login dan salinan terenkripsi disimpan terpisah.
+1. **Superadmin** membuat User dan Employee dalam satu database transaction.
+2. Sistem menghasilkan password sementara; hash menjadi password login dan salinan terenkripsi disimpan terpisah.
 3. Sistem membuat activation token acak, menyimpan hash token, expiry 24 jam, dan mengirim email.
 4. Activation link hanya dapat digunakan sekali. Resend membatalkan token sebelumnya.
-5. Admin yang berwenang dapat mengambil password sementara berulang kali sampai password benar-benar diganti. Secret tidak boleh ada pada daftar pegawai atau response umum.
+5. Admin dan Superadmin yang berwenang dapat mengambil password sementara berulang kali sampai password benar-benar diganti. Secret tidak boleh ada pada daftar pegawai atau response umum.
 6. Pegawai yang login dengan password sementara hanya dapat mengakses alur penggantian password dan logout.
 7. Setelah password diganti, secret terenkripsi dihapus, activation token dibatalkan, dan `must_change_password` menjadi false.
 8. Akun nonaktif tidak dapat login, aktivasi, atau reset password.
@@ -63,7 +71,7 @@ Menyelesaikan pengelolaan akun pegawai dari pembuatan akun, aktivasi, kredensial
 ### Reset password
 
 1. Pegawai mengajukan permintaan reset.
-2. Admin meninjau dan menyetujui atau menolak dengan catatan.
+2. Admin atau Superadmin meninjau dan menyetujui atau menolak dengan catatan.
 3. Persetujuan menerbitkan token reset satu kali dengan expiry 24 jam.
 4. Pegawai mengganti password melalui token yang valid; permintaan ditandai digunakan.
 5. Reset publik bawaan Fortify tidak boleh menjadi jalur bypass approval.
@@ -113,10 +121,24 @@ Tabel `password_reset_requests` yang sudah ada harus diperluas melalui model/Act
 - Audit log tidak memuat secret.
 - Test targeted, Pint, dan pemeriksaan CI yang tersedia lulus; keterbatasan verifikasi dilaporkan apa adanya.
 
-
 ## 6. Kebijakan password akun pegawai
 
 - Password sementara yang dibuat admin atau dirotasi: tepat 8 karakter, hanya huruf ASCII dan angka, serta wajib memuat minimal satu huruf dan satu angka.
 - Password yang ditetapkan pegawai saat aktivasi, penggantian password pertama, penggantian password dari Keamanan Akun, dan reset password: minimal 8 karakter, wajib memuat huruf dan angka.
 - Huruf kapital tidak diwajibkan. Simbol boleh digunakan pada password yang dibuat sendiri oleh pegawai.
 - Aturan validasi dipusatkan melalui `Password::defaults()` di `AppServiceProvider`, sehingga seluruh alur memakai kebijakan yang sama.
+
+## 7. Verifikasi implementasi role dan halaman pegawai — 5 November 2026
+
+Source branch `feature/pengelolaan-akun-pegawai` telah diperiksa ulang terhadap kontrak otorisasi di atas.
+
+- Route resource pegawai hanya mendaftarkan `index`, `edit`, dan `update` di dalam grup Admin/Superadmin.
+- Route `admin.employees.create` dan `admin.employees.store` didaftarkan secara terpisah di dalam middleware Superadmin.
+- Tombol Tambah Pegawai hanya dirender ketika `auth()->user()?->isSuperadmin()` bernilai true.
+- `AdminAuthorizationTest` mencakup akses GET create, penolakan GET create dan POST store untuk Admin/Employee, serta akses edit untuk Admin/Superadmin.
+- `AdminEmployeePageTest` mencakup visibilitas tombol Tambah Pegawai berdasarkan role.
+- Halaman daftar memakai card untuk viewport di bawah `xl` dan tabel pada viewport `xl` ke atas. Badge status dipakai bersama agar status pending konsisten pada kedua presentasi.
+- Form tambah mengelompokkan akun login dan data kepegawaian; form edit memisahkan status akun, verifikasi email, dan status aktivasi.
+- Password sementara tidak dirender pada HTML awal. Nilainya diminta melalui endpoint POST khusus ketika tombol salin digunakan; fallback manual tersedia jika clipboard tidak dapat dipakai.
+
+**Status verifikasi:** temuan di atas merupakan pemeriksaan source dan test yang tersedia, bukan klaim browser QA. Jalankan CI dan lakukan pemeriksaan browser pada 360–390 px, 768 px, 1024 px, dan 1280 px atau lebih, dalam tema terang/gelap. Periksa khusus overflow form, kesesuaian badge, akses keyboard, dan perilaku clipboard normal/fallback.
