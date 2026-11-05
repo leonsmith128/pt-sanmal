@@ -26,7 +26,6 @@ function createEmployeeFor(User $user): Employee
     return Employee::create(['user_id' => $user->id]);
 }
 
-
 it('renders responsive admin leave-request cards and status quick filters', function () {
     $admin = createUserWithRole(UserRole::Admin);
     createEmployeeFor($admin);

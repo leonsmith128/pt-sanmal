@@ -141,7 +141,7 @@ it('shows client sites and opens a location form with its client preselected', f
         ->assertSee('Master Data Client')
         ->assertSee('sm:grid-cols-2 lg:grid-cols-3', false)
         ->assertSee('bg-sanmal-surface-card', false)
-        ->assertSee('Site Klien'
+        ->assertSee('Site Klien')
         ->assertSee('Kantor Internal Modul');
 
     $this->actingAs($admin)

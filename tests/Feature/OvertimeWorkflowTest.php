@@ -56,7 +56,6 @@ function overtimeRequest(Employee $employee, AttendanceRecord $clockIn, string $
     ]);
 }
 
-
 it('renders the admin overtime queue as mobile cards and a desktop table', function () {
     $admin = User::factory()->create();
     $admin->forceFill(['role' => UserRole::Admin, 'is_active' => true])->save();
