@@ -436,6 +436,7 @@ it('renders mobile attendance cards with a photo column, compact actions, and a 
         'address_snapshot' => 'Jl. Kalibrasi No. 1, Makassar',
         'latitude' => -5.1477,
         'longitude' => 119.4327,
+        'selfie_path' => 'attendance/selfies/photo.jpg',
     ]);
 
     Livewire::actingAs($admin)
@@ -445,7 +446,6 @@ it('renders mobile attendance cards with a photo column, compact actions, and a 
         ->assertSee('justify-end gap-1.5', false)
         ->assertSee('.attendance-desktop-table table {', false)
         ->assertSee('table-layout: auto;', false)
-        ->assertSee('self-center', false)
         ->assertSee(__('Detail'))
         ->assertDontSee('Tampilkan detail')
         ->assertSee('attendance-detail-'.$record->id, false)

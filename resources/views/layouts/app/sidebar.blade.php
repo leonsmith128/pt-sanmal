@@ -29,17 +29,9 @@
             </flux:sidebar.header>
 
             <flux:sidebar.nav aria-label="{{ __('Navigasi utama') }}">
-                @if ($isEmployee)
-                    <div class="flex flex-col">
-                        <flux:sidebar.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
-                            {{ __('Beranda') }}
-                        </flux:sidebar.item>
-                    </div>
-                @else
-                    <flux:sidebar.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
-                        {{ __('Dashboard') }}
-                    </flux:sidebar.item>
-                @endif
+                <flux:sidebar.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
+                    {{ $isEmployee ? __('Beranda') : __('Dashboard') }}
+                </flux:sidebar.item>
                 @if ($isManager)
                     @if ($sidebarEmployee)
                         <x-ui.sidebar-section :heading="__('Aktivitas Saya')">
@@ -129,79 +121,50 @@
 
             <flux:spacer />
 
-            <x-desktop-user-menu class="hidden lg:block" :name="$sidebarUser->name" />
+            <x-desktop-user-menu class="hidden lg:block" :user="$sidebarUser" />
         </flux:sidebar>
 
-        @if ($isManager)
+        @if ($sidebarUser)
             <flux:header class="border-b border-sanmal-border bg-sanmal-surface-primary dark:border-sanmal-border-dark dark:bg-sanmal-surface-primary-dark lg:hidden">
                 <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" />
                 <x-app-logo href="{{ route('dashboard') }}" wire:navigate />
                 <flux:spacer />
                 <div class="flex shrink-0 items-center gap-1">
-                    <flux:dropdown position="top" align="start">
-                    <flux:profile
-                        :initials="$sidebarUser->initials()"
-                        :avatar="$sidebarUser->profilePhotoUrl()"
-                        :chevron="false"
-                        class="rounded-full [&_img]:rounded-full"
+                    <flux:dropdown position="bottom" align="start">
+                        <flux:profile
+                            :initials="$sidebarUser->initials()"
+                            :avatar="$sidebarUser->profilePhotoUrl()"
+                            :chevron="false"
+                            class="rounded-full [&_img]:rounded-full"
+                        />
+                        <flux:menu>
+                            @if ($isManager)
+                                <div class="flex items-center gap-2 px-1 py-1.5 text-start text-sm">
+                                    <x-ui.avatar :name="$sidebarUser->name" :initials="$sidebarUser->initials()" size="sm" />
+                                    <div class="grid flex-1 text-start text-sm leading-tight">
+                                        <flux:heading class="truncate">{{ $sidebarUser->name }}</flux:heading>
+                                        <flux:text class="truncate">{{ $sidebarUser->email }}</flux:text>
+                                    </div>
+                                </div>
+                                <flux:menu.separator />
+                            @endif
+                            <flux:menu.item :href="route('profile.edit')" icon="user-circle" wire:navigate>{{ __('Profil') }}</flux:menu.item>
+                            <flux:menu.item :href="route('security.edit')" icon="shield-check" wire:navigate>{{ __('Keamanan Akun') }}</flux:menu.item>
+                            <flux:menu.separator />
+                            <form method="POST" action="{{ route('logout') }}" class="w-full">
+                                @csrf
+                                <flux:menu.item as="button" type="submit" icon="arrow-right-start-on-rectangle" class="w-full cursor-pointer" data-test="logout-button">
+                                    {{ __('Log out') }}
+                                </flux:menu.item>
+                            </form>
+                        </flux:menu>
+                    </flux:dropdown>
+                    <x-ui.notification-dropdown
+                        :notifications="$latestSystemNotifications"
+                        :unread-count="$unreadSystemNotifications"
                     />
-                    <flux:menu>
-                        <div class="flex items-center gap-2 px-1 py-1.5 text-start text-sm">
-                            <x-ui.avatar :name="$sidebarUser->name" :initials="$sidebarUser->initials()" size="sm" />
-                            <div class="grid flex-1 text-start text-sm leading-tight">
-                                <flux:heading class="truncate">{{ $sidebarUser->name }}</flux:heading>
-                                <flux:text class="truncate">{{ $sidebarUser->email }}</flux:text>
-                            </div>
-                        </div>
-                        <flux:menu.separator />
-                        <flux:menu.item :href="route('profile.edit')" icon="user-circle" wire:navigate>{{ __('Profil') }}</flux:menu.item>
-                        <flux:menu.item :href="route('security.edit')" icon="shield-check" wire:navigate>{{ __('Keamanan Akun') }}</flux:menu.item>
-                        <flux:menu.separator />
-                        <form method="POST" action="{{ route('logout') }}" class="w-full">
-                            @csrf
-                            <flux:menu.item as="button" type="submit" icon="arrow-right-start-on-rectangle" class="w-full cursor-pointer" data-test="logout-button">
-                                {{ __('Log out') }}
-                            </flux:menu.item>
-                        </form>
-                    </flux:menu>
-                </flux:dropdown>
-                <x-ui.notification-dropdown
-                    :notifications="$latestSystemNotifications"
-                    :unread-count="$unreadSystemNotifications"
-                />
                 </div>
             </flux:header>
-        @elseif ($isEmployee)
-            <flux:header class="border-b border-sanmal-border bg-sanmal-surface-primary dark:border-sanmal-border-dark dark:bg-sanmal-surface-primary-dark lg:hidden">
-                <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" />
-                <x-app-logo href="{{ route('dashboard') }}" wire:navigate />
-                <flux:spacer />
-                <div class="flex shrink-0 items-center gap-1">                <flux:dropdown position="bottom" align="start">
-                    <flux:profile
-                        :initials="$sidebarUser->initials()"
-                        :avatar="$sidebarUser->profilePhotoUrl()"
-                        :chevron="false"
-                        class="rounded-full [&_img]:rounded-full"
-                    />
-                    <flux:menu>
-                        <flux:menu.item :href="route('profile.edit')" icon="user-circle" wire:navigate>{{ __('Profil') }}</flux:menu.item>
-                        <flux:menu.item :href="route('security.edit')" icon="shield-check" wire:navigate>{{ __('Keamanan Akun') }}</flux:menu.item>
-                        <flux:menu.separator />
-                        <form method="POST" action="{{ route('logout') }}" class="w-full">
-                            @csrf
-                            <flux:menu.item as="button" type="submit" icon="arrow-right-start-on-rectangle" class="w-full cursor-pointer" data-test="logout-button">
-                                {{ __('Log out') }}
-                            </flux:menu.item>
-                        </form>
-                    </flux:menu>
-                </flux:dropdown>
-                <x-ui.notification-dropdown
-                    :notifications="$latestSystemNotifications"
-                    :unread-count="$unreadSystemNotifications"
-                />
-                </div>
-            </flux:header>
-
         @endif
 
         {{ $slot }}

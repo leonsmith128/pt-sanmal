@@ -205,43 +205,41 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
     }
 }; ?>
 
-
-<style>
-    .attendance-mobile-list { display: none; }
-
-    .attendance-desktop-table,
-    .attendance-desktop-table [data-flux-table] {
-        width: 100%;
-        max-width: none;
-    }
-
-    .attendance-desktop-table table {
-        width: 100%;
-        table-layout: auto;
-    }
-
-    .attendance-desktop-table thead th:nth-child(1),
-    .attendance-desktop-table tbody td:nth-child(1) { width: 13%; }
-    .attendance-desktop-table thead th:nth-child(2),
-    .attendance-desktop-table tbody td:nth-child(2) { width: 14%; }
-    .attendance-desktop-table thead th:nth-child(3),
-    .attendance-desktop-table tbody td:nth-child(3) { width: 11%; }
-    .attendance-desktop-table thead th:nth-child(4),
-    .attendance-desktop-table tbody td:nth-child(4) { width: 19%; }
-    .attendance-desktop-table thead th:nth-child(5),
-    .attendance-desktop-table tbody td:nth-child(5) { width: 27%; }
-    .attendance-desktop-table thead th:nth-child(6),
-    .attendance-desktop-table tbody td:nth-child(6) { width: 7%; }
-    .attendance-desktop-table thead th:nth-child(7),
-    .attendance-desktop-table tbody td:nth-child(7) { width: 9%; }
-
-    @media (max-width: 767px) {
-        .attendance-responsive-table .attendance-desktop-table { display: none; }
-        .attendance-mobile-list { display: grid; }
-    }
-</style>
-
 <section x-data="{ exportConfirmOpen: false, exportUrl: '', exportDescription: '' }" x-on:keydown.escape.window="exportConfirmOpen = false" class="w-full">
+    <style>
+        .attendance-mobile-list { display: none; }
+
+        .attendance-desktop-table,
+        .attendance-desktop-table [data-flux-table] {
+            width: 100%;
+            max-width: none;
+        }
+
+        .attendance-desktop-table table {
+            width: 100%;
+            table-layout: auto;
+        }
+
+        .attendance-desktop-table thead th:nth-child(1),
+        .attendance-desktop-table tbody td:nth-child(1) { width: 13%; }
+        .attendance-desktop-table thead th:nth-child(2),
+        .attendance-desktop-table tbody td:nth-child(2) { width: 14%; }
+        .attendance-desktop-table thead th:nth-child(3),
+        .attendance-desktop-table tbody td:nth-child(3) { width: 11%; }
+        .attendance-desktop-table thead th:nth-child(4),
+        .attendance-desktop-table tbody td:nth-child(4) { width: 19%; }
+        .attendance-desktop-table thead th:nth-child(5),
+        .attendance-desktop-table tbody td:nth-child(5) { width: 27%; }
+        .attendance-desktop-table thead th:nth-child(6),
+        .attendance-desktop-table tbody td:nth-child(6) { width: 7%; }
+        .attendance-desktop-table thead th:nth-child(7),
+        .attendance-desktop-table tbody td:nth-child(7) { width: 9%; }
+
+        @media (max-width: 767px) {
+            .attendance-responsive-table .attendance-desktop-table { display: none; }
+            .attendance-mobile-list { display: grid; }
+        }
+    </style>
     <x-ui.page>
         <x-admin.page-header :title="__('Kehadiran Pegawai')" />
         @if (session('status'))
@@ -405,7 +403,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                                 </x-ui.photo-preview>
                             @else
                                 <div class="flex h-24 w-20 items-center justify-center rounded-lg bg-sanmal-surface-secondary text-[var(--sanmal-text-muted)] dark:bg-sanmal-surface-secondary-dark">
-                                    <flux:icon name="user-round" class="size-7" />
+                                    <flux:icon name="user" class="size-7" />
                                 </div>
                             @endif
                         </div>
@@ -444,7 +442,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                 @foreach ($notYetPresent as $employee)
                     <article wire:key="attendance-mobile-not-present-{{ $employee->id }}" class="flex gap-3 rounded-xl border border-sanmal-border bg-sanmal-surface-primary p-3 dark:border-sanmal-border-dark dark:bg-sanmal-surface-primary-dark">
                         <div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg bg-sanmal-surface-secondary text-[var(--sanmal-text-muted)] dark:bg-sanmal-surface-secondary-dark">
-                            <flux:icon name="user-round" class="size-6" />
+                            <flux:icon name="user" class="size-6" />
                         </div>
                         <div class="flex min-w-0 flex-1 items-center justify-between gap-2">
                             <p class="truncate text-sm font-semibold">{{ $employee->user->name }}</p>
