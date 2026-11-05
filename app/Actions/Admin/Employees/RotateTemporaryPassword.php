@@ -23,7 +23,7 @@ class RotateTemporaryPassword
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            $temporaryPassword = Str::password(24);
+            $temporaryPassword = Str::password(24, symbols: false);
 
             $user->forceFill(['password' => $temporaryPassword])->save();
             $credential->forceFill([
