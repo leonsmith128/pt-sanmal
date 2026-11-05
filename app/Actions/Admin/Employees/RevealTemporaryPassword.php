@@ -4,22 +4,31 @@ namespace App\Actions\Admin\Employees;
 
 use App\Models\AuditLog;
 use App\Models\Employee;
+use App\Models\EmployeeAccountCredential;
+use App\Models\User;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\DB;
 
 class RevealTemporaryPassword
 {
     public function handle(Employee $employee): string
     {
-        abort_unless($employee->user->is_active, 404);
+        return DB::transaction(function () use ($employee): string {
+            $user = User::query()->lockForUpdate()->findOrFail($employee->user_id);
+            abort_unless($user->is_active && $user->must_change_password, 404);
 
-        $credential = $employee->user->accountCredential;
+            $credential = EmployeeAccountCredential::query()
+                ->where('user_id', $user->id)
+                ->lockForUpdate()
+                ->firstOrFail();
 
-        abort_unless($credential, 404);
+            $password = Crypt::decryptString($credential->temporary_password_encrypted);
 
-        AuditLog::record($employee->user, 'account.temporary_password.revealed', null, [
-            'revealed_to_user_id' => auth()->id(),
-        ]);
+            AuditLog::record($user, 'account.temporary_password.revealed', null, [
+                'revealed_to_user_id' => auth()->id(),
+            ]);
 
-        return Crypt::decryptString($credential->temporary_password_encrypted);
+            return $password;
+        });
     }
 }

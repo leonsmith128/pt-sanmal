@@ -18,8 +18,17 @@ class RequestEmployeePasswordReset
             return;
         }
 
-        DB::transaction(function () use ($user): void {
+        DB::transaction(function () use ($user, $email): void {
             $lockedUser = User::query()->lockForUpdate()->findOrFail($user->id);
+
+            if (
+                $lockedUser->email !== $email
+                || ! $lockedUser->is_active
+                || $lockedUser->must_change_password
+                || $lockedUser->role !== UserRole::Employee
+            ) {
+                return;
+            }
 
             $pending = PasswordResetRequest::query()
                 ->where('user_id', $lockedUser->id)
