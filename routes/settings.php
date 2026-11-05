@@ -1,9 +1,10 @@
 <?php
 
 use App\Http\Middleware\EnsureUserIsActive;
+use App\Http\Middleware\EnsurePasswordIsChanged;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth', EnsureUserIsActive::class])->group(function () {
+Route::middleware(['auth', EnsureUserIsActive::class, EnsurePasswordIsChanged::class])->group(function () {
     // Keep old settings URLs working while directing users to the simpler account pages.
     Route::redirect('settings', '/profil');
     Route::redirect('settings/profile', '/profil');

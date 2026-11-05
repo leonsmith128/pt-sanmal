@@ -7,6 +7,7 @@ use App\Models\EmployeeAccountActivation;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
 
 class CompleteEmployeeActivation
 {
@@ -25,6 +26,12 @@ class CompleteEmployeeActivation
                 422,
                 'Tautan aktivasi tidak valid atau sudah kedaluwarsa.',
             );
+
+            if (Hash::check($password, $user->password)) {
+                throw ValidationException::withMessages([
+                    'password' => 'Password baru harus berbeda dari password sementara.',
+                ]);
+            }
 
             $user->forceFill([
                 'password' => Hash::make($password),

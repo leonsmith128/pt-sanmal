@@ -48,7 +48,7 @@
             </form>
         </x-ui.card>
 
-        @if ($employee->user->accountCredential)
+        @if ($employee->user->is_active && $employee->user->accountCredential)
             <x-ui.card padding="p-4" class="space-y-3">
                 <div>
                     <h2 class="font-medium">{{ __('Password sementara') }}</h2>
@@ -93,7 +93,7 @@
             </x-ui.card>
         @endif
 
-        @if ($employee->user->must_change_password)
+        @if ($employee->user->is_active && $employee->user->must_change_password)
             <div class="flex flex-wrap gap-2">
                 <form method="POST" action="{{ route('admin.employees.resend-activation', $employee) }}">
                     @csrf
