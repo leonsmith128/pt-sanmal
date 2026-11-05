@@ -1,0 +1,52 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Actions\Admin\Employees\ApprovePasswordReset;
+use App\Models\PasswordResetRequest;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\View\View;
+
+class AdminPasswordResetRequestController extends Controller
+{
+    public function index(): View
+    {
+        $requests = PasswordResetRequest::query()
+            ->with(['user.employee', 'reviewer'])
+            ->latest()
+            ->paginate(20);
+
+        return view('pages::admin.password-reset-requests.index', compact('requests'));
+    }
+
+    public function approve(Request $request, PasswordResetRequest $passwordResetRequest, ApprovePasswordReset $approvePasswordReset): RedirectResponse
+    {
+        $data = $request->validate(['review_note' => ['nullable', 'string', 'max:1000']]);
+        $sent = $approvePasswordReset->handle($passwordResetRequest, $request->user(), $data['review_note'] ?? null);
+
+        return back()->with('status', $sent
+            ? 'Permintaan disetujui dan tautan reset dikirim.'
+            : 'Permintaan disetujui, tetapi email gagal dikirim. Periksa konfigurasi email sebelum mengirim ulang.');
+    }
+
+    public function reject(Request $request, PasswordResetRequest $passwordResetRequest): RedirectResponse
+    {
+        $data = $request->validate(['review_note' => ['required', 'string', 'max:1000']]);
+
+        abort_unless($passwordResetRequest->status === 'pending', 409, 'Permintaan reset sudah diproses.');
+
+        $passwordResetRequest->forceFill([
+            'status' => 'rejected',
+            'reviewed_by' => $request->user()->id,
+            'reviewed_at' => now(),
+            'review_note' => $data['review_note'],
+        ])->save();
+
+        \App\Models\AuditLog::record($passwordResetRequest->user, 'password_reset.rejected', null, [
+            'request_id' => $passwordResetRequest->id,
+        ]);
+
+        return back()->with('status', 'Permintaan reset password ditolak.');
+    }
+}
