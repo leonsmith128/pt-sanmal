@@ -91,7 +91,14 @@ Route::middleware(['auth', EnsureUserIsActive::class, EnsurePasswordIsChanged::c
             Route::resource('pegawai', AdminEmployeeController::class)
                 ->parameters(['pegawai' => 'employee'])
                 ->names('employees')
-                ->except(['destroy']);
+                ->except(['show', 'destroy']);
+
+            Route::post('pegawai/{employee}/password-sementara', [AdminEmployeeController::class, 'revealTemporaryPassword'])
+                ->middleware('throttle:10,1')
+                ->name('employees.temporary-password');
+            Route::post('pegawai/{employee}/kirim-aktivasi', [AdminEmployeeController::class, 'resendActivation'])
+                ->middleware('throttle:5,1')
+                ->name('employees.resend-activation');
 
             Route::get('koreksi-absensi', [AdminAttendanceCorrectionController::class, 'index'])
                 ->name('attendance-corrections.index');

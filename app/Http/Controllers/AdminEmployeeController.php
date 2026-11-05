@@ -54,7 +54,7 @@ class AdminEmployeeController extends Controller
         $sent = $issueActivation->handle($employee->user);
 
         return redirect()->route('admin.employees.edit', $employee)
-            ->with($sent ? 'status' : 'warning', $sent
+            ->with('status', $sent
                 ? 'Pegawai dibuat dan tautan aktivasi telah dikirim. Password sementara tersedia melalui tindakan khusus admin.'
                 : 'Pegawai dibuat, tetapi email aktivasi gagal dikirim. Salin password sementara dan sampaikan melalui saluran aman.');
     }
@@ -99,7 +99,7 @@ class AdminEmployeeController extends Controller
     {
         $sent = $issueActivation->handle($employee->user);
 
-        return back()->with($sent ? 'status' : 'warning', $sent
+        return back()->with('status', $sent
             ? 'Tautan aktivasi baru telah dikirim. Tautan sebelumnya tidak lagi berlaku.'
             : 'Email aktivasi gagal dikirim. Password sementara tetap dapat disalin oleh admin.');
     }

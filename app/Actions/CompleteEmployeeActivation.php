@@ -2,6 +2,7 @@
 
 namespace App\Actions;
 
+use App\Models\AuditLog;
 use App\Models\EmployeeAccountActivation;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -30,6 +31,7 @@ class CompleteEmployeeActivation
 
             $activation->forceFill(['consumed_at' => now()])->save();
             $user->accountCredential()->delete();
+            AuditLog::record($user, 'account.activation.completed', null, ['method' => 'email']);
 
             return $user;
         });

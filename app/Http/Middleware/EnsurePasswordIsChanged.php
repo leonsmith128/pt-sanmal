@@ -13,7 +13,7 @@ class EnsurePasswordIsChanged
         $user = $request->user();
 
         if ($user?->must_change_password
-            && ! $request->routeIs('account.password.first-change.*', 'logout')) {
+            && ! $request->routeIs('account.password.first-change', 'account.password.first-change.store', 'logout')) {
             return redirect()->route('account.password.first-change');
         }
 
