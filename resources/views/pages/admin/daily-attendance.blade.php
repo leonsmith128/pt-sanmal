@@ -15,8 +15,8 @@
 
         <x-admin.flash-message />
 
-        <div class="grid min-w-0 grid-cols-2 items-stretch gap-1.5 sm:gap-3">
-            <x-admin.filter-panel class="flex min-w-0 items-center !p-1.5 sm:!p-3">
+        <div class="grid min-w-0 grid-cols-[repeat(2,minmax(0,1fr))] items-stretch gap-1.5 sm:gap-3">
+            <x-admin.filter-panel class="flex w-full min-w-0 items-center !p-1.5 sm:!p-3">
                 <x-admin.date-calendar-filter :date="$date" />
             </x-admin.filter-panel>
 
