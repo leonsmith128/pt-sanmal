@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Actions\Admin\Employees\CreateEmployee;
 use App\Actions\Admin\Employees\IssueEmployeeActivation;
 use App\Actions\Admin\Employees\RevealTemporaryPassword;
+use App\Actions\Admin\Employees\RotateTemporaryPassword;
 use App\Actions\Admin\Employees\UpdateEmployee;
 use App\Models\Employee;
 use App\Models\Title;
@@ -95,6 +96,16 @@ class AdminEmployeeController extends Controller
         return response()->json(['password' => $password])
             ->header('Cache-Control', 'no-store, private')
             ->header('Pragma', 'no-cache');
+    }
+
+    public function rotateTemporaryPassword(Employee $employee, RotateTemporaryPassword $rotatePassword, IssueEmployeeActivation $issueActivation): RedirectResponse
+    {
+        $rotatePassword->handle($employee);
+        $sent = $issueActivation->handle($employee->user);
+
+        return back()->with('status', $sent
+            ? 'Password sementara dirotasi dan tautan aktivasi baru dikirim.'
+            : 'Password sementara dirotasi, tetapi email aktivasi gagal dikirim. Salin password baru melalui tindakan admin.');
     }
 
     public function resendActivation(Employee $employee, IssueEmployeeActivation $issueActivation): RedirectResponse

@@ -94,10 +94,18 @@
         @endif
 
         @if ($employee->user->must_change_password)
-            <form method="POST" action="{{ route('admin.employees.resend-activation', $employee) }}">
-                @csrf
-                <x-ui.button type="submit" variant="outline">{{ __('Kirim ulang tautan aktivasi') }}</x-ui.button>
-            </form>
+            <div class="flex flex-wrap gap-2">
+                <form method="POST" action="{{ route('admin.employees.resend-activation', $employee) }}">
+                    @csrf
+                    <x-ui.button type="submit" variant="outline">{{ __('Kirim ulang tautan aktivasi') }}</x-ui.button>
+                </form>
+                @if ($employee->user->accountCredential)
+                    <form method="POST" action="{{ route('admin.employees.rotate-temporary-password', $employee) }}">
+                        @csrf
+                        <x-ui.button type="submit" variant="outline">{{ __('Rotasi password sementara') }}</x-ui.button>
+                    </form>
+                @endif
+            </div>
         @endif
     </x-ui.page>
 </x-layouts::app>

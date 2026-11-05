@@ -114,6 +114,9 @@ Route::middleware(['auth', EnsureUserIsActive::class, EnsurePasswordIsChanged::c
             Route::post('pegawai/{employee}/kirim-aktivasi', [AdminEmployeeController::class, 'resendActivation'])
                 ->middleware('throttle:5,1')
                 ->name('employees.resend-activation');
+            Route::post('pegawai/{employee}/rotasi-password-sementara', [AdminEmployeeController::class, 'rotateTemporaryPassword'])
+                ->middleware('throttle:5,1')
+                ->name('employees.rotate-temporary-password');
 
             Route::get('koreksi-absensi', [AdminAttendanceCorrectionController::class, 'index'])
                 ->name('attendance-corrections.index');
