@@ -51,9 +51,9 @@ test('employees can visit the attendance clock page', function () {
         ->assertSee('size-14', false)
         ->assertDontSee(__('Kehadiran Pegawai'))
         ->assertSee('max-w-7xl', false)
-        ->assertSee('<flux:modal.trigger name="attendance-notifications">', false)
-        ->assertSee('<flux:modal name="attendance-notifications"', false)
-        ->assertSee(__('Lihat semua'));
+        ->assertSee('<x-ui.notification-dropdown', false)
+        ->assertSee(':notifications="$latestNotifications"', false)
+        ->assertSee(':unread-count="$unreadCount"', false);
 });
 
 test('employees can visit their own attendance history', function () {
