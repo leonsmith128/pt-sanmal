@@ -6,40 +6,48 @@
     'calendarMonthLabel',
     'todayDate',
     'showMonthlyCalendar' => false,
+    'interaction' => 'livewire',
 ])
 
-<x-ui.card padding="p-4" class="rounded-2xl">
-    <div class="mb-3 flex items-center justify-between gap-2">
+<x-ui.card padding="p-3" class="w-full min-w-0 rounded-2xl">
+    <div class="mb-2 flex items-center justify-between gap-2">
         <div class="min-w-0">
-            <button
-                type="button"
-                wire:click="openMonthlyCalendar"
-                aria-haspopup="dialog"
-                aria-expanded="{{ $showMonthlyCalendar ? 'true' : 'false' }}"
-                aria-controls="attendance-month-calendar-dialog"
-                class="inline-flex min-h-10 max-w-full items-center justify-center whitespace-nowrap rounded-lg px-2 -ml-2 text-center text-[var(--sanmal-text-primary)] transition hover:bg-sanmal-surface-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sanmal-brand-blue dark:hover:bg-sanmal-surface-elevated-dark"
-            >
+            @if ($interaction === 'livewire')
+                <button type="button" wire:click="openMonthlyCalendar" aria-haspopup="dialog" aria-expanded="{{ $showMonthlyCalendar ? 'true' : 'false' }}" aria-controls="attendance-month-calendar-dialog" class="-ml-2 inline-flex min-h-9 max-w-full items-center rounded-lg px-2 text-left text-[var(--sanmal-text-primary)] transition hover:bg-sanmal-surface-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sanmal-brand-blue dark:hover:bg-sanmal-surface-elevated-dark">
+                    <flux:heading size="sm">{{ $selectedMonthLabel }}</flux:heading>
+                </button>
+            @else
                 <flux:heading size="sm">{{ $selectedMonthLabel }}</flux:heading>
-            </button>
+            @endif
         </div>
         <div class="flex shrink-0 items-center gap-0.5">
-            <x-ui.button size="sm" variant="ghost" icon="chevron-left" wire:click="shiftWeek(-1)" aria-label="{{ __('Minggu sebelumnya') }}" />
-            <x-ui.button size="sm" variant="ghost" icon="chevron-right" wire:click="shiftWeek(1)" aria-label="{{ __('Minggu berikutnya') }}" />
-            <x-ui.button size="sm" variant="ghost" wire:click="selectDate('{{ $todayDate }}')">{{ __('Hari ini') }}</x-ui.button>
+            @if ($interaction === 'livewire')
+                <x-ui.button size="sm" variant="ghost" icon="chevron-left" wire:click="shiftWeek(-1)" aria-label="{{ __('Minggu sebelumnya') }}" />
+                <x-ui.button size="sm" variant="ghost" icon="chevron-right" wire:click="shiftWeek(1)" aria-label="{{ __('Minggu berikutnya') }}" />
+                <x-ui.button size="sm" variant="ghost" wire:click="selectDate('{{ $todayDate }}')">{{ __('Hari ini') }}</x-ui.button>
+            @else
+                <button type="button" x-on:click="$dispatch('admin-calendar-week', { direction: -1 })" aria-label="{{ __('Minggu sebelumnya') }}" class="flex size-8 items-center justify-center rounded-lg text-[var(--sanmal-text-secondary)] hover:bg-sanmal-surface-secondary"><flux:icon name="chevron-left" variant="micro" /></button>
+                <button type="button" x-on:click="$dispatch('admin-calendar-week', { direction: 1 })" aria-label="{{ __('Minggu berikutnya') }}" class="flex size-8 items-center justify-center rounded-lg text-[var(--sanmal-text-secondary)] hover:bg-sanmal-surface-secondary"><flux:icon name="chevron-right" variant="micro" /></button>
+                <button type="button" x-on:click="$dispatch('admin-calendar-select', { date: '{{ $todayDate }}' })" class="rounded-lg px-2 py-1.5 text-xs font-medium text-[var(--sanmal-text-secondary)] hover:bg-sanmal-surface-secondary">{{ __('Hari ini') }}</button>
+            @endif
         </div>
     </div>
     <div class="grid grid-cols-7 gap-1 sm:gap-1.5">
         @foreach ($weekDays as $day)
             <button
                 type="button"
-                wire:key="attendance-week-day-{{ $day['date'] }}"
-                wire:click="selectDate('{{ $day['date'] }}')"
+                @if ($interaction === 'livewire')
+                    wire:key="attendance-week-day-{{ $day['date'] }}"
+                    wire:click="selectDate('{{ $day['date'] }}')"
+                @else
+                    x-on:click="$dispatch('admin-calendar-select', { date: '{{ $day['date'] }}' })"
+                @endif
                 aria-pressed="{{ $selectedDate === $day['date'] ? 'true' : 'false' }}"
                 class="flex min-h-12 min-w-0 flex-col items-center justify-center gap-1 rounded-xl px-0.5 py-2 text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sanmal-brand-blue {{ $selectedDate === $day['date'] ? 'bg-[#0E3B6B] text-white dark:bg-[#D9A72E] dark:text-[#172033]' : 'text-[var(--sanmal-text-secondary)] hover:bg-sanmal-surface-secondary dark:hover:bg-sanmal-surface-elevated-dark' }} {{ $day['today'] && $selectedDate !== $day['date'] ? 'ring-1 ring-[#0E3B6B] dark:ring-[#D9A72E]' : '' }}"
             >
                 <span class="text-xs {{ $selectedDate === $day['date'] ? 'opacity-85' : 'text-[var(--sanmal-text-muted)]' }}">{{ $day['label'] }}</span>
                 <span class="text-base font-semibold tabular-nums">{{ $day['day'] }}</span>
-                <x-attendance.calendar-indicator :status="$day['indicator']" />
+                <x-attendance.calendar-indicator :status="$day['indicator'] ?? null" />
             </button>
         @endforeach
     </div>
