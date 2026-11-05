@@ -6,6 +6,7 @@ use App\Actions\Admin\Employees\ApprovePasswordReset;
 use App\Models\AuditLog;
 use Illuminate\Support\Facades\DB;
 use App\Models\PasswordResetRequest;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -25,7 +26,10 @@ class AdminPasswordResetRequestController extends Controller
     public function approve(Request $request, PasswordResetRequest $passwordResetRequest, ApprovePasswordReset $approvePasswordReset): RedirectResponse
     {
         $data = $request->validate(['review_note' => ['nullable', 'string', 'max:1000']]);
-        $sent = $approvePasswordReset->handle($passwordResetRequest, $request->user(), $data['review_note'] ?? null);
+        $reviewer = $request->user();
+        abort_unless($reviewer instanceof User, 403);
+
+        $sent = $approvePasswordReset->handle($passwordResetRequest, $reviewer, $data['review_note'] ?? null);
 
         return back()->with('status', $sent
             ? 'Permintaan disetujui dan tautan reset dikirim.'

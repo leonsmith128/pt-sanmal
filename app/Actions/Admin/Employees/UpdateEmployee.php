@@ -3,6 +3,7 @@
 namespace App\Actions\Admin\Employees;
 
 use App\Models\Employee;
+use App\Models\PasswordResetRequest;
 use Illuminate\Support\Facades\DB;
 
 class UpdateEmployee
@@ -31,6 +32,16 @@ class UpdateEmployee
                 $user->accountActivation()
                     ->whereNull('consumed_at')
                     ->update(['consumed_at' => now()]);
+
+                PasswordResetRequest::query()
+                    ->where('user_id', $user->id)
+                    ->whereIn('status', ['pending', 'approved'])
+                    ->whereNull('used_at')
+                    ->update([
+                        'status' => 'expired',
+                        'token_hash' => null,
+                        'expires_at' => null,
+                    ]);
             }
 
             $employee->update([
