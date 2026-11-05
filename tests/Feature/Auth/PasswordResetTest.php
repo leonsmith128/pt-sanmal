@@ -78,14 +78,14 @@ test('approved reset token can be used once and updates the password', function 
     $token = basename(parse_url($notification->resetUrl, PHP_URL_PATH));
 
     $payload = [
-        'password' => 'new-secure-password',
-        'password_confirmation' => 'new-secure-password',
+        'password' => 'newsecurepassword1',
+        'password_confirmation' => 'newsecurepassword1',
     ];
 
     $this->post(route('password-reset.store', ['token' => $token]), $payload)
         ->assertRedirect(route('login'));
 
-    expect(Hash::check('new-secure-password', $user->fresh()->password))->toBeTrue()
+    expect(Hash::check('newsecurepassword1', $user->fresh()->password))->toBeTrue()
         ->and($resetRequest->fresh()->status)->toBe('used');
 
     $this->post(route('password-reset.store', ['token' => $token]), $payload)
