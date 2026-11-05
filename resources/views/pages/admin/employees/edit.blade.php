@@ -210,7 +210,7 @@
                             <span x-cloak x-show="copying">{{ __('Mengambil password...') }}</span>
                         </x-ui.button>
                         <span x-cloak x-show="copied" class="text-sm font-medium text-green-700 dark:text-green-400" aria-live="polite">
-                            <span class="inline-flex items-center gap-1"><x-icon name="check-circle" class="size-4" />{{ __('Tersalin') }}</span>
+                            <span class="inline-flex items-center gap-1"><span aria-hidden="true">✓</span>{{ __('Tersalin') }}</span>
                         </span>
                     </div>
 

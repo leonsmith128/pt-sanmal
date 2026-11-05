@@ -273,3 +273,34 @@ test('pending employee cannot bypass the first password change through account s
         ->get(route('security.edit'))
         ->assertRedirect(route('account.password.first-change'));
 });
+
+test('admin employee detail exposes account status and a protected temporary-password copy action', function () {
+    $employee = pendingAccountEmployee();
+
+    EmployeeAccountCredential::create([
+        'user_id' => $employee->user_id,
+        'temporary_password_encrypted' => Crypt::encryptString('temporary-password-value'),
+    ]);
+    EmployeeAccountActivation::create([
+        'user_id' => $employee->user_id,
+        'token_hash' => hash('sha256', str_repeat('e', 64)),
+        'expires_at' => now()->addHours(24),
+    ]);
+
+    $this->actingAs(accountManagementAdmin())
+        ->get(route('admin.employees.edit', $employee))
+        ->assertOk()
+        ->assertSee('Status akun')
+        ->assertSee('Belum terverifikasi')
+        ->assertSee('Salin password sementara')
+        ->assertSee(route('admin.employees.temporary-password', $employee));
+});
+
+test('admin employee index labels pending accounts consistently on desktop and mobile', function () {
+    $employee = pendingAccountEmployee();
+
+    $this->actingAs(accountManagementAdmin())
+        ->get(route('admin.employees.index'))
+        ->assertOk()
+        ->assertSee('Menunggu aktivasi');
+});
