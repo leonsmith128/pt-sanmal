@@ -24,6 +24,6 @@
         :id="$controlId"
         :rows="$rows"
         :resize="$resize"
-        {{ $attributes }}
+        {{ $attributes->class(['w-full']) }}
     >{{ $slot }}</flux:textarea>
 </x-ui.field>

@@ -17,3 +17,22 @@ it('keeps the Admin empty state component compatible with its existing API', fun
     $this->blade('<x-admin.empty-state message="Tidak ada pegawai." />')
         ->assertSee('Tidak ada pegawai.');
 });
+
+it('forwards attributes to the table cell for a table empty state', function () {
+    $this->blade('
+        <table>
+            <tbody>
+                <x-ui.empty-state
+                    message="Tidak ada catatan."
+                    :colspan="3"
+                    class="font-medium"
+                    data-testid="empty-attendance"
+                />
+            </tbody>
+        </table>
+    ')
+        ->assertSee('colspan="3"', false)
+        ->assertSee('font-medium', false)
+        ->assertSee('data-testid="empty-attendance"', false)
+        ->assertSee('Tidak ada catatan.');
+});

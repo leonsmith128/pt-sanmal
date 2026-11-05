@@ -19,10 +19,11 @@
 
         <x-admin.flash-message />
 
+        <x-ui.card padding="p-5 sm:p-6">
         <form
             method="POST"
             action="{{ route('admin.locations.store') }}"
-            class="space-y-4 rounded-xl border border-zinc-200 p-5 dark:border-zinc-700"
+            class="space-y-4"
         >
             @csrf
 
@@ -30,16 +31,16 @@
                 <input type="hidden" name="client_id" value="{{ $selectedClient->id }}">
                 <input type="hidden" name="type" value="site">
 
-                <div class="rounded-lg bg-zinc-50 p-3 text-sm dark:bg-zinc-800">
-                    <p class="text-xs text-zinc-500">{{ __('Client') }}</p>
+                <div class="rounded-lg bg-sanmal-surface-inset p-3 text-sm dark:bg-sanmal-surface-inset-dark">
+                    <p class="text-xs text-[var(--sanmal-text-muted)]">{{ __('Client') }}</p>
                     <p class="font-medium">{{ $selectedClient->name }} ({{ $selectedClient->code }})</p>
                 </div>
             @elseif ($officeMode)
                 <input type="hidden" name="client_id" value="">
                 <input type="hidden" name="type" value="office">
 
-                <div class="rounded-lg bg-zinc-50 p-3 text-sm dark:bg-zinc-800">
-                    <p class="text-xs text-zinc-500">{{ __('Jenis Location') }}</p>
+                <div class="rounded-lg bg-sanmal-surface-inset p-3 text-sm dark:bg-sanmal-surface-inset-dark">
+                    <p class="text-xs text-[var(--sanmal-text-muted)]">{{ __('Jenis Location') }}</p>
                     <p class="font-medium">{{ __('Office Internal SanMal') }}</p>
                 </div>
             @else
@@ -121,5 +122,6 @@
                 </x-ui.button>
             </div>
         </form>
+        </x-ui.card>
     </x-ui.page>
 </x-layouts::app>

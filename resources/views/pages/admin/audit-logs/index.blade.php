@@ -33,14 +33,15 @@
             </form>
         </x-admin.filter-panel>
 
-        <div
-            role="region"
-            aria-label="{{ __('Daftar catatan audit') }}"
-            tabindex="0"
-            class="overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-700"
-        >
+        <x-ui.card padding="p-0" class="overflow-hidden">
+            <div
+                role="region"
+                aria-label="{{ __('Daftar catatan audit') }}"
+                tabindex="0"
+                class="overflow-x-auto"
+            >
             <table class="w-full min-w-[48rem] text-sm">
-                <thead class="bg-zinc-50 text-left dark:bg-zinc-900">
+                <thead class="bg-sanmal-surface-secondary text-left text-[var(--sanmal-text-muted)] dark:bg-sanmal-surface-secondary-dark">
                     <tr>
                         <th scope="col" class="p-3">{{ __('Waktu') }}</th>
                         <th scope="col" class="p-3">{{ __('Pelaku') }}</th>
@@ -49,7 +50,7 @@
                         <th scope="col" class="p-3">{{ __('IP') }}</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800">
+                <tbody class="divide-y divide-sanmal-border dark:divide-sanmal-border-dark">
                     @forelse ($logs as $log)
                         <tr>
                             <td class="whitespace-nowrap p-3">{{ $log->created_at?->format('d M Y H:i:s') }}</td>
@@ -66,7 +67,8 @@
                     @endforelse
                 </tbody>
             </table>
-        </div>
+            </div>
+        </x-ui.card>
 
         {{ $logs->links() }}
     </x-ui.page>

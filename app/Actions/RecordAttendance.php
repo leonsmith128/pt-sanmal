@@ -12,6 +12,7 @@ use App\Models\Employee;
 use App\Models\Location;
 use App\Models\OvertimeRequest;
 use App\Models\Project;
+use App\Services\AttendanceTimezoneResolver;
 use App\Support\AttendanceEvidence;
 use App\Support\AttendanceSelfie;
 use Carbon\CarbonInterface;
@@ -23,6 +24,10 @@ use Illuminate\Validation\ValidationException;
 class RecordAttendance
 {
     public const DEFAULT_TIMEZONE = 'Asia/Makassar';
+
+    public function __construct(
+        private readonly AttendanceTimezoneResolver $timezoneResolver,
+    ) {}
 
     /** Sesi kerja terakhir yang belum ditutup clock-out. Event mulai lembur tidak menutup sesi. */
     public static function openSession(Employee $employee): ?AttendanceRecord
@@ -112,19 +117,28 @@ class RecordAttendance
 
                 $open = self::openSession($employee);
                 $overtime = null;
+                $now = now();
 
                 if ($type === AttendanceType::ClockIn) {
                     if ($open) {
                         $this->fail('form', 'Anda sudah clock-in dan belum clock-out.');
                     }
 
-                    $today = now(self::DEFAULT_TIMEZONE)->toDateString();
+                    [$workType, $location, $project] = $this->resolveTarget($workType, $locationId, $projectId);
 
-                    if (self::hasClockInOnDate($employee, $today)) {
+                    $timezoneResolution = $this->timezoneResolver->resolveClockIn(
+                        $workType,
+                        $latitude,
+                        $longitude,
+                        $accuracy,
+                    );
+                    $timezone = $timezoneResolution['timezone'];
+                    $timezoneSource = $timezoneResolution['source'];
+                    $attendanceDate = $now->copy()->setTimezone($timezone)->toDateString();
+
+                    if (self::hasClockInOnDate($employee, $attendanceDate)) {
                         $this->fail('form', 'Anda sudah menggunakan sesi absensi untuk tanggal ini. Setelah Clock Out, Anda tidak dapat Clock In lagi pada tanggal yang sama.');
                     }
-
-                    [$workType, $location, $project] = $this->resolveTarget($workType, $locationId, $projectId);
                 } elseif ($type === AttendanceType::ClockOut) {
                     if ($open === null) {
                         $this->fail('form', 'Tidak ada clock-in yang perlu ditutup. Lakukan clock-in terlebih dahulu.');
@@ -133,6 +147,9 @@ class RecordAttendance
                     $workType = $open->work_type;
                     $location = $open->location;
                     $project = $open->project;
+                    $timezone = $open->timezone;
+                    $timezoneSource = 'session_anchor';
+                    $attendanceDate = $open->effectiveAttendanceDate();
 
                     $overtime = OvertimeRequest::query()
                         ->where('employee_id', $employee->id)
@@ -171,9 +188,6 @@ class RecordAttendance
                         'location_name_snapshot', 'snapshot_source',
                     ]);
 
-                $timezone = $location?->timezone ?? self::DEFAULT_TIMEZONE;
-                $now = now();
-
                 $storedPath = AttendanceSelfie::store($selfie, $employee->id, $now);
 
                 $record = AttendanceRecord::create([
@@ -187,9 +201,8 @@ class RecordAttendance
                     'recorded_at' => $now,
                     'captured_at' => $capturedAt,
                     'timezone' => $timezone,
-                    'attendance_date' => $type === AttendanceType::ClockOut
-                        ? $open->effectiveAttendanceDate()
-                        : $now->copy()->setTimezone($timezone)->toDateString(),
+                    'timezone_source' => $timezoneSource,
+                    'attendance_date' => $attendanceDate,
                     'latitude' => $latitude,
                     'longitude' => $longitude,
                     'accuracy_m' => $accuracy,
@@ -206,11 +219,7 @@ class RecordAttendance
                     // Kaitkan jadwal yang mulai dalam jendela sesi teknis (maks. 24 jam),
                     // termasuk jadwal setelah tengah malam pada sesi yang sama.
                     $sessionDate = $record->attendance_date->toDateString();
-                    $dayStartUtc = now(self::DEFAULT_TIMEZONE)->setDate(
-                        (int) substr($sessionDate, 0, 4),
-                        (int) substr($sessionDate, 5, 2),
-                        (int) substr($sessionDate, 8, 2),
-                    )->startOfDay()->utc();
+                    $dayStartUtc = $now->copy()->setTimezone($timezone)->startOfDay()->utc();
                     $dayEndUtc = $dayStartUtc->copy()->addDay();
 
                     $scheduledOvertime = OvertimeRequest::query()

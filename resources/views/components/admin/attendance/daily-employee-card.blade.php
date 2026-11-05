@@ -8,63 +8,107 @@
     $daily = $row['daily'];
     $status = \App\Enums\DailyAttendanceStatus::tryFrom($daily['status']);
     $badgeColor = $status?->badgeColor() ?? 'zinc';
+    $employeeName = $employee->user?->name ?? 'Pegawai #'.$employee->id;
+    $modalName = 'daily-correction-'.$employee->id;
+
+    // Buka kembali modal milik pegawai ini jika validasi koreksi gagal.
+    $reopenModal = (string) old('employee_id') === (string) $employee->id
+        && $errors->hasAny(['status', 'reason']);
+
+    // Aksen sisi kiri hanya penanda cepat saat memindai; makna utama tetap pada teks badge.
+    $accentClass = match ($status) {
+        \App\Enums\DailyAttendanceStatus::Present => 'bg-sanmal-success',
+        \App\Enums\DailyAttendanceStatus::Incomplete, \App\Enums\DailyAttendanceStatus::Sick => 'bg-sanmal-warning',
+        \App\Enums\DailyAttendanceStatus::Permission => 'bg-sanmal-info',
+        \App\Enums\DailyAttendanceStatus::Leave => 'bg-sanmal-brand-blue dark:bg-sanmal-brand-blue-light',
+        \App\Enums\DailyAttendanceStatus::Absent, \App\Enums\DailyAttendanceStatus::NeedsReview => 'bg-sanmal-danger',
+        default => 'bg-sanmal-border dark:bg-sanmal-border-dark',
+    };
 @endphp
 
-<x-ui.card padding="p-5">
-    <div class="flex flex-wrap items-start justify-between gap-3">
-        <div>
-            <flux:heading level="2" size="base">
-                {{ $employee->user?->name ?? 'Pegawai #'.$employee->id }}
-            </flux:heading>
-            <flux:text class="text-xs text-zinc-500">
-                {{ __('ID Pegawai:') }} {{ $employee->employee_number ?? $employee->id }}
-            </flux:text>
+<x-ui.card padding="py-5 pr-5 pl-6" class="relative flex h-full flex-col overflow-hidden">
+    <span aria-hidden="true" class="absolute inset-y-0 left-0 w-1 {{ $accentClass }}"></span>
+
+    <div class="flex items-start justify-between gap-3">
+        <div class="flex min-w-0 items-center gap-3">
+            <x-ui.avatar :name="$employeeName" size="sm" />
+
+            <div class="min-w-0">
+                <flux:heading level="2" size="base" class="truncate">
+                    {{ $employeeName }}
+                </flux:heading>
+                <flux:text class="text-xs text-[var(--sanmal-text-muted)]">
+                    {{ __('ID Pegawai:') }} {{ $employee->employee_number ?? $employee->id }}
+                </flux:text>
+            </div>
         </div>
 
-        <flux:badge :color="$badgeColor">
+        <x-ui.badge :color="$badgeColor" class="shrink-0">
             {{ $daily['label'] }}
-        </flux:badge>
+        </x-ui.badge>
     </div>
 
-    @if ($daily['events']->isNotEmpty())
-        <div class="mt-3 flex flex-wrap gap-2 text-sm">
-            @foreach ($daily['events'] as $event)
-                <flux:badge
-                    size="sm"
-                    :color="$event->type === \App\Enums\AttendanceType::ClockIn ? 'green' : 'blue'"
-                >
-                    {{ $event->type->label() }}: {{ $event->effectiveRecordedAtLocal()->format('H:i') }}
-                </flux:badge>
-            @endforeach
-        </div>
-    @endif
+    <div class="mt-4 min-h-14 flex-1 space-y-2">
+        @if ($daily['events']->isNotEmpty())
+            <ul class="flex flex-wrap gap-2" aria-label="{{ __('Catatan waktu absensi') }}">
+                @foreach ($daily['events'] as $event)
+                    <li class="inline-flex items-center gap-2 rounded-lg bg-sanmal-surface-secondary px-2.5 py-1.5 dark:bg-sanmal-surface-inset-dark">
+                        <span
+                            aria-hidden="true"
+                            class="size-1.5 rounded-full {{ $event->type === \App\Enums\AttendanceType::ClockIn ? 'bg-sanmal-success' : 'bg-sanmal-info' }}"
+                        ></span>
+                        <span class="text-xs text-[var(--sanmal-text-muted)]">{{ $event->type->label() }}</span>
+                        <span class="text-sm font-semibold tabular-nums text-[var(--sanmal-text-primary)]">
+                            {{ $event->effectiveRecordedAtLocal()->format('H:i') }}
+                        </span>
+                    </li>
+                @endforeach
+            </ul>
+        @else
+            <p class="text-sm text-[var(--sanmal-text-muted)]">
+                {{ __('Tidak ada catatan clock in/out.') }}
+            </p>
+        @endif
 
-    @if ($daily['reason'])
-        <p class="mt-2 text-sm text-amber-700 dark:text-amber-400">
-            {{ $daily['reason'] }}
-        </p>
-    @endif
+        @if ($daily['reason'])
+            <p class="text-sm text-sanmal-warning dark:text-amber-400">
+                {{ $daily['reason'] }}
+            </p>
+        @endif
 
-    @if ($daily['needs_review'])
-        <flux:callout class="mt-3" variant="danger">
-            {{ __('Perlu koreksi eksplisit oleh admin untuk menyelesaikan konflik.') }}
-        </flux:callout>
-    @endif
+        @if ($daily['needs_review'])
+            <p role="note" class="sanmal-badge-danger rounded-lg px-3 py-2 text-xs">
+                {{ __('Perlu koreksi eksplisit oleh admin untuk menyelesaikan konflik.') }}
+            </p>
+        @endif
+    </div>
 
-    <details class="mt-4 border-t border-neutral-100 pt-3 dark:border-neutral-800">
-        <summary class="cursor-pointer text-sm font-medium text-blue-600 hover:underline dark:text-blue-400">
-            {{ __('Koreksi status harian') }}
-        </summary>
+    <div class="mt-4 border-t border-sanmal-border pt-4 dark:border-sanmal-border-dark">
+        <flux:modal.trigger :name="$modalName">
+            <x-ui.button variant="outline" icon="pencil-square" class="w-full">
+                {{ __('Koreksi status harian') }}
+            </x-ui.button>
+        </flux:modal.trigger>
+    </div>
 
-        <form
-            method="POST"
-            action="{{ route('admin.daily-attendance.correct') }}"
-            class="mt-4 grid gap-4 rounded-lg bg-zinc-50 p-4 sm:grid-cols-2 dark:bg-zinc-800/40"
-        >
+    <flux:modal :name="$modalName" class="max-w-md">
+        <form method="POST" action="{{ route('admin.daily-attendance.correct') }}" class="grid gap-4">
             @csrf
 
             <input type="hidden" name="employee_id" value="{{ $employee->id }}">
             <input type="hidden" name="attendance_date" value="{{ $date }}">
+
+            <div>
+                <flux:heading size="lg">{{ __('Koreksi status harian') }}</flux:heading>
+                <flux:text class="mt-1 text-sm">
+                    {{ $employeeName }} · {{ \Illuminate\Support\Carbon::parse($date)->translatedFormat('j F Y') }}
+                </flux:text>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2 rounded-lg bg-sanmal-surface-secondary px-3 py-2.5 text-sm dark:bg-sanmal-surface-inset-dark">
+                <span class="text-xs text-[var(--sanmal-text-muted)]">{{ __('Status saat ini') }}</span>
+                <x-ui.badge :color="$badgeColor">{{ $daily['label'] }}</x-ui.badge>
+            </div>
 
             <flux:field>
                 <flux:label>{{ __('Status final') }}</flux:label>
@@ -94,19 +138,24 @@
                 <flux:error name="reason" />
             </flux:field>
 
-            <div class="flex flex-wrap items-center justify-between gap-2 pt-1 sm:col-span-2">
-                <x-ui.button type="submit" size="sm" variant="primary">
-                    {{ __('Simpan koreksi') }}
-                </x-ui.button>
+            @if ($daily['correction'])
+                <p class="text-xs text-[var(--sanmal-text-muted)]">
+                    {{ __('Koreksi terakhir dibuat oleh :name.', [
+                        'name' => $daily['correction']->createdBy?->name ?? 'admin',
+                    ]) }}
+                </p>
+            @endif
 
-                @if ($daily['correction'])
-                    <span class="text-xs text-zinc-500">
-                        {{ __('Koreksi terakhir dibuat oleh :name.', [
-                            'name' => $daily['correction']->createdBy?->name ?? 'admin',
-                        ]) }}
-                    </span>
-                @endif
+            <div class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                <flux:modal.close>
+                    <x-ui.button type="button" variant="outline" class="w-full sm:w-auto">{{ __('Batal') }}</x-ui.button>
+                </flux:modal.close>
+                <x-ui.button type="submit" variant="primary" class="w-full sm:w-auto">{{ __('Simpan koreksi') }}</x-ui.button>
             </div>
         </form>
-    </details>
+    </flux:modal>
+
+    @if ($reopenModal)
+        <div x-data x-init="$nextTick(() => $dispatch('modal-show', { name: @js($modalName) }))"></div>
+    @endif
 </x-ui.card>

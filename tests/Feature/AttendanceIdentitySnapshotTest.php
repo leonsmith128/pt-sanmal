@@ -89,15 +89,21 @@ it('captures master identity at clock in and reuses it after master names change
         ->and($project->fresh()->name)->toBe('Project Sesudah')
         ->and($location->fresh()->name)->toBe('Site Sesudah');
 
-    $this->actingAs($user)
+    $historyResponse = $this->actingAs($user)
         ->get(route('attendance-history.index'))
-        ->assertOk()
-        ->assertSee('Client Sebelum')
-        ->assertSee('Project Sebelum')
-        ->assertSee('Site Sebelum')
-        ->assertDontSee('Client Sesudah')
-        ->assertDontSee('Project Sesudah')
-        ->assertDontSee('Site Sesudah');
+        ->assertOk();
+
+    preg_match('/data-event="([^"]+)"/', $historyResponse->getContent(), $matches);
+    expect($matches)->toHaveKey(1);
+
+    $payload = json_decode(base64_decode($matches[1]), true, flags: JSON_THROW_ON_ERROR);
+
+    expect($payload['client'])->toContain('Client Sebelum')
+        ->and($payload['project'])->toContain('Project Sebelum')
+        ->and($payload['location'])->toBe('Site Sebelum')
+        ->and($payload['client'])->not->toContain('Client Sesudah')
+        ->and($payload['project'])->not->toContain('Project Sesudah')
+        ->and($payload['location'])->not->toContain('Site Sesudah');
 
     $admin = User::factory()->create();
     $admin->forceFill(['role' => UserRole::Admin, 'is_active' => true])->save();
@@ -108,7 +114,9 @@ it('captures master identity at clock in and reuses it after master names change
         ->assertSee('Client Sebelum')
         ->assertSee('Project Sebelum')
         ->assertSee('Site Sebelum')
-        ->assertDontSee('Client Sesudah')
-        ->assertDontSee('Project Sesudah')
-        ->assertDontSee('Site Sesudah');
+        // Current master names appear in history-backed filter options;
+        // the event detail continues to use the historical snapshots above.
+        ->assertSee('Client Sesudah')
+        ->assertSee('Project Sesudah')
+        ->assertSee('Site Sesudah');
 });

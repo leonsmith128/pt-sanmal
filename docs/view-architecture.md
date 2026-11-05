@@ -1,5 +1,8 @@
 # Arsitektur View SanMal
 
+> **Catatan pemeliharaan:** dokumen ini merupakan panduan historis dari fase sebelum konsolidasi Livewire 4. Untuk keputusan arsitektur terkini, gunakan [Architecture and Development](ARCHITECTURE-AND-DEVELOPMENT.md). Khususnya, jangan menganggap Volt sebagai satu-satunya pola Livewire: Native Livewire 4 Single-File Component juga digunakan dan didokumentasikan di panduan arsitektur terkini. Jika ada konflik, panduan arsitektur terkini dan source pada branch target yang berlaku.
+
+
 Dokumen ini menjadi pedoman penempatan halaman dan pemilihan pola UI untuk developer SanMal.
 
 ## Prinsip utama

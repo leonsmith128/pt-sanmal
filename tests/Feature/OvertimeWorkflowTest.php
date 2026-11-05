@@ -56,6 +56,34 @@ function overtimeRequest(Employee $employee, AttendanceRecord $clockIn, string $
     ]);
 }
 
+it('renders the admin overtime queue as mobile cards and a desktop table', function () {
+    $admin = User::factory()->create();
+    $admin->forceFill(['role' => UserRole::Admin, 'is_active' => true])->save();
+    Employee::create(['user_id' => $admin->id]);
+
+    $employee = overtimeEmployee();
+    $clockIn = overtimeClockIn($employee);
+    $request = overtimeRequest($employee, $clockIn, now()->addHour()->toDateTimeString());
+
+    $this->actingAs($admin)
+        ->get(route('admin.overtime-requests.index'))
+        ->assertOk()
+        ->assertSee('md:hidden', false)
+        ->assertSee('hidden overflow-hidden md:block', false)
+        ->assertSee('Daftar pengajuan lembur; geser horizontal untuk melihat seluruh kolom', false)
+        ->assertSee('Filter cepat status persetujuan', false)
+        ->assertSee(route('admin.overtime-requests.index', ['status' => 'pending']), false)
+        ->assertSee(route('admin.overtime-requests.index', ['status' => 'approved']), false)
+        ->assertSee(route('admin.overtime-requests.index', ['status' => 'rejected']), false)
+        ->assertDontSee('name="status"', false)
+        ->assertSee('Status operasional')
+        ->assertSee($employee->user->name)
+        ->assertSee($request->reason)
+        ->assertSee($request->approval_status->label())
+        ->assertSee($request->state->label())
+        ->assertSee(route('admin.overtime-requests.show', $request), false);
+});
+
 it('records clock out when GPS is unavailable and flags location for review', function () {
     Storage::fake('local');
     $employee = overtimeEmployee();
@@ -206,6 +234,38 @@ it('blocks clock out before a future scheduled overtime until the request is can
 
     expect($overtime->fresh()->state)->toBe(OvertimeState::Scheduled)
         ->and($overtime->fresh()->cancelled_at)->toBeNull();
+});
+
+it('allows clock out after cancelling a future scheduled overtime request', function () {
+    Storage::fake('local');
+    $employee = overtimeEmployee();
+    $clockIn = overtimeClockIn($employee);
+    $overtime = overtimeRequest($employee, $clockIn, now()->addHour()->toDateTimeString());
+    $overtime->update(['state' => OvertimeState::Scheduled]);
+
+    $this->actingAs($employee->user)
+        ->patch(route('overtime-requests.cancel', $overtime))
+        ->assertRedirect(route('overtime-requests.index'));
+
+    expect($overtime->fresh()->state)->toBe(OvertimeState::Cancelled)
+        ->and($overtime->fresh()->cancelled_at)->not->toBeNull();
+
+    $clockOut = app(RecordAttendance::class)->handle(
+        employee: $employee,
+        type: AttendanceType::ClockOut,
+        workType: null,
+        locationId: null,
+        projectId: null,
+        latitude: -5.14,
+        longitude: 119.41,
+        accuracy: 25,
+        selfie: UploadedFile::fake()->image('clock-out-after-cancellation.jpg'),
+        selfieSource: SelfieSource::Camera,
+    );
+
+    expect($clockOut->type)->toBe(AttendanceType::ClockOut)
+        ->and($overtime->fresh()->state)->toBe(OvertimeState::Cancelled)
+        ->and($overtime->fresh()->clock_out_record_id)->toBeNull();
 });
 
 it('accepts an overtime request scheduled for the current minute and allows photo confirmation', function () {
@@ -576,7 +636,7 @@ it('allows only one overtime request for a work session even after the first req
     expect(OvertimeRequest::query()->where('clock_in_record_id', $clockIn->id)->count())->toBe(1);
 });
 
-it('shows a disabled overtime attendance button instead of clock out before the scheduled start', function () {
+it('shows a locked concise overtime confirmation action instead of clock out before the scheduled start', function () {
     $employee = overtimeEmployee();
     $clockIn = overtimeClockIn($employee);
     $overtime = overtimeRequest($employee, $clockIn, now()->addHour()->toDateTimeString());
@@ -584,9 +644,21 @@ it('shows a disabled overtime attendance button instead of clock out before the 
 
     Livewire::actingAs($employee->user)
         ->test('pages::employee.attendance')
-        ->assertSee('Absen Lembur')
+        ->assertSee('Konfirmasi Lembur')
         ->assertSee('Menunggu jadwal lembur')
         ->assertSee('Tombol Clock Out tidak tersedia selama pengajuan ini masih aktif.');
+});
+
+it('shows the overtime confirmation action when a scheduled start is due', function () {
+    $employee = overtimeEmployee();
+    $clockIn = overtimeClockIn($employee);
+    overtimeRequest($employee, $clockIn, now()->subMinute()->toDateTimeString());
+
+    Livewire::actingAs($employee->user)
+        ->test('pages::employee.attendance')
+        ->assertSee('Konfirmasi Lembur')
+        ->assertDontSee('Absen Pulang')
+        ->assertSee('Segera konfirmasi lembur dengan foto.');
 });
 
 it('rejects a second clock-in after clock-out on the same local calendar date', function () {
@@ -623,6 +695,8 @@ it('rejects a second clock-in after clock-out on the same local calendar date', 
 });
 
 it('keeps a closed session overtime request counted after cancellation', function () {
+    $this->travelTo(now('Asia/Makassar')->setTime(10, 0));
+
     $employee = overtimeEmployee();
     $clockIn = overtimeClockIn($employee);
     $first = overtimeRequest($employee, $clockIn, now()->addHour()->toDateTimeString());
@@ -730,6 +804,8 @@ it('flags historical duplicate attendance sessions on one date for admin review'
 });
 
 it('rejects an overtime request created after the target date session has already closed', function () {
+    $this->travelTo(now('Asia/Makassar')->setTime(10, 0));
+
     $employee = overtimeEmployee();
     $clockIn = overtimeClockIn($employee);
 
@@ -772,4 +848,36 @@ it('does not allow an overtime request rejected by admin to start', function () 
         ->where('employee_id', $employee->id)
         ->where('type', AttendanceType::OvertimeStart)
         ->exists())->toBeFalse();
+});
+
+it('inherits the session anchor timezone for overtime confirmation despite later GPS coordinates', function () {
+    Storage::fake('local');
+    $employee = overtimeEmployee();
+
+    $clockIn = AttendanceRecord::create([
+        'employee_id' => $employee->id,
+        'type' => AttendanceType::ClockIn,
+        'work_type' => WorkType::Onsite,
+        'recorded_at' => now(),
+        'timezone' => 'Asia/Jakarta',
+        'timezone_source' => 'gps_resolved',
+        'attendance_date' => now('Asia/Jakarta')->toDateString(),
+    ]);
+
+    $overtime = overtimeRequest($employee, $clockIn, now()->subMinute()->toDateTimeString());
+    $overtime->update(['timezone' => 'Asia/Makassar']);
+
+    $record = app(ConfirmOvertimeStart::class)->handle(
+        employee: $employee,
+        overtime: $overtime,
+        latitude: -2.5916,
+        longitude: 140.6690,
+        accuracy: 15,
+        addressSnapshot: 'Jayapura',
+        selfie: UploadedFile::fake()->image('overtime-different-gps-zone.jpg'),
+    );
+
+    expect($record->timezone)->toBe('Asia/Jakarta')
+        ->and($record->timezone_source)->toBe('session_anchor')
+        ->and($record->attendance_date->toDateString())->toBe($clockIn->attendance_date->toDateString());
 });

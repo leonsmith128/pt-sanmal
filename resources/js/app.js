@@ -4,4 +4,3 @@ import attendanceCamera from './components/attendance-camera.js';
 document.addEventListener('alpine:init', () => {
     window.Alpine.data('attendanceCamera', attendanceCamera);
 });
-

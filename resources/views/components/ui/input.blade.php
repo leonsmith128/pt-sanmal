@@ -24,6 +24,6 @@
         :id="$controlId"
         :type="$type"
         :value="$value"
-        {{ $attributes }}
+        {{ $attributes->class(['w-full']) }}
     />
 </x-ui.field>

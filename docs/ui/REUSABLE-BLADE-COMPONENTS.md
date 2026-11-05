@@ -14,13 +14,13 @@ Generic components that can be used by admin, employee, and authentication pages
 
 | Component | Responsibility | Initial contract |
 |---|---|---|
-| `x-ui.page` | Standard page width and vertical rhythm | Slot + mergeable attributes; default `w-full max-w-7xl`, `gap-4` |
+| `x-ui.page` | Standard page width and vertical rhythm | Optional `maxWidth` preset (`xl`, `2xl`–`7xl`, `full`; default `7xl`), optional `gap` preset (`3`–`6`; default `4`), slot, and mergeable attributes |
 | `x-ui.page-header` | Responsive page title, description, and action slot | `title`, optional `description`, optional `headingSize`, action slot |
 | `x-ui.section` | Standard vertical grouping for page sections | Slot + mergeable attributes; default vertical gap 3 |
 | `x-ui.flash-message` | Session status and validation feedback | Reads Laravel session status and error bag |
 | `x-ui.empty-state` | Empty collection state | Optional `message`, optional table `colspan`, slot, and mergeable attributes |
 | `x-ui.card` | Standard content surface or linked card | Slot, optional `href`, `padding`, and mergeable attributes; semantic anchor when `href` is supplied |
-| `x-ui.button` | Standard action affordance | Slot, `variant` (default `primary`), `size`, `type`, optional `href`, `icon`, `iconTrailing`, `square`, `disabled`; forwards Livewire/Alpine/HTML attributes |
+| `x-ui.button` | Standard action affordance | Slot, `variant` (default `primary`), optional `color`, `size` (default `sm`), `type`, optional `href`, `icon`, `iconTrailing`, `square`, `disabled`; primary defaults to SanMal blue, outline receives a dark-theme contrast treatment, and Livewire/Alpine/HTML attributes are forwarded |
 | `x-ui.field` | Shared field layout for labels, descriptions, and validation errors | Optional `name`, `id`, `label`, `description`, and `showError`; slot for the actual control |
 | `x-ui.input` | Standard text/date/file and other native input types | Optional `name`, `id`, `label`, `description`, `value`, `type`, and `showError`; forwards remaining HTML, Livewire, and Alpine attributes to `flux:input` |
 | `x-ui.select` | Standard select field with shared label, description, and validation layout | Optional `name`, `id`, `label`, `description`, `placeholder`, and `showError`; option markup remains in the slot and remaining attributes are forwarded to `flux:select` |
@@ -28,11 +28,16 @@ Generic components that can be used by admin, employee, and authentication pages
 | `x-ui.checkbox` | Standard single checkbox with shared description and validation feedback | Optional `name`, `id`, `label`, `description`, `checked`, and `showError`; label remains adjacent to the checkbox as rendered by `flux:checkbox`, and remaining attributes are forwarded to the interactive control |
 | `x-ui.badge` | Consistent status and compact indicator presentation | Slot content, optional Flux badge `color` (default `zinc`), and forwarded presentation attributes |
 | `x-ui.metadata-item` | Semantic label/value pair inside a description list | Required `label`, slot for the value, optional `labelClass` and `valueClass`, and mergeable wrapper attributes |
+| `x-ui.avatar` | Consistent circular user avatar with image/initials fallback | Optional `name`, `initials`, `src`, and `size` (`xs`, `sm`, `md` default, `lg`, `xl`); enforces a square circular crop and forwards presentation/accessibility attributes |
+| `x-ui.photo-preview` | Reusable image trigger and responsive full-size preview dialog | Required `src`; optional `alt`, `title`, `triggerLabel`, `downloadUrl`, `downloadName`; accepts a trigger slot so avatar or thumbnail components can open the same modal. Attendance wrapper supplies download and retake behavior. |
+| `x-ui.notification-dropdown` | Reusable notification preview popover | Required `notifications` collection (latest items, limited by caller) and optional `unreadCount`; renders unread indicators, per-item read navigation, empty state, and the existing all-notifications route. Data retrieval remains in the controller/view model, not the component |
 
 Metadata and status component rules:
 - Use `x-ui.metadata-item` only as a direct item inside a semantic `<dl>`; the component supplies the wrapper plus `<dt>` and `<dd>`, not the parent grid or surface.
 - Use `label-class` and `value-class` when a page needs a denser metadata hierarchy; keep the actual value in the slot so links, badges, and conditional content remain page-owned.
-- Use `x-ui.badge` for compact status/type indicators where the page needs the shared Flux badge contract. Pass the existing enum color and label through; do not move status mapping into the component.
+- Use `x-ui.badge` for compact status/type indicators where the page needs the shared Flux badge contract.
+- Use `x-ui.photo-preview` when an image should open in a shared full-size dialog; supply a trigger slot for custom thumbnails/avatars and keep page-specific actions outside the generic component.
+- Use `x-ui.notification-dropdown` when a page header needs the shared notification preview. The caller supplies a user-scoped latest-notification collection and unread count; do not add queries or authorization decisions to the component. Pass the existing enum color and label through; do not move status mapping into the component.
 - Keep semantic page wrappers such as `<article>` when the content is a record. `x-ui.card` renders a `div` or an anchor, so it is not a replacement when an article/list-item semantic is required.
 - Do not create a dedicated employee-card or generic table component from one page's markup. Reuse the existing primitives first; extract a larger pattern only after multiple pages share the same structure and interaction contract.
 
@@ -44,13 +49,50 @@ Form control rules:
 - Use `x-ui.field` directly when a custom control needs the shared label/description/error layout.
 - Do not put a border or card surface around every field; field grouping follows the Seamless-First design principle.
 
-Button variant policy:
-- `primary`: main action for the current context.
-- `outline`: labeled secondary action.
-- `danger`: destructive or high-risk action.
-- `ghost`: icon-only or intentionally low-emphasis utility action.
+Button and action hierarchy:
+- `primary`: the single most important action in the current page section or decision context. `x-ui.button` applies SanMal brand blue by default. Avoid presenting several competing primary actions side by side.
+- `outline`: a neutral, labeled secondary action such as Back, Reset, Edit, or opening supporting details.
+- `ghost`: a low-emphasis utility action that should not compete with the main task. Do not use it for an action whose consequence needs stronger emphasis.
+- `danger`: the semantic destructive variant supported by Flux 2.13; use it for Delete, Remove, or destructive cancellation. Preserve the workflow's existing confirmation. Explicit `color="red"` remains appropriate when a non-danger variant needs a red semantic tint.
+- Keep the supported Flux variant set; do not invent a separate `secondary` variant. In SanMal's action hierarchy, secondary is the design role implemented with Flux `outline`.
+- Keep the visual hierarchy aligned with the action's actual consequence. Color alone is not a substitute for a clear label or confirmation step.
+- Prefer one primary action per local context. If two actions are equally important, reconsider their grouping and make one secondary unless the workflow genuinely has two distinct primary tasks.
+- Use `href` for navigation so the rendered element remains a link. Use `type="button"` for in-page actions and `type="submit"` only for form submission. The component defaults to `type="button"` to avoid accidental form submission.
+- Icon-only actions must receive an accessible name through the supported Flux/API attributes; an icon is not a replacement for a label when the action is not self-evident.
+- Keep compact actions visually subordinate; do not increase button size merely to fill space.
+- Use `x-ui.button` for shared navigation and action controls, including Flux-backed controls inside Livewire components. Retain a native `<button>` only when the element is a specialized control whose state/content is tightly coupled to custom interaction markup (for example, selectable calendar-day tiles or photo-preview triggers); document the reason rather than keeping one-off button styling by default.
+- The wrapper forwards supported Flux button props and arbitrary HTML/Livewire/Alpine attributes. Its only design default is SanMal blue for `primary`; other variants retain Flux semantics unless an explicit color is supplied.
 
 A dynamically assigned Alpine URL must use an anchor rendered on the server (for example, provide a harmless initial `href` and bind the final URL with `x-bind:href`). A plain button cannot become a semantic link merely by adding an Alpine `href` attribute.
+
+### Employee identity composition (`x-employee.identity-header`)
+
+Use `x-employee.identity-header` for the employee identity heading shared by the Employee Dashboard and Attendance page. It centralizes the avatar, greeting, name typography, supporting description, responsive spacing, and optional trailing action slot.
+
+Contract:
+- Required `name`; optional `initials`, `src`, `greeting`, `description`, and `avatarSize` (default `lg`).
+- Use `avatar-size="lg"` (56 px) on Employee Dashboard to preserve its larger visual emphasis.
+- Use `avatar-size="lg"` (56 px) on Attendance as well, keeping avatar dimensions identical across both employee pages.
+- Supply page-specific notification controls through the `actions` slot. The component does not query notifications or decide routes.
+- The greeting and description are caller-provided; keep employee identity data and date formatting in the page.
+- The shared name heading uses the Dashboard typography on both pages. Do not duplicate the header markup in either page.
+
+### Employee Attendance History page composition
+
+The Employee Attendance History page uses page-local Blade composition rather than introducing another shared component. Its date-group article, event row, summary indicators, and event-detail dialog are currently specific to this page and do not yet have a demonstrated cross-page reuse contract.
+
+Implementation contract:
+- The Controller supplies `dateGroups`, `summary`, and resolved `filters`; the view must not reclassify daily status or rebuild session-date attribution.
+- Render one article per date group. Status-only groups (for example, an approved leave or administrative correction) must remain visible even when `events` is empty.
+- Keep event order supplied by `DailyAttendanceStatusService`; keep date-group pagination at 10 dates per page.
+- Use Flux controls and existing `x-ui.*` primitives for page actions, filters, and status indicators. Keep the event-detail dialog page-local because its payload and evidence fields are specific to attendance history.
+- Use `x-ui.card` for the summary indicators, filter surface, empty state, and each date-group surface. Keep the semantic `<article>` nested inside the date-group card because `x-ui.card` renders a `div` (or an anchor when `href` is supplied). These surfaces use the component's borderless `shadow-sm` treatment; do not add a second border/shadow wrapper around them.
+- Alpine.js owns only transient dialog state and focus restoration. It must not make business decisions or change server-side filters.
+- Photo URLs must continue using the authenticated employee selfie routes. Do not expose storage paths or replace private routes with public URLs.
+- Only provide a map link when GPS status is `captured` and coordinates are within valid latitude/longitude bounds. Otherwise show the stored address or `Alamat tidak tersedia`.
+- The CSV export link must include the resolved visible date range, including the current-month default.
+
+No additional reusable Blade component was extracted in this batch. Revisit extraction only if the same date-group/event-detail contract is adopted by another page.
 
 ### 2. Domain/layout components (`x-admin.*`, `x-attendance.*`, etc.)
 
@@ -61,6 +103,12 @@ Components that encode a repeated page pattern or domain-specific presentation:
 - empty state;
 - status badge;
 - attendance evidence and record metadata when repeated across pages.
+
+Shell-specific navigation composition:
+- `x-ui.sidebar-section` wraps a group of Flux sidebar items and requires a `heading` prop plus the navigation items in its slot.
+- The heading row keeps a fixed height in both states. Expanded desktop shows the section heading; collapsed desktop replaces it with a subtle Flux separator in the same row so following icons do not shift vertically.
+- Use it only for grouped Admin/Manager navigation. Employee navigation is intentionally ungrouped and must not use this component.
+- The component does not create navigation items, routes, authorization, or role decisions; those remain in the application layout.
 
 Keep these separate from generic primitives when they contain domain terminology or business-specific presentation.
 
@@ -73,6 +121,34 @@ Page views should compose primitives and domain components, while retaining:
 - routes and HTTP methods;
 - form validation and confirmation flow;
 - data-specific markup that is not genuinely repeated.
+
+### Admin Attendance export confirmation
+
+`x-admin.attendance-export` owns the Admin Attendance export dropdown and confirmation dialog markup. It is a page-specific presentation component; it does not construct routes, resolve filter state, or execute exports.
+
+Contract:
+- Required `:options` contains prepared menu entries with `label`, `href`, `description`, and `icon`; optional `divider_before` inserts a menu separator.
+- Required `:filter-summary` and `:warning` provide the confirmation copy.
+- The parent Admin Attendance SFC owns the Alpine state: `exportConfirmOpen`, `exportUrl`, and `exportDescription`. The component intentionally shares that parent Alpine scope.
+- Route construction, date-range normalization, active filter resolution, and export semantics remain in the page/server layer.
+- Preserve the semantic anchor for the final export action and its Alpine-bound `href`.
+
+### Admin Attendance reusable filters
+
+`x-admin.attendance-filters` is the page-level Blade composition for Admin Attendance filters. It renders controls and option labels only; it does not query models, authorize access, mutate state, or build export URLs.
+
+Contract:
+- `:filters` lists enabled fields: `date`, `client`, `location`, `project`, `employee`, `search`, `attendance_type`, and `work_type`.
+- `:values` carries current filter values and supplies the active-filter count.
+- `:options` supplies prepared options for Client, Location, Project, Employee, attendance type, and work type.
+- Livewire SFC owns state (`dateFrom`, `dateTo`, `clientId`, `locationId`, `projectId`, `employeeId`, `search`, `attendanceType`, and `workType`). Do not add a nested Livewire component.
+- Dropdowns are independent and combine with AND; selecting Client does not cascade/reset Location or Project.
+- Options include entities with attendance history, including inactive historical Locations and non-active Projects labeled `Nonaktif`. Client has no active/inactive state.
+- Location filtering uses `attendance_records.location_id`, not the Project's mutable current Location.
+
+`AttendanceFilterData` is the normalized data contract shared by the page and export. `AttendanceRecordFilter` applies shared query predicates: WITA date range, employee, Client through Project ownership, event Location, Project, attendance type, work type, and employee/name/number/notes search. Sorting, eager loading, pagination, and authorization remain with the caller.
+
+Export preserves daily-recap semantics: selected filters decide whether a WITA calendar day qualifies, but a qualifying day exports its complete event/session context, including other Project events on that day. A single date bound becomes a single-day range; reversed bounds are normalized consistently on the page and export. No schema migration is required.
 
 ## Extraction rules
 
@@ -87,28 +163,37 @@ Page views should compose primitives and domain components, while retaining:
 9. Do not put business logic, database access, authorization decisions, or route construction inside presentational components.
 10. Migrate a small page group at a time and add/update focused tests for rendered contracts.
 
-## Current migration status
+## Current standardization status
 
-- `x-ui.page`, `x-ui.card`, and `x-ui.button` primitives exist.
-- The button primitive is now applied to Admin Attendance, Leave Requests, Daily Attendance, Clients, Employees, Audit Logs, Attendance Corrections, Overtime Requests, Projects, Notifications, and selected Employee list/history pages.
-- The generic page header is now the implementation behind the existing `x-admin.page-header` API, preserving current callers while making the layout primitive reusable outside Admin.
-- `x-ui.section` provides a standard vertical section wrapper.
-- Generic flash-message and empty-state components now back the existing Admin component names, preserving their call sites.
-- Dashboard statistic/action cards and Admin daily employee cards now compose `x-ui.card`. Attendance information cards retain their semantic section wrapper.
-- `x-ui.field`, `x-ui.input`, `x-ui.select`, `x-ui.textarea`, and `x-ui.checkbox` are now implemented.
-- `x-ui.metadata-item` is implemented for semantic `<dt>`/`<dd>` pairs. It provides default label/value typography while allowing page-specific label/value classes and wrapper attributes. Admin Attendance Correction detail, Admin Leave Request detail, Admin Employee cards, and Admin Project summary/detail now use it for repeated label/value pairs; conditional fields and all displayed values remain controlled by the existing page data.
-- `x-ui.badge` is implemented as a thin Flux badge wrapper. Admin employee account status, Admin overtime approval/state indicators, Admin Client location/office status, Admin Project type/status/site warning, Employee request status, and Employee attendance event indicators now use the shared primitive; the existing `x-admin.request-status-badge` API delegates to it. Admin Employee Create/Edit use `x-ui.input` for text, email, phone, employee number, and date fields, plus `x-ui.select` for job title and account status. Option markup and selected-state expressions remain in the page so existing request values are preserved. Employee leave requests, Admin leave decisions, and Admin overtime finalization/decision/photo-exception forms use `x-ui.textarea`; the authentication login page uses `x-ui.checkbox` for Remember me.
-- `tests/Feature/UiFormControlsTest.php` covers input label/description/error rendering, Livewire/Alpine/native attribute forwarding, and custom field slots.
-- `tests/Feature/UiSelectComponentTest.php` covers select label/description/error rendering, option slots, custom IDs, and Livewire/Alpine/native attribute forwarding.
-- `tests/Feature/UiTextareaComponentTest.php` covers textarea label/description/error rendering, slot content, row/resize options, custom IDs, and Livewire/Alpine/native attribute forwarding.
-- `tests/Feature/UiCheckboxComponentTest.php` covers checkbox label/description/error rendering, checked state, custom IDs, and Livewire/Alpine/native attribute forwarding.
-- `tests/Feature/UiButtonComponentTest.php` covers button semantics, default type, and Alpine-bound links.
-- `tests/Feature/UiLayoutComponentsTest.php` covers the generic page header, page container, and section wrapper.
-- `tests/Feature/UiCardComponentTest.php` covers content and linked-card semantics.
-- `tests/Feature/UiFeedbackComponentsTest.php` covers generic and Admin-compatible empty states.
-- `tests/Feature/UiBadgeComponentTest.php` covers default/explicit color, forwarded presentation attributes, and enum-provided status labels/colors.
-- `tests/Feature/UiMetadataItemComponentTest.php` covers semantic description-list markup, default/custom classes, slot values, and forwarded wrapper attributes.
-- Tests have been authored but not yet executed in this environment; CI status must be checked before considering this migration validated.
+The shared reusable component foundation is implemented. It contains 14 core `x-ui.*` primitives plus three shared utilities (`x-ui.avatar`, `x-ui.photo-preview`, and `x-ui.notification-dropdown`). The shell-specific `x-ui.sidebar-section` navigation composition helper is documented separately below and is not counted as a generic primitive:
+
+- Layout: `page`, `page-header`, `section`.
+- Action: `button`.
+- Surface: `card`.
+- Form: `field`, `input`, `select`, `textarea`, `checkbox`.
+- Feedback: `flash-message`, `empty-state`.
+- Status/metadata: `badge`, `metadata-item`.
+- Shared utilities: `avatar`, `photo-preview`, `notification-dropdown`.
+
+The primitives are used across selected Admin, Employee, Shared, and Authentication pages. Adoption is intentionally based on semantic fit; it does not require converting every page wrapper, native control, table, or one-off markup into a generic component.
+
+Focused component tests exist for the layout, button, card, feedback, form controls, badge, and metadata components. The latest aggregate CI result and any failing assertions are tracked in [Implementation Status](progress/IMPLEMENTATION-STATUS.md); do not treat historical CI runs as proof that the current branch is green. Component tests are not browser QA and do not prove every page passed visual review.
+
+The latest targeted page fixes cover:
+- Admin Attendance filter width and mobile-first control layout.
+- Overtime detail's invalid image icon name.
+- Employee request-center header action wrapping.
+
+These changes passed CI, but the corresponding browser/viewport recheck remains pending owner confirmation. See [Implementation Status](progress/IMPLEMENTATION-STATUS.md) and [Visual QA Log](progress/VISUAL-QA-LOG.md).
+
+### Standardization boundary
+
+- Reuse the existing primitives where their semantics and API fit.
+- Keep domain-specific status mapping and business decisions outside generic primitives.
+- Do not extract one-off markup without a demonstrated repeated pattern and shared interaction contract.
+- Do not treat reusable component standardization as completion of page design, layouting, responsive audit, accessibility audit, or final visual QA.
+
+The next work phase is page-level design and layouting using the existing primitives. New component work should be driven by a concrete gap discovered during that phase, not by a goal of abstracting every remaining class or element.
 
 ## Responsive data presentation
 
@@ -137,14 +222,9 @@ Use the presentation pattern that matches the data's purpose; do not force every
 - Admin Employees: use one-column cards below `lg`, two-column cards from `lg` through `xl`, and the comparison table from `xl`. These are CSS viewport-width decisions, not device-orientation detection: narrower tablet viewports retain one column, while wider tablet viewports can use two columns. Preserve the established desktop table breakpoint. Card and table fields stay equivalent: employee name/email, employee number, job title, account status, and edit action. The table has a 52rem content minimum, a named keyboard-focusable scroll region, and scoped column headers.
 - Admin review queues such as Attendance Corrections and Overtime Requests remain responsive lists; a table is not required when the primary interaction is opening an individual request.
 
-## Migration order
+## Next phase
 
-1. UI primitives: page, button, card.
-2. Shared feedback and navigation patterns: flash message, empty state, page header, filter panel.
-3. Form controls: field, input, select, textarea, checkbox.
-4. Repeated data presentation: badges, table wrappers, list/card rows, metadata groups.
-5. Apply components to Admin pages, then employee pages and auth.
-6. Consolidate remaining one-off utility classes only after usage has been audited.
+The reusable component standardization phase is complete. Do not repeat the primitive implementation sequence unless page-level work exposes a concrete missing reusable pattern. The next phase is page design and layouting, tracked in [Implementation Status](progress/IMPLEMENTATION-STATUS.md).
 
 ## Validation checklist
 
@@ -154,3 +234,76 @@ Use the presentation pattern that matches the data's purpose; do not force every
 - Light/dark, mobile/desktop, focus, disabled, and loading states remain correct.
 - Existing routes, authorization, filters, sorting, pagination, exports, and forms are unchanged.
 - Run focused Pest tests before broader suite; report tests as unverified until actually executed.
+
+
+## Application shell and page composition contract
+
+### Single application shell
+
+- `resources/views/layouts/app.blade.php` is the single authenticated application layout.
+- It delegates shell/navigation rendering to `resources/views/layouts/app/sidebar.blade.php`.
+- The sidebar layout owns the document structure, role-aware navigation, mobile header, toast group, Flux scripts, and the application sidebar.
+- Page content is rendered inside the shared full-width `<flux:main>` region (without `inset`). Let the document scroll normally rather than adding a nested main scroll container; the shell owns the collapsible sidebar. Do not introduce a second application shell or a competing header layout.
+- Do not add page-specific document wrappers (`html`, `head`, `body`) inside routed page views.
+- New routed pages should use the configured default application layout unless a separately approved public/guest use case requires another layout.
+
+### Page composition primitives
+
+Use the existing components inside the application shell:
+
+```blade
+<x-ui.page>
+    <x-ui.page-header title="..." description="...">
+        {{-- Optional page actions --}}
+    </x-ui.page-header>
+
+    <x-ui.section>
+        {{-- Page-owned content --}}
+    </x-ui.section>
+</x-ui.page>
+```
+
+- `x-ui.page` owns the standard content width and vertical rhythm.
+- `x-ui.page-header` owns responsive title/description/action alignment.
+- `x-ui.section` owns section grouping and spacing.
+- The page/Livewire SFC remains responsible for state, actions, filters, authorization context, and data orchestration.
+- Do not create `x-layouts.page`, `x-layouts.page-header`, or duplicate the responsibilities of existing `x-ui.*` primitives.
+
+### Layout and partial inventory — 5 November 2026
+
+| Path | Classification | Decision |
+|---|---|---|
+| `layouts/app.blade.php` | active | Retain as the single authenticated application layout |
+| `layouts/app/sidebar.blade.php` | active | Retain as the SanMal Application Shell implementation |
+| `layouts/app/header.blade.php` | legacy alternate; not selected by the configured root layout or route declarations inspected | Removed from this branch; it duplicated the previous starter-kit header/navbar shell |
+| `layouts/auth.blade.php` | active, out of scope | Leave unchanged |
+| `layouts/auth/simple.blade.php` | active, out of scope | Leave unchanged |
+| `layouts/auth/card.blade.php` | alternate, out of scope | Leave unchanged pending authentication redesign |
+| `layouts/auth/split.blade.php` | alternate, out of scope | Leave unchanged pending authentication redesign |
+| `partials/head.blade.php` | shared infrastructure | Retain; used by document layouts |
+| `partials/settings-heading.blade.php` | settings partial | Retain pending separate usage/API review |
+
+The legacy `layouts/app/header.blade.php` was removed because the configured root layout delegates to the sidebar shell and the inspected route declarations do not select the header layout. The repository's GitHub code-search index did not provide complete results, so this is a configuration/source-based consolidation rather than a claim that every possible dynamic reference was exhaustively indexed. The shared `x-desktop-user-menu` component was **not** removed: the active sidebar layout still renders it. Keep `x-app-logo` and `x-app-logo-icon` until their full usage, including authentication layouts, is reviewed.
+
+### Scope boundary
+
+This inventory is a focused layout/shell audit, not a blanket declaration that every Blade component or partial is unused. Do not delete component files solely because they resemble starter-kit code or have no references in one page. Before removing any further view, verify direct references, Livewire layout configuration, route-level layout selection, nested includes/components, and test coverage.
+
+Authentication layouts and authentication page views were deliberately excluded from this batch at the project owner's request. No file under `resources/views/layouts/auth/` or `resources/views/pages/auth/` was changed.
+
+### Sidebar data preparation
+
+`AppSidebarComposer` is registered from `AppServiceProvider` for the resolved anonymous-component view pattern `*::app.sidebar`. Laravel generates the anonymous component namespace from its path, so the resolved name is hash-prefixed (for example, `<hash>::app.sidebar`) rather than the literal `layouts::app.sidebar`. The composer supplies the variables consumed by the shell:
+- `sidebarUser` and the related `sidebarEmployee` profile;
+- `isManager` and `isEmployee` role flags;
+- unread system-notification count and the five latest notifications;
+- `unseenRequestDecisions`: the sum of approved/rejected, unseen Leave Requests, Overtime Requests, and Attendance Corrections for the employee profile (zero when no employee profile exists).
+
+The composer preserves the previous query predicates and limits. It owns data preparation only; the Blade shell still owns role-based navigation markup, route selection, and presentation. Do not move authorization decisions or navigation definitions into the composer. Focused feature tests cover manager notification data, employee context, and a guest-safe composer invocation.
+
+
+### Admin Attendance responsive records
+
+The Admin Attendance activity card keeps its heading and records together. The record region has equal outer padding; table header and body cells use matching horizontal and vertical padding. On desktop, the table fills the available card width. Column widths are distributed proportionally by content role; avoid a centered max-width wrapper or fixed table layout that leaves unused space at the right. On mobile, action buttons are aligned to the right edge of each card, with Koreksi preceding Peta and Detail. The photo/placeholder is vertically centered against the information column. At mobile widths (below 768px), the desktop table is replaced by two-column record cards: the private selfie preview (or a neutral placeholder) is on the left; employee, event type, local timestamp, work type, and compact actions are on the right. The `Detail` action opens a per-record Flux modal containing the complete event context (work type, Project/Client/Location snapshots, stored address, GPS coordinates/map link, and original timestamp when corrected). The photo preview remains independently clickable. Mobile pagination remains available.
+
+Timestamp correction is opened in a per-record Flux modal from desktop and mobile. The existing POST endpoint remains responsible for validation, authorization, timeline checks, immutable source timestamp, and audit logging. The modal changes presentation only. Do not add a review/decision action to this page; review belongs to the separate attendance-correction request workflow.

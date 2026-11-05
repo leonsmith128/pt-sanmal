@@ -7,10 +7,19 @@ use App\Models\DailyStatusCorrection;
 use App\Models\LeaveRequest;
 use App\Models\LeaveType;
 use App\Services\DailyAttendanceStatusService;
+use Carbon\Carbon;
+use Tests\TestCase;
+
+uses(TestCase::class);
 
 function dailyStatusEvent(AttendanceType $type): AttendanceRecord
 {
-    return new AttendanceRecord(['type' => $type]);
+    return new AttendanceRecord([
+        'type' => $type,
+        'timezone_source' => 'legacy',
+        'location_status' => 'captured',
+        'recorded_at' => Carbon::parse($type === AttendanceType::ClockIn ? '2026-11-03 08:00:00' : '2026-11-03 17:00:00', 'UTC'),
+    ]);
 }
 
 function dailyStatusLeave(string $code): LeaveRequest
@@ -97,4 +106,19 @@ it('keeps a day without events or leave as no record rather than absent', functi
 
     expect($result['status'])->toBe(DailyAttendanceStatus::NoRecord->value)
         ->and($result['status'])->not->toBe(DailyAttendanceStatus::Absent->value);
+});
+
+it('marks duplicate clock-in events on the same attendance date for review', function () {
+    $result = (new DailyAttendanceStatusService)->resolveStatus(
+        collect([
+            dailyStatusEvent(AttendanceType::ClockIn),
+            dailyStatusEvent(AttendanceType::ClockIn),
+            dailyStatusEvent(AttendanceType::ClockOut),
+        ]),
+        collect(),
+        null,
+    );
+
+    expect($result['status'])->toBe(DailyAttendanceStatus::NeedsReview->value)
+        ->and($result['needs_review'])->toBeTrue();
 });

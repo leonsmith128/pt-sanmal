@@ -1,4 +1,5 @@
-<form method="POST" action="{{ $action }}" class="space-y-4 rounded-xl border border-zinc-200 p-5 dark:border-zinc-700">
+<form method="POST" action="{{ $action }}" class="space-y-4">
+    <x-ui.card padding="p-5 sm:p-6" class="space-y-4">
     @csrf
     @if ($method === 'PUT')
         @method('PUT')
@@ -88,4 +89,5 @@
         <x-ui.button href="{{ route('admin.projects.index') }}" variant="ghost" class="w-full sm:w-auto">{{ __('Batal') }}</x-ui.button>
         <x-ui.button type="submit" variant="primary" class="w-full sm:w-auto">{{ $method === 'PUT' ? __('Simpan perubahan') : __('Simpan proyek') }}</x-ui.button>
     </div>
+    </x-ui.card>
 </form>

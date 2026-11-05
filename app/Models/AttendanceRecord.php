@@ -22,6 +22,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @property int|null $location_id
  * @property int|null $project_id
  * @property string $timezone
+ * @property string $timezone_source
  * @property string|null $latitude
  * @property string|null $longitude
  * @property string|null $accuracy_m
@@ -42,7 +43,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  */
 #[Fillable([
     'employee_id', 'session_anchor_id', 'attendance_correction_id', 'source', 'type', 'work_type', 'location_id', 'project_id',
-    'recorded_at', 'captured_at', 'timezone', 'attendance_date',
+    'recorded_at', 'captured_at', 'timezone', 'timezone_source', 'attendance_date',
     'client_code_snapshot', 'client_name_snapshot', 'project_code_snapshot', 'project_name_snapshot', 'location_name_snapshot', 'snapshot_source',
     'latitude', 'longitude', 'accuracy_m', 'location_status', 'address_snapshot',
     'drive_backup_status', 'drive_file_id', 'drive_md5_checksum', 'drive_size_bytes',

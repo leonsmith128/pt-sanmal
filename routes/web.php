@@ -20,6 +20,7 @@ use App\Http\Controllers\AttendanceSelfieDriveController;
 use App\Http\Controllers\LeaveRequestController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OvertimeRequestController;
+use App\Http\Controllers\ProfilePhotoController;
 use App\Http\Middleware\EnsureUserHasRole;
 use App\Http\Middleware\EnsureUserIsActive;
 use Illuminate\Support\Facades\Route;
@@ -28,6 +29,8 @@ Route::redirect('/', '/login')->name('home');
 
 Route::middleware(['auth', EnsureUserIsActive::class, 'verified'])->group(function () {
     Route::get('dashboard', AdminDashboardController::class)->name('dashboard');
+    Route::get('dashboard-saya', [AdminDashboardController::class, 'myDashboard'])->name('my-dashboard');
+    Route::get('profil/{user}/foto', ProfilePhotoController::class)->name('profile-photo.show');
     Route::livewire('profil', 'pages::employee.employee-profile')->name('profile.edit');
     Route::get('notifikasi', [NotificationController::class, 'index'])->name('notifications.index');
     Route::patch('notifikasi/{notification}/baca', [NotificationController::class, 'read'])->name('notifications.read');

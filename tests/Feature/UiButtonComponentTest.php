@@ -5,6 +5,7 @@ it('renders a reusable button as a semantic action with forwarded attributes', f
         '<x-ui.button type="submit" variant="primary" x-on:click="ready = true">Simpan</x-ui.button>'
     )
         ->assertSee('type="submit"', false)
+        ->assertSee('sanmal-button-primary', false)
         ->assertSee('Simpan')
         ->assertSee('x-on:click="ready = true"', false);
 });
@@ -14,7 +15,9 @@ it('renders a reusable button link and preserves Alpine href binding', function 
         '<x-ui.button href="#" variant="primary" x-bind:href="exportUrl">Konfirmasi dan ekspor</x-ui.button>'
     )
         ->assertSee('href="#"', false)
+        ->assertSee('sanmal-button-primary', false)
         ->assertSee('x-bind:href="exportUrl"', false)
+        ->assertSee('sanmal-button-primary', false)
         ->assertSee('Konfirmasi dan ekspor');
 });
 
@@ -22,4 +25,44 @@ it('defaults to a non-submitting action button', function () {
     $this->blade('<x-ui.button>Detail</x-ui.button>')
         ->assertSee('type="button"', false)
         ->assertSee('Detail');
+});
+
+it('forwards Livewire, accessibility, disabled, and presentation attributes', function () {
+    $this->blade(
+        '<x-ui.button wire:click="save" disabled aria-label="Simpan perubahan" class="w-full" data-test="save-button">Simpan</x-ui.button>'
+    )
+        ->assertSee('wire:click="save"', false)
+        ->assertSee('disabled', false)
+        ->assertSee('aria-label="Simpan perubahan"', false)
+        ->assertSee('w-full', false)
+        ->assertSee('data-test="save-button"', false);
+});
+
+it('uses the SanMal brand blue for primary actions by default', function () {
+    $this->blade('<x-ui.button variant="primary">Simpan</x-ui.button>')
+        ->assertSee('sanmal-button-primary', false)
+        ->assertSee('Simpan');
+});
+
+it('applies a dedicated secondary button class for dark theme contrast', function () {
+    $this->blade('<x-ui.button variant="outline">Kembali</x-ui.button>')
+        ->assertSee('sanmal-button-secondary', false)
+        ->assertSee('Kembali');
+});
+
+it('preserves explicit semantic colors on outline buttons', function () {
+    $this->blade('<x-ui.button variant="outline" color="red">Hapus</x-ui.button>')
+        ->assertDontSee('sanmal-button-secondary', false)
+        ->assertSee('red-', false)
+        ->assertSee('Hapus');
+});
+
+it('supports the Flux destructive variant and explicit semantic colors', function () {
+    $this->blade('<x-ui.button variant="danger">Hapus</x-ui.button>')
+        ->assertSee('red-', false)
+        ->assertSee('Hapus');
+
+    $this->blade('<x-ui.button variant="outline" color="red">Hapus lokal</x-ui.button>')
+        ->assertSee('red-', false)
+        ->assertSee('Hapus lokal');
 });

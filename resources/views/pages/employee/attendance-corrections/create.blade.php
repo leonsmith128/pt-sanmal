@@ -1,10 +1,11 @@
 <x-layouts::app :title="__('Ajukan Koreksi Absensi')">
-    <div class="mx-auto w-full max-w-2xl space-y-5 px-4 py-4 sm:px-6 sm:py-6">
-        <header class="space-y-2">
-            <flux:button href="{{ route('leave-requests.index') }}" variant="ghost" icon="arrow-left" size="sm" class="w-fit">{{ __('Kembali') }}</flux:button>
-            <flux:heading size="xl" level="1">{{ __('Ajukan Koreksi Absensi') }}</flux:heading>
-            <flux:text>{{ __('Pilih event yang ingin dikoreksi. Untuk Clock Out yang terlupa, pilih sesi Clock In yang masih terbuka.') }}</flux:text>
-        </header>
+    <x-ui.page max-width="2xl" gap="5">
+        <x-ui.page-header
+            :title="__('Ajukan Koreksi Absensi')"
+            :description="__('Pilih event yang ingin dikoreksi. Untuk Clock Out yang terlupa, pilih sesi Clock In yang masih terbuka.')"
+        >
+            <x-ui.button href="{{ route('leave-requests.index') }}" variant="ghost" icon="arrow-left" size="sm">{{ __('Kembali') }}</x-ui.button>
+        </x-ui.page-header>
 
         @if ($errors->any())
             <flux:callout variant="danger" icon="exclamation-triangle">
@@ -13,29 +14,25 @@
             </flux:callout>
         @endif
 
-        <form method="POST" action="{{ route('attendance-corrections.store') }}" enctype="multipart/form-data"
-            class="space-y-4 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900 sm:p-6">
-            @csrf
-            <flux:field>
-                <flux:label>{{ __('Jenis event') }}</flux:label>
-                <flux:select name="requested_type" required>
-                    <flux:select.option value="clock_in" :selected="old('requested_type') === 'clock_in'">Clock In</flux:select.option>
-                    <flux:select.option value="clock_out" :selected="old('requested_type', 'clock_out') === 'clock_out'">Clock Out</flux:select.option>
-                </flux:select>
-            </flux:field>
+        <x-ui.card padding="p-4 sm:p-6">
+            <form method="POST" action="{{ route('attendance-corrections.store') }}" enctype="multipart/form-data" class="space-y-4">
+                @csrf
+            <x-ui.select name="requested_type" :label="__('Jenis event')" required>
+                <flux:select.option value="clock_in" :selected="old('requested_type') === 'clock_in'">Clock In</flux:select.option>
+                <flux:select.option value="clock_out" :selected="old('requested_type', 'clock_out') === 'clock_out'">Clock Out</flux:select.option>
+            </x-ui.select>
 
-            <flux:field>
-                <flux:label>{{ __('Event absensi yang sudah tercatat (opsional)') }}</flux:label>
-                <flux:select name="attendance_record_id">
-                    <flux:select.option value="">{{ __('Kosongkan untuk Clock Out yang terlupa') }}</flux:select.option>
-                    @foreach ($records as $record)
-                        <flux:select.option value="{{ $record->id }}" :selected="(string) old('attendance_record_id') === (string) $record->id">
-                            #{{ $record->id }} · {{ $record->type->value === 'clock_in' ? 'Clock In' : 'Clock Out' }} · {{ $record->recordedAtLocal()->format('d/m/Y H:i') }}
-                        </flux:select.option>
-                    @endforeach
-                </flux:select>
-                <flux:error name="attendance_record_id" />
-            </flux:field>
+            <x-ui.select
+                name="attendance_record_id"
+                :label="__('Event absensi yang sudah tercatat (opsional)')"
+            >
+                <flux:select.option value="">{{ __('Kosongkan untuk Clock Out yang terlupa') }}</flux:select.option>
+                @foreach ($records as $record)
+                    <flux:select.option value="{{ $record->id }}" :selected="(string) old('attendance_record_id') === (string) $record->id">
+                        #{{ $record->id }} · {{ $record->type->value === 'clock_in' ? 'Clock In' : 'Clock Out' }} · {{ $record->recordedAtLocal()->format('d/m/Y H:i') }}
+                    </flux:select.option>
+                @endforeach
+            </x-ui.select>
 
             @if ($openSession)
                 <input type="hidden" name="session_anchor_id" value="{{ $openSession->id }}">
@@ -43,32 +40,38 @@
                     {{ __('Sesi terbuka: Clock In #') }}{{ $openSession->id }} · {{ $openSession->recordedAtLocal()->format('d/m/Y H:i') }}. {{ __('Untuk lupa Clock Out, kosongkan event di atas dan pilih Clock Out.') }}
                 </flux:callout>
             @else
-                <flux:text class="text-sm text-zinc-500">{{ __('Tidak ada sesi terbuka untuk pengajuan Clock Out yang terlupa.') }}</flux:text>
+                <flux:text class="text-sm text-[var(--sanmal-text-muted)]">{{ __('Tidak ada sesi terbuka untuk pengajuan Clock Out yang terlupa.') }}</flux:text>
             @endif
 
-            <flux:field>
-                <flux:label>{{ __('Waktu yang benar (waktu lokal sesi)') }}</flux:label>
-                <flux:input type="datetime-local" name="requested_recorded_at_local" value="{{ old('requested_recorded_at_local') }}" required />
-                <flux:error name="requested_recorded_at_local" />
-            </flux:field>
+            <x-ui.input
+                name="requested_recorded_at_local"
+                :label="__('Waktu yang benar (waktu lokal sesi)')"
+                type="datetime-local"
+                :value="old('requested_recorded_at_local')"
+                required
+            />
 
-            <flux:field>
-                <flux:label>{{ __('Alasan') }}</flux:label>
-                <flux:textarea name="reason" rows="4" required maxlength="2000">{{ old('reason') }}</flux:textarea>
-                <flux:error name="reason" />
-            </flux:field>
+            <x-ui.textarea
+                name="reason"
+                :label="__('Alasan')"
+                rows="4"
+                required
+                maxlength="2000"
+            >{{ old('reason') }}</x-ui.textarea>
 
-            <flux:field>
-                <flux:label>{{ __('Lampiran (opsional)') }}</flux:label>
-                <flux:input type="file" name="attachment" accept=".jpg,.jpeg,.png,.pdf" />
-                <flux:description>{{ __('JPG, PNG, atau PDF maksimal 1 MB.') }}</flux:description>
-                <flux:error name="attachment" />
-            </flux:field>
+            <x-ui.input
+                name="attachment"
+                :label="__('Lampiran (opsional)')"
+                :description="__('JPG, PNG, atau PDF maksimal 1 MB.')"
+                type="file"
+                accept=".jpg,.jpeg,.png,.pdf"
+            />
 
-            <div class="flex justify-end gap-2 border-t border-zinc-200 pt-4 dark:border-zinc-700">
-                <flux:button href="{{ route('leave-requests.index') }}" variant="ghost">{{ __('Batal') }}</flux:button>
-                <flux:button type="submit" variant="primary">{{ __('Kirim koreksi') }}</flux:button>
+            <div class="flex justify-end gap-2 border-t border-sanmal-border pt-4 dark:border-sanmal-border-dark">
+                <x-ui.button href="{{ route('leave-requests.index') }}" variant="ghost">{{ __('Batal') }}</x-ui.button>
+                <x-ui.button type="submit" variant="primary">{{ __('Kirim koreksi') }}</x-ui.button>
             </div>
-        </form>
-    </div>
+            </form>
+        </x-ui.card>
+    </x-ui.page>
 </x-layouts::app>

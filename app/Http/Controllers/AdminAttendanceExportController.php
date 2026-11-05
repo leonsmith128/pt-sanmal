@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Data\Attendance\AttendanceFilterData;
 use App\Enums\AttendanceType;
 use App\Enums\WorkType;
 use App\Models\AttendanceRecord;
@@ -25,34 +26,33 @@ class AdminAttendanceExportController extends Controller
     ): StreamedResponse {
         $filters = $request->validate([
             'from' => ['nullable', 'date_format:Y-m-d'],
-            'to' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:from'],
+            'to' => ['nullable', 'date_format:Y-m-d'],
             'employee_id' => ['nullable', 'integer', 'exists:employees,id'],
+            'client_id' => ['nullable', 'integer', 'exists:clients,id'],
+            'location_id' => ['nullable', 'integer', 'exists:locations,id'],
+            'project_id' => ['nullable', 'integer', 'exists:projects,id'],
             'search' => ['nullable', 'string', 'max:255'],
             'attendance_type' => ['nullable', Rule::enum(AttendanceType::class)],
             'work_type' => ['nullable', Rule::enum(WorkType::class)],
         ]);
 
         $today = Carbon::now('Asia/Makassar')->startOfDay();
-        $from = $filters['from'] ?? $this->earliestAvailableDate();
-        $to = $filters['to'] ?? $today->toDateString();
+        $filterData = AttendanceFilterData::fromArray($filters);
+
+        if ($filterData->from === null && $filterData->to === null) {
+            $filterData = $filterData->withDateRange($this->earliestAvailableDate(), $today->toDateString());
+        }
+
+        $from = $filterData->from ?? $today->toDateString();
+        $to = $filterData->to ?? $from;
         $start = Carbon::parse($from, 'Asia/Makassar')->startOfDay();
         $end = Carbon::parse($to, 'Asia/Makassar')->startOfDay();
-
-        $employees = Employee::query()
-            ->when($filters['employee_id'] ?? null, fn (Builder $query, $id) => $query->whereKey($id))
-            ->when(trim($filters['search'] ?? '') !== '', function (Builder $query) use ($filters): void {
-                $term = trim($filters['search']);
-                $query->where(function (Builder $nested) use ($term): void {
-                    $nested->whereHas('user', fn (Builder $user) => $user->where('name', 'like', '%'.$term.'%'))
-                        ->orWhere('employee_number', 'like', '%'.$term.'%')
-                        ->orWhereHas('attendanceRecords', fn (Builder $records) => $records->where('notes', 'like', '%'.$term.'%'));
-                });
-            });
+        $employees = Employee::query();
 
         $filename = 'rekap-absensi-admin-'.$start->format('Ymd').'-'.$end->format('Ymd').'.csv';
 
-        return response()->streamDownload(function () use ($employees, $start, $end, $filters, $statusService, $exportService): void {
-            $exportService->stream($employees, $start, $end, $statusService, $filters);
+        return response()->streamDownload(function () use ($employees, $start, $end, $statusService, $exportService, $filterData): void {
+            $exportService->stream($employees, $start, $end, $statusService, $filterData);
         }, $filename, [
             'Content-Type' => 'text/csv; charset=UTF-8',
             'Cache-Control' => 'private, no-store, no-cache, must-revalidate',
@@ -61,10 +61,14 @@ class AdminAttendanceExportController extends Controller
 
     private function earliestAvailableDate(): string
     {
-        $attendance = AttendanceRecord::query()
+        $earliestAttendanceAt = AttendanceRecord::query()
             ->where(fn (Builder $query) => $query->whereNull('session_anchor_id')->orWhereColumn('session_anchor_id', 'id'))
-            ->selectRaw("MIN(COALESCE((SELECT ac.attendance_date FROM attendance_corrections ac WHERE ac.attendance_record_id = attendance_records.id AND ac.status = 'approved' ORDER BY ac.reviewed_at DESC LIMIT 1), attendance_records.attendance_date)) AS earliest_date")
-            ->value('earliest_date');
+            ->selectRaw("MIN(COALESCE((SELECT ac.requested_recorded_at FROM attendance_corrections ac WHERE ac.attendance_record_id = attendance_records.id AND ac.status = 'approved' ORDER BY ac.reviewed_at DESC LIMIT 1), attendance_records.recorded_at)) AS earliest_at")
+            ->value('earliest_at');
+
+        $attendance = $earliestAttendanceAt
+            ? Carbon::parse($earliestAttendanceAt, 'UTC')->setTimezone('Asia/Makassar')->toDateString()
+            : null;
 
         $leave = LeaveRequest::query()->where('status', 'approved')->min('start_date');
         $correction = DailyStatusCorrection::query()->min('attendance_date');

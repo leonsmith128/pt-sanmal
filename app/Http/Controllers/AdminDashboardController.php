@@ -9,24 +9,67 @@ use App\Models\Employee;
 use App\Models\LeaveRequest;
 use App\Models\OvertimeRequest;
 use App\Services\DailyAttendanceStatusService;
+use App\Services\EmployeeDashboardAggregationService;
+use App\Support\AttendanceDateFilter;
 use Illuminate\Support\Carbon;
 use Illuminate\View\View;
 
 class AdminDashboardController extends Controller
 {
-    public function __invoke(DailyAttendanceStatusService $statusService): View
+    public function myDashboard(EmployeeDashboardAggregationService $employeeDashboardService): View
     {
-        $today = now()->toDateString();
+        $user = auth()->user();
+        $employee = $user->employee;
+
+        abort_unless($user->isManager() && $employee, 404);
+
+        return view('pages::dashboard', [
+            'isManager' => false,
+            'today' => now()->translatedFormat('l, d F Y'),
+            'employeeDashboard' => $employeeDashboardService->forEmployee($employee),
+            'notifications' => $user->notifications()->latest()->limit(5)->get(),
+            'unreadNotificationCount' => $user->unreadNotifications()->count(),
+        ]);
+    }
+
+    public function __invoke(
+        DailyAttendanceStatusService $statusService,
+        EmployeeDashboardAggregationService $employeeDashboardService,
+    ): View {
+        $user = auth()->user();
+
+        if (! $user->isManager()) {
+            $employee = $user->employee;
+
+            return view('pages::dashboard', [
+                'isManager' => false,
+                'today' => now()->translatedFormat('l, d F Y'),
+                'employeeDashboard' => $employee
+                    ? $employeeDashboardService->forEmployee($employee)
+                    : null,
+                'notifications' => $user->notifications()->latest()->limit(5)->get(),
+                'unreadNotificationCount' => $user->unreadNotifications()->count(),
+            ]);
+        }
+
+        $today = now('Asia/Makassar')->toDateString();
         $employees = Employee::query()
             ->whereHas('user', fn ($query) => $query->where('is_active', true))
             ->with('user:id,name')
             ->get();
 
-        $daily = $statusService->forEmployeesDateRange($employees, $today, $today);
+        $daily = $statusService->forEmployeesDateRange($employees, $today, $today, 'Asia/Makassar');
         $counts = collect($daily)->map(fn ($days) => $days[$today]['status'] ?? 'no_record')->countBy();
 
+        $recentAttendanceQuery = AttendanceRecord::query()->with('employee.user');
+        AttendanceDateFilter::applyInTimezone($recentAttendanceQuery, $today, $today, 'Asia/Makassar');
+        $recentAttendance = $recentAttendanceQuery
+            ->latest('recorded_at')
+            ->limit(8)
+            ->get();
+
         return view('pages::dashboard', [
-            'isManager' => auth()->user()->isManager(),
+            'isManager' => true,
             'activeEmployees' => $employees->count(),
             'presentToday' => $counts->get('present', 0),
             'incompleteToday' => $counts->get('incomplete', 0),
@@ -34,13 +77,9 @@ class AdminDashboardController extends Controller
             'needsReviewToday' => $counts->get('needs_review', 0),
             'pendingLeave' => LeaveRequest::query()->where('status', LeaveRequestStatus::Pending)->count(),
             'pendingOvertime' => OvertimeRequest::query()->where('approval_status', OvertimeApprovalStatus::Pending)->count(),
-            'recentAttendance' => AttendanceRecord::query()
-                ->with('employee.user')
-                ->whereDate('attendance_date', $today)
-                ->latest('recorded_at')
-                ->limit(8)
-                ->get(),
+            'recentAttendance' => $recentAttendance,
             'today' => Carbon::parse($today)->translatedFormat('l, d F Y'),
+            'todayDate' => $today,
         ]);
     }
 }

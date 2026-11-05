@@ -66,37 +66,53 @@ The original SanMal logo supplied for this project was sampled to identify repre
 
 | Token | HEX | Intended use |
 |---|---|---|
-| `brand/blue` | `#003A6C` | Primary brand blue, primary actions, selected navigation |
-| `brand/blue-dark` | `#00294D` | Hover/pressed/active emphasis |
-| `brand/blue-light` | `#EAF1F7` | Subtle blue surface and selected backgrounds |
-| `brand/yellow` | `#FDBE01` | Brand accent, highlights, restrained emphasis |
-| `brand/yellow-soft` | `#FFF6D6` | Soft accent surface |
+| `brand/blue` | `#0E3B6B` | Primary brand blue and light-theme primary actions |
+| `brand/blue-dark` | `#0C315B` | Light-theme primary hover/pressed emphasis |
+| `brand/blue-light` | `#B4C8DC` | Subtle blue surface and dark-theme focus/accent |
+| `brand/yellow` | `#E7A007` | Brand accent and light-theme highlight |
+| `brand/yellow-dark` | `#D9A72E` | Dark-theme primary action |
+| `brand/yellow-dark-hover` | `#C49320` | Dark-theme primary hover |
 
-Yellow is an accent, not the default primary button fill. Always check foreground/background contrast before using brand colors for text or controls.
+The primary action is theme-aware: blue in light theme and yellow in dark theme. Yellow is also used as a restrained secondary-action accent in dark theme; it must not visually compete with the filled primary action. Always check foreground/background contrast.
 
-### Neutral palette
+### Surface and text palette
 
-| Token | HEX | Typical use |
-|---|---|---|
-| `neutral/white` | `#FFFFFF` | Main surfaces |
-| `neutral/50` | `#F8FAFC` | Page background / subtle surface |
-| `neutral/100` | `#F1F5F9` | Secondary surface |
-| `neutral/200` | `#E2E8F0` | Borders/dividers |
-| `neutral/300` | `#CBD5E1` | Stronger borders |
-| `neutral/500` | `#64748B` | Secondary text |
-| `neutral/700` | `#334155` | Strong secondary text |
-| `neutral/900` | `#0F172A` | Main text |
+| Token | Light | Dark | Typical use |
+|---|---|---|---|
+| `surface/page` | `#F2F5F8` | `#0B1623` | Application main background |
+| `surface/primary` | `#F8FCFF` | `#122235` | Main content panel |
+| `surface/card` | `#F9FAFC` | `#192B40` | Standard and linked cards; distinct from the main panel |
+| `surface/sidebar` | `#CAD6E2` | `#0B1623` | Body/shell and sidebar navigation surface; dark theme stays integrated |
+| `surface/secondary` | `#EAF0F6` | `#122235` | Secondary grouping and light-theme hover surfaces |
+| `surface/inset` | `#E3EBF3` | `#20354B` | Inset controls and recessed areas |
+| `surface/elevated` | — | `#263D55` | Elevated dark-theme controls and linked-card hover state |
+| `border` | `#D3DDEA` | `#344B63` | Dividers and control borders |
+| `text/primary` | `#172033` | `#F1F5F9` | Main content |
+| `text/secondary` | `#526579` | `#CBD5E1` | Supporting content |
+| `text/muted` | `#64748B` | `#94A3B8` | Metadata and helper text |
+
+The live token values are defined in `resources/css/app.css`; if this table and the stylesheet ever differ, inspect the source branch and update this document rather than copying stale values. In the current source, the light page surface is `#F2F5F8` and the card surface is `#F9FAFC`; the primary surface remains `#F8FCFF`.
 
 ### Semantic colors
 
 | Token | HEX | Meaning |
 |---|---|---|
-| `semantic/success` | `#15803D` | Successful/completed |
-| `semantic/warning` | `#B45309` | Warning/needs attention |
-| `semantic/danger` | `#B91C1C` | Error/rejected/destructive |
-| `semantic/info` | `#2563EB` | Informational |
+| `semantic/success` | `#258640` | Successful/completed |
+| `semantic/warning` | `#B2640A` | Warning/needs attention |
+| `semantic/danger` | `#BD1F1F` | Error/rejected/destructive |
+| `semantic/info` | `#145985` | Informational |
 
 Use semantic colors consistently. A status color must not be the only way to communicate meaning; include readable text or an accessible label.
+
+### Surface usage rules
+
+- Use `x-ui.card` for standard content cards so light/dark backgrounds, text color, radius, and shadow remain centralized.
+- **The outer card container is borderless and shadow-only** (`shadow-sm`; dark theme uses `dark:shadow-black/20`). Do not add border utilities to a standard card container. The card surface is `#F9FAFC` in light theme and `#192B40` in dark theme.
+- Borders remain appropriate for controls, dividers, tables, modal frames, and inset/secondary groups when they communicate structure; this rule applies to the outer card container, not every descendant.
+- Use the approved `surface/secondary` or `surface/inset` tokens for nested groups, chips, and recessed content; always provide the matching dark token.
+- Do not introduce one-off `white`, `zinc`, or `gray` backgrounds/borders inside standardized cards.
+- Use the shared `--sanmal-text-primary`, `--sanmal-text-secondary`, and `--sanmal-text-muted` variables for neutral text hierarchy. Reserve semantic colors for actual status and feedback.
+- A component may have a different layout by role or page, but its surface palette must remain consistent with the shared design tokens.
 
 ## 4. Typography
 
@@ -137,11 +153,28 @@ Spacing scale reference: 4, 8, 12, 16, 20, 24, 32, 40, and 48 px. Prefer consist
 
 Density means removing decorative whitespace, not shrinking everything. Do not hide critical information or reduce hit targets to fit more content.
 
+### Application shell and content surface
+
+Keep the application shell visually continuous without making the sidebar and page indistinguishable: the `body` and sidebar use the sidebar surface (`bg-sanmal-surface-sidebar dark:bg-sanmal-surface-page-dark`). In light theme both are `#CAD6E2`; the full-width main content uses the separate page surface (`bg-sanmal-surface-page dark:bg-sanmal-surface-page-dark`), which is `#F2F5F8`; in dark theme both remain integrated with the dark page surface. The sidebar has no separating border.
+
+The main content uses `<flux:main>` without Flux's `inset` prop and applies the page surface directly to that element. Standard and linked `x-ui.card` components keep the dedicated borderless card surface (`bg-sanmal-surface-card dark:bg-sanmal-surface-card-dark`): `#F9FAFC` in light theme and `#192B40` in dark theme, intentionally distinct from the main background. The outer card uses shadow for elevation, not a border. Linked-card hover uses the elevated dark surface token. Keep the sidebar, optional header, and main as direct siblings. Let the document scroll normally at every viewport; do not turn the main region into a nested scroll container.
+
+Keep `p-0` on the main region because page content owns its internal spacing. Use `lg:ms-0` to remove the extra start offset beside the sidebar. Add `lg:mt-0` only when a desktop-visible Flux header is also present. Do not add `overflow-y-auto`, `overscroll-contain`, fixed heights, or per-page overflow wrappers to the main region.
+
+Page content owns its own internal spacing. `x-ui.page` provides width, vertical flow, and section gap; do not add blanket horizontal padding to it or duplicate spacing already provided by a page-specific surface. When a page needs inner padding, apply it to the relevant page section/card, not the application shell.
+
+Preserve the employee mobile header and drawer toggle. Do not add a fixed bottom navigation bar.
+
+### Authentication pages
+
+Use the shared `layouts.auth.simple` layout for active authentication routes: a compact `max-w-md` form surface on the SanMal page surface, the shared brand logo, clear left-aligned form hierarchy, and visible focus states. Keep decoration restrained to the brand accent; do not add promotional copy, random quotes, ambient gradient effects, or a second authentication shell. Keep inputs and primary actions full-width on narrow screens, with recovery links placed separately from field labels. Authentication behavior, route, CSRF, and validation contracts remain owned by Fortify.
+
 ## 6. Button foundation
 
-The source already contains `x-ui.button`, which wraps Flux UI's button component. Reuse it before adding another button implementation. Its current Blade API includes:
-- `variant` (default `primary`)
-- `size` (default `sm`)
+The source already contains `x-ui.button`, which wraps Flux UI 2.13's button component. Reuse it before adding another button implementation. Its current Blade API includes:
+- `variant` (default `primary`; supported values include `primary`, `outline`, `ghost`, `subtle`, `filled`, and `danger`)
+- `color` (optional; primary defaults to SanMal blue, explicit semantic colors remain available)
+- `size` (default `sm`; supported sizes are `xs`, `sm`, and `base`)
 - `type`
 - `href`
 - `icon` and `iconTrailing`
@@ -155,11 +188,10 @@ Inspect the component and Flux version in the target branch before changing its 
 
 | Variant | Use |
 |---|---|
-| Primary | One dominant action in a context: Save, Add, Apply, or final confirmation |
-| Secondary | Supporting action that should remain visibly actionable |
-| Outline | Labeled secondary action: Edit, Detail, Back, Reset, Filter, Export |
-| Ghost | Minor utility action or icon control that does not need a filled surface |
-| Danger | Destructive or high-risk action |
+| Primary | Flux `primary` with SanMal brand blue; one dominant action such as Save, Add, Apply, or final confirmation |
+| Secondary | Flux `outline` with neutral styling; supporting actions such as Edit, Detail, Back, Reset, Filter, and Export |
+| Ghost | Flux `ghost`; minor utility action or icon control that does not need a filled surface |
+| Danger | Flux `danger`; destructive or high-risk actions such as Delete, Remove, or Cancel when the action is destructive |
 
 Do not make every button primary. Destructive actions must retain the workflow's existing confirmation; styling does not replace confirmation.
 
@@ -169,13 +201,20 @@ The agreed design direction is **compact by default, comfortable when needed**. 
 
 | Design size | Target height | Horizontal padding target | Use |
 |---|---:|---:|---|
-| Small | 32 px | 12 px | Dense table actions and compact toolbar |
-| Medium | 40 px | 16 px | Standard Admin action |
-| Large | 48 px | 20 px | Employee primary action on mobile |
+| Small | 32 px | 12 px | Dense table actions and compact toolbar; Flux `sm` |
+| Medium | 40 px | 16 px | Standard Admin action; Flux `base` |
+| Large touch action | 48 px minimum | Context-dependent | Employee's most important mobile action; use a deliberate minimum-height utility only where the workflow needs the larger target |
 
-These are design acceptance targets, not a claim that Flux's `sm`/default/`lg` maps to these exact pixel values. Verify actual browser rendering before changing the shared component. Keep the target interaction area comfortable on touch devices; icon-only controls need an adequate hit area even if the visible icon is small.
+Flux 2.13 button sizes are `xs`, `sm`, and `base`; do not pass unsupported values such as `md` or `lg`. The shared component defaults to `sm` for compact operational density. Use `base` for standard actions and add a 48 px minimum touch height only to the most important mobile action after checking its rendered alignment. Icon-only controls need an adequate hit area even if the visible icon is small.
 
-### 6.3 Button states
+### 6.3 Theme contrast and button states
+
+- Light theme primary: SanMal brand blue (`#0E3B6B`) with white text; hover uses brand dark blue (`#0C315B`).
+- Dark theme primary: warm SanMal yellow (`#D9A72E`) with dark text (`#172033`); hover uses `#C49320`.
+- Light theme secondary: neutral primary surface, subtle border, and brand-blue text.
+- Dark theme secondary: muted warm-yellow surface (`#49351F`), gold border (`#80602B`), and soft-yellow text (`#F2BB65`). Hover increases surface/border contrast without becoming a second filled primary action.
+- Destructive remains semantic red in both themes.
+- Theme-specific styles must preserve visible focus indication and disabled-state affordance.
 
 Check and preserve:
 - Default
@@ -226,6 +265,10 @@ These wrap Flux UI and provide label/description/error integration. Inspect thei
 
 ### Card and surface
 - Reuse `x-ui.card` when the content is genuinely a card/surface.
+- **All cards are borderless and use shadow for elevation; do not add border utilities to card containers.** This applies consistently across every page and card type, including standalone summary/status cards and form cards.
+- The shared `x-ui.card` uses a shadow-only treatment without a border. Light cards use `sanmal-surface-card`; dark cards use `sanmal-surface-card-dark`. Linked cards may use the secondary surface on hover.
+- Borders remain appropriate for controls, dividers, tables, and inset/secondary groups when they communicate structure; they are not a substitute for card shadow.
+- Both linked and non-linked card variants must use the same theme surface tokens; do not leave one variant on generic white/zinc surfaces.
 - Do not wrap every section in a card. Avoid card-in-card.
 - Use semantic `article`, `section`, list, or table markup when it better represents the content.
 
@@ -244,69 +287,32 @@ Choose based on data relationships:
 - For unavoidable horizontal scrolling, scope it to the table container and preserve accessible headers.
 
 ### Navigation
-- Admin: preserve the established desktop sidebar/navigation model; mobile must remain usable without overflow or hidden essential routes.
-- Employee: prioritize simple mobile navigation and easy access to attendance, history, requests, and profile.
-- Shared visual language does not require identical navigation structure for different roles.
-- Do not change route names, middleware, role checks, active states, or navigation permissions as part of visual-only work.
 
-## 9. Seamless implementation rules for AI agents and developers
+- Use Flux sidebar and header primitives for the shared application shell; do not build a parallel navigation system.
+- Use `<flux:main>` without `inset` for the full-width page-surface region. Keep sidebar, header, and main as direct layout siblings; use `lg:ms-0` on the main region (add `lg:mt-0` only if a desktop-visible header is present).
+- Let `x-ui.page` own the page-specific content width; do not add Flux `container` at the main level as well as another page max-width unless the double constraint is intentional. Use narrower page widths for forms/details and wider widths for operational data pages.
+- Keep the shared main region at `p-0`; page content owns its own spacing. Avoid blanket padding on the root `x-ui.page` (for example `p-6` or `px-4 py-4 sm:px-6 sm:py-6`); use spacing inside the page's own sections/cards instead.
+- Employee navigation is one ungrouped list: Beranda, Absensi, Riwayat, Permohonan, and Lembur. On phones, use the top header with a drawer toggle; do not use a fixed bottom navigation bar.
+- Admin Dashboard is a standalone first item, not a section/group heading. It remains the default landing page and represents company-wide monitoring.
+- Admin/Superadmin accounts with a linked employee profile also receive an `Aktivitas Saya` group, beginning with `Dashboard Pribadi`, followed by Absensi, Riwayat, Permohonan Saya, and Lembur Saya. The personal dashboard reuses employee-scoped aggregation and must never show company-wide data.
+- Follow the Admin navigation order: standalone Dashboard; Aktivitas Saya (only when an employee profile exists); Operasional; Persetujuan; Data Master; Sistem. Keep concise labels and do not add a group heading around the single Dashboard item.
+- Group headings must not disappear and collapse the vertical rhythm when the desktop sidebar is collapsed. Use `x-ui.sidebar-section`: the expanded state shows the heading, while the collapsed state replaces it with a subtle separator in the same fixed-height row. Employee navigation remains ungrouped and does not render separators.
+- Sidebar navigation icons use a consistent 20px square size and do not change size between expanded and collapsed states. Preserve the icon's aspect ratio, alignment, and non-shrinking behavior.
+- Every authenticated role uses the same collapsible sidebar on desktop and the drawer toggle on phones. Use viewport-relative `dvh` sizing for the shell. Do not create separate role-specific navigation implementations.
 
-Before changing a page:
-1. Read `AGENTS.md`, this document, and the relevant page audit.
-2. Inspect the actual target branch and current working tree. Documentation and previous conversations are not proof of current source state.
-3. Locate existing components under `resources/views/components/ui` and `resources/views/components/admin`.
-4. Read the page view/SFC, route, related component, and relevant tests.
-5. Identify the role (Employee/Admin), task, primary viewport, data density, and important states.
-6. Record the current behavior/contract before editing.
+### Single branch and single PR
 
-During implementation:
-- Work directly in the Laravel source code; Figma is not required for routine component/page design in this phase.
-- Treat source code and browser rendering as the implementation truth. This document is the design guideline; it does not override actual behavior or domain rules.
-- Reuse existing Blade/Flux/Tailwind components when semantically appropriate.
-- Prefer a small, focused change over a broad redesign.
-- Keep presentation components free of business decisions.
-- Do not change query, state, filter semantics, sorting, pagination, route, authorization, validation, persistence, attendance calculations, timestamps, evidence, camera/GPS, or workflow unless explicitly in scope.
-- Do not create generic abstractions solely to reduce markup. Confirm repeated markup and matching interaction contracts first.
-- Preserve light/dark readability and keyboard accessibility where supported by the application.
+- Work only on branch `docs/ui-v1-scope-and-pr-workflow`.
+- Use only [PR #27](https://github.com/leonsmith128/pt-sanmal/pull/27), targeting `main`.
+- Do not create another branch or PR for a component, page, milestone, test, or documentation task.
+- Do not merge PR #27 early. Merge once the complete V1 UI/UX scope is finished, reviewed, and verified.
+- Commit focused changes to the same branch and keep the PR description/checklist current.
 
-After implementation:
-1. Run relevant component/feature tests.
-2. Run Pint for changed PHP/Blade-related files as appropriate.
-3. Build frontend assets when CSS/JS changes require it.
-4. Inspect rendered browser output at the relevant viewport checkpoints.
-5. Check overflow, wrapping, focus, loading, disabled, error, and empty states.
-6. Report what was actually tested and what remains unverified. Source inspection is not browser QA.
+### Implementation references
 
-## 10. Recommended component implementation order
+- Start with `docs/ui/DEVELOPMENT-HANDOFF.md`.
+- Use `docs/ui/PAGE-INVENTORY.md` for page scope and audit references.
+- Use `docs/ui/COMPONENT-CATALOG.md` and `docs/ui/REUSABLE-BLADE-COMPONENTS.md` for existing component contracts.
+- Track progress in `docs/ui/progress/IMPLEMENTATION-STATUS.md` and evidence in `docs/ui/progress/VISUAL-QA-LOG.md`.
 
-Implement directly in source code, in small reviewable changes:
-
-1. Button — finalize variants, sizing, states, accessibility, and existing `x-ui.button` API.
-2. Form controls — input, select, textarea, checkbox, date controls, search, labels, and validation.
-3. Badge and status — generic primitive plus domain-specific adapters.
-4. Card and surface — only recurring semantic surface patterns.
-5. Alert and feedback — flash, alert, empty, loading, confirmation.
-6. Table and data display — table density, responsive list/card alternatives, pagination.
-7. Navigation — Admin sidebar and Employee mobile navigation.
-
-For every component, document:
-- Purpose and when to use it
-- Existing source component/API
-- Variants and sizes
-- States
-- Responsive behavior for Employee and Admin
-- Accessibility and keyboard/touch expectations
-- Example usage from a real SanMal page
-- Tests and visual verification performed
-
-## 11. Definition of done for UI work
-
-A UI change is complete only when:
-- The right existing component/pattern is reused or a justified new one is added.
-- Employee and Admin responsive priorities are respected.
-- Visual hierarchy, density, and readability are consistent with this guideline.
-- Existing business behavior and server-side protections remain unchanged unless explicitly in scope.
-- Relevant automated tests pass, or unrun tests are clearly disclosed.
-- Browser rendering has been checked at relevant viewport sizes, or the missing QA is explicitly documented.
-- No unrelated formatting/refactor changes are included.
-- Documentation is updated when a shared component contract or design decision changes.
+The actual source code, current tests, and rendered browser output remain the implementation truth. If a documented API or page status conflicts with source, inspect and correct the documentation rather than blindly following stale details.

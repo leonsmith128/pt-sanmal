@@ -6,7 +6,7 @@ Dokumen ini adalah aturan kerja repository. Baca juga status proyek dan arsitekt
 
 1. Pastikan repository dan branch yang sedang dikerjakan.
 2. Periksa status working tree dan commit terbaru.
-3. Baca dokumentasi yang relevan dengan area tugas. Untuk perubahan UI, wajib baca `docs/ui/DESIGN-FOUNDATION.md` serta audit halaman/komponen terkait.
+3. Baca dokumentasi aktif yang relevan dengan area tugas. Untuk perubahan UI, wajib baca `docs/ui/DESIGN-FOUNDATION.md`, `docs/ui/PAGE-INVENTORY.md`, dan katalog/kontrak komponen terkait; lalu verifikasi route, source, serta test aktual.
 4. Baca file implementasi aktual, route, model, migration, test, dan komponen terkait sebelum mengusulkan perubahan.
 5. Bedakan fakta dari source, keputusan yang telah disepakati, rekomendasi, dan asumsi.
 6. Buat perubahan sekecil mungkin dan tetap dalam ruang lingkup permintaan.
@@ -69,7 +69,12 @@ Jika source bertentangan dengan dokumen, jangan langsung memilih salah satu. Lap
 
 ## 7. Git workflow
 
-- Secara default, kerjakan di feature branch dari main, buat commit terfokus, lalu buka Pull Request.
+- For the SanMal V1 UI/UX finalization scope, use only the existing long-lived branch `docs/ui-v1-scope-and-pr-workflow` and the single tracking PR #27 targeting `main`.
+- Do not create another branch or PR for any UI/UX milestone, component, page, test, or documentation task. Do not merge PR #27 until the complete V1 UI/UX scope is finished, reviewed, and verified.
+- Commit focused, logically grouped changes to that same branch. Before every write, inspect the current branch HEAD and latest file SHA to avoid overwriting newer work.
+- The authoritative workflow and handoff are documented in `docs/ui/DEVELOPMENT-HANDOFF.md`; design decisions are in `docs/ui/DESIGN-FOUNDATION.md`; scope is tracked in `docs/ui/progress/IMPLEMENTATION-STATUS.md`.
+
+- Untuk pekerjaan di luar program UI/UX SanMal V1, secara default kerjakan di feature branch dari main, buat commit terfokus, lalu buka Pull Request. Untuk UI/UX V1, aturan satu branch dan satu PR di atas selalu berlaku.
 - Commit langsung ke main hanya jika pengguna secara eksplisit memintanya.
 - Jangan force-push, mengubah riwayat, merge, atau mengubah status PR tanpa instruksi eksplisit.
 - Sebelum menulis ke branch, periksa ulang HEAD dan hindari menimpa perubahan yang masuk setelah inspeksi.

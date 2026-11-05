@@ -1,14 +1,13 @@
 <x-layouts::app :title="__('Buat Permohonan')">
-    <div class="mx-auto w-full max-w-2xl space-y-5 px-4 py-4 sm:px-6 sm:py-6">
-        <header class="space-y-3">
-            <flux:button href="{{ route('leave-requests.index') }}" variant="ghost" icon="arrow-left" size="sm" class="w-fit">
+    <x-ui.page max-width="2xl" gap="5">
+        <x-ui.page-header
+            :title="__('Buat Permohonan')"
+            :description="__('Lengkapi informasi berikut. Permohonan akan menunggu keputusan admin.')"
+        >
+            <x-ui.button href="{{ route('leave-requests.index') }}" variant="ghost" icon="arrow-left" size="sm">
                 {{ __('Kembali ke permohonan saya') }}
-            </flux:button>
-            <div>
-                <flux:heading size="xl" level="1">{{ __('Buat Permohonan') }}</flux:heading>
-                <flux:text class="mt-1">{{ __('Lengkapi informasi berikut. Permohonan akan menunggu keputusan admin.') }}</flux:text>
-            </div>
-        </header>
+            </x-ui.button>
+        </x-ui.page-header>
 
         @if ($errors->any())
             <flux:callout variant="danger" icon="exclamation-triangle">
@@ -17,34 +16,34 @@
             </flux:callout>
         @endif
 
-        <form method="POST" action="{{ route('leave-requests.store') }}" enctype="multipart/form-data"
-            class="space-y-5 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900 sm:p-6">
-            @csrf
+        <x-ui.card padding="p-4 sm:p-6">
+            <form method="POST" action="{{ route('leave-requests.store') }}" enctype="multipart/form-data" class="space-y-5">
+                @csrf
 
-            <flux:field>
-                <flux:label>{{ __('Jenis permohonan') }}</flux:label>
-                <flux:select name="leave_type_id" required>
-                    <flux:select.option value="">{{ __('Pilih jenis permohonan') }}</flux:select.option>
-                    @foreach ($leaveTypes as $type)
-                        <flux:select.option value="{{ $type->id }}" :selected="(string) old('leave_type_id') === (string) $type->id">
-                            {{ $type->name }}
-                        </flux:select.option>
-                    @endforeach
-                </flux:select>
-                <flux:error name="leave_type_id" />
-            </flux:field>
+            <x-ui.select name="leave_type_id" :label="__('Jenis permohonan')" required>
+                <flux:select.option value="">{{ __('Pilih jenis permohonan') }}</flux:select.option>
+                @foreach ($leaveTypes as $type)
+                    <flux:select.option value="{{ $type->id }}" :selected="(string) old('leave_type_id') === (string) $type->id">
+                        {{ $type->name }}
+                    </flux:select.option>
+                @endforeach
+            </x-ui.select>
 
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <flux:field>
-                    <flux:label>{{ __('Tanggal mulai') }}</flux:label>
-                    <flux:input type="date" name="start_date" value="{{ old('start_date') }}" required />
-                    <flux:error name="start_date" />
-                </flux:field>
-                <flux:field>
-                    <flux:label>{{ __('Tanggal selesai') }}</flux:label>
-                    <flux:input type="date" name="end_date" value="{{ old('end_date') }}" required />
-                    <flux:error name="end_date" />
-                </flux:field>
+                <x-ui.input
+                    name="start_date"
+                    :label="__('Tanggal mulai')"
+                    type="date"
+                    :value="old('start_date')"
+                    required
+                />
+                <x-ui.input
+                    name="end_date"
+                    :label="__('Tanggal selesai')"
+                    type="date"
+                    :value="old('end_date')"
+                    required
+                />
             </div>
 
             <x-ui.textarea
@@ -57,21 +56,23 @@
                 :placeholder="__('Tuliskan alasan permohonan secara jelas...')"
             >{{ old('reason') }}</x-ui.textarea>
 
-            <flux:field>
-                <flux:label>{{ __('Lampiran (opsional)') }}</flux:label>
-                <flux:input type="file" name="attachment" accept=".jpg,.jpeg,.png,.pdf" />
-                <flux:description>{{ __('Format JPG, PNG, atau PDF. Ukuran maksimal 1 MB.') }}</flux:description>
-                <flux:error name="attachment" />
-            </flux:field>
+            <x-ui.input
+                name="attachment"
+                :label="__('Lampiran (opsional)')"
+                :description="__('Format JPG, PNG, atau PDF. Ukuran maksimal 1 MB.')"
+                type="file"
+                accept=".jpg,.jpeg,.png,.pdf"
+            />
 
-            <div class="flex flex-col-reverse gap-2 border-t border-zinc-200 pt-4 dark:border-zinc-700 sm:flex-row sm:justify-end">
-                <flux:button href="{{ route('leave-requests.index') }}" variant="ghost" class="w-full sm:w-auto">
+            <div class="flex flex-col-reverse gap-2 border-t border-sanmal-border pt-4 dark:border-sanmal-border-dark sm:flex-row sm:justify-end">
+                <x-ui.button href="{{ route('leave-requests.index') }}" variant="ghost" class="w-full sm:w-auto">
                     {{ __('Batal') }}
-                </flux:button>
-                <flux:button type="submit" variant="primary" icon="paper-airplane" class="w-full sm:w-auto">
+                </x-ui.button>
+                <x-ui.button type="submit" variant="primary" icon="paper-airplane" class="w-full sm:w-auto">
                     {{ __('Kirim permohonan') }}
-                </flux:button>
+                </x-ui.button>
             </div>
-        </form>
-    </div>
+            </form>
+        </x-ui.card>
+    </x-ui.page>
 </x-layouts::app>

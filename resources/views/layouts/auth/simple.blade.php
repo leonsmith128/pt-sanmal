@@ -3,19 +3,22 @@
     <head>
         @include('partials.head')
     </head>
-    <body class="min-h-screen bg-white antialiased dark:bg-linear-to-b dark:from-neutral-950 dark:to-neutral-900">
-        <div class="bg-background flex min-h-svh flex-col items-center justify-center gap-6 p-6 md:p-10">
-            <div class="flex w-full max-w-sm flex-col gap-2">
-                <a href="{{ route('home') }}" class="flex flex-col items-center gap-2 font-medium" wire:navigate>
-                    <span class="flex h-9 w-9 mb-1 items-center justify-center rounded-md">
-                        <x-app-logo-icon class="size-9 fill-current text-black dark:text-white" />
-                    </span>
-                    <span class="sr-only">{{ config('app.name', 'Laravel') }}</span>
+    <body class="min-h-dvh bg-sanmal-surface-page antialiased dark:bg-sanmal-surface-page-dark">
+        <div class="relative flex min-h-dvh flex-col items-center justify-center px-4 py-10 sm:px-6">
+
+            <div aria-hidden="true" class="absolute inset-x-0 top-0 h-1 bg-sanmal-brand-yellow-dark"></div>
+
+            <main class="relative w-full max-w-md">
+                <a href="{{ route('home') }}" class="mb-6 flex justify-center rounded-md focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-sanmal-brand-blue dark:focus-visible:outline-sanmal-brand-blue-light" wire:navigate>
+                    <img src="{{ asset('images/logo-sanmal.png') }}" alt="SanMal" class="h-12 w-auto object-contain" />
                 </a>
-                <div class="flex flex-col gap-6">
+
+                <div class="rounded-2xl bg-sanmal-surface-card p-5 shadow-lg shadow-sanmal-brand-blue/5 dark:bg-sanmal-surface-card-dark dark:shadow-black/20 sm:p-8">
                     {{ $slot }}
                 </div>
-            </div>
+
+                <p class="mt-5 text-center text-xs text-sanmal-text-muted">{{ __('Portal pegawai') }}</p>
+            </main>
         </div>
 
         @persist('toast')

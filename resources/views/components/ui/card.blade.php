@@ -7,9 +7,9 @@
     <a
         href="{{ $href }}"
         {{ $attributes->class([
-            'block rounded-xl border border-zinc-200 bg-white text-zinc-900 transition',
-            'hover:bg-zinc-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500',
-            'dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800',
+            'block min-w-0 rounded-xl bg-sanmal-surface-card text-[var(--sanmal-text-primary)] shadow-sm transition-shadow',
+            'hover:bg-sanmal-surface-secondary hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-sanmal-brand-blue focus-visible:ring-offset-2',
+            'dark:bg-sanmal-surface-card-dark dark:shadow-black/20 dark:hover:bg-sanmal-surface-elevated-dark dark:focus-visible:ring-offset-sanmal-surface-page-dark',
             $padding,
         ]) }}
     >
@@ -18,8 +18,8 @@
 @else
     <div
         {{ $attributes->class([
-            'rounded-xl border border-zinc-200 bg-white text-zinc-900',
-            'dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100',
+            'min-w-0 rounded-xl bg-sanmal-surface-card text-[var(--sanmal-text-primary)] shadow-sm',
+            'dark:bg-sanmal-surface-card-dark dark:shadow-black/20',
             $padding,
         ]) }}
     >

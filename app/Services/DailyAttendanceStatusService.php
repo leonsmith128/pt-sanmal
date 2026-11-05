@@ -35,7 +35,7 @@ class DailyAttendanceStatusService
      * @param  Collection<int, Employee>  $employees
      * @return array<int, array<string, array{status:string,label:string,events:Collection,leaveRequests:Collection,correction:?DailyStatusCorrection,needs_review:bool,reason:?string}>>
      */
-    public function forEmployeesDateRange(Collection $employees, Carbon|string $startDate, Carbon|string $endDate): array
+    public function forEmployeesDateRange(Collection $employees, Carbon|string $startDate, Carbon|string $endDate, ?string $reportingTimezone = null): array
     {
         $start = Carbon::parse($startDate)->toDateString();
         $end = Carbon::parse($endDate)->toDateString();
@@ -49,7 +49,11 @@ class DailyAttendanceStatusService
         // Event lama tanpa anchor memakai tanggal efektif event itu sendiri.
         $rawEvents = AttendanceRecord::query()
             ->whereIn('employee_id', $employeeIds);
-        AttendanceDateFilter::apply($rawEvents, $start, $end);
+        if ($reportingTimezone !== null) {
+            AttendanceDateFilter::applyInTimezone($rawEvents, $start, $end, $reportingTimezone);
+        } else {
+            AttendanceDateFilter::apply($rawEvents, $start, $end);
+        }
 
         $rawEvents = $rawEvents
             ->with(['approvedCorrection', 'corrections', 'sessionCorrections', 'sessionAnchor.approvedCorrection', 'location', 'project'])
@@ -61,9 +65,11 @@ class DailyAttendanceStatusService
 
         foreach ($rawEvents as $event) {
             $anchor = $event->sessionAnchor;
-            $assignedDate = $anchor
-                ? $anchor->effectiveAttendanceDate()
-                : $event->effectiveAttendanceDate();
+            $assignedDate = $reportingTimezone !== null
+                ? ($anchor ?? $event)->effectiveRecordedAt()->copy()->setTimezone($reportingTimezone)->toDateString()
+                : ($anchor
+                    ? $anchor->effectiveAttendanceDate()
+                    : $event->effectiveAttendanceDate());
 
             if ($assignedDate >= $start && $assignedDate <= $end) {
                 $key = $event->employee_id.'_'.$assignedDate;
@@ -153,6 +159,25 @@ class DailyAttendanceStatusService
             ];
         }
 
+        $usesTimezoneFallback = $events->contains(
+            fn (AttendanceRecord $event): bool => $event->timezone_source === 'fallback',
+        );
+        $hasUnverifiedGps = $events->contains(
+            fn (AttendanceRecord $event): bool => $event->timezone_source !== 'legacy'
+                && $event->location_status !== 'captured',
+        );
+
+        if ($usesTimezoneFallback || $hasUnverifiedGps) {
+            return $this->reviewResult(
+                $events,
+                $leaveRequests,
+                null,
+                $usesTimezoneFallback
+                    ? 'Timezone absensi menggunakan fallback Asia/Makassar karena GPS tidak dapat menentukan zona waktu. Riwayat perlu ditinjau admin.'
+                    : 'Bukti GPS pada salah satu event sesi tidak tersedia atau tidak terverifikasi. Riwayat perlu ditinjau admin.',
+            );
+        }
+
         $leaveStatuses = $leaveRequests->map(
             fn (LeaveRequest $request) => $this->statusFromLeaveType($request->leaveType?->code, $request->leaveType?->name),
         )->unique();
@@ -207,7 +232,7 @@ class DailyAttendanceStatusService
         $clockInCount = $events->filter(fn (AttendanceRecord $event) => $event->type->value === 'clock_in')->count();
         $clockOutCount = $events->filter(fn (AttendanceRecord $event) => $event->type->value === 'clock_out')->count();
 
-        if ($clockInCount === 0 && ($clockOutCount > 0 || $events->contains(fn (AttendanceRecord $event) => $event->type->value === 'overtime_start'))) {
+        if ($clockInCount === 0 && $clockOutCount > 0) {
             return $this->reviewResult($events, $leaveRequests, null, 'Ditemukan event tanpa Clock In anchor yang dapat diverifikasi.');
         }
 
@@ -222,6 +247,22 @@ class DailyAttendanceStatusService
 
         $hasIn = $clockInCount === 1;
         $hasOut = $clockOutCount === 1;
+
+        if ($hasIn && $hasOut) {
+            $clockIn = $events->first(fn (AttendanceRecord $event) => $event->type->value === 'clock_in');
+            $clockOut = $events->first(fn (AttendanceRecord $event) => $event->type->value === 'clock_out');
+
+            if (! $clockIn->effectiveRecordedAt() || ! $clockOut->effectiveRecordedAt()
+                || $clockOut->effectiveRecordedAt()->lte($clockIn->effectiveRecordedAt())) {
+                return $this->reviewResult(
+                    $events,
+                    $leaveRequests,
+                    null,
+                    'Waktu Clock Out tidak lebih akhir dari Clock In. Riwayat perlu ditinjau admin.',
+                );
+            }
+        }
+
         $status = $hasIn && $hasOut ? DailyAttendanceStatus::Present : DailyAttendanceStatus::Incomplete;
 
         return [

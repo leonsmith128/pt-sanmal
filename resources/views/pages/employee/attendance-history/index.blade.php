@@ -1,240 +1,426 @@
 <x-layouts::app :title="__('Riwayat Absensi')">
-    <div x-data="{ selfiePreviewOpen: false, selfiePreviewUrl: null, selfieDownloadUrl: null }" x-on:keydown.escape.window="selfiePreviewOpen = false" class="mx-auto w-full max-w-5xl space-y-5 px-4 py-4 sm:px-6 sm:py-6">
-        <header class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-                <flux:heading size="xl" level="1">{{ __('Riwayat Absensi') }}</flux:heading>
-                <flux:text class="mt-1">{{ __('Lihat catatan masuk, mulai lembur, dan pulang yang tercatat pada akun Anda.') }}</flux:text>
-            </div>
-            <div class="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
-                <x-ui.button href="{{ route('attendance-history.export', request()->query()) }}" variant="outline" icon="arrow-down-tray" class="w-full sm:w-auto">
-                    {{ __('Ekspor rekap harian (CSV)') }}
+    <x-ui.page
+        max-width="5xl"
+        gap="5"
+        x-data="{
+            detailOpen: false,
+            filterOpen: false,
+            selectedEvent: null,
+            lastTrigger: null,
+            openEvent(event, trigger) {
+                this.selectedEvent = event;
+                this.lastTrigger = trigger;
+                this.detailOpen = true;
+                this.$nextTick(() => this.$refs.detailClose?.focus());
+            },
+            closeEvent() {
+                this.detailOpen = false;
+                this.$nextTick(() => this.lastTrigger?.focus());
+            }
+        }"
+        x-on:keydown.escape.window="if (detailOpen) closeEvent()"
+    >
+        <x-ui.page-header
+            :title="__('Riwayat Absensi')"
+            :description="__('Tinjau ringkasan kehadiran dan bukti absensi berdasarkan tanggal sesi.')"
+        >
+            <div class="flex w-full flex-row gap-2 sm:w-auto">
+                <x-ui.button
+                    href="{{ route('attendance-history.export', ['from' => $filters['from'], 'to' => $filters['to']]) }}"
+                    variant="outline"
+                    icon="arrow-down-tray"
+                    class="min-w-0 flex-1 whitespace-nowrap sm:flex-none"
+                >
+                    {{ __('Export') }}
                 </x-ui.button>
-                <x-ui.button href="{{ route('attendance') }}" variant="primary" icon="clock" class="w-full sm:w-auto">
-                    {{ __('Buka halaman absensi') }}
+                <x-ui.button href="{{ route('attendance') }}" variant="primary" icon="clock" class="min-w-0 flex-1 whitespace-nowrap sm:flex-none">
+                    {{ __('Absen') }}
+                </x-ui.button>
+                <x-ui.button
+                    type="button"
+                    variant="outline"
+                    icon="funnel"
+                    x-on:click="filterOpen = !filterOpen"
+                    x-bind:aria-expanded="filterOpen.toString()"
+                    aria-controls="attendance-history-filter-panel"
+                    class="min-w-0 flex-1 whitespace-nowrap sm:flex-none"
+                >
+                    {{ __('Filter') }}
+                    @if ($activeFilterCount > 0)
+                        <span class="ml-1 inline-flex min-w-5 items-center justify-center rounded-full bg-blue-100 px-1.5 py-0.5 text-[11px] font-semibold tabular-nums text-blue-800 dark:bg-blue-900/50 dark:text-blue-200">{{ $activeFilterCount }}</span>
+                    @endif
                 </x-ui.button>
             </div>
-        </header>
+        </x-ui.page-header>
 
-        <section class="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900 sm:p-5">
-            <form method="GET" action="{{ route('attendance-history.index') }}" class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
-                <flux:field>
-                    <flux:label>{{ __('Dari tanggal') }}</flux:label>
-                    <flux:input type="date" name="from" value="{{ $filters['from'] }}" />
-                    <flux:error name="from" />
-                </flux:field>
-                <flux:field>
-                    <flux:label>{{ __('Sampai tanggal') }}</flux:label>
-                    <flux:input type="date" name="to" value="{{ $filters['to'] }}" />
-                    <flux:error name="to" />
-                </flux:field>
-                <div class="flex flex-col gap-2 sm:col-span-2 sm:flex-row sm:items-end lg:col-span-3 lg:justify-end">
+        <section aria-label="{{ __('Ringkasan kehadiran') }}" class="grid grid-cols-3 gap-2 sm:gap-3">
+            <x-ui.card padding="p-2.5 sm:p-4">
+                <div class="flex min-w-0 items-center gap-1 whitespace-nowrap text-[10px] leading-tight text-zinc-500 dark:text-zinc-400 sm:gap-2 sm:text-sm">
+                    <flux:icon name="calendar" class="hidden size-4 shrink-0 sm:block" />
+                    {{ __('Hari hadir') }}
+                </div>
+                <p class="mt-1.5 text-xl font-semibold tabular-nums text-zinc-900 dark:text-zinc-100 sm:mt-2 sm:text-2xl">{{ number_format($summary['present_days']) }}</p>
+                <p class="mt-1 hidden text-xs text-zinc-500 dark:text-zinc-400 sm:block">{{ __('Termasuk koreksi hadir dari admin.') }}</p>
+            </x-ui.card>
+            <x-ui.card padding="p-2.5 sm:p-4">
+                <div class="flex min-w-0 items-center gap-1 whitespace-nowrap text-[10px] leading-tight text-zinc-500 dark:text-zinc-400 sm:gap-2 sm:text-sm">
+                    <flux:icon name="check-circle" class="hidden size-4 shrink-0 sm:block" />
+                    {{ __('Absensi lengkap') }}
+                </div>
+                <p class="mt-1.5 text-xl font-semibold tabular-nums text-zinc-900 dark:text-zinc-100 sm:mt-2 sm:text-2xl">{{ number_format($summary['complete_days']) }}</p>
+                <p class="mt-1 hidden text-xs text-zinc-500 dark:text-zinc-400 sm:block">{{ __('Memiliki Clock In dan Clock Out yang valid.') }}</p>
+            </x-ui.card>
+            <x-ui.card padding="p-2.5 sm:p-4">
+                <div class="flex min-w-0 items-center gap-1 whitespace-nowrap text-[10px] leading-tight text-zinc-500 dark:text-zinc-400 sm:gap-2 sm:text-sm">
+                    <flux:icon name="exclamation-triangle" class="hidden size-4 shrink-0 sm:block" />
+                    {{ __('Perlu ditinjau') }}
+                </div>
+                <p class="mt-1.5 text-xl font-semibold tabular-nums text-zinc-900 dark:text-zinc-100 sm:mt-2 sm:text-2xl">{{ number_format($summary['needs_review_days']) }}</p>
+                <p class="mt-1 hidden text-xs text-zinc-500 dark:text-zinc-400 sm:block">{{ __('Tanggal dengan bukti atau status yang perlu diperiksa.') }}</p>
+            </x-ui.card>
+        </section>
+
+        <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-zinc-600 dark:text-zinc-300" aria-live="polite">
+            <span>
+                <span class="font-medium text-zinc-900 dark:text-zinc-100">{{ __('Periode:') }}</span>
+                {{ \Illuminate\Support\Carbon::parse($filters['from'])->locale('id')->translatedFormat('j F Y') }}
+                – {{ \Illuminate\Support\Carbon::parse($filters['to'])->locale('id')->translatedFormat('j F Y') }}
+            </span>
+            <span class="text-zinc-400" aria-hidden="true">·</span>
+            <span>{{ $filters['direction'] === 'desc' ? __('Terbaru dahulu') : __('Terlama dahulu') }}</span>
+        </div>
+
+        <x-ui.card padding="p-4 sm:p-5" x-show="filterOpen" x-cloak x-transition id="attendance-history-filter-panel">
+            <section>
+            <div class="mb-4">
+                <flux:heading size="lg">{{ __('Filter riwayat') }}</flux:heading>
+                <flux:text class="mt-1 text-sm">{{ __('Pilih rentang tanggal dan urutan kelompok tanggal.') }}</flux:text>
+            </div>
+            <form method="GET" action="{{ route('attendance-history.index') }}" class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <x-ui.input
+                    name="from"
+                    label="{{ __('Dari tanggal') }}"
+                    type="date"
+                    :value="$filters['from']"
+                />
+                <x-ui.input
+                    name="to"
+                    label="{{ __('Sampai tanggal') }}"
+                    type="date"
+                    :value="$filters['to']"
+                />
+                <x-ui.select name="direction" label="{{ __('Urutan tanggal') }}">
+                    <flux:select.option value="desc" :selected="$filters['direction'] === 'desc'">{{ __('Terbaru dahulu') }}</flux:select.option>
+                    <flux:select.option value="asc" :selected="$filters['direction'] === 'asc'">{{ __('Terlama dahulu') }}</flux:select.option>
+                </x-ui.select>
+                <div class="flex flex-col justify-end gap-2 sm:col-span-2 sm:flex-row lg:col-span-1">
                     <x-ui.button href="{{ route('attendance-history.index') }}" variant="ghost" class="w-full sm:w-auto">
                         {{ __('Reset') }}
                     </x-ui.button>
                     <x-ui.button type="submit" variant="primary" icon="funnel" class="w-full sm:w-auto">
-                        {{ __('Terapkan filter') }}
+                        {{ __('Terapkan') }}
                     </x-ui.button>
                 </div>
             </form>
-        </section>
+            </section>
+        </x-ui.card>
 
-        <div class="flex items-center justify-between gap-3">
-            <flux:heading size="lg">{{ __('Catatan absensi') }}</flux:heading>
-            <flux:text class="text-sm">{{ number_format($records->total()) }} {{ __('catatan') }}</flux:text>
+        <div class="flex flex-wrap items-center justify-between gap-2">
+            <div>
+                <flux:heading size="lg">{{ __('Riwayat per tanggal') }}</flux:heading>
+                <flux:text class="mt-1 text-sm">{{ number_format($dateGroups->total()) }} {{ __('tanggal tercatat') }}</flux:text>
+            </div>
+            <span class="text-xs text-zinc-500 dark:text-zinc-400">{{ __('Maksimal 10 tanggal per halaman') }}</span>
         </div>
 
-        @if ($records->isEmpty())
-            <div class="rounded-2xl border border-dashed border-zinc-300 px-5 py-12 text-center dark:border-zinc-700">
-                <flux:icon name="clock" class="mx-auto size-9 text-zinc-400" />
-                <flux:heading size="md" class="mt-3">{{ __('Belum ada catatan absensi') }}</flux:heading>
-                <flux:text class="mt-1">{{ __('Coba rentang tanggal lain atau lakukan absensi terlebih dahulu.') }}</flux:text>
-            </div>
+        @if ($dateGroups->isEmpty())
+            <x-ui.card padding="p-5" class="text-center">
+                <flux:icon.calendar-days class="mx-auto size-9 text-sanmal-brand-blue dark:text-sanmal-brand-blue-light" />
+                <flux:heading size="md" class="mt-3">{{ __('Belum ada riwayat absensi') }}</flux:heading>
+                <flux:text class="mt-1">{{ __('Tidak ada status kehadiran atau event pada rentang tanggal ini. Coba ubah filter tanggal.') }}</flux:text>
+            </x-ui.card>
         @else
-            <div class="space-y-3 md:hidden">
-                @foreach ($records as $record)
-                    <article class="space-y-3 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
-                        <div class="flex items-start justify-between gap-3">
+            <div class="space-y-3">
+                @foreach ($dateGroups as $group)
+                    @php
+                        $statusColor = match ($group['status']) {
+                            'present' => 'green',
+                            'incomplete' => 'amber',
+                            'permission' => 'sky',
+                            'sick' => 'amber',
+                            'leave' => 'purple',
+                            'absent', 'needs_review' => 'red',
+                            default => 'zinc',
+                        };
+                    @endphp
+                    <x-ui.card padding="p-0" class="overflow-hidden">
+                        <article>
+                        <header class="flex flex-col gap-3 border-b border-zinc-100 px-4 py-4 dark:border-zinc-800 sm:flex-row sm:items-center sm:justify-between sm:px-5">
                             <div class="min-w-0">
-                                <p class="text-xs text-zinc-500">{{ $record->effectiveRecordedAtLocal()->translatedFormat('d M Y · H:i') }}</p>
-                                <h2 class="mt-1 font-semibold text-zinc-900 dark:text-zinc-100">{{ $record->type->label() }}</h2>
+                                <h2 class="font-semibold text-zinc-900 dark:text-zinc-100">
+                                    {{ \Illuminate\Support\Carbon::parse($group['date'])->locale('id')->translatedFormat('l, d F Y') }}
+                                </h2>
+                                <p class="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">{{ $group['events']->count() }} {{ __('event absensi') }}</p>
                             </div>
-                            <x-ui.badge color="{{ $record->type->value === 'clock_in' ? 'green' : ($record->type->value === 'clock_out' ? 'blue' : 'amber') }}">
-                                {{ $record->type->label() }}
-                            </x-ui.badge>
-                        </div>
+                            <x-ui.badge :color="$statusColor">{{ $group['label'] }}</x-ui.badge>
+                        </header>
 
-                        <div class="flex items-start gap-3">
-                            @if ($record->selfie_path)
-                                <button
-                                    type="button"
-                                    data-preview-url="{{ route('attendance-history.selfie', $record) }}"
-                                    data-download-url="{{ route('attendance-history.selfie.download', $record) }}"
-                                    x-on:click="selfiePreviewUrl = $el.dataset.previewUrl; selfieDownloadUrl = $el.dataset.downloadUrl; selfiePreviewOpen = true"
-                                    class="shrink-0"
-                                    aria-label="{{ __('Pratinjau foto absensi') }}"
-                                >
-                                    @if ($record->local_deleted_at)
-                                        <span class="flex size-20 flex-col items-center justify-center gap-1 rounded-lg border border-zinc-200 bg-zinc-50 text-xs text-zinc-500 dark:border-zinc-700 dark:bg-zinc-800">
-                                            <flux:icon name="cloud" class="size-5" />
-                                            {{ __('Di Drive') }}
-                                        </span>
-                                    @else
-                                        <img src="{{ route('attendance-history.selfie', $record) }}" alt="{{ __('Foto absensi') }}" loading="lazy" class="size-20 rounded-lg border border-zinc-200 object-cover dark:border-zinc-700">
-                                    @endif
-                                </button>
-                            @else
-                                <div class="flex size-20 shrink-0 items-center justify-center rounded-lg bg-zinc-100 text-zinc-400 dark:bg-zinc-800">
-                                    <flux:icon name="photo" class="size-6" />
+                        @if ($group['reason'])
+                            <div class="mx-4 mt-4 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:bg-amber-950/30 dark:text-amber-200 sm:mx-5">
+                                <p class="font-medium">{{ __('Catatan status') }}</p>
+                                <p class="mt-0.5 break-words">{{ $group['reason'] }}</p>
+                            </div>
+                        @endif
+
+                        @if ($group['correction'])
+                            <div class="mx-4 mt-3 rounded-lg bg-zinc-50 px-3 py-2 text-sm dark:bg-zinc-800 sm:mx-5">
+                                <p class="font-medium">{{ __('Koreksi administratif') }}</p>
+                                <p class="mt-0.5 break-words text-zinc-600 dark:text-zinc-300">{{ $group['correction']->reason }}</p>
+                            </div>
+                        @endif
+
+                        @if ($group['leaveRequests']->isNotEmpty())
+                            <div class="mx-4 mt-3 rounded-lg bg-zinc-50 px-3 py-2 text-sm dark:bg-zinc-800 sm:mx-5">
+                                <p class="font-medium">{{ __('Permohonan disetujui') }}</p>
+                                @foreach ($group['leaveRequests'] as $leaveRequest)
+                                    <p class="mt-0.5 text-zinc-600 dark:text-zinc-300">{{ $leaveRequest->leaveType?->name ?? __('Permohonan') }}</p>
+                                @endforeach
+                            </div>
+                        @endif
+
+                        @if ($group['events']->isEmpty())
+                            <div class="px-4 py-5 text-sm text-zinc-500 dark:text-zinc-400 sm:px-5">
+                                <div class="flex items-center gap-2">
+                                    <flux:icon name="clock" class="size-4 shrink-0" />
+                                    {{ __('Tidak ada event foto atau waktu untuk tanggal ini. Status berasal dari catatan administratif atau permohonan.') }}
                                 </div>
-                            @endif
-
-                            <div class="min-w-0 space-y-1 text-sm text-zinc-600 dark:text-zinc-300">
-                                <p><span class="font-medium">{{ __('Jenis kerja') }}:</span> {{ $record->work_type->label() }}</p>
-                                @if ($record->client_name_snapshot)
-                                    <p><span class="font-medium">{{ __('Client') }}:</span> {{ $record->client_code_snapshot ? $record->client_code_snapshot.' · ' : '' }}{{ $record->client_name_snapshot }}</p>
-                                @endif
-                                @if ($record->project_name_snapshot)
-                                    <p><span class="font-medium">{{ __('Proyek') }}:</span> {{ $record->project_code_snapshot ? $record->project_code_snapshot.' · ' : '' }}{{ $record->project_name_snapshot }}</p>
-                                @endif
-                                <p><span class="font-medium">{{ __('Lokasi') }}:</span> {{ $record->location_name_snapshot ?? '—' }}</p>
-                                @if (($record->latitude !== null && $record->longitude !== null) || $record->address_snapshot)
-                                    <a href="https://www.google.com/maps/search/?api=1&amp;query={{ urlencode($record->latitude !== null && $record->longitude !== null ? $record->latitude . ',' . $record->longitude : $record->address_snapshot) }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 font-medium text-blue-600 hover:underline dark:text-blue-400" title="{{ $record->address_snapshot }}">
-                                        <flux:icon name="map-pin" class="size-4" />
-                                        {{ $record->address_snapshot ? \Illuminate\Support\Str::limit($record->address_snapshot, 48) : __('Buka peta') }}
-                                    </a>
-                                @else
-                                    <p class="text-zinc-400">—</p>
-                                @endif
-                                @if ($record->snapshot_source === 'migration_backfill')
-                                    <p class="text-xs text-amber-600 dark:text-amber-400">{{ __('Identitas pekerjaan menggunakan data master saat migrasi, bukan catatan historis terverifikasi.') }}</p>
-                                @endif
-                                <p class="break-words text-xs text-zinc-500">
-                                    <span class="font-medium">{{ __('Alamat tersimpan:') }}</span>
-                                    {{ $record->address_snapshot ?: __('Alamat belum tersedia') }}
-                                </p>
                             </div>
-                        </div>
-                    </article>
+                        @else
+                            <ol class="divide-y divide-zinc-100 dark:divide-zinc-800">
+                                @foreach ($group['events'] as $record)
+                                    @php
+                                        $validCoordinates = $record->location_status === 'captured'
+                                            && is_numeric($record->latitude)
+                                            && is_numeric($record->longitude)
+                                            && (float) $record->latitude >= -90
+                                            && (float) $record->latitude <= 90
+                                            && (float) $record->longitude >= -180
+                                            && (float) $record->longitude <= 180;
+                                        $eventPayload = [
+                                            'type' => $record->type->label(),
+                                            'workType' => $record->work_type->label(),
+                                            'recordedAt' => $record->recordedAtLocal()->translatedFormat('d M Y, H:i:s'),
+                                            'effectiveAt' => $record->effectiveRecordedAtLocal()->translatedFormat('d M Y, H:i:s'),
+                                            'timezone' => $record->timezone,
+                                            'timezoneSource' => $record->timezone_source,
+                                            'locationStatus' => $record->location_status,
+                                            'gpsVerified' => $validCoordinates,
+                                            'accuracy' => $record->accuracy_m,
+                                            'latitude' => $record->latitude,
+                                            'longitude' => $record->longitude,
+                                            'location' => $record->location_name_snapshot,
+                                            'client' => $record->client_name_snapshot ? trim(($record->client_code_snapshot ? $record->client_code_snapshot.' · ' : '').$record->client_name_snapshot) : null,
+                                            'project' => $record->project_name_snapshot ? trim(($record->project_code_snapshot ? $record->project_code_snapshot.' · ' : '').$record->project_name_snapshot) : null,
+                                            'address' => $record->address_snapshot ?: __('Alamat tidak tersedia'),
+                                            'mapUrl' => $validCoordinates ? 'https://www.google.com/maps/search/?api=1&query='.urlencode($record->latitude.','.$record->longitude) : null,
+                                            'photoUrl' => $record->selfie_path && ! $record->local_deleted_at ? route('attendance-history.selfie', $record) : null,
+                                            'photoDownloadUrl' => $record->selfie_path ? route('attendance-history.selfie.download', $record) : null,
+                                            'photoInDrive' => (bool) ($record->selfie_path && $record->local_deleted_at),
+                                            'snapshotSource' => $record->snapshot_source,
+                                            'notes' => $record->notes,
+                                            'hasCorrection' => $record->approvedCorrection !== null,
+                                        ];
+                                    @endphp
+                                    <li class="flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+                                        <div class="flex min-w-0 items-start gap-3">
+                                            <span class="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
+                                                @if ($record->type->value === 'clock_in')
+                                                    <flux:icon name="clock" class="size-4" />
+                                                @elseif ($record->type->value === 'clock_out')
+                                                    <flux:icon name="clock" class="size-4" />
+                                                @else
+                                                    <flux:icon name="clock" class="size-4" />
+                                                @endif
+                                            </span>
+                                            <div class="min-w-0">
+                                                <div class="flex flex-wrap items-center gap-2">
+                                                    <p class="font-medium text-zinc-900 dark:text-zinc-100">{{ $record->type->label() }}</p>
+                                                    @if ($record->approvedCorrection)
+                                                        <x-ui.badge color="amber">{{ __('Waktu dikoreksi') }}</x-ui.badge>
+                                                    @endif
+                                                </div>
+                                                <p class="mt-1 text-sm tabular-nums text-zinc-600 dark:text-zinc-300">{{ $record->effectiveRecordedAtLocal()->translatedFormat('H:i') }}</p>
+                                                <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                                                    {{ $record->work_type->label() }}
+                                                    @if ($record->location_name_snapshot)
+                                                        · {{ $record->location_name_snapshot }}
+                                                    @endif
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center justify-between gap-3 sm:justify-end">
+                                            @if ($record->selfie_path)
+                                                <span class="inline-flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400">
+                                                    <flux:icon name="{{ $record->local_deleted_at ? 'cloud' : 'camera' }}" class="size-4" />
+                                                    {{ $record->local_deleted_at ? __('Foto di Drive') : __('Foto tersedia') }}
+                                                </span>
+                                            @endif
+                                            <button
+                                                type="button"
+                                                data-event="{{ base64_encode(json_encode($eventPayload, JSON_THROW_ON_ERROR)) }}"
+                                                x-on:click="openEvent(JSON.parse(atob($el.dataset.event)), $el)"
+                                                class="inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-sm font-medium text-blue-700 transition hover:bg-blue-50 focus-visible:outline-2 focus-visible:outline-blue-600 dark:text-blue-300 dark:hover:bg-blue-950/30"
+                                                aria-haspopup="dialog"
+                                                aria-controls="attendance-event-detail-dialog"
+                                            >
+                                                {{ __('Lihat detail') }}
+                                                <flux:icon name="chevron-right" class="size-4" />
+                                            </button>
+                                        </div>
+                                    </li>
+                                @endforeach
+                            </ol>
+                        @endif
+                        </article>
+                    </x-ui.card>
                 @endforeach
             </div>
 
-            <div class="hidden overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900 md:block">
-                <div
-                    class="overflow-x-auto overscroll-x-contain"
-                    role="region"
-                    aria-label="{{ __('Tabel riwayat absensi; geser horizontal untuk melihat seluruh kolom') }}"
-                    tabindex="0"
-                >
-                    <table class="min-w-[60rem] w-full text-left text-sm">
-                        <thead class="bg-zinc-50 text-xs uppercase tracking-wide text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
-                            <tr>
-                                <th scope="col" class="whitespace-nowrap px-4 py-3">
-                                    <a href="{{ route('attendance-history.index', array_merge(request()->query(), ['direction' => $filters['direction'] === 'desc' ? 'asc' : 'desc', 'page' => null])) }}" class="inline-flex items-center gap-1 hover:text-zinc-900 dark:hover:text-white">
-                                        {{ __('Waktu') }}
-                                        <flux:icon name="{{ $filters['direction'] === 'asc' ? 'arrow-up' : 'arrow-down' }}" class="size-3.5" />
-                                    </a>
-                                </th>
-                                <th scope="col" class="px-4 py-3">{{ __('Aktivitas') }}</th>
-                                <th scope="col" class="px-4 py-3">{{ __('Jenis kerja') }}</th>
-                                <th scope="col" class="px-4 py-3">{{ __('Lokasi / proyek') }}</th>
-                                <th scope="col" class="px-4 py-3">{{ __('Foto') }}</th>
-                                <th scope="col" class="px-4 py-3">{{ __('Peta') }}</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-zinc-200 dark:divide-zinc-700">
-                            @foreach ($records as $record)
-                                <tr class="align-top">
-                                    <td class="whitespace-nowrap px-4 py-4">{{ $record->effectiveRecordedAtLocal()->translatedFormat('d M Y · H:i') }}</td>
-                                    <td class="px-4 py-4">
-                                        <x-ui.badge color="{{ $record->type->value === 'clock_in' ? 'green' : ($record->type->value === 'clock_out' ? 'blue' : 'amber') }}">
-                                            {{ $record->type->label() }}
-                                        </x-ui.badge>
-                                    </td>
-                                    <td class="px-4 py-4">{{ $record->work_type->label() }}</td>
-                                    <td class="px-4 py-4">
-                                        @if ($record->client_name_snapshot)
-                                            <p class="text-xs text-zinc-500">{{ __('Client') }}: {{ $record->client_code_snapshot ? $record->client_code_snapshot.' · ' : '' }}{{ $record->client_name_snapshot }}</p>
-                                        @endif
-                                        @if ($record->project_name_snapshot)
-                                            <p>{{ $record->project_code_snapshot ? $record->project_code_snapshot.' · ' : '' }}{{ $record->project_name_snapshot }}</p>
-                                        @endif
-                                        <p class="text-xs text-zinc-500">{{ $record->location_name_snapshot ?? '—' }}</p>
-                                        @if ($record->snapshot_source === 'migration_backfill')
-                                            <p class="mt-1 text-xs text-amber-600 dark:text-amber-400">{{ __('Baseline migrasi') }}</p>
-                                        @endif
-                                    </td>
-                                    <td class="px-4 py-4">
-                                        @if ($record->selfie_path)
-                                            <button
-                                                type="button"
-                                                data-preview-url="{{ route('attendance-history.selfie', $record) }}"
-                                                data-download-url="{{ route('attendance-history.selfie.download', $record) }}"
-                                                x-on:click="selfiePreviewUrl = $el.dataset.previewUrl; selfieDownloadUrl = $el.dataset.downloadUrl; selfiePreviewOpen = true"
-                                                aria-label="{{ __('Pratinjau foto absensi') }}"
-                                            >
-                                                @if ($record->local_deleted_at)
-                                                    <span class="flex size-16 flex-col items-center justify-center gap-1 rounded-lg border border-zinc-200 bg-zinc-50 text-xs text-zinc-500 dark:border-zinc-700 dark:bg-zinc-800">
-                                                        <flux:icon name="cloud" class="size-4" />
-                                                        {{ __('Drive') }}
-                                                    </span>
-                                                @else
-                                                    <img src="{{ route('attendance-history.selfie', $record) }}" alt="{{ __('Foto absensi') }}" loading="lazy" class="size-16 rounded-lg border border-zinc-200 object-cover dark:border-zinc-700">
-                                                @endif
-                                            </button>
-                                        @else
-                                            <span class="text-zinc-400">—</span>
-                                        @endif
-                                    </td>
-                                    <td class="px-4 py-4">
-                                        @if (($record->latitude !== null && $record->longitude !== null) || $record->address_snapshot)
-                                            <a href="https://www.google.com/maps/search/?api=1&amp;query={{ urlencode($record->latitude !== null && $record->longitude !== null ? $record->latitude . ',' . $record->longitude : $record->address_snapshot) }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 font-medium text-blue-600 hover:underline dark:text-blue-400" title="{{ $record->address_snapshot }}">
-                                                <flux:icon name="map-pin" class="size-4" />
-                                                {{ $record->address_snapshot ? \Illuminate\Support\Str::limit($record->address_snapshot, 36) : __('Buka peta') }}
-                                            </a>
-                                        @else
-                                            <span class="text-zinc-400">—</span>
-                                        @endif
-                                        <p class="mt-1 max-w-xs whitespace-normal break-words text-xs text-zinc-500">
-                                            <span class="font-medium">{{ __('Alamat tersimpan:') }}</span>
-                                            {{ $record->address_snapshot ?: __('Alamat belum tersedia') }}
-                                        </p>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div>{{ $records->links() }}</div>
+            <nav class="pt-2" aria-label="{{ __('Navigasi halaman riwayat absensi') }}">
+                {{ $dateGroups->links() }}
+            </nav>
         @endif
+
         <div
-            x-show="selfiePreviewOpen"
+            x-show="detailOpen"
             x-cloak
             x-transition.opacity
-            x-on:click.self="selfiePreviewOpen = false"
-            class="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-4"
+            x-on:click.self="closeEvent()"
+            x-trap.noscroll="detailOpen"
+            id="attendance-event-detail-dialog"
             role="dialog"
             aria-modal="true"
-            aria-label="{{ __('Pratinjau foto absensi') }}"
+            aria-labelledby="attendance-event-detail-title"
+            class="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-3 sm:p-5"
         >
-            <div class="flex max-h-full w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-zinc-900">
-                <div class="flex items-center justify-between gap-3 border-b border-zinc-200 px-4 py-3 dark:border-zinc-700">
-                    <h2 class="font-semibold">{{ __('Foto absensi') }}</h2>
-                    <button type="button" x-on:click="selfiePreviewOpen = false" class="rounded-lg p-2 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800" aria-label="{{ __('Tutup pratinjau') }}">
+            <section class="flex max-h-[calc(100dvh-1.5rem)] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-zinc-900 sm:max-h-[calc(100dvh-2.5rem)]">
+                <header class="flex shrink-0 items-center justify-between gap-3 border-b border-zinc-200 px-4 py-3 dark:border-zinc-700 sm:px-5">
+                    <div class="min-w-0">
+                        <h2 id="attendance-event-detail-title" class="font-semibold text-zinc-900 dark:text-zinc-100">{{ __('Detail event absensi') }}</h2>
+                        <p class="text-xs text-zinc-500 dark:text-zinc-400" x-text="selectedEvent?.type"></p>
+                    </div>
+                    <button
+                        type="button"
+                        x-ref="detailClose"
+                        x-on:click="closeEvent()"
+                        class="flex size-9 shrink-0 items-center justify-center rounded-lg text-zinc-500 hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-blue-600 dark:hover:bg-zinc-800"
+                        aria-label="{{ __('Tutup detail') }}"
+                    >
                         <flux:icon name="x-mark" class="size-5" />
                     </button>
+                </header>
+
+                <div class="min-h-0 space-y-5 overflow-y-auto p-4 sm:p-5">
+                    <section>
+                        <h3 class="mb-2 text-sm font-semibold">{{ __('Waktu pencatatan') }}</h3>
+                        <dl class="grid grid-cols-1 gap-3 rounded-xl bg-zinc-50 p-3 text-sm dark:bg-zinc-800 sm:grid-cols-2">
+                            <div>
+                                <dt class="text-xs text-zinc-500 dark:text-zinc-400">{{ __('Waktu asli') }}</dt>
+                                <dd class="mt-1 font-medium tabular-nums" x-text="selectedEvent?.recordedAt"></dd>
+                            </div>
+                            <div>
+                                <dt class="text-xs text-zinc-500 dark:text-zinc-400">{{ __('Waktu efektif') }}</dt>
+                                <dd class="mt-1 font-medium tabular-nums" x-text="selectedEvent?.effectiveAt"></dd>
+                            </div>
+                            <div>
+                                <dt class="text-xs text-zinc-500 dark:text-zinc-400">{{ __('Zona waktu sesi') }}</dt>
+                                <dd class="mt-1 font-medium" x-text="selectedEvent?.timezone"></dd>
+                            </div>
+                            <div>
+                                <dt class="text-xs text-zinc-500 dark:text-zinc-400">{{ __('Jenis kerja') }}</dt>
+                                <dd class="mt-1 font-medium" x-text="selectedEvent?.workType"></dd>
+                            </div>
+                        </dl>
+                        <p class="mt-2 text-xs text-zinc-500 dark:text-zinc-400" x-show="selectedEvent?.hasCorrection">{{ __('Waktu efektif mengikuti koreksi yang disetujui; waktu asli tetap ditampilkan sebagai bukti pencatatan.') }}</p>
+                    </section>
+
+                    <section>
+                        <h3 class="mb-2 text-sm font-semibold">{{ __('Lokasi dan GPS') }}</h3>
+                        <dl class="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
+                            <div>
+                                <dt class="text-xs text-zinc-500 dark:text-zinc-400">{{ __('Lokasi kerja') }}</dt>
+                                <dd class="mt-1 font-medium" x-text="selectedEvent?.location || '—'"></dd>
+                            </div>
+                            <div>
+                                <dt class="text-xs text-zinc-500 dark:text-zinc-400">{{ __('Status GPS') }}</dt>
+                                <dd class="mt-1 font-medium" x-text="selectedEvent?.gpsVerified ? 'Terverifikasi' : 'Tidak terverifikasi'"></dd>
+                            </div>
+                            <div>
+                                <dt class="text-xs text-zinc-500 dark:text-zinc-400">{{ __('Akurasi') }}</dt>
+                                <dd class="mt-1 font-medium" x-text="selectedEvent?.accuracy ? selectedEvent.accuracy + ' m' : '—'"></dd>
+                            </div>
+                            <div>
+                                <dt class="text-xs text-zinc-500 dark:text-zinc-400">{{ __('Koordinat') }}</dt>
+                                <dd class="mt-1 break-all font-medium tabular-nums" x-text="selectedEvent?.latitude && selectedEvent?.longitude ? selectedEvent.latitude + ', ' + selectedEvent.longitude : '—'"></dd>
+                            </div>
+                        </dl>
+                        <p class="mt-3 break-words text-sm text-zinc-600 dark:text-zinc-300" x-text="selectedEvent?.address"></p>
+                        <a
+                            x-show="selectedEvent?.mapUrl"
+                            x-bind:href="selectedEvent?.mapUrl"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="mt-2 inline-flex items-center gap-2 text-sm font-medium text-blue-700 hover:underline dark:text-blue-300"
+                        >
+                            <flux:icon name="map-pin" class="size-4" />
+                            {{ __('Buka koordinat di peta') }}
+                        </a>
+                        <p class="mt-2 text-xs text-zinc-500 dark:text-zinc-400" x-show="selectedEvent?.timezoneSource === 'fallback'">{{ __('Zona waktu menggunakan fallback dan perlu ditinjau.') }}</p>
+                    </section>
+
+                    <section>
+                        <h3 class="mb-2 text-sm font-semibold">{{ __('Konteks pekerjaan') }}</h3>
+                        <dl class="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
+                            <div x-show="selectedEvent?.client">
+                                <dt class="text-xs text-zinc-500 dark:text-zinc-400">{{ __('Client') }}</dt>
+                                <dd class="mt-1 break-words font-medium" x-text="selectedEvent?.client"></dd>
+                            </div>
+                            <div x-show="selectedEvent?.project">
+                                <dt class="text-xs text-zinc-500 dark:text-zinc-400">{{ __('Proyek') }}</dt>
+                                <dd class="mt-1 break-words font-medium" x-text="selectedEvent?.project"></dd>
+                            </div>
+                        </dl>
+                    </section>
+
+                    <section x-show="selectedEvent?.notes">
+                        <h3 class="mb-2 text-sm font-semibold">{{ __('Catatan') }}</h3>
+                        <p class="whitespace-pre-line break-words text-sm text-zinc-600 dark:text-zinc-300" x-text="selectedEvent?.notes"></p>
+                    </section>
+
+                    <section>
+                        <div class="mb-2 flex items-center justify-between gap-3">
+                            <h3 class="text-sm font-semibold">{{ __('Bukti foto') }}</h3>
+                            <span class="text-xs text-zinc-500 dark:text-zinc-400" x-show="selectedEvent?.photoInDrive">{{ __('Dicadangkan di Drive') }}</span>
+                        </div>
+                        <template x-if="selectedEvent?.photoUrl">
+                            <img x-bind:src="selectedEvent.photoUrl" alt="{{ __('Foto bukti absensi') }}" class="max-h-80 w-full rounded-xl bg-zinc-100 object-contain dark:bg-zinc-800" />
+                        </template>
+                        <p x-show="!selectedEvent?.photoUrl && !selectedEvent?.photoInDrive" class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('Foto tidak tersedia untuk event ini.') }}</p>
+                        <a
+                            x-show="selectedEvent?.photoDownloadUrl"
+                            x-bind:href="selectedEvent?.photoDownloadUrl"
+                            class="mt-3 inline-flex items-center gap-2 rounded-lg border border-zinc-200 px-3 py-2 text-sm font-medium hover:bg-zinc-50 focus-visible:outline-2 focus-visible:outline-blue-600 dark:border-zinc-700 dark:hover:bg-zinc-800"
+                        >
+                            <flux:icon name="arrow-down-tray" class="size-4" />
+                            {{ __('Unduh foto privat') }}
+                        </a>
+                    </section>
+
+                    <p class="text-xs text-zinc-500 dark:text-zinc-400" x-show="selectedEvent?.snapshotSource === 'migration_backfill'">
+                        {{ __('Identitas pekerjaan berasal dari baseline migrasi, bukan snapshot historis terverifikasi.') }}
+                    </p>
                 </div>
-                <div class="min-h-0 overflow-auto bg-zinc-950 p-2">
-                    <img :src="selfiePreviewUrl" alt="{{ __('Foto absensi ukuran penuh') }}" class="mx-auto max-h-[75dvh] w-auto max-w-full object-contain">
-                </div>
-                <div class="flex justify-end border-t border-zinc-200 p-3 dark:border-zinc-700">
-                    <a :href="selfieDownloadUrl" class="inline-flex items-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300">
-                        <flux:icon name="arrow-down-tray" class="size-4" />
-                        {{ __('Unduh foto') }}
-                    </a>
-                </div>
-            </div>
+            </section>
         </div>
-    </div>
+    </x-ui.page>
 </x-layouts::app>

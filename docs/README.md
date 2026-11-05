@@ -1,45 +1,58 @@
-# Indeks Dokumentasi PT SanMal
+# Dokumentasi PT SanMal
 
-Gunakan halaman ini sebagai titik masuk dokumentasi. Dokumen dipisahkan berdasarkan fungsi agar developer dan AI agent dapat menemukan sumber yang tepat tanpa membaca seluruh catatan proyek.
+Pintu masuk dokumentasi repository. Mulai dari ringkasan, lalu buka hanya panduan yang relevan dengan pekerjaan.
 
-## Dokumen inti
+## Mulai di sini
 
-| Dokumen | Pembaca utama | Isi |
-|---|---|---|
-| [Project Status](PROJECT-STATUS.md) | Semua kontributor | Status branch/main, fase implementasi, CI, risiko, dan next steps |
-| [Architecture & Development Guide](ARCHITECTURE-AND-DEVELOPMENT.md) | Developer dan AI agent | Struktur source, pemilihan Blade/Livewire, domain, UI primitives, test, dan workflow |
-| [AI Agent Rules](../AGENTS.md) | AI coding agent | Batas perubahan dan aturan repository |
-| [Repository README](../README.md) | Semua pembaca | Ringkasan aplikasi dan tautan dokumentasi |
+1. [Repository README](../README.md) — tujuan aplikasi dan stack.
+2. [Project Status](PROJECT-STATUS.md) — status repository, risiko, dan kesiapan production.
+3. [AI Agent Rules](../AGENTS.md) — aturan kerja wajib.
+4. [Architecture & Development](ARCHITECTURE-AND-DEVELOPMENT.md) — struktur Laravel/Livewire, route, domain, dan testing.
+5. [UI/UX Development Handoff](ui/DEVELOPMENT-HANDOFF.md) — cara melanjutkan UI/UX V1 tanpa membaca semua dokumen sekaligus.
 
-## Design system dan audit UI
+## UI/UX V1 — dokumen aktif
 
-| Dokumen | Pembaca utama | Isi |
-|---|---|---|
-| [SanMal Design Foundation](ui/DESIGN-FOUNDATION.md) | AI agent, designer, developer | Brand, seamless-first principles, Employee mobile-first, Admin desktop/tablet information-first, responsive rules, component guidelines, dan source-code workflow |
-
-## Audit UI dan standardisasi
-
-| Dokumen | Status/kegunaan |
+| Dokumen | Sumber kebenaran untuk |
 |---|---|
-| [Audit Menyeluruh Halaman Admin](ui/ADMIN-PAGES-AUDIT.md) | Rekap implementasi standardisasi halaman Admin, konsistensi akhir, dan verifikasi |
-| [P1-D Audit](ui/P1-D-audit.md) | Audit awal tabel/list Admin dan prinsip pemilihan pola presentasi |
-| [P1-D3 Expanded Page Audit](ui/P1-D3-expanded-page-audit.md) | Inventarisasi halaman lintas role dan rekomendasi UI/UX; bukan bukti visual QA menyeluruh |
-| [P1-D1 Spacing & Density](ui/P1-D1-spacing-density.md) | Baseline spacing, density, dan hierarki tombol |
-| [P1-D2 Project Expandable Card](ui/P1-D2-project-expandable-card.md) | Spesifikasi pola expandable card Master Proyek |
+| [Development Handoff](ui/DEVELOPMENT-HANDOFF.md) | Urutan membaca, arsitektur UI, workflow, protected contracts, dan merge gate |
+| [Design Foundation](ui/DESIGN-FOUNDATION.md) | Brand, token aktual, seamless-first, shell, card, responsive priorities |
+| [Page Inventory](ui/PAGE-INVENTORY.md) | Cakupan halaman Employee/Admin/shared dan fokus review |
+| [Component Catalog](ui/COMPONENT-CATALOG.md) | Peta primitive dan domain component, aturan adopsi |
+| [Reusable Blade Components](ui/REUSABLE-BLADE-COMPONENTS.md) | Detail API/kontrak primitive bersama |
+| [Implementation Status](ui/progress/IMPLEMENTATION-STATUS.md) | Kondisi implementasi, CI terbaru, gap, dan pekerjaan berikutnya |
+| [Visual QA Log](ui/progress/VISUAL-QA-LOG.md) | Bukti browser/device QA aktual; bukan daftar rencana |
+| [Employee Dashboard Layout V1](ui/EMPLOYEE-DASHBOARD-LAYOUT-V1.md) | Komposisi UI dashboard pegawai |
+| [Employee Dashboard Data Contract](ui/EMPLOYEE-DASHBOARD-DATA-CONTRACT.md) | Definisi status, timezone, durasi kerja, lembur, dan agregasi |
+| [Employee Attendance Layout V1](ui/EMPLOYEE-ATTENDANCE-LAYOUT-V1.md) | Urutan halaman absensi, ringkasan, status, form, kamera, dan preview |
+| [Employee Attendance Calendar V1](ui/EMPLOYEE-ATTENDANCE-CALENDAR-V1.md) | Weekly calendar, monthly picker, indikator, dan perilaku tanggal |
 
-## Cara membaca status dokumen audit
+## Pilih dokumen berdasarkan pekerjaan
 
-Dokumen audit dapat berisi temuan pada baseline lama dan catatan implementasi yang lebih baru. Gunakan aturan berikut:
+| Jika pekerjaanmu... | Mulai dari |
+|---|---|
+| Mengubah tampilan halaman | Development Handoff → Design Foundation → Page Inventory → spesifikasi halaman terkait |
+| Mengubah atau membuat komponen bersama | Component Catalog → Reusable Blade Components → source dan focused tests |
+| Mengubah Employee Dashboard | Employee Dashboard Layout V1 + Employee Dashboard Data Contract |
+| Mengubah halaman Absensi Pegawai | Employee Attendance Layout V1 + Calendar V1 + source camera/preview yang relevan |
+| Memeriksa apakah pekerjaan sudah selesai | Implementation Status → Visual QA Log → CI pada branch terbaru |
+| Mengubah aturan bisnis atau struktur Laravel | Architecture & Development + domain spec terkait + AGENTS.md |
 
-1. Bagian baseline/temuan awal menjelaskan kondisi ketika audit dilakukan; jangan menganggapnya otomatis menggambarkan source main saat ini.
-2. Bagian progress implementasi dan status akhir menunjukkan pekerjaan yang kemudian diterapkan.
-3. Bagian batas verifikasi menentukan apa yang benar-benar diperiksa. Inspeksi source, automated test, CI, browser QA, dan pengujian perangkat adalah jenis bukti yang berbeda.
-4. Jika ada perbedaan, periksa source pada main dan commit terkait sebelum membuat perubahan.
+Tidak perlu membaca seluruh dokumen UI untuk setiap task. Baca dokumen yang sesuai dengan area perubahan, lalu verifikasi source, route, dan test aktual.
 
-## Urutan membaca untuk kontributor baru
+## Dokumentasi teknis lain
 
-1. [README proyek](../README.md)
-2. [Status proyek](PROJECT-STATUS.md)
-3. [Arsitektur dan panduan development](ARCHITECTURE-AND-DEVELOPMENT.md)
-4. [Instruksi AI agent](../AGENTS.md), jika menggunakan coding agent
-5. Audit spesifik sesuai area yang akan dikerjakan
+| Dokumen | Kegunaan |
+|---|---|
+| [View Architecture](view-architecture.md) | Catatan arsitektur view; referensi historis, cocokkan dengan arsitektur terkini |
+| [Attendance Phase 2 Spec](attendance-phase-2-spec.md) | Spesifikasi domain absensi |
+| [Attendance Phase 2 Audit](attendance-phase-2-audit.md) | Audit implementasi domain absensi |
+| [Attendance Google Drive Backup](attendance-google-drive-backup.md) | Catatan backup Google Drive |
+
+## Aturan source of truth
+
+1. Source code pada branch target adalah acuan implementasi aktual.
+2. Route definitions dan automated tests adalah acuan kontrak yang diuji.
+3. Keputusan produk/domain yang disetujui tetap berlaku sampai secara eksplisit diganti.
+4. Design Foundation adalah acuan arah visual; nilai token harus sesuai stylesheet aktual.
+5. Implementation Status dan Visual QA Log hanya memuat pekerjaan/pemeriksaan dengan bukti.
+6. Jika dokumentasi berbeda dari source/test, investigasi lalu perbarui dokumen aktif yang paling relevan. Jangan menebak atau mempertahankan duplikasi.

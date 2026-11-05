@@ -2,7 +2,9 @@
 
 namespace App\Services;
 
+use App\Data\Attendance\AttendanceFilterData;
 use App\Enums\AttendanceType;
+use App\Filters\AttendanceRecordFilter;
 use App\Models\AttendanceRecord;
 use App\Models\Employee;
 use Illuminate\Database\Eloquent\Builder;
@@ -11,7 +13,7 @@ use Illuminate\Support\Collection;
 
 class DailyAttendanceExportService
 {
-    public function stream(Builder $employeesQuery, Carbon $start, Carbon $end, DailyAttendanceStatusService $statusService, array $filters = []): void
+    public function stream(Builder $employeesQuery, Carbon $start, Carbon $end, DailyAttendanceStatusService $statusService, AttendanceFilterData $filters = new AttendanceFilterData): void
     {
         $stream = fopen('php://output', 'w');
 
@@ -21,7 +23,7 @@ class DailyAttendanceExportService
 
         fwrite($stream, "\xEF\xBB\xBF");
         fputcsv($stream, [
-            'ID Pegawai', 'Nomor Pegawai', 'Nama Pegawai', 'Tanggal', 'Status Akhir',
+            'ID Pegawai', 'Nomor Pegawai', 'Nama Pegawai', 'Tanggal Laporan (WITA)', 'Status Akhir',
             'Clock In Efektif', 'Clock Out Efektif', 'Total Durasi',
             'Waktu Asli Clock In', 'Waktu Asli Clock Out',
             'Detail Sesi', 'Event Lain (efektif / asli)', 'Jenis Kerja',
@@ -29,6 +31,7 @@ class DailyAttendanceExportService
             'Status Koreksi', 'Catatan Absensi / Koreksi / Status',
         ]);
 
+        $recordFilter = new AttendanceRecordFilter($filters);
         $monthStart = $start->copy()->startOfMonth();
         $lastMonth = $end->copy()->startOfMonth();
 
@@ -37,10 +40,10 @@ class DailyAttendanceExportService
             $rangeEnd = $month->copy()->endOfMonth()->min($end);
 
             $employeesQuery->with('user')->orderBy('id')->chunkById(100, function (Collection $employees) use (
-                $statusService, $rangeStart, $rangeEnd, $filters, $stream
+                $statusService, $rangeStart, $rangeEnd, $recordFilter, $stream
             ): void {
                 /** @var Collection<int, Employee> $employees */
-                $statuses = $statusService->forEmployeesDateRange($employees, $rangeStart, $rangeEnd);
+                $statuses = $statusService->forEmployeesDateRange($employees, $rangeStart, $rangeEnd, 'Asia/Makassar');
 
                 foreach ($employees as $employee) {
                     for ($day = $rangeStart->copy(); $day->lte($rangeEnd); $day->addDay()) {
@@ -55,18 +58,9 @@ class DailyAttendanceExportService
                             continue;
                         }
 
-                        $events = $daily['events'];
-                        if (($filters['attendance_type'] ?? '') !== '') {
-                            $events = $events->filter(fn (AttendanceRecord $event) => $event->type->value === $filters['attendance_type']);
-                            if ($events->isEmpty()) {
-                                continue;
-                            }
-                        }
-                        if (($filters['work_type'] ?? '') !== '') {
-                            $events = $events->filter(fn (AttendanceRecord $event) => $event->work_type->value === $filters['work_type']);
-                            if ($events->isEmpty()) {
-                                continue;
-                            }
+                        // Filter determines whether this day qualifies; export all events once it does.
+                        if (! $recordFilter->matchesDay($employee, $daily['events'])) {
+                            continue;
                         }
 
                         $allEvents = $daily['events'];

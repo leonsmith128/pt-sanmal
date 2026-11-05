@@ -119,6 +119,8 @@ it('renders project monitoring cards with summary visible and period in expandab
         ->get(route('admin.projects.index'))
         ->assertOk()
         ->assertSee('<details class="group">', false)
+        ->assertSee('lg:grid-cols-3', false)
+        ->assertSee('bg-sanmal-surface-card', false)
         ->assertSee('Proyek Pemantauan Card')
         ->assertSee('PRJ-CARD-001')
         ->assertSee('Jasa')
