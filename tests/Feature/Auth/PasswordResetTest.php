@@ -140,6 +140,6 @@ test('admin reset queue displays pending requests and decision controls', functi
         ->get(route('admin.password-reset-requests.index'))
         ->assertOk()
         ->assertSee($user->email)
-        ->assertSee('Setujui &amp; kirim tautan')
+        ->assertSee('Setujui & kirim tautan')
         ->assertSee('Tolak permintaan');
 });
