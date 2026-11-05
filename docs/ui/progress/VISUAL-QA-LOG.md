@@ -153,3 +153,14 @@ The desktop/table presentations now expose the horizontal-scroll container as a 
 **Automated coverage:** feature assertions check the localized region labels. CI run [#41981719951](https://github.com/leonsmith128/pt-sanmal/actions/runs/41981719951) passed for this accessibility change, including Pint, static analysis, MariaDB, and SQLite.
 
 **Browser/device QA: Not run.** Verify that keyboard focus can reach the region, arrow/trackpad scrolling behaves normally, screen-reader labels are meaningful, and the scroll container does not create document-level horizontal overflow at 768 px, 1024 px, and 1280–1440 px.
+
+
+## Admin Overtime status filter pills — 5 November 2026
+
+Source commit: `20d4e1bec22a55595c8efbc965a107a3f984190f`.
+
+The Admin Overtime approval-status dropdown was replaced with the same pill-link pattern used by Employee Permohonan. Verify all four states (All, Pending, Approved, Rejected), active/inactive styling in light/dark themes, keyboard focus, query preservation, and immediate filtering at mobile and desktop widths.
+
+**Automated coverage:** `OvertimeWorkflowTest` checks status link URLs and confirms the old select is absent. CI run #41984069098 is queued; check its result before merge.
+
+**Browser/device QA: Not run.**

@@ -253,3 +253,17 @@ Admin Leave Request and Overtime desktop tables now expose their horizontally sc
 - No table data, columns, status values, filters, routes, pagination, or review actions changed.
 - CI run [#41981719951](https://github.com/leonsmith128/pt-sanmal/actions/runs/41981719951) passed on the latest source commit `f9bcc443d77370182fa0aa1dfe471b40d05337bb`, including the accessible scroll-region assertions.
 - Browser/device QA remains not run; see [Visual QA Log](VISUAL-QA-LOG.md).
+
+
+## Admin Overtime status filter pills — 5 November 2026
+
+The Admin Overtime queue's approval-status dropdown and submit button were replaced with pill-style links matching the Employee Permohonan status controls in source commit `20d4e1bec22a55595c8efbc965a107a3f984190f`.
+
+- Status choices remain All, Pending, Approved, and Rejected; no new status values were introduced.
+- Active/inactive styling and colored status dots follow the Employee Permohonan pattern.
+- Selecting a pill applies the filter immediately, preserves other query parameters, and resets pagination.
+- The active pill exposes `aria-current="page"` and the group has a localized accessible label.
+- The existing backend filter contract and request query remain unchanged.
+- Regression assertions verify the status links are rendered and the old status select is absent.
+- CI run [#41984069098](https://github.com/leonsmith128/pt-sanmal/actions/runs/41984069098) is queued; verify its result before merge.
+
