@@ -278,7 +278,7 @@
                             @if ($item->reviewer || $item->decision_note)
                                 <div class="rounded-xl border border-sanmal-border/50 bg-sanmal-surface-inset/60 p-3 text-xs dark:border-sanmal-border-dark/40 dark:bg-sanmal-surface-inset-dark/70">
                                     <div class="flex items-center gap-1.5 font-medium text-sanmal-text-primary">
-                                        <flux:icon name="user-check" class="size-3.5 text-sanmal-brand-blue dark:text-sanmal-brand-blue-light" />
+                                        <flux:icon name="user" class="size-3.5 text-sanmal-brand-blue dark:text-sanmal-brand-blue-light" />
                                         <span>{{ __('Diproses oleh') }}: {{ $item->reviewer ?? 'Admin' }}</span>
                                         @if ($item->decided_at)
                                             <span class="font-normal text-sanmal-text-muted">&middot; {{ $item->decided_at->format('d/m/Y H:i') }}</span>
