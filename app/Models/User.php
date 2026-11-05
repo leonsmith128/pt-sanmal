@@ -70,6 +70,16 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasOne(Employee::class);
     }
 
+    public function accountCredential(): HasOne
+    {
+        return $this->hasOne(EmployeeAccountCredential::class);
+    }
+
+    public function accountActivation(): HasOne
+    {
+        return $this->hasOne(EmployeeAccountActivation::class);
+    }
+
     public function isSuperadmin(): bool
     {
         return $this->role === UserRole::Superadmin;
