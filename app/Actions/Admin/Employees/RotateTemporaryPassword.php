@@ -23,7 +23,10 @@ class RotateTemporaryPassword
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            $temporaryPassword = Str::password(24, symbols: false);
+            $temporaryPassword = Str::password(8, symbols: false);
+            while (! preg_match('/[A-Za-z]/', $temporaryPassword) || ! preg_match('/[0-9]/', $temporaryPassword)) {
+                $temporaryPassword = Str::password(8, symbols: false);
+            }
 
             $user->forceFill(['password' => $temporaryPassword])->save();
             $credential->forceFill([
