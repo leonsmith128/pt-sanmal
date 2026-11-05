@@ -112,3 +112,11 @@ Tabel `password_reset_requests` yang sudah ada harus diperluas melalui model/Act
 - Data Employee dan histori absensi tetap terjaga.
 - Audit log tidak memuat secret.
 - Test targeted, Pint, dan pemeriksaan CI yang tersedia lulus; keterbatasan verifikasi dilaporkan apa adanya.
+
+
+## 6. Kebijakan password akun pegawai
+
+- Password sementara yang dibuat admin atau dirotasi: tepat 8 karakter, hanya huruf ASCII dan angka, serta wajib memuat minimal satu huruf dan satu angka.
+- Password yang ditetapkan pegawai saat aktivasi, penggantian password pertama, penggantian password dari Keamanan Akun, dan reset password: minimal 8 karakter, wajib memuat huruf dan angka.
+- Huruf kapital tidak diwajibkan. Simbol boleh digunakan pada password yang dibuat sendiri oleh pegawai.
+- Aturan validasi dipusatkan melalui `Password::defaults()` di `AppServiceProvider`, sehingga seluruh alur memakai kebijakan yang sama.
