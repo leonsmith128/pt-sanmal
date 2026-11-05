@@ -9,7 +9,11 @@
     'interaction' => 'livewire',
 ])
 
-<x-ui.card padding="p-3" class="w-full min-w-0 rounded-2xl">
+@if ($interaction === 'alpine')
+    <div class="w-full min-w-0 bg-transparent p-0 shadow-none">
+@else
+    <x-ui.card padding="p-3" class="w-full min-w-0 rounded-2xl">
+@endif
     <div class="mb-2 flex items-center justify-between gap-2">
         <div class="min-w-0">
             @if ($interaction === 'livewire')
@@ -51,7 +55,11 @@
             </button>
         @endforeach
     </div>
-</x-ui.card>
+@if ($interaction === 'alpine')
+    </div>
+@else
+    </x-ui.card>
+@endif
 
 @if ($showMonthlyCalendar)
     <div
