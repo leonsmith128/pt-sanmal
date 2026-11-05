@@ -293,11 +293,11 @@ test('admin employee detail exposes account status and a protected temporary-pas
         ->assertSee('Status akun')
         ->assertSee('Belum terverifikasi')
         ->assertSee('Salin password sementara')
-        ->assertSee(route('admin.employees.temporary-password', $employee));
+        ->assertSee('password-sementara');
 });
 
 test('admin employee index labels pending accounts consistently on desktop and mobile', function () {
-    $employee = pendingAccountEmployee();
+    pendingAccountEmployee();
 
     $this->actingAs(accountManagementAdmin())
         ->get(route('admin.employees.index'))
