@@ -13,10 +13,12 @@ class CompleteEmployeePasswordReset
     public function handle(string $token, string $password): void
     {
         DB::transaction(function () use ($token, $password): void {
-            $resetRequest = PasswordResetRequest::query()
-                ->where('token_hash', hash('sha256', $token))
-                ->lockForUpdate()
-                ->first();
+            $tokenHash = hash('sha256', $token);
+            $snapshot = PasswordResetRequest::query()->where('token_hash', $tokenHash)->first();
+            abort_unless($snapshot, 422, 'Tautan reset tidak valid atau sudah kedaluwarsa.');
+
+            $user = User::query()->lockForUpdate()->findOrFail($snapshot->user_id);
+            $resetRequest = PasswordResetRequest::query()->whereKey($snapshot->id)->lockForUpdate()->first();
 
             abort_unless(
                 $resetRequest
@@ -26,20 +28,12 @@ class CompleteEmployeePasswordReset
                 422,
                 'Tautan reset tidak valid atau sudah kedaluwarsa.',
             );
-
-            $user = User::query()->lockForUpdate()->findOrFail($resetRequest->user_id);
             abort_unless($user->is_active && ! $user->must_change_password, 403);
 
             $user->forceFill(['password' => Hash::make($password)])->save();
+            $resetRequest->forceFill(['status' => 'used', 'used_at' => now()])->save();
 
-            $resetRequest->forceFill([
-                'status' => 'used',
-                'used_at' => now(),
-            ])->save();
-
-            AuditLog::record($user, 'password_reset.completed', null, [
-                'request_id' => $resetRequest->id,
-            ]);
+            AuditLog::record($user, 'password_reset.completed', null, ['request_id' => $resetRequest->id]);
         });
     }
 }

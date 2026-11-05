@@ -16,15 +16,23 @@ class ApprovePasswordReset
     public function handle(PasswordResetRequest $passwordResetRequest, User $reviewer, ?string $note = null): bool
     {
         $requestId = $passwordResetRequest->id;
+        $userId = $passwordResetRequest->user_id;
         $token = Str::random(64);
         $expiresAt = now()->addHours(24);
 
-        $user = DB::transaction(function () use ($passwordResetRequest, $reviewer, $note, $token, $expiresAt): User {
-            $request = PasswordResetRequest::query()->lockForUpdate()->findOrFail($passwordResetRequest->id);
-            abort_unless($request->status === 'pending', 409, 'Permintaan reset sudah diproses.');
+        $user = DB::transaction(function () use ($requestId, $userId, $reviewer, $note, $token, $expiresAt): User {
+            $user = User::query()->lockForUpdate()->findOrFail($userId);
+            $request = PasswordResetRequest::query()->lockForUpdate()->findOrFail($requestId);
 
-            $user = User::query()->lockForUpdate()->findOrFail($request->user_id);
+            abort_unless($request->user_id === $user->id && $request->status === 'pending', 409, 'Permintaan reset sudah diproses.');
             abort_unless($user->is_active && ! $user->must_change_password, 422);
+
+            PasswordResetRequest::query()
+                ->where('user_id', $user->id)
+                ->where('status', 'approved')
+                ->whereNull('used_at')
+                ->whereKeyNot($request->id)
+                ->update(['status' => 'expired', 'token_hash' => null, 'expires_at' => null]);
 
             $request->forceFill([
                 'status' => 'approved',
@@ -58,8 +66,7 @@ class ApprovePasswordReset
                 'exception' => $exception::class,
             ]);
 
-            PasswordResetRequest::query()
-                ->whereKey($requestId)
+            PasswordResetRequest::query()->whereKey($requestId)
                 ->where('status', 'approved')
                 ->whereNull('used_at')
                 ->update([

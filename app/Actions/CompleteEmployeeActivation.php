@@ -13,15 +13,18 @@ class CompleteEmployeeActivation
     public function handle(string $token, string $password): User
     {
         return DB::transaction(function () use ($token, $password): User {
-            $activation = EmployeeAccountActivation::query()
-                ->where('token_hash', hash('sha256', $token))
-                ->lockForUpdate()
-                ->first();
+            $tokenHash = hash('sha256', $token);
+            $snapshot = EmployeeAccountActivation::query()->where('token_hash', $tokenHash)->first();
+            abort_unless($snapshot, 422, 'Tautan aktivasi tidak valid atau sudah kedaluwarsa.');
 
-            abort_unless($activation && $activation->isUsable(), 422, 'Tautan aktivasi tidak valid atau sudah kedaluwarsa.');
+            $user = User::query()->lockForUpdate()->findOrFail($snapshot->user_id);
+            $activation = EmployeeAccountActivation::query()->whereKey($snapshot->id)->lockForUpdate()->first();
 
-            $user = User::query()->lockForUpdate()->findOrFail($activation->user_id);
-            abort_unless($user->is_active && $user->must_change_password, 403);
+            abort_unless(
+                $activation && $activation->isUsable() && $user->is_active && $user->must_change_password,
+                422,
+                'Tautan aktivasi tidak valid atau sudah kedaluwarsa.',
+            );
 
             $user->forceFill([
                 'password' => Hash::make($password),
