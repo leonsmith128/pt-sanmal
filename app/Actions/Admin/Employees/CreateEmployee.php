@@ -21,7 +21,10 @@ class CreateEmployee
     public function handle(array $data): Employee
     {
         return DB::transaction(function () use ($data): Employee {
-            $temporaryPassword = Str::password(24, symbols: false);
+            $temporaryPassword = Str::password(8, symbols: false);
+            while (! preg_match('/[A-Za-z]/', $temporaryPassword) || ! preg_match('/[0-9]/', $temporaryPassword)) {
+                $temporaryPassword = Str::password(8, symbols: false);
+            }
 
             $user = new User;
             $user->forceFill([
