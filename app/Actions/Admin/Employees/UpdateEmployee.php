@@ -2,6 +2,7 @@
 
 namespace App\Actions\Admin\Employees;
 
+use App\Models\AuditLog;
 use App\Models\Employee;
 use App\Models\PasswordResetRequest;
 use Illuminate\Support\Facades\DB;
@@ -15,6 +16,13 @@ class UpdateEmployee
     {
         return DB::transaction(function () use ($employee, $data): Employee {
             $user = $employee->user;
+            $oldValues = [
+                'name' => $user->name,
+                'email' => $user->email,
+                'is_active' => $user->is_active,
+                'employee_number' => $employee->employee_number,
+                'title_id' => $employee->title_id,
+            ];
 
             $userAttributes = [
                 'name' => $data['name'],
@@ -49,6 +57,14 @@ class UpdateEmployee
                 'phone' => $data['phone'] ?? null,
                 'title_id' => $data['title_id'] ?? null,
                 'joined_at' => $data['joined_at'] ?? null,
+            ]);
+
+            AuditLog::record($user, 'employee.updated', $oldValues, [
+                'name' => $user->name,
+                'email' => $user->email,
+                'is_active' => $user->is_active,
+                'employee_number' => $employee->employee_number,
+                'title_id' => $employee->title_id,
             ]);
 
             return $employee->load(['user', 'title']);
