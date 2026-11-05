@@ -56,13 +56,13 @@ test('password can be updated', function () {
 
     $response = Livewire::test('pages::settings.security')
         ->set('current_password', 'password')
-        ->set('password', 'new-password')
-        ->set('password_confirmation', 'new-password')
+        ->set('password', 'new-password1')
+        ->set('password_confirmation', 'new-password1')
         ->call('updatePassword');
 
     $response->assertHasNoErrors();
 
-    expect(Hash::check('new-password', $user->refresh()->password))->toBeTrue();
+    expect(Hash::check('new-password1', $user->refresh()->password))->toBeTrue();
 });
 
 test('correct password must be provided to update password', function () {
@@ -74,8 +74,8 @@ test('correct password must be provided to update password', function () {
 
     $response = Livewire::test('pages::settings.security')
         ->set('current_password', 'wrong-password')
-        ->set('password', 'new-password')
-        ->set('password_confirmation', 'new-password')
+        ->set('password', 'new-password1')
+        ->set('password_confirmation', 'new-password1')
         ->call('updatePassword');
 
     $response->assertHasErrors(['current_password']);
