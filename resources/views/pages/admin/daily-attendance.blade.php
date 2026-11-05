@@ -15,35 +15,44 @@
 
         <x-admin.flash-message />
 
-        <div class="grid min-w-0 grid-cols-[repeat(2,minmax(0,1fr))] items-stretch gap-1.5 sm:gap-3">
-            <x-admin.filter-panel class="flex w-full min-w-0 items-center !p-1.5 sm:!p-3">
+        <div class="grid min-w-0 grid-cols-1 items-stretch gap-3 md:grid-cols-2">
+            <x-admin.filter-panel class="flex w-full min-w-0 items-center">
                 <x-admin.date-calendar-filter :date="$date" />
             </x-admin.filter-panel>
 
-            <x-admin.filter-panel class="flex w-full min-w-0 items-center !p-1.5 sm:!p-3">
+            <x-admin.filter-panel class="flex w-full min-w-0 items-center">
                 <form
                     method="GET"
                     action="{{ route('admin.daily-attendance.export') }}"
-                    class="flex w-full min-w-0 flex-col items-stretch gap-1.5 sm:flex-row sm:items-end"
+                    class="grid w-full min-w-0 gap-2"
                 >
-                    <div class="min-w-0 flex-1 [&_input]:min-w-0 [&_input]:px-2 [&_input]:pr-1 [&_input]:text-xs [&_label]:text-xs">
+                    <div class="grid min-w-0 gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
                         <x-ui.input
                             type="month"
                             name="month"
-                            :label="__('Ekspor bulan')"
+                            :label="__('Ekspor rekap bulanan')"
                             :value="\Illuminate\Support\Carbon::parse($date)->format('Y-m')"
+                            :show-error="false"
                             required
                         />
+
+                        <x-ui.button
+                            type="submit"
+                            variant="outline"
+                            size="base"
+                            icon="arrow-down-tray"
+                            class="w-full lg:w-auto"
+                        >
+                            {{ __('Unduh CSV') }}
+                        </x-ui.button>
                     </div>
 
-                    <x-ui.button type="submit" variant="outline" icon="arrow-down-tray" class="w-full min-w-0 shrink-0 !px-2 !py-1.5 text-xs sm:w-auto">
-                        {{ __('Unduh CSV') }}
-                    </x-ui.button>
+                    <flux:error name="month" />
                 </form>
             </x-admin.filter-panel>
         </div>
 
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div class="grid grid-cols-1 items-stretch gap-4 md:auto-rows-fr md:grid-cols-2 lg:grid-cols-3">
             @forelse ($rows as $row)
                 <x-admin.attendance.daily-employee-card
                     :row="$row"
