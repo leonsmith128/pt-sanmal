@@ -24,7 +24,7 @@ function pendingAccountEmployee(): Employee
         'email_verified_at' => null,
         'must_change_password' => true,
     ]);
-    $user->forceFill(['role' => UserRole::Employee, 'is_active' => true])->save();
+    $user->forceFill(['role' => UserRole::Employee, 'is_active' => true, 'must_change_password' => true])->save();
 
     return Employee::query()->create(['user_id' => $user->id]);
 }
