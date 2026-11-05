@@ -111,6 +111,28 @@ test('first password change removes temporary credential without verifying email
         ->and(Hash::check('personalpassword1', $user->password))->toBeTrue();
 });
 
+test('first password change requires at least eight characters and a number without requiring uppercase', function () {
+    $employee = pendingAccountEmployee();
+
+    $this->actingAs($employee->user)
+        ->from(route('account.password.first-change'))
+        ->post(route('account.password.first-change.store'), [
+            'password' => 'lowercaseonly',
+            'password_confirmation' => 'lowercaseonly',
+        ])
+        ->assertSessionHasErrors('password');
+
+    $this->actingAs($employee->user)
+        ->from(route('account.password.first-change'))
+        ->post(route('account.password.first-change.store'), [
+            'password' => 'abc123',
+            'password_confirmation' => 'abc123',
+        ])
+        ->assertSessionHasErrors('password');
+
+    $this->assertTrue($employee->user->fresh()->must_change_password);
+});
+
 test('activation link sets a password without verifying email and cannot be reused', function () {
     $employee = pendingAccountEmployee();
     $token = str_repeat('a', 64);
@@ -192,7 +214,7 @@ test('admin can rotate a temporary password and invalidate the previous activati
     $user = $employee->user->fresh();
     $newPassword = Crypt::decryptString($user->accountCredential->temporary_password_encrypted);
 
-    expect($newPassword)->toMatch('/\\A[A-Za-z0-9]{24}\\z/')
+    expect($newPassword)->toMatch('/\\A(?=.*[A-Za-z])(?=.*[0-9])[A-Za-z0-9]{8}\\z/')
         ->and($newPassword)->not->toBe($oldPassword)
         ->and(Hash::check($newPassword, $user->password))->toBeTrue()
         ->and($user->must_change_password)->toBeTrue()
