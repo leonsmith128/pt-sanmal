@@ -47,7 +47,10 @@ test('admin creates employee account and profile atomically with encrypted tempo
     $user = User::query()->where('email', 'pegawai.baru@example.com')->firstOrFail();
     $employee = Employee::query()->where('user_id', $user->id)->firstOrFail();
 
-    expect($user->role)->toBe(UserRole::Employee)
+    $temporaryPassword = Crypt::decryptString($user->accountCredential->temporary_password_encrypted);
+
+    expect($temporaryPassword)->toMatch('/\\A[A-Za-z0-9]{24}\\z/')
+        ->and($user->role)->toBe(UserRole::Employee)
         ->and($user->is_active)->toBeTrue()
         ->and($user->must_change_password)->toBeTrue()
         ->and($user->email_verified_at)->toBeNull()
@@ -189,7 +192,8 @@ test('admin can rotate a temporary password and invalidate the previous activati
     $user = $employee->user->fresh();
     $newPassword = Crypt::decryptString($user->accountCredential->temporary_password_encrypted);
 
-    expect($newPassword)->not->toBe($oldPassword)
+    expect($newPassword)->toMatch('/\\A[A-Za-z0-9]{24}\\z/')
+        ->and($newPassword)->not->toBe($oldPassword)
         ->and(Hash::check($newPassword, $user->password))->toBeTrue()
         ->and($user->must_change_password)->toBeTrue()
         ->and($user->accountActivation->token_hash)->not->toBe(hash('sha256', $oldToken))
