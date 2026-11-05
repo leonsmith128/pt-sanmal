@@ -59,7 +59,7 @@
         <form
             method="POST"
             action="{{ route('admin.daily-attendance.correct') }}"
-            class="mt-4 grid gap-4 rounded-lg bg-zinc-50 p-4 sm:grid-cols-2 dark:bg-zinc-800/40"
+            class="mt-4 grid grid-cols-1 gap-3 rounded-lg border border-sanmal-border/40 bg-sanmal-surface-secondary/70 p-3.5 dark:border-sanmal-border-dark/30 dark:bg-sanmal-surface-inset-dark/60"
         >
             @csrf
 
@@ -94,7 +94,7 @@
                 <flux:error name="reason" />
             </flux:field>
 
-            <div class="flex flex-wrap items-center justify-between gap-2 pt-1 sm:col-span-2">
+            <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
                 <x-ui.button type="submit" size="sm" variant="primary">
                     {{ __('Simpan koreksi') }}
                 </x-ui.button>

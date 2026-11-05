@@ -1,3 +1,3 @@
-<section {{ $attributes->class(['rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-700 dark:bg-zinc-900']) }}>
+<x-ui.card padding="p-4 sm:p-5" {{ $attributes->class(['min-w-0']) }}>
     {{ $slot }}
-</section>
+</x-ui.card>

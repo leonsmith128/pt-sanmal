@@ -102,7 +102,7 @@ new #[Title('Keamanan Akun')] class extends Component {
     }
 }; ?>
 
-<x-ui.page gap="6">
+<x-ui.page max-width="3xl" gap="6">
     <x-ui.page-header
         :title="__('Keamanan Akun')"
         :description="__('Kelola email login dan kata sandi. Konfirmasi kata sandi diperlukan sebelum membuka halaman ini.')"

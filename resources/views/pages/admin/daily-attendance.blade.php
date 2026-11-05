@@ -57,14 +57,14 @@
             </x-admin.filter-panel>
         </div>
 
-        <div class="space-y-4">
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             @forelse ($rows as $row)
                 <x-admin.attendance.daily-employee-card
                     :row="$row"
                     :date="$date"
                 />
             @empty
-                <x-ui.empty-state>
+                <x-ui.empty-state class="col-span-full">
                     {{ __('Belum ada data pegawai.') }}
                 </x-ui.empty-state>
             @endforelse

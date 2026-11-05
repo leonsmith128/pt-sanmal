@@ -50,19 +50,21 @@
                             </div>
                         </div>
                         @if ($request->decision_note)
-                            <p class="mt-3 rounded-lg bg-zinc-50 p-3 text-sm text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300"><strong>{{ __('Catatan admin:') }}</strong> {{ $request->decision_note }}</p>
+                            <div class="mt-3 rounded-lg border border-sanmal-border/40 bg-sanmal-surface-inset/60 p-3 text-sm text-[var(--sanmal-text-secondary)] dark:border-sanmal-border-dark/30 dark:bg-sanmal-surface-inset-dark/70">
+                                <span class="font-medium text-[var(--sanmal-text-primary)]">{{ __('Catatan admin:') }}</span> {{ $request->decision_note }}
+                            </div>
                         @endif
                         @if (in_array($request->state->value, ['scheduled', 'awaiting_photo'], true) && $request->start_record_id === null)
                             <form method="POST" action="{{ route('overtime-requests.cancel', $request) }}" class="mt-3" onsubmit="return confirm('Batalkan jadwal lembur ini? Setelah dibatalkan, Anda dapat clock-out jika sesi masih aktif.')">
                                 @csrf @method('PATCH')
-                                <x-ui.button type="submit" variant="danger" size="sm" icon="x-circle">{{ __('Batalkan Lembur') }}</x-ui.button>
+                                <x-ui.button type="submit" variant="ghost" size="sm" icon="x-circle" class="text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-950/30">{{ __('Batalkan Lembur') }}</x-ui.button>
                             </form>
                         @endif
                     </article>
                 </x-ui.card>
             @empty
                 <x-ui.card padding="p-8" class="text-center">
-                    <flux:icon.clock-3 class="mx-auto size-8 text-sanmal-brand-blue dark:text-sanmal-brand-blue-light" />
+                    <flux:icon name="clock" class="mx-auto size-8 text-sanmal-brand-blue dark:text-sanmal-brand-blue-light" />
                     <flux:heading size="md" class="mt-3">{{ __('Belum ada pengajuan lembur') }}</flux:heading>
                     <flux:text class="mt-1">{{ __('Pengajuan yang Anda buat akan muncul di sini.') }}</flux:text>
                 </x-ui.card>

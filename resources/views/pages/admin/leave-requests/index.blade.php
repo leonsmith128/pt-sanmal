@@ -30,46 +30,48 @@
             </form>
         </x-admin.filter-panel>
 
-        <div class="overflow-x-auto rounded-xl border border-neutral-200 dark:border-neutral-700">
-            <table class="w-full text-left text-sm">
-                <thead class="bg-zinc-50 text-xs uppercase text-zinc-500 dark:bg-zinc-900 dark:text-zinc-400">
-                    <tr>
-                        <th class="px-4 py-3">{{ __('Pegawai') }}</th>
-                        <th class="px-4 py-3">{{ __('Jenis') }}</th>
-                        <th class="px-4 py-3">{{ __('Periode') }}</th>
-                        <th class="px-4 py-3">{{ __('Diajukan') }}</th>
-                        <th class="px-4 py-3">{{ __('Status') }}</th>
-                        <th class="px-4 py-3 text-right">{{ __('Detail') }}</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-neutral-200 dark:divide-neutral-700">
-                    @forelse ($requests as $item)
+        <x-ui.card padding="p-0" class="overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-sanmal-surface-secondary text-xs uppercase tracking-wide text-[var(--sanmal-text-muted)] dark:bg-sanmal-surface-secondary-dark">
                         <tr>
-                            <td class="px-4 py-3 font-medium">
-                                {{ $item->employee?->user?->name ?? 'Pegawai #'.$item->employee_id }}
-                            </td>
-                            <td class="px-4 py-3">{{ $item->leaveType?->name ?? '—' }}</td>
-                            <td class="whitespace-nowrap px-4 py-3">
-                                {{ $item->start_date->format('d/m/Y') }} &ndash; {{ $item->end_date->format('d/m/Y') }}
-                            </td>
-                            <td class="whitespace-nowrap px-4 py-3 text-zinc-500">
-                                {{ $item->created_at->format('d/m/Y H:i') }}
-                            </td>
-                            <td class="whitespace-nowrap px-4 py-3">
-                                <x-admin.request-status-badge :status="$item->status" />
-                            </td>
-                            <td class="whitespace-nowrap px-4 py-3 text-right">
-                                <x-ui.button href="{{ route('admin.leave-requests.show', $item) }}" size="sm" variant="outline">
-                                    {{ __('Buka') }}
-                                </x-ui.button>
-                            </td>
+                            <th class="px-4 py-3">{{ __('Pegawai') }}</th>
+                            <th class="px-4 py-3">{{ __('Jenis') }}</th>
+                            <th class="px-4 py-3">{{ __('Periode') }}</th>
+                            <th class="px-4 py-3">{{ __('Diajukan') }}</th>
+                            <th class="px-4 py-3">{{ __('Status') }}</th>
+                            <th class="px-4 py-3 text-right">{{ __('Detail') }}</th>
                         </tr>
-                    @empty
-                        <x-admin.empty-state :colspan="6" :message="__('Tidak ada permohonan pada filter ini.')" />
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
+                    </thead>
+                    <tbody class="divide-y divide-sanmal-border dark:divide-sanmal-border-dark">
+                        @forelse ($requests as $item)
+                            <tr class="transition-colors hover:bg-sanmal-surface-secondary/40 dark:hover:bg-sanmal-surface-elevated-dark/20">
+                                <td class="px-4 py-3 font-medium text-[var(--sanmal-text-primary)]">
+                                    {{ $item->employee?->user?->name ?? 'Pegawai #'.$item->employee_id }}
+                                </td>
+                                <td class="px-4 py-3 text-[var(--sanmal-text-secondary)]">{{ $item->leaveType?->name ?? '—' }}</td>
+                                <td class="whitespace-nowrap px-4 py-3 text-[var(--sanmal-text-secondary)]">
+                                    {{ $item->start_date->format('d/m/Y') }} &ndash; {{ $item->end_date->format('d/m/Y') }}
+                                </td>
+                                <td class="whitespace-nowrap px-4 py-3 font-mono text-xs text-[var(--sanmal-text-muted)]">
+                                    {{ $item->created_at->format('d/m/Y H:i') }}
+                                </td>
+                                <td class="whitespace-nowrap px-4 py-3">
+                                    <x-admin.request-status-badge :status="$item->status" />
+                                </td>
+                                <td class="whitespace-nowrap px-4 py-3 text-right">
+                                    <x-ui.button href="{{ route('admin.leave-requests.show', $item) }}" size="sm" variant="outline">
+                                        {{ __('Buka') }}
+                                    </x-ui.button>
+                                </td>
+                            </tr>
+                        @empty
+                            <x-admin.empty-state :colspan="6" :message="__('Tidak ada permohonan pada filter ini.')" />
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </x-ui.card>
 
         <div class="mt-4">
             {{ $requests->links() }}
