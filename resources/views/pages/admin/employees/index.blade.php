@@ -4,9 +4,14 @@
             :title="__('Manajemen Pegawai')"
             :description="__('Kelola identitas dan status akun pegawai.')"
         >
-            <x-ui.button href="{{ route('admin.employees.create') }}" variant="primary" icon="plus">
-                {{ __('Tambah pegawai') }}
-            </x-ui.button>
+            <div class="flex flex-wrap gap-2">
+                <x-ui.button href="{{ route('admin.password-reset-requests.index') }}" variant="outline">
+                    {{ __('Permintaan reset password') }}
+                </x-ui.button>
+                <x-ui.button href="{{ route('admin.employees.create') }}" variant="primary" icon="plus">
+                    {{ __('Tambah pegawai') }}
+                </x-ui.button>
+            </div>
         </x-admin.page-header>
 
         <x-admin.flash-message />

@@ -32,13 +32,11 @@
                     viewable
                 />
 
-                @if (Route::has('password.request'))
-                    <div class="flex justify-end">
-                        <flux:link class="text-sm" :href="route('password.request')" wire:navigate>
-                            {{ __('Forgot your password?') }}
-                        </flux:link>
-                    </div>
-                @endif
+                <div class="flex justify-end">
+                    <flux:link class="text-sm" :href="route('password-reset.request.create')" wire:navigate>
+                        {{ __('Ajukan reset password') }}
+                    </flux:link>
+                </div>
             </div>
 
             <!-- Remember Me -->

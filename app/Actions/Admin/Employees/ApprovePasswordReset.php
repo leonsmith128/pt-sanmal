@@ -57,6 +57,19 @@ class ApprovePasswordReset
                 'exception' => $exception::class,
             ]);
 
+            PasswordResetRequest::query()
+                ->where('user_id', $user->id)
+                ->where('status', 'approved')
+                ->whereNull('used_at')
+                ->update([
+                    'status' => 'pending',
+                    'reviewed_by' => null,
+                    'reviewed_at' => null,
+                    'review_note' => 'Pengiriman email gagal; menunggu peninjauan ulang.',
+                    'token_hash' => null,
+                    'expires_at' => null,
+                ]);
+
             return false;
         }
     }

@@ -10,6 +10,8 @@ use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AdminEmployeeController;
 use App\Http\Controllers\EmployeeAccountActivationController;
 use App\Http\Controllers\FirstPasswordChangeController;
+use App\Http\Controllers\EmployeePasswordResetController;
+use App\Http\Controllers\AdminPasswordResetRequestController;
 use App\Http\Controllers\AdminLeaveRequestController;
 use App\Http\Controllers\AdminLocationController;
 use App\Http\Controllers\AdminOvertimeRequestController;
@@ -32,6 +34,13 @@ Route::redirect('/', '/login')->name('home');
 
 Route::get('aktivasi-akun/{token}', [EmployeeAccountActivationController::class, 'show'])->name('employee-activation.show');
 Route::post('aktivasi-akun/{token}', [EmployeeAccountActivationController::class, 'store'])->name('employee-activation.store');
+
+Route::get('ajukan-reset-password', [EmployeePasswordResetController::class, 'createRequest'])->name('password-reset.request.create');
+Route::post('ajukan-reset-password', [EmployeePasswordResetController::class, 'storeRequest'])
+    ->middleware('throttle:3,1')
+    ->name('password-reset.request.store');
+Route::get('reset-password-disetujui/{token}', [EmployeePasswordResetController::class, 'show'])->name('password-reset.show');
+Route::post('reset-password-disetujui/{token}', [EmployeePasswordResetController::class, 'store'])->name('password-reset.store');
 
 Route::middleware(['auth', EnsureUserIsActive::class])->group(function () {
     Route::get('ganti-password-awal', [FirstPasswordChangeController::class, 'create'])->name('account.password.first-change');
@@ -108,6 +117,14 @@ Route::middleware(['auth', EnsureUserIsActive::class, EnsurePasswordIsChanged::c
                 ->name('attendance-corrections.attachment');
             Route::post('koreksi-absensi/{attendanceCorrection}/keputusan', [AdminAttendanceCorrectionController::class, 'decide'])
                 ->name('attendance-corrections.decide');
+
+            Route::get('permintaan-reset-password', [AdminPasswordResetRequestController::class, 'index'])
+                ->name('password-reset-requests.index');
+            Route::post('permintaan-reset-password/{passwordResetRequest}/setujui', [AdminPasswordResetRequestController::class, 'approve'])
+                ->middleware('throttle:10,1')
+                ->name('password-reset-requests.approve');
+            Route::post('permintaan-reset-password/{passwordResetRequest}/tolak', [AdminPasswordResetRequestController::class, 'reject'])
+                ->name('password-reset-requests.reject');
 
             Route::get('audit-log', [AdminAuditLogController::class, 'index'])->name('audit-logs.index');
 

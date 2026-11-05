@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Admin\Employees\ApprovePasswordReset;
+use App\Models\AuditLog;
+use Illuminate\Support\Facades\DB;
 use App\Models\PasswordResetRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -34,18 +36,21 @@ class AdminPasswordResetRequestController extends Controller
     {
         $data = $request->validate(['review_note' => ['required', 'string', 'max:1000']]);
 
-        abort_unless($passwordResetRequest->status === 'pending', 409, 'Permintaan reset sudah diproses.');
+        DB::transaction(function () use ($passwordResetRequest, $request, $data): void {
+            $lockedRequest = PasswordResetRequest::query()->lockForUpdate()->findOrFail($passwordResetRequest->id);
+            abort_unless($lockedRequest->status === 'pending', 409, 'Permintaan reset sudah diproses.');
 
-        $passwordResetRequest->forceFill([
-            'status' => 'rejected',
-            'reviewed_by' => $request->user()->id,
-            'reviewed_at' => now(),
-            'review_note' => $data['review_note'],
-        ])->save();
+            $lockedRequest->forceFill([
+                'status' => 'rejected',
+                'reviewed_by' => $request->user()->id,
+                'reviewed_at' => now(),
+                'review_note' => $data['review_note'],
+            ])->save();
 
-        \App\Models\AuditLog::record($passwordResetRequest->user, 'password_reset.rejected', null, [
-            'request_id' => $passwordResetRequest->id,
-        ]);
+            AuditLog::record($lockedRequest->user, 'password_reset.rejected', null, [
+                'request_id' => $lockedRequest->id,
+            ]);
+        });
 
         return back()->with('status', 'Permintaan reset password ditolak.');
     }
