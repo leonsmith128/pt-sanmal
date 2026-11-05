@@ -214,3 +214,16 @@ Source-level UI refinements were implemented on PR #27 at commit `ffc5566bedfb97
 - No additional Flux icon import was necessary; existing Flux icons already cover the affected actions.
 
 Regression assertions were extended in `AdminClientLocationTest`, `AdminProjectTest`, and `AdminEmployeePageTest`. A responsive admin Leave Request queue assertion was added to `LeaveRequestWorkflowTest`. CI for the implementation commit is pending. Browser/device visual QA has not been performed; see [Visual QA Log](VISUAL-QA-LOG.md).
+
+
+## Admin Overtime queue responsive presentation — 5 November 2026
+
+The Admin Overtime queue was refined in source commit `45b36286cc95b99185b114ff29f5a9e76c25d8c1` to match the responsive strategy in the redesign plan:
+
+- Mobile uses compact request cards below the `md` breakpoint.
+- Tablet/desktop uses a semantic table inside a scoped horizontal-scroll region from `md` upward.
+- Both presentations retain the two distinct status dimensions: approval status and operational state.
+- Employee, scheduled start, reason, both statuses, detail navigation, and pagination remain available.
+- The existing status filter, route, query, model data, status enums, authorization, and review actions are unchanged.
+
+A feature assertion was added to `OvertimeWorkflowTest` for the responsive mobile/desktop wrappers and both status dimensions. CI is pending. Browser/device QA has not been performed; see [Visual QA Log](VISUAL-QA-LOG.md).

@@ -120,3 +120,14 @@ Scope: Client list/detail and Site sub-grid; Client/Location/Project/Employee fo
 - Empty/loading/error states, focus-visible, touch target sizes, and layout stability remain acceptable in both themes.
 
 Source review and automated tests do not count as browser/device visual QA. Record actual browser/device, viewport, theme, scenario, result, and evidence before marking this scope visually verified.
+
+
+## Admin Overtime queue responsive layout — source follow-up (5 November 2026)
+
+Source commit: `45b36286cc95b99185b114ff29f5a9e76c25d8c1`.
+
+The queue now renders compact cards below `md` and a semantic table from `md` upward. Both views show approval status and operational state separately.
+
+**Automated coverage:** `OvertimeWorkflowTest` asserts the responsive wrappers, employee, reason, both status labels, and detail route. CI result is pending.
+
+**Browser/device QA: Not run.** Check 360–390 px, 414–430 px, 768 px, 1024 px, and 1280–1440 px in light/dark themes. Confirm cards remain scannable, desktop columns do not become cramped, the horizontal scroll stays inside the table region, status badges remain distinct, and pagination remains reachable.
