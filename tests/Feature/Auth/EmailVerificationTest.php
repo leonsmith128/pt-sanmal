@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Employee;
 use App\Models\User;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Support\Facades\Event;
@@ -20,7 +21,7 @@ test('email verification screen can be rendered', function () {
 
 test('unverified users can access the application because verification is independent from activation', function () {
     $user = User::factory()->unverified()->create();
-    \App\Models\Employee::query()->create(['user_id' => $user->id]);
+    Employee::query()->create(['user_id' => $user->id]);
 
     $this->actingAs($user)
         ->get(route('profile.edit'))
