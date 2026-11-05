@@ -4,6 +4,7 @@ use App\Enums\UserRole;
 use App\Models\Employee;
 use App\Models\EmployeeAccountActivation;
 use App\Models\EmployeeAccountCredential;
+use App\Models\PasswordResetRequest;
 use App\Models\User;
 use App\Notifications\EmployeeAccountActivationNotification;
 use Illuminate\Support\Facades\Crypt;
@@ -161,4 +162,69 @@ test('email change clears previous email verification', function () {
 
     expect($employee->user->fresh()->email)->toBe('updated.employee@example.com')
         ->and($employee->user->fresh()->email_verified_at)->toBeNull();
+});
+
+
+test('admin can rotate a temporary password and invalidate the previous activation link', function () {
+    Notification::fake();
+
+    $employee = pendingAccountEmployee();
+    $oldPassword = 'old-temporary-password';
+    $oldToken = str_repeat('b', 64);
+
+    EmployeeAccountCredential::create([
+        'user_id' => $employee->user_id,
+        'temporary_password_encrypted' => Crypt::encryptString($oldPassword),
+    ]);
+    EmployeeAccountActivation::create([
+        'user_id' => $employee->user_id,
+        'token_hash' => hash('sha256', $oldToken),
+        'expires_at' => now()->addHours(24),
+    ]);
+
+    $this->actingAs(accountManagementAdmin())
+        ->post(route('admin.employees.rotate-temporary-password', $employee))
+        ->assertRedirect();
+
+    $user = $employee->user->fresh();
+    $newPassword = Crypt::decryptString($user->accountCredential->temporary_password_encrypted);
+
+    expect($newPassword)->not->toBe($oldPassword)
+        ->and(Hash::check($newPassword, $user->password))->toBeTrue()
+        ->and($user->must_change_password)->toBeTrue()
+        ->and($user->accountActivation->token_hash)->not->toBe(hash('sha256', $oldToken))
+        ->and($user->accountActivation->consumed_at)->toBeNull();
+
+    Notification::assertSentTo($user, EmployeeAccountActivationNotification::class);
+});
+
+test('deactivation revokes activation and password reset tokens without deleting employee data', function () {
+    $employee = pendingAccountEmployee();
+    $activation = EmployeeAccountActivation::create([
+        'user_id' => $employee->user_id,
+        'token_hash' => hash('sha256', str_repeat('c', 64)),
+        'expires_at' => now()->addHours(24),
+    ]);
+    $resetRequest = PasswordResetRequest::create([
+        'user_id' => $employee->user_id,
+        'status' => 'pending',
+    ]);
+
+    $this->actingAs(accountManagementAdmin())
+        ->put(route('admin.employees.update', $employee), [
+            'name' => $employee->user->name,
+            'email' => $employee->user->email,
+            'employee_number' => $employee->employee_number,
+            'phone' => $employee->phone,
+            'title_id' => null,
+            'joined_at' => null,
+            'is_active' => false,
+        ])
+        ->assertRedirect();
+
+    expect($employee->fresh())->not->toBeNull()
+        ->and($employee->user->fresh()->is_active)->toBeFalse()
+        ->and($activation->fresh()->consumed_at)->not->toBeNull()
+        ->and($resetRequest->fresh()->status)->toBe('expired')
+        ->and($resetRequest->fresh()->token_hash)->toBeNull();
 });
