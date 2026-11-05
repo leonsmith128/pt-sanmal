@@ -401,63 +401,6 @@ new #[Title('Absensi')] class extends Component {
                 $this->employee->title?->name ?? __('Jabatan belum diatur'),
             ]);
         @endphp
-        @php
-            $recentNotifications = Auth::user()->notifications()->latest()->limit(8)->get();
-        @endphp
-        <flux:modal name="attendance-notifications" class="max-w-lg">
-            <div class="space-y-4">
-                <div class="flex items-start justify-between gap-3">
-                    <div>
-                        <flux:heading size="lg">{{ __('Notifikasi') }}</flux:heading>
-                        <flux:subheading>{{ __('Pemberitahuan terbaru pada akun Anda.') }}</flux:subheading>
-                    </div>
-                    @if ($unreadCount > 0)
-                        <x-ui.badge color="sky">{{ __(':count belum dibaca', ['count' => $unreadCount]) }}</x-ui.badge>
-                    @endif
-                </div>
-
-                <div class="max-h-[min(60vh,28rem)] overflow-y-auto divide-y divide-sanmal-border rounded-xl border border-sanmal-border dark:divide-sanmal-border-dark dark:border-sanmal-border-dark">
-                    @forelse ($recentNotifications as $notification)
-                        @php
-                            $notificationData = $notification->data;
-                            $notificationResolved = ($notificationData['event_status'] ?? null) === 'cancelled';
-                        @endphp
-                        <form method="POST" action="{{ route('notifications.read', $notification) }}">
-                            @csrf
-                            @method('PATCH')
-                            <button type="submit" class="flex w-full items-start gap-3 p-4 text-left transition hover:bg-sanmal-surface-secondary focus-visible:bg-sanmal-surface-secondary focus-visible:outline-none dark:hover:bg-sanmal-surface-secondary-dark dark:focus-visible:bg-sanmal-surface-secondary-dark {{ $notification->read_at ? '' : 'bg-sky-50/70 dark:bg-sky-950/20' }}">
-                                <span class="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-full {{ $notification->read_at ? 'bg-sanmal-surface-secondary text-sanmal-text-muted dark:bg-sanmal-surface-inset-dark' : 'bg-sky-100 text-sky-700 dark:bg-sky-900 dark:text-sky-300' }}">
-                                    <flux:icon name="{{ $notificationResolved ? 'x-circle' : 'bell' }}" class="size-4" />
-                                </span>
-                                <span class="min-w-0 flex-1">
-                                    <span class="flex items-start justify-between gap-2">
-                                        <span class="line-clamp-1 text-sm font-semibold text-[var(--sanmal-text-primary)]">{{ $notificationData['title'] ?? __('Notifikasi sistem') }}</span>
-                                        @if (! $notification->read_at)
-                                            <span aria-label="{{ __('Belum dibaca') }}" class="mt-1 size-2 shrink-0 rounded-full bg-sky-600"></span>
-                                        @endif
-                                    </span>
-                                    <span class="mt-1 line-clamp-2 block text-xs leading-5 text-[var(--sanmal-text-secondary)]">{{ $notificationData['message'] ?? __('Ada pembaruan pada akun Anda.') }}</span>
-                                    <span class="mt-1 block text-[11px] text-[var(--sanmal-text-muted)]">{{ $notification->created_at->diffForHumans() }}</span>
-                                </span>
-                            </button>
-                        </form>
-                    @empty
-                        <div class="px-4 py-8 text-center">
-                            <flux:icon name="bell" class="mx-auto size-7 text-sanmal-text-muted" />
-                            <p class="mt-2 text-sm font-medium text-[var(--sanmal-text-primary)]">{{ __('Belum ada notifikasi') }}</p>
-                            <p class="mt-1 text-xs text-[var(--sanmal-text-muted)]">{{ __('Pemberitahuan terbaru akan muncul di sini.') }}</p>
-                        </div>
-                    @endforelse
-                </div>
-
-                <div class="flex flex-wrap justify-end gap-2">
-                    <flux:modal.close>
-                        <x-ui.button variant="ghost">{{ __('Tutup') }}</x-ui.button>
-                    </flux:modal.close>
-                    <x-ui.button href="{{ route('notifications.index') }}" variant="primary">{{ __('Lihat semua') }}</x-ui.button>
-                </div>
-            </div>
-        </flux:modal>
         <x-employee.identity-header
             :name="$attendanceUser->name"
             :initials="$attendanceUser->initials()"
@@ -467,14 +410,13 @@ new #[Title('Absensi')] class extends Component {
             avatar-size="lg"
         >
             <x-slot:actions>
-                <flux:modal.trigger name="attendance-notifications">
-                    <button type="button" aria-label="{{ __('Buka notifikasi') }}" title="{{ __('Notifikasi') }}" class="relative flex size-11 shrink-0 items-center justify-center rounded-full text-sanmal-brand-blue transition-colors hover:bg-sanmal-surface-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sanmal-brand-blue dark:text-sanmal-brand-blue-light dark:hover:bg-sanmal-surface-inset-dark dark:focus-visible:outline-sanmal-brand-blue-light">
-                        <flux:icon name="bell" variant="outline" class="size-5" />
-                        @if ($unreadCount > 0)
-                            <span class="absolute right-0.5 top-0.5 flex min-h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-semibold text-white">{{ $unreadCount > 99 ? '99+' : $unreadCount }}</span>
-                        @endif
-                    </button>
-                </flux:modal.trigger>
+                @php
+                    $latestNotifications = Auth::user()->notifications()->latest()->limit(8)->get();
+                @endphp
+                <x-ui.notification-dropdown
+                    :notifications="$latestNotifications"
+                    :unread-count="$unreadCount"
+                />
             </x-slot:actions>
         </x-employee.identity-header>
 
