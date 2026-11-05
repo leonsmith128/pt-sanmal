@@ -6,14 +6,17 @@ use App\Actions\Admin\Employees\CreateEmployee;
 use App\Actions\Admin\Employees\IssueEmployeeActivation;
 use App\Actions\Admin\Employees\RevealTemporaryPassword;
 use App\Actions\Admin\Employees\RotateTemporaryPassword;
+use App\Actions\Admin\Employees\RotateTemporaryPassword;
 use App\Actions\Admin\Employees\UpdateEmployee;
 use App\Models\Employee;
 use App\Models\Title;
+use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
+use Throwable;
 
 class AdminEmployeeController extends Controller
 {
@@ -72,8 +75,13 @@ class AdminEmployeeController extends Controller
         ]);
     }
 
-    public function update(Request $request, Employee $employee, UpdateEmployee $updateEmployee): RedirectResponse
-    {
+    public function update(
+        Request $request,
+        Employee $employee,
+        UpdateEmployee $updateEmployee,
+        IssueEmployeeActivation $issueActivation,
+    ): RedirectResponse {
+
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($employee->user_id)],
@@ -84,7 +92,24 @@ class AdminEmployeeController extends Controller
             'is_active' => ['required', 'boolean'],
         ]);
 
-        $updateEmployee->handle($employee, $data);
+        $emailChanged = $employee->user->email !== $data['email'];
+        $employee = $updateEmployee->handle($employee, $data);
+
+        if ($emailChanged && $employee->user->is_active && $employee->user->must_change_password) {
+            $sent = $issueActivation->handle($employee->user);
+
+            return redirect()->route('admin.employees.edit', $employee)->with('status', $sent
+                ? 'Data pegawai diperbarui dan tautan aktivasi baru dikirim ke email terbaru.'
+                : 'Data pegawai diperbarui, tetapi email aktivasi gagal dikirim. Salin password sementara untuk onboarding manual.');
+        }
+
+        if ($emailChanged && $employee->user->is_active) {
+            try {
+                $employee->user->notify(new VerifyEmail);
+            } catch (Throwable $exception) {
+                report($exception);
+            }
+        }
 
         return redirect()->route('admin.employees.edit', $employee)->with('status', 'Data pegawai diperbarui.');
     }

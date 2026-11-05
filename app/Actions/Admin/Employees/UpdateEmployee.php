@@ -30,13 +30,15 @@ class UpdateEmployee
                 'is_active' => $data['is_active'],
             ];
 
-            if ($user->email !== $data['email']) {
+            $emailChanged = $user->email !== $data['email'];
+
+            if ($emailChanged) {
                 $userAttributes['email_verified_at'] = null;
             }
 
             $user->forceFill($userAttributes)->save();
 
-            if (! $data['is_active']) {
+            if (! $data['is_active'] || $emailChanged) {
                 $user->accountActivation()
                     ->whereNull('consumed_at')
                     ->update(['consumed_at' => now()]);
