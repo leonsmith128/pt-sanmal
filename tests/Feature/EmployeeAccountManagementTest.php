@@ -265,3 +265,12 @@ test('changing the email of a pending employee issues a new activation link to t
 
     Notification::assertSentTo($user, EmployeeAccountActivationNotification::class);
 });
+
+
+test('pending employee cannot bypass the first password change through account settings', function () {
+    $employee = pendingAccountEmployee();
+
+    $this->actingAs($employee->user)
+        ->get(route('security.edit'))
+        ->assertRedirect(route('account.password.first-change'));
+});
