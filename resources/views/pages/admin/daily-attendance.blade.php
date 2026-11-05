@@ -15,26 +15,28 @@
 
         <x-admin.flash-message />
 
-        <div class="flex flex-wrap items-end justify-between gap-4">
-            <x-admin.filter-panel>
+        <div class="grid min-w-0 grid-cols-2 items-stretch gap-2 sm:gap-3">
+            <x-admin.filter-panel class="flex min-w-0 items-center !p-2 sm:!p-4">
                 <x-admin.date-calendar-filter :date="$date" />
             </x-admin.filter-panel>
 
-            <x-admin.filter-panel>
+            <x-admin.filter-panel class="flex min-w-0 items-center !p-2 sm:!p-4">
                 <form
                     method="GET"
                     action="{{ route('admin.daily-attendance.export') }}"
-                    class="flex flex-wrap items-end gap-3"
+                    class="flex w-full min-w-0 flex-col items-stretch gap-2 sm:flex-row sm:items-end"
                 >
-                    <x-ui.input
-                        type="month"
-                        name="month"
-                        :label="__('Ekspor bulan')"
-                        :value="\Illuminate\Support\Carbon::parse($date)->format('Y-m')"
-                        required
-                    />
+                    <div class="min-w-0 flex-1">
+                        <x-ui.input
+                            type="month"
+                            name="month"
+                            :label="__('Ekspor bulan')"
+                            :value="\\Illuminate\\Support\\Carbon::parse($date)->format('Y-m')"
+                            required
+                        />
+                    </div>
 
-                    <x-ui.button type="submit" variant="outline" icon="arrow-down-tray">
+                    <x-ui.button type="submit" variant="outline" icon="arrow-down-tray" class="w-full shrink-0 sm:w-auto">
                         {{ __('Unduh CSV') }}
                     </x-ui.button>
                 </form>
