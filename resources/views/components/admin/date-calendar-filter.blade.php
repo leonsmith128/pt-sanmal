@@ -5,7 +5,7 @@
     action="{{ route('admin.daily-attendance') }}"
     x-data="{
         selected: @js($date),
-        month: @js(\\Illuminate\\Support\\Carbon::parse($date)->startOfMonth()->toDateString()),
+        month: @js(substr($date, 0, 7).'-01'),
         open: false,
         today: @js(now('Asia/Makassar')->toDateString()),
         formatDate(value) {
