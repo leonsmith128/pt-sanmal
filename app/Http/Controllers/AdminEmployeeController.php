@@ -2,14 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\UserRole;
+use App\Actions\Admin\Employees\CreateEmployee;
+use App\Actions\Admin\Employees\IssueEmployeeActivation;
+use App\Actions\Admin\Employees\RevealTemporaryPassword;
+use App\Actions\Admin\Employees\UpdateEmployee;
 use App\Models\Employee;
 use App\Models\Title;
-use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -17,7 +18,7 @@ class AdminEmployeeController extends Controller
 {
     public function index(Request $request): View
     {
-        $employees = Employee::query()->with(['user', 'title'])
+        $employees = Employee::query()->with(['user.accountCredential', 'user.accountActivation', 'title'])
             ->when($request->filled('q'), function ($query) use ($request) {
                 $term = $request->string('q')->toString();
                 $query->where(fn ($q) => $q
@@ -33,10 +34,12 @@ class AdminEmployeeController extends Controller
 
     public function create(): View
     {
-        return view('pages::admin.employees.create', ['titles' => Title::query()->where('is_active', true)->orderBy('name')->get()]);
+        return view('pages::admin.employees.create', [
+            'titles' => Title::query()->where('is_active', true)->orderBy('name')->get(),
+        ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, CreateEmployee $createEmployee, IssueEmployeeActivation $issueActivation): RedirectResponse
     {
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -47,31 +50,18 @@ class AdminEmployeeController extends Controller
             'joined_at' => ['nullable', 'date'],
         ]);
 
-        DB::transaction(function () use ($data): void {
-            $user = User::create([
-                'name' => $data['name'],
-                'email' => $data['email'],
-                'password' => Str::random(40),
-                'role' => UserRole::Employee,
-                'is_active' => true,
-                'must_change_password' => true,
-            ]);
-            Employee::create([
-                'user_id' => $user->id,
-                'employee_number' => $data['employee_number'] ?: null,
-                'phone' => $data['phone'] ?: null,
-                'title_id' => $data['title_id'] ?: null,
-                'joined_at' => $data['joined_at'] ?: null,
-            ]);
-        });
+        $employee = $createEmployee->handle($data);
+        $sent = $issueActivation->handle($employee->user);
 
-        return redirect()->route('admin.employees.index')
-            ->with('status', 'Data pegawai dibuat. Atur atau kirim kredensial awal melalui prosedur admin yang aman.');
+        return redirect()->route('admin.employees.edit', $employee)
+            ->with($sent ? 'status' : 'warning', $sent
+                ? 'Pegawai dibuat dan tautan aktivasi telah dikirim. Password sementara tersedia melalui tindakan khusus admin.'
+                : 'Pegawai dibuat, tetapi email aktivasi gagal dikirim. Salin password sementara dan sampaikan melalui saluran aman.');
     }
 
     public function edit(Employee $employee): View
     {
-        $employee->load(['user', 'title']);
+        $employee->load(['user.accountCredential', 'user.accountActivation', 'title']);
 
         return view('pages::admin.employees.edit', [
             'employee' => $employee,
@@ -79,7 +69,7 @@ class AdminEmployeeController extends Controller
         ]);
     }
 
-    public function update(Request $request, Employee $employee): RedirectResponse
+    public function update(Request $request, Employee $employee, UpdateEmployee $updateEmployee): RedirectResponse
     {
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -91,20 +81,26 @@ class AdminEmployeeController extends Controller
             'is_active' => ['required', 'boolean'],
         ]);
 
-        DB::transaction(function () use ($data, $employee): void {
-            $employee->user->update([
-                'name' => $data['name'],
-                'email' => $data['email'],
-                'is_active' => $data['is_active'],
-            ]);
-            $employee->update([
-                'employee_number' => $data['employee_number'] ?: null,
-                'phone' => $data['phone'] ?: null,
-                'title_id' => $data['title_id'] ?: null,
-                'joined_at' => $data['joined_at'] ?: null,
-            ]);
-        });
+        $updateEmployee->handle($employee, $data);
 
-        return redirect()->route('admin.employees.index')->with('status', 'Data pegawai diperbarui.');
+        return redirect()->route('admin.employees.edit', $employee)->with('status', 'Data pegawai diperbarui.');
+    }
+
+    public function revealTemporaryPassword(Employee $employee, RevealTemporaryPassword $revealPassword): JsonResponse
+    {
+        $password = $revealPassword->handle($employee);
+
+        return response()->json(['password' => $password])
+            ->header('Cache-Control', 'no-store, private')
+            ->header('Pragma', 'no-cache');
+    }
+
+    public function resendActivation(Employee $employee, IssueEmployeeActivation $issueActivation): RedirectResponse
+    {
+        $sent = $issueActivation->handle($employee->user);
+
+        return back()->with($sent ? 'status' : 'warning', $sent
+            ? 'Tautan aktivasi baru telah dikirim. Tautan sebelumnya tidak lagi berlaku.'
+            : 'Email aktivasi gagal dikirim. Password sementara tetap dapat disalin oleh admin.');
     }
 }

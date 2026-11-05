@@ -3,6 +3,7 @@
 namespace App\Actions\Admin\Employees;
 
 use App\Enums\UserRole;
+use App\Models\AuditLog;
 use App\Models\Employee;
 use App\Models\EmployeeAccountCredential;
 use App\Models\User;
@@ -40,6 +41,11 @@ class CreateEmployee
                 'phone' => $data['phone'] ?? null,
                 'title_id' => $data['title_id'] ?? null,
                 'joined_at' => $data['joined_at'] ?? null,
+            ]);
+
+            AuditLog::record($user, 'employee.created', null, [
+                'employee_number' => $employee->employee_number,
+                'role' => UserRole::Employee->value,
             ]);
 
             EmployeeAccountCredential::create([

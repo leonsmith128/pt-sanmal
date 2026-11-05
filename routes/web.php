@@ -8,6 +8,8 @@ use App\Http\Controllers\AdminClientController;
 use App\Http\Controllers\AdminDailyAttendanceController;
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AdminEmployeeController;
+use App\Http\Controllers\EmployeeAccountActivationController;
+use App\Http\Controllers\FirstPasswordChangeController;
 use App\Http\Controllers\AdminLeaveRequestController;
 use App\Http\Controllers\AdminLocationController;
 use App\Http\Controllers\AdminOvertimeRequestController;
@@ -23,11 +25,20 @@ use App\Http\Controllers\OvertimeRequestController;
 use App\Http\Controllers\ProfilePhotoController;
 use App\Http\Middleware\EnsureUserHasRole;
 use App\Http\Middleware\EnsureUserIsActive;
+use App\Http\Middleware\EnsurePasswordIsChanged;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/login')->name('home');
 
-Route::middleware(['auth', EnsureUserIsActive::class, 'verified'])->group(function () {
+Route::get('aktivasi-akun/{token}', [EmployeeAccountActivationController::class, 'show'])->name('employee-activation.show');
+Route::post('aktivasi-akun/{token}', [EmployeeAccountActivationController::class, 'store'])->name('employee-activation.store');
+
+Route::middleware(['auth', EnsureUserIsActive::class])->group(function () {
+    Route::get('ganti-password-awal', [FirstPasswordChangeController::class, 'create'])->name('account.password.first-change');
+    Route::post('ganti-password-awal', [FirstPasswordChangeController::class, 'store'])->name('account.password.first-change.store');
+});
+
+Route::middleware(['auth', EnsureUserIsActive::class, EnsurePasswordIsChanged::class])->group(function () {
     Route::get('dashboard', AdminDashboardController::class)->name('dashboard');
     Route::get('dashboard-saya', [AdminDashboardController::class, 'myDashboard'])->name('my-dashboard');
     Route::get('profil/{user}/foto', ProfilePhotoController::class)->name('profile-photo.show');
