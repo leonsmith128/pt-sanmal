@@ -1,5 +1,5 @@
 <x-layouts::app :title="__('Tambah Proyek')">
-    <x-ui.page class="!max-w-3xl gap-5">
+    <x-ui.page max-width="2xl" gap="5">
         <x-ui.page-header
             :title="__('Tambah Proyek')"
             :description="__('Daftarkan pekerjaan kalibrasi atau pelatihan untuk satu Client dan satu lokasi Site.')"

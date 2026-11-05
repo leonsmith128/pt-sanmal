@@ -30,13 +30,14 @@
         @if ($employees->count())
             <div class="grid grid-cols-1 gap-3 lg:grid-cols-2 xl:hidden">
                 @foreach ($employees as $employee)
-                    <article class="flex min-w-0 flex-col gap-3 rounded-xl border border-zinc-200 bg-white p-3 dark:border-zinc-700 dark:bg-zinc-900">
+                    <article class="min-w-0">
+                    <x-ui.card padding="p-3" class="flex h-full min-w-0 flex-col gap-3">
                         <div class="flex min-w-0 items-start justify-between gap-3">
                             <div class="min-w-0">
-                                <h2 class="break-words font-semibold text-zinc-900 dark:text-zinc-100">
+                                <h2 class="break-words font-semibold text-[var(--sanmal-text-primary)]">
                                     {{ $employee->user->name }}
                                 </h2>
-                                <p class="mt-0.5 break-all text-sm text-zinc-500 dark:text-zinc-400">
+                                <p class="mt-0.5 break-all text-sm text-[var(--sanmal-text-muted)]">
                                     {{ $employee->user->email }}
                                 </p>
                             </div>
@@ -45,36 +46,38 @@
                             </x-ui.badge>
                         </div>
 
-                        <dl class="grid grid-cols-2 gap-x-3 gap-y-2 border-t border-zinc-100 pt-3 text-sm dark:border-zinc-800">
+                        <dl class="grid grid-cols-2 gap-x-3 gap-y-2 border-t border-sanmal-border pt-3 text-sm dark:border-sanmal-border-dark">
                             <x-ui.metadata-item
                                 :label="__('Nomor pegawai')"
-                                label-class="text-xs text-zinc-500 dark:text-zinc-400"
-                                value-class="mt-0.5 break-words font-medium text-zinc-800 dark:text-zinc-200"
+                                label-class="text-xs text-[var(--sanmal-text-muted)]"
+                                value-class="mt-0.5 break-words font-medium text-[var(--sanmal-text-primary)]"
                             >{{ $employee->employee_number ?: '—' }}</x-ui.metadata-item>
                             <x-ui.metadata-item
                                 :label="__('Jabatan')"
-                                label-class="text-xs text-zinc-500 dark:text-zinc-400"
-                                value-class="mt-0.5 break-words font-medium text-zinc-800 dark:text-zinc-200"
+                                label-class="text-xs text-[var(--sanmal-text-muted)]"
+                                value-class="mt-0.5 break-words font-medium text-[var(--sanmal-text-primary)]"
                             >{{ $employee->title?->name ?: '—' }}</x-ui.metadata-item>
                         </dl>
 
-                        <div class="flex justify-end border-t border-zinc-100 pt-2 dark:border-zinc-800">
+                        <div class="flex justify-end border-t border-sanmal-border pt-2 dark:border-sanmal-border-dark">
                             <x-ui.button size="sm" variant="outline" href="{{ route('admin.employees.edit', $employee) }}">
                                 {{ __('Ubah pegawai') }}
                             </x-ui.button>
                         </div>
-                    </article>
+                    </x-ui.card>
+                </article>
                 @endforeach
             </div>
 
+            <x-ui.card padding="p-0" class="hidden overflow-hidden xl:block">
             <div
-                class="hidden overflow-x-auto overscroll-x-contain rounded-xl border border-zinc-200 dark:border-zinc-700 xl:block"
+                class="overflow-x-auto overscroll-x-contain"
                 role="region"
                 aria-label="{{ __('Tabel manajemen pegawai; geser horizontal untuk melihat seluruh kolom') }}"
                 tabindex="0"
             >
                 <table class="min-w-[52rem] w-full text-sm">
-                    <thead class="bg-zinc-50 text-left dark:bg-zinc-900">
+                    <thead class="bg-sanmal-surface-secondary text-left dark:bg-sanmal-surface-secondary-dark">
                         <tr>
                             <th scope="col" class="px-3 py-2">{{ __('Pegawai') }}</th>
                             <th scope="col" class="px-3 py-2">{{ __('Nomor') }}</th>
@@ -83,12 +86,12 @@
                             <th scope="col" class="px-3 py-2"><span class="sr-only">{{ __('Aksi') }}</span></th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800">
+                    <tbody class="divide-y divide-sanmal-border dark:divide-sanmal-border-dark">
                         @foreach ($employees as $employee)
                             <tr>
                                 <td class="px-3 py-2">
-                                    <p class="font-medium text-zinc-900 dark:text-zinc-100">{{ $employee->user->name }}</p>
-                                    <p class="break-all text-zinc-500 dark:text-zinc-400">{{ $employee->user->email }}</p>
+                                    <p class="font-medium text-[var(--sanmal-text-primary)]">{{ $employee->user->name }}</p>
+                                    <p class="break-all text-[var(--sanmal-text-muted)]">{{ $employee->user->email }}</p>
                                 </td>
                                 <td class="max-w-40 break-words px-3 py-2">{{ $employee->employee_number ?: '—' }}</td>
                                 <td class="max-w-56 break-words px-3 py-2">{{ $employee->title?->name ?: '—' }}</td>
@@ -107,9 +110,10 @@
                     </tbody>
                 </table>
             </div>
+            </x-ui.card>
         @else
             <x-ui.empty-state
-                class="!border-dashed !border-zinc-300 !bg-transparent !px-4 !py-10 dark:!border-zinc-700"
+                class="!border-dashed !border-sanmal-border !bg-transparent !px-4 !py-10 dark:!border-sanmal-border-dark"
                 :message="__('Belum ada data pegawai yang sesuai dengan filter.')"
             />
         @endif

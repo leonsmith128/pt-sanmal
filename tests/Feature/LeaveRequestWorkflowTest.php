@@ -26,6 +26,33 @@ function createEmployeeFor(User $user): Employee
     return Employee::create(['user_id' => $user->id]);
 }
 
+
+it('renders responsive admin leave-request cards and status quick filters', function () {
+    $admin = createUserWithRole(UserRole::Admin);
+    createEmployeeFor($admin);
+
+    $employeeUser = createUserWithRole(UserRole::Employee);
+    $employee = createEmployeeFor($employeeUser);
+    $type = LeaveType::create(['code' => 'izin-ui', 'name' => 'Izin', 'is_active' => true]);
+
+    $employee->leaveRequests()->create([
+        'leave_type_id' => $type->id,
+        'start_date' => '2026-11-06',
+        'end_date' => '2026-11-07',
+        'reason' => 'Keperluan keluarga.',
+        'status' => LeaveRequestStatus::Pending,
+    ]);
+
+    $this->actingAs($admin)
+        ->get(route('admin.leave-requests.index'))
+        ->assertOk()
+        ->assertSee('Filter cepat status')
+        ->assertSee('md:hidden', false)
+        ->assertSee('hidden overflow-hidden md:block', false)
+        ->assertSee('Buka detail')
+        ->assertSee('Menunggu');
+});
+
 it('lets an employee submit a leave request for their own profile', function () {
     $user = createUserWithRole(UserRole::Employee);
     createEmployeeFor($user);

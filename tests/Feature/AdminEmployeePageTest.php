@@ -36,6 +36,8 @@ it('renders employee cards for narrower screens and a table for wide screens', f
         ->get(route('admin.employees.index'))
         ->assertOk()
         ->assertSee('lg:grid-cols-2 xl:hidden', false)
+        ->assertSee('bg-sanmal-surface-card', false)
+        ->assertSee('overflow-x-auto overscroll-x-contain', false)
         ->assertSee('role="region"', false)
         ->assertSee('Tabel manajemen pegawai', false)
         ->assertSee('scope="col"', false)

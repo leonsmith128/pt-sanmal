@@ -15,7 +15,7 @@
 
         <x-admin.flash-message />
 
-        <section class="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900">
+        <x-ui.card padding="p-5 sm:p-6" class="space-y-4">
             <div class="flex flex-wrap gap-2">
                 <x-ui.badge :color="$overtimeRequest->approval_status->badgeColor()">
                     {{ $overtimeRequest->approval_status->label() }}
@@ -53,12 +53,12 @@
             </dl>
 
             <div class="mt-4">
-                <p class="text-sm text-zinc-500">{{ __('Alasan') }}</p>
+                <p class="text-sm text-[var(--sanmal-text-muted)]">{{ __('Alasan') }}</p>
                 <p class="mt-1 whitespace-pre-line">{{ $overtimeRequest->reason }}</p>
             </div>
 
             @if ($overtimeRequest->decision_note)
-                <div class="mt-4 rounded-lg bg-zinc-50 p-3 text-sm dark:bg-zinc-800">
+                <div class="mt-4 rounded-lg bg-sanmal-surface-inset p-3 text-sm dark:bg-sanmal-surface-inset-dark">
                     <strong>{{ __('Catatan keputusan') }}</strong>
                     <p class="mt-1 whitespace-pre-line">{{ $overtimeRequest->decision_note }}</p>
                 </div>
@@ -85,15 +85,15 @@
                         {{ __('Lihat foto tersimpan') }}
                     </x-ui.button>
 
-                    <p class="mt-2 text-sm text-zinc-500">
+                    <p class="mt-2 text-sm text-[var(--sanmal-text-muted)]">
                         {{ $overtimeRequest->startRecord->address_snapshot ?? __('Alamat tidak tersedia') }}
                     </p>
                 </div>
             @endif
-        </section>
+        </x-ui.card>
 
         @if ($overtimeRequest->finalized_at)
-            <section class="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 dark:border-emerald-900 dark:bg-emerald-950/30">
+            <x-ui.card padding="p-5 sm:p-6" class="bg-emerald-50 dark:bg-emerald-950/30">
                 <flux:heading size="lg">{{ __('Rentang waktu final') }}</flux:heading>
                 <dl class="mt-3 grid gap-3 sm:grid-cols-2">
                     <x-ui.metadata-item :label="__('Sumber')" value-class="font-medium">
@@ -110,11 +110,11 @@
                     </x-ui.metadata-item>
                 </dl>
                 <p class="mt-3 whitespace-pre-line text-sm">{{ $overtimeRequest->finalization_reason }}</p>
-            </section>
+            </x-ui.card>
         @endif
 
         @if ($overtimeRequest->clock_out_record_id)
-            <section class="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900">
+            <x-ui.card padding="p-5 sm:p-6" class="space-y-4">
                 <flux:heading size="lg">{{ __('Finalisasi rentang lembur') }}</flux:heading>
                 <flux:text class="mt-1">{{ $overtimeRequest->scheduled_end_at ? __('Pilih rentang jadwal lama, aktual, atau koreksi manual. Data event asli tidak akan diubah. Alasan wajib dicatat.') : __('Jadwal baru hanya menyimpan waktu mulai. Pilih waktu aktual atau koreksi manual untuk menetapkan rentang final. Data event asli tidak akan diubah.') }}</flux:text>
 
@@ -159,11 +159,11 @@
                         <x-ui.button type="submit" variant="primary">{{ __('Simpan rentang final') }}</x-ui.button>
                     </div>
                 </form>
-            </section>
+            </x-ui.card>
         @endif
 
         @if ($overtimeRequest->approval_status->value === 'pending')
-            <section class="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900">
+            <x-ui.card padding="p-5 sm:p-6" class="space-y-4">
                 <flux:heading size="lg">{{ __('Keputusan admin') }}</flux:heading>
 
                 <form
@@ -191,11 +191,11 @@
                         </x-ui.button>
                     </div>
                 </form>
-            </section>
+            </x-ui.card>
         @endif
 
         @if (in_array($overtimeRequest->state->value, ['scheduled', 'awaiting_photo'], true) && ! $overtimeRequest->start_record_id)
-            <section class="rounded-2xl border border-amber-300 bg-amber-50 p-5 dark:border-amber-800 dark:bg-amber-950/30">
+            <x-ui.card padding="p-5 sm:p-6" class="bg-amber-50 dark:bg-amber-950/30">
                 <flux:heading size="lg">{{ __('Pengecualian foto mulai lembur') }}</flux:heading>
                 <flux:text class="mt-1">
                     {{ __('Gunakan hanya setelah verifikasi manual jika pegawai benar-benar lupa mengambil foto. Alasan akan masuk ke audit.') }}
@@ -222,7 +222,7 @@
                         </x-ui.button>
                     </div>
                 </form>
-            </section>
+            </x-ui.card>
         @endif
     </x-ui.page>
 </x-layouts::app>

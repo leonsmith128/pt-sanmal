@@ -19,10 +19,11 @@
 
         <x-admin.flash-message />
 
+        <x-ui.card padding="p-5 sm:p-6">
         <form
             method="POST"
             action="{{ route('admin.locations.store') }}"
-            class="space-y-4 rounded-xl border border-zinc-200 p-5 dark:border-zinc-700"
+            class="space-y-4"
         >
             @csrf
 
@@ -121,5 +122,6 @@
                 </x-ui.button>
             </div>
         </form>
+        </x-ui.card>
     </x-ui.page>
 </x-layouts::app>

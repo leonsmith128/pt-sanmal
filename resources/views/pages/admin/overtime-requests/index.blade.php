@@ -19,20 +19,20 @@
             </form>
         </x-admin.filter-panel>
 
-        <div class="overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900">
-            <div class="divide-y divide-zinc-200 dark:divide-zinc-800">
+        <x-ui.card padding="p-0" class="overflow-hidden">
+            <div class="divide-y divide-sanmal-border dark:divide-sanmal-border-dark">
                 @forelse ($requests as $request)
-                    <a href="{{ route('admin.overtime-requests.show', $request) }}" class="flex flex-col gap-3 p-4 transition hover:bg-zinc-50 sm:flex-row sm:items-center sm:justify-between dark:hover:bg-zinc-800/60">
+                    <a href="{{ route('admin.overtime-requests.show', $request) }}" class="flex flex-col gap-3 p-4 transition hover:bg-sanmal-surface-secondary sm:flex-row sm:items-center sm:justify-between dark:hover:bg-sanmal-surface-elevated-dark/40">
                         <div>
-                            <p class="font-medium text-zinc-900 dark:text-zinc-100">{{ $request->employee->user->name }}</p>
-                            <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-300">{{ $request->scheduledStartLocal()->format('d M Y, H:i') }} · {{ Str::limit($request->reason ?? 'Alasan tidak dicantumkan', 110) }}</p>
+                            <p class="font-medium text-[var(--sanmal-text-primary)]">{{ $request->employee->user->name }}</p>
+                            <p class="mt-1 text-sm text-[var(--sanmal-text-secondary)]">{{ $request->scheduledStartLocal()->format('d M Y, H:i') }} · {{ Str::limit($request->reason ?? 'Alasan tidak dicantumkan', 110) }}</p>
                         </div>
                         <div class="flex flex-wrap gap-2">
                             <x-ui.badge :color="$request->approval_status->badgeColor()">
                                 {{ $request->approval_status->label() }}
                             </x-ui.badge>
                             <x-ui.badge :color="$request->state->badgeColor()">{{ $request->state->label() }}</x-ui.badge>
-                            <span class="inline-flex items-center gap-1 rounded-md border border-zinc-300 px-2.5 py-1 text-xs font-medium text-zinc-700 dark:border-zinc-600 dark:text-zinc-200">{{ __('Tinjau') }} <flux:icon name="chevron-right" class="size-3.5" /></span>
+                            <span class="inline-flex items-center gap-1 rounded-md border border-sanmal-border px-2.5 py-1 text-xs font-medium text-[var(--sanmal-text-secondary)] dark:border-sanmal-border-dark">{{ __('Tinjau') }} <flux:icon name="chevron-right" class="size-3.5" /></span>
                         </div>
                     </a>
                 @empty
@@ -42,7 +42,7 @@
                     />
                 @endforelse
             </div>
-        </div>
+        </x-ui.card>
         {{ $requests->links() }}
     </x-ui.page>
 </x-layouts::app>

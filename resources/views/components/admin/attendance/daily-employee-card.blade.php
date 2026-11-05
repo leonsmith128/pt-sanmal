@@ -16,7 +16,7 @@
             <flux:heading level="2" size="base">
                 {{ $employee->user?->name ?? 'Pegawai #'.$employee->id }}
             </flux:heading>
-            <flux:text class="text-xs text-zinc-500">
+            <flux:text class="text-xs text-[var(--sanmal-text-muted)]">
                 {{ __('ID Pegawai:') }} {{ $employee->employee_number ?? $employee->id }}
             </flux:text>
         </div>
@@ -40,7 +40,7 @@
     @endif
 
     @if ($daily['reason'])
-        <p class="mt-2 text-sm text-amber-700 dark:text-amber-400">
+        <p class="mt-2 text-sm text-sanmal-warning dark:text-amber-400">
             {{ $daily['reason'] }}
         </p>
     @endif
@@ -51,15 +51,15 @@
         </flux:callout>
     @endif
 
-    <details class="mt-4 border-t border-neutral-100 pt-3 dark:border-neutral-800">
-        <summary class="cursor-pointer text-sm font-medium text-blue-600 hover:underline dark:text-blue-400">
+    <details class="mt-4 border-t border-sanmal-border pt-3 dark:border-sanmal-border-dark">
+        <summary class="cursor-pointer text-sm font-medium text-sanmal-brand-blue hover:underline dark:text-sanmal-brand-blue-light">
             {{ __('Koreksi status harian') }}
         </summary>
 
         <form
             method="POST"
             action="{{ route('admin.daily-attendance.correct') }}"
-            class="mt-4 grid grid-cols-1 gap-3 rounded-lg border border-sanmal-border/40 bg-sanmal-surface-secondary/70 p-3.5 dark:border-sanmal-border-dark/30 dark:bg-sanmal-surface-inset-dark/60"
+            class="mt-4 grid grid-cols-1 gap-3 rounded-lg bg-sanmal-surface-secondary p-3.5 dark:bg-sanmal-surface-inset-dark"
         >
             @csrf
 
@@ -100,7 +100,7 @@
                 </x-ui.button>
 
                 @if ($daily['correction'])
-                    <span class="text-xs text-zinc-500">
+                    <span class="text-xs text-[var(--sanmal-text-muted)]">
                         {{ __('Koreksi terakhir dibuat oleh :name.', [
                             'name' => $daily['correction']->createdBy?->name ?? 'admin',
                         ]) }}

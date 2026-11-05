@@ -139,13 +139,17 @@ it('shows client sites and opens a location form with its client preselected', f
         ->get(route('admin.clients.index'))
         ->assertOk()
         ->assertSee('Master Data Client')
-        ->assertSee('Site Klien')
+        ->assertSee('sm:grid-cols-2 lg:grid-cols-3', false)
+        ->assertSee('bg-sanmal-surface-card', false)
+        ->assertSee('Site Klien'
         ->assertSee('Kantor Internal Modul');
 
     $this->actingAs($admin)
         ->get(route('admin.clients.show', $client))
         ->assertOk()
         ->assertSee($site->name)
+        ->assertSee('sm:grid-cols-2 lg:grid-cols-3', false)
+        ->assertSee('bg-sanmal-surface-card', false)
         ->assertSee('Tambah Location');
 
     $this->actingAs($admin)

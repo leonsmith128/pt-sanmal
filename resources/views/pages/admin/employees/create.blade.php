@@ -7,7 +7,8 @@
 
         <x-admin.flash-message />
 
-        <form method="POST" action="{{ route('admin.employees.store') }}" class="space-y-4 rounded-xl border border-zinc-200 p-5 dark:border-zinc-700">
+        <x-ui.card padding="p-5 sm:p-6">
+        <form method="POST" action="{{ route('admin.employees.store') }}" class="space-y-4">
             @csrf
 
             <x-ui.input
@@ -62,5 +63,6 @@
                 <x-ui.button type="submit" variant="primary">{{ __('Simpan pegawai') }}</x-ui.button>
             </div>
         </form>
+        </x-ui.card>
     </x-ui.page>
 </x-layouts::app>

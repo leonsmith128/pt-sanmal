@@ -11,26 +11,61 @@
 
         <x-admin.flash-message />
 
-        <x-admin.filter-panel>
-            <form method="GET" action="{{ route('admin.leave-requests.index') }}" class="flex flex-wrap items-end gap-3">
-                <div class="w-full sm:w-64">
-                    <x-ui.select name="status" :label="__('Filter status')">
-                        <flux:select.option value="">{{ __('Semua status') }}</flux:select.option>
-                        @foreach (\App\Enums\LeaveRequestStatus::cases() as $case)
-                            <flux:select.option value="{{ $case->value }}" :selected="request('status') === $case->value">
-                                {{ $case->label() }}
-                            </flux:select.option>
-                        @endforeach
-                    </x-ui.select>
-                </div>
-                <x-ui.button type="submit" variant="primary">{{ __('Terapkan') }}</x-ui.button>
-                @if (request()->filled('status'))
-                    <x-ui.button href="{{ route('admin.leave-requests.index') }}" variant="outline">{{ __('Reset') }}</x-ui.button>
-                @endif
-            </form>
-        </x-admin.filter-panel>
+        @php
+            $statusPills = ['' => __('Semua')] + collect(\App\Enums\LeaveRequestStatus::cases())
+                ->mapWithKeys(fn ($status) => [$status->value => $status->label()])
+                ->all();
+        @endphp
 
-        <x-ui.card padding="p-0" class="overflow-hidden">
+        <nav class="flex flex-wrap gap-2" aria-label="{{ __('Filter cepat status permohonan') }}">
+            @foreach ($statusPills as $statusValue => $statusLabel)
+                @php($isActive = (string) request('status', '') === (string) $statusValue)
+                <a
+                    href="{{ route('admin.leave-requests.index', $statusValue === '' ? [] : ['status' => $statusValue]) }}"
+                    @if ($isActive) aria-current="page" @endif
+                    class="inline-flex min-h-9 items-center rounded-full px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--sanmal-focus)] {{ $isActive ? 'bg-sanmal-brand-blue text-white dark:bg-sanmal-brand-yellow-dark dark:text-zinc-900' : 'bg-sanmal-surface-secondary text-[var(--sanmal-text-secondary)] hover:bg-sanmal-surface-inset dark:bg-sanmal-surface-secondary-dark dark:hover:bg-sanmal-surface-elevated-dark' }}"
+                >
+                    {{ $statusLabel }}
+                </a>
+            @endforeach
+        </nav>
+
+
+
+        <div class="space-y-3 md:hidden">
+            @forelse ($requests as $item)
+                <x-ui.card padding="p-4">
+                    <article class="space-y-3">
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="min-w-0">
+                                <h2 class="break-words font-semibold text-[var(--sanmal-text-primary)]">
+                                    {{ $item->employee?->user?->name ?? 'Pegawai #'.$item->employee_id }}
+                                </h2>
+                                <p class="mt-1 text-sm text-[var(--sanmal-text-secondary)]">{{ $item->leaveType?->name ?? '—' }}</p>
+                            </div>
+                            <x-admin.request-status-badge :status="$item->status" />
+                        </div>
+                        <dl class="grid grid-cols-2 gap-3 border-t border-sanmal-border pt-3 text-sm dark:border-sanmal-border-dark">
+                            <x-ui.metadata-item :label="__('Periode')" value-class="mt-0.5 font-medium tabular-nums">
+                                {{ $item->start_date->format('d/m/Y') }} – {{ $item->end_date->format('d/m/Y') }}
+                            </x-ui.metadata-item>
+                            <x-ui.metadata-item :label="__('Diajukan')" value-class="mt-0.5 font-mono text-xs text-[var(--sanmal-text-muted)]">
+                                {{ $item->created_at->format('d/m/Y H:i') }}
+                            </x-ui.metadata-item>
+                        </dl>
+                        <div class="flex justify-end">
+                            <x-ui.button href="{{ route('admin.leave-requests.show', $item) }}" size="sm" variant="outline">
+                                {{ __('Buka detail') }}
+                            </x-ui.button>
+                        </div>
+                    </article>
+                </x-ui.card>
+            @empty
+                <x-ui.empty-state :message="__('Tidak ada permohonan pada filter ini.')" />
+            @endforelse
+        </div>
+
+        <x-ui.card padding="p-0" class="hidden overflow-hidden md:block">
             <div class="overflow-x-auto">
                 <table class="w-full text-left text-sm">
                     <thead class="bg-sanmal-surface-secondary text-xs uppercase tracking-wide text-[var(--sanmal-text-muted)] dark:bg-sanmal-surface-secondary-dark">
