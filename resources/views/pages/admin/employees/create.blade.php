@@ -55,7 +55,7 @@
             />
 
             <flux:callout variant="warning">
-                {{ __('Password awal dibuat acak dan tidak ditampilkan. Admin perlu menjalankan prosedur reset password sebelum akun dapat digunakan.') }}
+                {{ __('Password sementara dibuat otomatis. Tautan aktivasi dikirim ke email pegawai; jika email gagal, admin dapat menyalin password sementara dari halaman detail pegawai.') }}
             </flux:callout>
 
             <div class="flex justify-end gap-2">

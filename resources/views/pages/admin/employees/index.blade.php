@@ -42,7 +42,7 @@
                                 </p>
                             </div>
                             <x-ui.badge class="shrink-0" :color="$employee->user->is_active ? 'green' : 'zinc'">
-                                {{ $employee->user->is_active ? __('Aktif') : __('Nonaktif') }}
+                                {{ ! $employee->user->is_active ? __('Nonaktif') : ($employee->user->must_change_password ? __('Menunggu aktivasi') : __('Aktif')) }}
                             </x-ui.badge>
                         </div>
 

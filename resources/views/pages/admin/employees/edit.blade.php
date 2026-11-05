@@ -63,6 +63,55 @@
                 <flux:select.option value="0" :selected="(string) old('is_active', (int) $employee->user->is_active) === '0'">{{ __('Nonaktif') }}</flux:select.option>
             </x-ui.select>
 
+
+            @if ($employee->user->accountCredential)
+                <div
+                    class="space-y-2 rounded-lg border border-sanmal-border p-3 dark:border-sanmal-border-dark"
+                    x-data="{
+                        copying: false,
+                        copied: false,
+                        async copyTemporaryPassword() {
+                            this.copying = true;
+                            this.copied = false;
+                            try {
+                                const response = await fetch(@js(route('admin.employees.temporary-password', $employee)), {
+                                    method: 'POST',
+                                    headers: {
+                                        'X-CSRF-TOKEN': @js(csrf_token()),
+                                        'Accept': 'application/json',
+                                    },
+                                });
+                                if (!response.ok) throw new Error('Request failed');
+                                const data = await response.json();
+                                await navigator.clipboard.writeText(data.password);
+                                this.copied = true;
+                            } catch (error) {
+                                window.alert('Password tidak dapat disalin. Pastikan browser mengizinkan akses clipboard.');
+                            } finally {
+                                this.copying = false;
+                            }
+                        }
+                    }"
+                >
+                    <p class="text-sm font-medium">{{ __('Password sementara') }}</p>
+                    <p class="text-sm text-[var(--sanmal-text-muted)]">{{ __('Tersedia sampai pegawai mengganti password pertamanya. Nilai password tidak ditampilkan di halaman.') }}</p>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <x-ui.button type="button" variant="outline" x-on:click="copyTemporaryPassword()" x-bind:disabled="copying">
+                            <span x-show="!copying">{{ __('Salin password sementara') }}</span>
+                            <span x-show="copying">{{ __('Memproses...') }}</span>
+                        </x-ui.button>
+                        <span x-cloak x-show="copied" class="text-sm text-green-700">{{ __('Password berhasil disalin.') }}</span>
+                    </div>
+                </div>
+            @endif
+
+            @if ($employee->user->must_change_password)
+                <form method="POST" action="{{ route('admin.employees.resend-activation', $employee) }}">
+                    @csrf
+                    <x-ui.button type="submit" variant="outline">{{ __('Kirim ulang tautan aktivasi') }}</x-ui.button>
+                </form>
+            @endif
+
             <div class="flex justify-end gap-2">
                 <x-ui.button href="{{ route('admin.employees.index') }}" variant="outline">{{ __('Batal') }}</x-ui.button>
                 <x-ui.button type="submit" variant="primary">{{ __('Simpan perubahan') }}</x-ui.button>
