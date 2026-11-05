@@ -48,3 +48,45 @@ function something()
 {
     // ..
 }
+
+/**
+ * Membaca isi workbook XLSX dari response unduhan tanpa bergantung pada API pembaca spreadsheet.
+ *
+ * @return array{sheets: list<string>, text: string, xml: string, media: list<string>}
+ */
+function xlsxContents(Illuminate\Testing\TestResponse $response): array
+{
+    $response->assertOk();
+
+    $zip = new ZipArchive;
+    expect($zip->open($response->baseResponse->getFile()->getPathname()))->toBeTrue();
+
+    preg_match_all('/<sheet\b[^>]*\bname="([^"]*)"/', (string) $zip->getFromName('xl/workbook.xml'), $names);
+
+    $xml = '';
+    $media = [];
+
+    for ($index = 0; $index < $zip->numFiles; $index++) {
+        $entry = (string) $zip->getNameIndex($index);
+
+        if (str_starts_with($entry, 'xl/worksheets/sheet')) {
+            $xml .= (string) $zip->getFromIndex($index);
+        }
+
+        if (str_starts_with($entry, 'xl/media/')) {
+            $media[] = $entry;
+        }
+    }
+
+    preg_match_all('/<t\b[^>]*>(.*?)<\/t>/s', (string) $zip->getFromName('xl/sharedStrings.xml').$xml, $strings);
+    $zip->close();
+
+    $decode = fn (string $value): string => html_entity_decode($value, ENT_QUOTES | ENT_XML1, 'UTF-8');
+
+    return [
+        'sheets' => array_map($decode, $names[1]),
+        'text' => $decode(implode("\n", $strings[1])),
+        'xml' => $xml,
+        'media' => $media,
+    ];
+}

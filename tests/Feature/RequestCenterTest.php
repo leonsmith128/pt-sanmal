@@ -61,7 +61,7 @@ it('shows a unified request center with filters limited to the signed-in employe
         ->assertSee('value="2026-11-03"', false);
 });
 
-it('exports filtered rows as spreadsheet-safe UTF-8 CSV', function () {
+it('exports filtered rows as a two-sheet XLSX without formulas', function () {
     $user = requestCenterUser(UserRole::Employee);
     $employee = requestCenterEmployee($user);
     $type = LeaveType::create(['code' => 'izin', 'name' => 'Izin', 'is_active' => true]);
@@ -76,12 +76,12 @@ it('exports filtered rows as spreadsheet-safe UTF-8 CSV', function () {
 
     $response = $this->actingAs($user)->get(route('leave-requests.export', ['status' => 'pending']));
 
-    $response->assertOk();
-    expect($response->headers->get('content-type'))->toContain('text/csv');
+    $xlsx = xlsxContents($response);
 
-    $content = $response->streamedContent();
-    expect($content)->toStartWith("\xEF\xBB\xBF")
-        ->and($content)->toContain("'=HYPERLINK");
+    expect($response->headers->get('content-disposition'))->toContain('.xlsx')
+        ->and($xlsx['sheets'])->toBe(['Ringkasan', 'Detail'])
+        ->and($xlsx['xml'])->not->toMatch('/<f[ >]/')
+        ->and($xlsx['text'])->toContain("'=HYPERLINK");
 });
 
 it('paginates request center results without paginator contract errors', function () {

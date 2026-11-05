@@ -71,9 +71,8 @@ it('filters sessions longer than 24 hours by their clock-in anchor date', functi
     expect($service->forEmployeeDate($employee, '2026-10-30')['events'])->toHaveCount(2)
         ->and($service->forEmployeeDate($employee, '2026-11-02')['events'])->toBeEmpty();
 
-    $csv = $this->actingAs($employee->user)
-        ->get(route('attendance-history.export', ['from' => '2026-10-30', 'to' => '2026-10-30']))
-        ->streamedContent();
+    $csv = xlsxContents($this->actingAs($employee->user)
+        ->get(route('attendance-history.export', ['from' => '2026-10-30', 'to' => '2026-10-30'])))['text'];
 
     expect($csv)
         ->toContain('Clock In Efektif')
@@ -122,7 +121,7 @@ it('uses the latest approved clock-in date correction as the session filter date
         'to' => '2026-11-03',
     ]));
 
-    $csv = $response->streamedContent();
+    $csv = xlsxContents($response)['text'];
 
     expect($response->getStatusCode())->toBe(200)
         ->and($csv)->toContain('Pegawai Tanggal Koreksi')
@@ -168,19 +167,18 @@ it('orders daily recap events by their effective timestamps after a correction',
         ->toBe([AttendanceType::ClockIn->value, AttendanceType::ClockOut->value]);
 });
 
-it('exports one employee row per date including dates without attendance when no date filter is supplied', function () {
+it('exports the employee history over the full range but skips dates without attendance, like the page', function () {
     $employee = dateFilterEmployee('Pegawai Ekspor Harian');
     createDateFilterSession($employee, '2026-10-30 01:00:00', '2026-10-30 09:00:00');
 
-    $csv = $this->actingAs($employee->user)
-        ->get(route('attendance-history.export'))
-        ->streamedContent();
+    $csv = xlsxContents($this->actingAs($employee->user)
+        ->get(route('attendance-history.export')))['text'];
 
     expect($csv)
         ->toContain('Pegawai Ekspor Harian')
         ->toContain('2026-10-30')
-        ->toContain('2026-10-31')
-        ->toContain('Belum ada data');
+        ->not->toContain('2026-10-31')
+        ->not->toContain('Belum ada data');
 });
 
 it('exports admin daily rows for every employee including dates without attendance', function () {
@@ -193,7 +191,7 @@ it('exports admin daily rows for every employee including dates without attendan
         'from' => '2026-10-30',
         'to' => '2026-10-31',
     ]));
-    $csv = $response->streamedContent();
+    $csv = xlsxContents($response)['text'];
 
     expect($response->getStatusCode())->toBe(200)
         ->and($csv)->toContain('Pegawai Hadir Ekspor')
@@ -224,9 +222,8 @@ it('includes forgotten clock-out correction status and note in the daily export'
         'status' => 'pending',
     ]);
 
-    $csv = $this->actingAs($employee->user)
-        ->get(route('attendance-history.export', ['from' => '2026-10-30', 'to' => '2026-10-30']))
-        ->streamedContent();
+    $csv = xlsxContents($this->actingAs($employee->user)
+        ->get(route('attendance-history.export', ['from' => '2026-10-30', 'to' => '2026-10-30'])))['text'];
 
     expect($csv)
         ->toContain('Menunggu')
@@ -277,10 +274,10 @@ it('groups onsite sessions by the WITA company reporting date without changing t
         ->set('dateTo', '2026-11-01')
         ->assertSee('data-record-count="0"', false);
 
-    $adminCsv = $this->actingAs(dateFilterAdmin())->get(route('admin.kehadiran.export', [
+    $adminCsv = xlsxContents($this->actingAs(dateFilterAdmin())->get(route('admin.kehadiran.export', [
         'from' => '2026-11-02',
         'to' => '2026-11-02',
-    ]))->streamedContent();
+    ])))['text'];
 
     expect($adminCsv)
         ->toContain('2026-11-02')
