@@ -125,7 +125,7 @@ new #[Title('Keamanan Akun')] class extends Component {
 
         try {
             $sent = RateLimiter::attempt(
-                'email-verification-resend:'.$user->getKey(),
+                md5('verification'.$user->getAuthIdentifier()),
                 3,
                 function () use ($user): bool {
                     $user->sendEmailVerificationNotification();
