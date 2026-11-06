@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Actions\CompleteFirstPasswordChange;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\View\View;
 
@@ -27,7 +28,9 @@ class FirstPasswordChangeController extends Controller
 
         $completePasswordChange->handle($request->user(), $data['password']);
 
-        $request->session()->regenerate();
+        // Re-authenticate with the new password hash so auth.session keeps this device
+        // signed in while rejecting sessions that still carry the previous hash.
+        Auth::login($request->user()->fresh());
 
         return redirect()->route('dashboard')->with('status', 'Password berhasil diperbarui.');
     }
