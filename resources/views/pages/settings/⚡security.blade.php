@@ -124,6 +124,7 @@ new #[Title('Keamanan Akun')] class extends Component {
         }
 
         try {
+            // Match Fortify's named limiter key so both resend paths share one quota.
             $sent = RateLimiter::attempt(
                 md5('verification'.$user->getAuthIdentifier()),
                 3,
