@@ -1,6 +1,6 @@
 <?php
 
-use Illuminate\\Support\\Str;
+use Illuminate\Support\Str;
 
 return [
 
@@ -88,7 +88,7 @@ return [
         'redis' => [
             'driver' => 'redis',
             'connection' => env('REDIS_CACHE_CONNECTION', 'cache'),
-            'lock_connection' => env('REDIS_CACHE_LOCK_CONNECTION'),
+            'lock_connection' => env('REDIS_CACHE_LOCK_CONNECTION', 'default'),
         ],
 
         'dynamodb' => [
