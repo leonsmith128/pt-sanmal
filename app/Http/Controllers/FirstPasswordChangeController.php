@@ -30,7 +30,7 @@ class FirstPasswordChangeController extends Controller
 
         // Re-authenticate with the new password hash so auth.session keeps this device
         // signed in while rejecting sessions that still carry the previous hash.
-        Auth::login($request->user()->fresh());
+        Auth::login($request->user()->refresh());
 
         return redirect()->route('dashboard')->with('status', 'Password berhasil diperbarui.');
     }
