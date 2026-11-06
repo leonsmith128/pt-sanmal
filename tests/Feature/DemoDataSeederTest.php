@@ -31,6 +31,7 @@ it('seeds twenty employee demo accounts and realistic linked attendance events i
 
     expect($clockIns->count())->toBeGreaterThan(1000)
         ->and($clockOuts->count())->toBeGreaterThan(900)
+        ->and($clockIns->count())->toBeGreaterThan($clockOuts->count())
         ->and($clockOuts->every(fn (AttendanceRecord $record): bool => $record->session_anchor_id !== null))->toBeTrue();
 
     $recordCount = AttendanceRecord::query()->count();

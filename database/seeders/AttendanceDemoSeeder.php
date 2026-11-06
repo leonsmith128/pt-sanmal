@@ -128,7 +128,10 @@ class AttendanceDemoSeeder extends Seeder
                     );
 
                     // Sedikit sesi tidak lengkap sengaja dipertahankan untuk menguji deteksi anomali.
-                    if ($dailySeed % 1700 === 0) {
+                    if (
+                        ($employee->employee_number === 'EMP-004' && $date->toDateString() === '2026-06-15')
+                        || $dailySeed % 1700 === 0
+                    ) {
                         continue;
                     }
 
