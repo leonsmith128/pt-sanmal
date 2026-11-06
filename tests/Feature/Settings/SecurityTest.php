@@ -209,3 +209,20 @@ test('changing account email expires outstanding password reset requests', funct
         ->and($approved->fresh()->status)->toBe('expired')
         ->and($approved->fresh()->token_hash)->toBeNull();
 });
+
+
+test('email verification resend is limited to three attempts per hour', function () {
+    Notification::fake();
+
+    $user = User::factory()->unverified()->create();
+
+    $this->actingAs($user);
+
+    $component = Livewire::test('pages::settings.security');
+
+    foreach (range(1, 4) as $attempt) {
+        $component->call('resendVerificationNotification');
+    }
+
+    expect(Notification::sent($user, VerifyEmail::class))->toHaveCount(3);
+});
