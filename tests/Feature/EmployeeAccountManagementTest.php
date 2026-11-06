@@ -187,6 +187,7 @@ test('first password change requires at least eight characters and a number with
 
 test('activation link sets a password without verifying email and cannot be reused', function () {
     $employee = pendingAccountEmployee();
+    $oldRememberToken = $employee->user->remember_token;
     $token = str_repeat('a', 64);
 
     EmployeeAccountCredential::create([
@@ -213,7 +214,8 @@ test('activation link sets a password without verifying email and cannot be reus
         ->and($user->email_verified_at)->toBeNull()
         ->and($user->accountCredential)->toBeNull()
         ->and($user->accountActivation->consumed_at)->not->toBeNull()
-        ->and(Hash::check('activatedpassword1', $user->password))->toBeTrue();
+        ->and(Hash::check('activatedpassword1', $user->password))->toBeTrue()
+        ->and($user->remember_token)->not->toBe($oldRememberToken);
 
     $this->post(route('employee-activation.store', ['token' => $token]), $payload)
         ->assertStatus(422);
