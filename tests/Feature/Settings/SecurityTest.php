@@ -74,6 +74,7 @@ test('password can be updated, audited, and notifies the account owner', functio
     $user = User::factory()->create([
         'password' => Hash::make('password'),
     ]);
+    $oldRememberToken = $user->remember_token;
 
     $this->actingAs($user);
 
@@ -85,7 +86,8 @@ test('password can be updated, audited, and notifies the account owner', functio
 
     $response->assertHasNoErrors();
 
-    expect(Hash::check('new-password1', $user->refresh()->password))->toBeTrue();
+    expect(Hash::check('new-password1', $user->refresh()->password))->toBeTrue()
+        ->and($user->remember_token)->not->toBe($oldRememberToken);
 
     $this->assertDatabaseHas('audit_logs', [
         'auditable_type' => $user->getMorphClass(),
