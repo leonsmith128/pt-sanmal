@@ -18,6 +18,12 @@ class BootstrapSuperadmin extends Command
 
     public function handle(): int
     {
+        if (User::query()->where('role', UserRole::Superadmin)->exists()) {
+            $this->components->info('Akun superadmin sudah tersedia. Tidak ada perubahan yang dilakukan.');
+
+            return self::SUCCESS;
+        }
+
         $validator = Validator::make(config('sanmal.superadmin', []), [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255'],

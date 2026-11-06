@@ -42,7 +42,9 @@ it('does not mutate or replace an existing superadmin when bootstrap runs again'
     ]);
     $existing->forceFill(['role' => UserRole::Superadmin])->save();
 
-    expect(Artisan::call('sanmal:bootstrap-superadmin'))->toBe(1)
+    config(['sanmal.superadmin.name' => null, 'sanmal.superadmin.email' => null, 'sanmal.superadmin.password' => null]);
+
+    expect(Artisan::call('sanmal:bootstrap-superadmin'))->toBe(0)
         ->and(User::query()->where('role', UserRole::Superadmin)->count())->toBe(1)
         ->and($existing->fresh()->email)->toBe('existing-superadmin@example.test')
         ->and(Hash::check('ExistingPassword123', $existing->fresh()->password))->toBeTrue();

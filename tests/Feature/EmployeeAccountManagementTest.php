@@ -217,7 +217,9 @@ test('activation link sets a password without verifying email and cannot be reus
         ->assertStatus(422);
 });
 
-test('email change clears previous email verification', function () {
+test('email change clears previous email verification and notifies the old address', function () {
+    Notification::fake();
+
     $employee = pendingAccountEmployee();
     $employee->user->forceFill([
         'must_change_password' => false,
@@ -238,6 +240,13 @@ test('email change clears previous email verification', function () {
 
     expect($employee->user->fresh()->email)->toBe('updated.employee@example.com')
         ->and($employee->user->fresh()->email_verified_at)->toBeNull();
+
+    Notification::assertSentTo($employee->user->fresh(), Illuminate\Auth\Notifications\VerifyEmail::class);
+    Notification::assertSentOnDemand(
+        App\Notifications\AccountSecurityNotification::class,
+        fn (App\Notifications\AccountSecurityNotification $notification, array $channels, object $notifiable): bool => $notifiable->routes['mail'] === $employee->user->email
+            && $notification->subject === 'Email akun SanMal diubah',
+    );
 });
 
 test('admin can rotate a temporary password and invalidate the previous activation link', function () {

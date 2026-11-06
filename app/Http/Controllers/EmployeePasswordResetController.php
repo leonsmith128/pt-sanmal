@@ -22,7 +22,7 @@ class EmployeePasswordResetController extends Controller
         $data = $request->validate(['email' => ['required', 'email', 'max:255']]);
         $requestPasswordReset->handle($data['email']);
 
-        return back()->with('status', 'Jika email terdaftar sebagai akun pegawai aktif, permintaan reset akan diteruskan kepada administrator.');
+        return back()->with('status', 'Jika email terdaftar sebagai akun aktif, permintaan reset akan diteruskan kepada administrator.');
     }
 
     public function show(string $token): View

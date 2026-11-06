@@ -52,6 +52,49 @@ it('allows both administrator roles to access administrative employee pages', fu
     }
 });
 
+it('limits admin account management to employee accounts and reserves admin accounts for superadmin', function () {
+    $admin = adminAccessUser(UserRole::Admin);
+    $employeeUser = adminAccessUser(UserRole::Employee);
+    $employee = Employee::query()->create(['user_id' => $employeeUser->id, 'position' => 'technician']);
+    $otherAdmin = adminAccessUser(UserRole::Admin);
+    $adminProfile = Employee::query()->create(['user_id' => $otherAdmin->id, 'position' => 'staff_administration']);
+
+    $this->actingAs($admin)
+        ->get(route('admin.employees.index'))
+        ->assertOk()
+        ->assertSee($employeeUser->email)
+        ->assertDontSee($otherAdmin->email);
+
+    $this->actingAs($admin)
+        ->get(route('admin.employees.edit', $adminProfile))
+        ->assertForbidden();
+
+    $this->actingAs($admin)
+        ->put(route('admin.employees.update', $adminProfile), [
+            'name' => 'Tidak Boleh Diubah',
+            'email' => 'admin-target@example.test',
+            'position' => 'staff_administration',
+            'is_active' => false,
+        ])
+        ->assertForbidden();
+
+    $this->actingAs($admin)
+        ->post(route('admin.employees.temporary-password', $adminProfile))
+        ->assertForbidden();
+
+    $this->actingAs($admin)
+        ->post(route('admin.employees.rotate-temporary-password', $adminProfile))
+        ->assertForbidden();
+
+    $this->actingAs($admin)
+        ->post(route('admin.employees.resend-activation', $adminProfile))
+        ->assertForbidden();
+
+    $this->actingAs(adminAccessUser(UserRole::Superadmin))
+        ->get(route('admin.employees.edit', $adminProfile))
+        ->assertOk();
+});
+
 it('lets only superadmin open the employee account creation form', function () {
     $this->actingAs(adminAccessUser(UserRole::Superadmin))
         ->get(route('admin.employees.create'))

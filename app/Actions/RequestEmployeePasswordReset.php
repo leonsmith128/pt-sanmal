@@ -14,7 +14,7 @@ class RequestEmployeePasswordReset
     {
         $user = User::query()->where('email', $email)->first();
 
-        if (! $user || ! $user->is_active || $user->must_change_password || $user->role !== UserRole::Employee) {
+        if (! $user || ! $user->is_active || $user->must_change_password || ! in_array($user->role, [UserRole::Employee, UserRole::Admin], true)) {
             return;
         }
 
@@ -25,7 +25,7 @@ class RequestEmployeePasswordReset
                 $lockedUser->email !== $email
                 || ! $lockedUser->is_active
                 || $lockedUser->must_change_password
-                || $lockedUser->role !== UserRole::Employee
+                || ! in_array($lockedUser->role, [UserRole::Employee, UserRole::Admin], true)
             ) {
                 return;
             }

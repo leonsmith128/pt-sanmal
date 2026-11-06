@@ -48,6 +48,30 @@ test('employee can request a password reset without revealing whether an email e
     expect(PasswordResetRequest::query()->count())->toBe(1);
 });
 
+test('admin accounts can request password reset but only superadmin can approve their requests', function () {
+    Notification::fake();
+
+    $adminAccount = passwordResetAdminAccount();
+
+    $this->post(route('password-reset.request.store'), ['email' => $adminAccount->email])
+        ->assertRedirect()
+        ->assertSessionHas('status');
+
+    $resetRequest = PasswordResetRequest::query()->where('user_id', $adminAccount->id)->firstOrFail();
+
+    $this->actingAs(passwordResetAdmin())
+        ->post(route('admin.password-reset-requests.approve', $resetRequest))
+        ->assertForbidden();
+
+    $this->actingAs(passwordResetSuperadmin())
+        ->post(route('admin.password-reset-requests.approve', $resetRequest))
+        ->assertRedirect()
+        ->assertSessionHas('status');
+
+    expect($resetRequest->fresh()->status)->toBe('approved');
+    Notification::assertSentTo($adminAccount, PasswordResetApprovedNotification::class);
+});
+
 test('only an administrator can approve a pending reset request and issue a link', function () {
     Notification::fake();
 

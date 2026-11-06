@@ -2,6 +2,7 @@
 
 namespace App\Actions;
 
+use App\Enums\UserRole;
 use App\Models\AuditLog;
 use App\Models\PasswordResetRequest;
 use App\Models\User;
@@ -31,7 +32,12 @@ class CompleteEmployeePasswordReset
                 422,
                 'Tautan reset tidak valid atau sudah kedaluwarsa.',
             );
-            abort_unless($user->is_active && ! $user->must_change_password, 403);
+            abort_unless(
+                $user->is_active
+                    && ! $user->must_change_password
+                    && in_array($user->role, [UserRole::Employee, UserRole::Admin], true),
+                403,
+            );
 
             $user->forceFill(['password' => Hash::make($password)])->save();
 

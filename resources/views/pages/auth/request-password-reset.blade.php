@@ -1,6 +1,6 @@
 <x-layouts::auth :title="__('Ajukan Reset Password')">
     <div class="flex flex-col gap-6">
-        <x-auth-header :title="__('Ajukan reset password')" :description="__('Masukkan email akun pegawai. Permintaan akan ditinjau administrator.')"/>
+        <x-auth-header :title="__('Ajukan reset password')" :description="__('Masukkan email akun aktif. Permintaan akan ditinjau administrator.')"/>
         <x-auth-session-status class="text-center" :status="session('status')" />
         <form method="POST" action="{{ route('password-reset.request.store') }}" class="flex flex-col gap-5">
             @csrf

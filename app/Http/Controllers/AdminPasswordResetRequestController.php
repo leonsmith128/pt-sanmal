@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Admin\Employees\ApprovePasswordReset;
+use App\Enums\UserRole;
 use App\Models\AuditLog;
 use App\Models\PasswordResetRequest;
 use App\Models\User;
@@ -15,7 +16,9 @@ class AdminPasswordResetRequestController extends Controller
 {
     public function index(): View
     {
+        $actor = auth()->user();
         $requests = PasswordResetRequest::query()
+            ->when($actor?->isAdmin(), fn ($query) => $query->whereHas('user', fn ($user) => $user->where('role', UserRole::Employee->value)))
             ->with(['user.employee', 'reviewer'])
             ->latest()
             ->paginate(20);
@@ -28,6 +31,11 @@ class AdminPasswordResetRequestController extends Controller
         $data = $request->validate(['review_note' => ['nullable', 'string', 'max:1000']]);
         $reviewer = $request->user();
         abort_unless($reviewer instanceof User, 403);
+        abort_unless(
+            $reviewer->isSuperadmin()
+                || ($reviewer->isAdmin() && $passwordResetRequest->user->role === UserRole::Employee),
+            403,
+        );
 
         $sent = $approvePasswordReset->handle($passwordResetRequest, $reviewer, $data['review_note'] ?? null);
 
@@ -41,6 +49,12 @@ class AdminPasswordResetRequestController extends Controller
     public function reject(Request $request, PasswordResetRequest $passwordResetRequest): RedirectResponse
     {
         $data = $request->validate(['review_note' => ['required', 'string', 'max:1000']]);
+        $reviewer = $request->user();
+        abort_unless(
+            $reviewer?->isSuperadmin()
+                || ($reviewer?->isAdmin() && $passwordResetRequest->user->role === UserRole::Employee),
+            403,
+        );
 
         DB::transaction(function () use ($passwordResetRequest, $request, $data): void {
             $lockedRequest = PasswordResetRequest::query()->lockForUpdate()->findOrFail($passwordResetRequest->id);

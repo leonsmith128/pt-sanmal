@@ -54,13 +54,17 @@ Aturan pembuatan:
 
 | Kemampuan | Superadmin | Admin | Employee |
 |---|---:|---:|---:|
-| Melihat daftar pegawai | Ya | Ya | Tidak |
-| Melihat detail/edit data pegawai | Ya | Ya, sesuai kebijakan pengelolaan | Tidak |
+| Melihat daftar akun Employee | Ya | Ya | Tidak |
+| Melihat/edit akun Employee | Ya | Ya | Tidak |
+| Melihat/edit akun Admin | Ya | Tidak | Tidak |
 | Membuat akun Employee | Ya | Tidak | Tidak |
 | Membuat akun Admin | Ya | Tidak | Tidak |
 | Menentukan role saat pembuatan akun | Ya | Tidak | Tidak |
 | Mengubah role akun yang sudah ada | Superadmin saja, jika kelak disediakan secara eksplisit | Tidak | Tidak |
-| Mengelola status aktif pegawai | Ya | Sesuai izin pengelolaan yang diberikan | Tidak |
+| Mengelola status akun Employee | Ya | Ya | Tidak |
+| Mengelola status akun Admin | Ya | Tidak | Tidak |
+| Menyetujui reset akun Employee | Ya | Ya | Tidak |
+| Menyetujui reset akun Admin | Ya | Tidak | Tidak |
 | Membuat/memulihkan Superadmin dari UI | Tidak | Tidak | Tidak |
 
 Ketentuan:
@@ -137,8 +141,10 @@ Deaktivasi:
 - Password yang dibuat sendiri saat aktivasi, perubahan password pertama, perubahan dari Keamanan Akun, atau reset: minimal 8 karakter, mengandung huruf dan angka; simbol boleh digunakan.
 - Hash password menggunakan mekanisme hashing Laravel. Salinan sementara, bila diperlukan untuk onboarding, wajib dienkripsi dan dihapus setelah password diganti.
 - Token aktivasi/reset disimpan dalam bentuk hash, memiliki expiry, dan hanya dapat digunakan sekali.
-- Reset password akun pegawai memerlukan permintaan dan persetujuan Admin/Superadmin. Reset publik Fortify tidak boleh menjadi jalur yang melewati approval.
-- Pastikan cakupan reset untuk akun Admin juga diputuskan dan diuji: Admin adalah User yang memiliki Employee profile, sehingga jangan menganggap role Admin otomatis tercakup hanya karena halaman pengelolaannya digabung.
+- Reset password akun Employee memerlukan permintaan dan persetujuan Admin/Superadmin.
+- Akun Admin juga dapat mengajukan reset password, tetapi hanya Superadmin yang boleh menyetujui permintaan reset akun Admin.
+- Superadmin tidak menggunakan reset publik; pemulihannya hanya melalui command terminal khusus.
+- Reset publik Fortify tidak boleh menjadi jalur yang melewati approval.
 - Jangan pernah mencatat password atau token mentah pada audit log, application log, atau response umum.
 
 ## 7. Superadmin tunggal: bootstrap dan recovery
@@ -163,7 +169,7 @@ Ketentuan wajib:
 1. Hanya dapat dijalankan dari terminal cPanel atau SSH pada environment production.
 2. Tidak ada route HTTP, halaman UI, API, atau tombol untuk menjalankannya.
 3. Command harus memastikan tepat satu akun Superadmin sudah ada. Jika tidak ada atau ditemukan kondisi duplikat, hentikan proses dan minta operator memperbaiki kondisi database; jangan otomatis membuat akun baru.
-4. Password baru diminta secara interaktif dengan input tersembunyi. Jangan menerima password melalui argument command, opsi CLI, atau output shell history.
+4. Email dan password dapat dipulihkan dari prompt terminal; password baru diminta secara interaktif dengan input tersembunyi. Jika email berubah, kosongkan `email_verified_at` dan kirim verifikasi ke alamat baru. Jangan menerima password melalui argument command, opsi CLI, atau output shell history.
 5. Hash password baru dengan mekanisme Laravel.
 6. Cabut sesi aktif dan token pemulihan/reset yang relevan sejauh didukung konfigurasi session/token aplikasi.
 7. Catat audit event recovery tanpa menyimpan password, token, atau secret.
@@ -202,7 +208,24 @@ Pemeriksaan dilakukan pada source branch `feature/pengelolaan-akun-pegawai`, ter
 8. **Belum ada batas pengelolaan akun Admin oleh Admin lain.** Route edit/update saat ini tersedia untuk Admin dan Superadmin tanpa memeriksa role User yang terkait dengan Employee. Setelah akun Admin dibuat sebagai Employee profile, Admin berpotensi mengubah email atau menonaktifkan akun Admin lain. Rekomendasi keamanan: hanya Superadmin yang boleh mengubah atau menonaktifkan akun ber-role Admin; Admin hanya mengelola akun ber-role Employee. Ini perlu dikonfirmasi sebagai aturan produk sebelum implementasi.
 9. **Unique Superadmin constraint perlu diverifikasi pada MariaDB production.** Migration menggunakan generated virtual column dan unique index; uji MariaDB CI serta pemeriksaan data duplikat sebelum deploy tetap wajib.
 
-## 9. Rencana implementasi yang disarankan
+## 9. Status implementasi tahap lanjutan — 7 November 2026
+
+Source branch kini menerapkan aturan tambahan berikut:
+
+- Admin hanya melihat dan mengelola akun ber-role Employee. Admin tidak dapat membuka, mengubah, menonaktifkan, menyalin password sementara, merotasi password sementara, atau mengirim ulang aktivasi untuk akun Admin lain.
+- Superadmin dapat mengelola akun Employee dan Admin. Pemeriksaan tersebut diterapkan pada controller, bukan hanya dengan menyembunyikan tombol UI.
+- Route dan controller pembuatan akun sama-sama membatasi create/store kepada Superadmin.
+- Akun Admin dapat mengajukan reset password. Admin hanya dapat menyetujui/menolak permintaan akun Employee; permintaan reset akun Admin hanya dapat diproses Superadmin.
+- Alur reset password menolak role Superadmin; pemulihan Superadmin dilakukan lewat command shell.
+- Perubahan email dari halaman pengelolaan akun mengirim verifikasi ke email baru dan notifikasi keamanan ke email lama. Perubahan tetap tidak menonaktifkan akun aktif.
+- Command bootstrap menjadi no-op sukses ketika Superadmin sudah ada, bahkan ketika konfigurasi bootstrap tidak lagi tersedia.
+- Command `sanmal:recover-superadmin` memulihkan akun Superadmin yang sudah ada, meminta password secara tersembunyi, mewajibkan verifikasi ulang bila email berubah, membatalkan request reset, mencabut sesi/token yang didukung, dan mencatat audit tanpa secret.
+
+**Status verifikasi:** source dan test baru telah disiapkan, tetapi test suite, Pint, PHPStan, CI, dan QA browser belum dijalankan. CI tetap ditunda sampai seluruh implementasi fitur selesai.
+
+---
+
+## 10. Rencana implementasi yang disarankan
 
 Urutan kerja untuk mengurangi risiko:
 
@@ -216,7 +239,7 @@ Urutan kerja untuk mengurangi risiko:
 8. Jalankan Pint, feature tests, test MariaDB 11 dan SQLite, lalu review route/authorization dan audit log.
 9. Lakukan QA browser pada desktop dan mobile untuk form role, preview kode, validasi, serta status akun.
 
-## 10. Kriteria penerimaan
+## 11. Kriteria penerimaan
 
 - [ ] Superadmin dapat membuat akun Employee dan Admin dari halaman/form yang sama.
 - [ ] Admin tidak dapat membuat akun baru atau mengubah role melalui request langsung.

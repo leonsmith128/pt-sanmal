@@ -2,10 +2,10 @@
     <x-ui.page>
         <x-admin.page-header
             :title="__('Permintaan Reset Password')"
-            :description="__('Tinjau permintaan reset password pegawai dan catat keputusan admin.')"
+            :description="__('Tinjau permintaan reset password akun dan catat keputusan admin.')"
         >
             <x-ui.button href="{{ route('admin.employees.index') }}" variant="outline" icon="arrow-left">
-                {{ __('Manajemen pegawai') }}
+                {{ __('Manajemen akun') }}
             </x-ui.button>
         </x-admin.page-header>
         <x-admin.flash-message />
