@@ -39,9 +39,9 @@ class BootstrapSuperadmin extends Command
         $credentials = $validator->validated();
 
         if (User::query()->where('role', UserRole::Superadmin)->exists()) {
-            $this->components->error('Akun superadmin sudah tersedia. Command ini hanya dapat membuat akun pertama dan tidak mengubah akun yang ada.');
+            $this->components->info('Akun superadmin sudah tersedia. Tidak ada perubahan yang dilakukan.');
 
-            return self::FAILURE;
+            return self::SUCCESS;
         }
 
         if (User::query()->where('email', $credentials['email'])->exists()) {

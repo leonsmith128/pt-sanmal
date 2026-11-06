@@ -196,7 +196,9 @@ Pemeriksaan dilakukan pada source branch `feature/pengelolaan-akun-pegawai`, ter
 - UI edit menampilkan status akun, status aktivasi, dan status verifikasi email secara terpisah.
 - Command bootstrap Superadmin tersedia dan migration menambahkan unique key untuk membatasi satu Superadmin.
 
-### Gap terhadap kontrak terbaru
+### Gap pada snapshot audit awal (5 November 2026)
+
+> Daftar berikut adalah temuan historis sebelum batch implementasi 7 November 2026. Status perbaikannya dirangkum pada bagian 9.
 
 1. **Belum ada pembuatan akun Admin melalui UI.** Route dan controller saat ini membuat akun dengan role tetap `Employee`; belum ada pilihan role Admin pada form maupun Action.
 2. **Kode pegawai belum otomatis.** Form saat ini menerima `employee_number` manual dan opsional; controller memvalidasi input browser, sedangkan Action menyimpan nilai tersebut. Belum ada generator, preview read-only, sequence, atau mekanisme locking.
@@ -225,19 +227,21 @@ Source branch kini menerapkan aturan tambahan berikut:
 
 ---
 
-## 10. Rencana implementasi yang disarankan
+## 10. Verifikasi dan deployment berikutnya
 
-Urutan kerja untuk mengurangi risiko:
+Implementasi tahap lanjutan sudah dipush ke branch. Sebelum merge/deploy, jalankan pemeriksaan berikut sesuai urutan:
 
-1. Tambahkan generator kode pegawai yang aman terhadap request bersamaan, unique constraint, dan test sequence termasuk transisi `EMP-99` ke `EMP-100`.
-2. Perluas use case pembuatan pegawai agar menerima role yang diizinkan (Employee/Admin), dengan otorisasi Superadmin tetap di backend.
-3. Perbarui form tunggal: role selector hanya untuk Superadmin dan kode pegawai read-only yang dipreview dari server.
-4. Pastikan User + Employee + kode pegawai + kredensial onboarding dibuat atomik.
-5. Tegaskan batas pengelolaan akun Admin (rekomendasi: hanya Superadmin yang dapat mengubah/menonaktifkan akun Admin), cakupan reset, dan tambahkan test role yang eksplisit.
-6. Samakan invalidasi token/request reset pada perubahan email self-service dan admin.
-7. Tambahkan command recovery Superadmin yang hanya berjalan melalui shell; rapikan perilaku bootstrap agar tidak mengubah akun yang sudah ada.
-8. Jalankan Pint, feature tests, test MariaDB 11 dan SQLite, lalu review route/authorization dan audit log.
-9. Lakukan QA browser pada desktop dan mobile untuk form role, preview kode, validasi, serta status akun.
+1. Jalankan test terarah: `AdminAuthorizationTest`, `EmployeeAccountManagementTest`, `Auth/PasswordResetTest`, `SuperadminBootstrapTest`, `SuperadminRecoveryTest`, dan `Settings/SecurityTest`.
+2. Jalankan Pint dan PHPStan, lalu seluruh feature test.
+3. Jalankan CI pada MariaDB 11 dan SQLite. Periksa khusus unique Superadmin key, sequence nomor pegawai, dan migration kolom jabatan.
+4. QA browser desktop/mobile untuk daftar akun, form edit Admin/Employee, status aktivasi, filter, dan tindakan password sementara.
+5. Sebelum production migration, backup database dan periksa data lama/duplikasi. Jalankan migration dalam maintenance window yang sesuai.
+6. Uji command bootstrap pada database yang sudah memiliki Superadmin untuk memastikan command no-op sukses dan tidak mengganti kredensial.
+7. Uji recovery command hanya melalui terminal cPanel/SSH dengan prosedur operasional yang disetujui. Jangan menjalankannya melalui web request.
+
+CI sengaja belum dijalankan sampai implementasi fitur selesai sesuai keputusan pengembangan.
+
+---
 
 ## 11. Kriteria penerimaan
 
