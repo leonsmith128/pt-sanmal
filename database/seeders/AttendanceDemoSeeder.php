@@ -24,7 +24,7 @@ class AttendanceDemoSeeder extends Seeder
 
     public function run(): void
     {
-        if (! app()->environment('local')) {
+        if (! app()->environment('local') && ! app()->environment('testing')) {
             return;
         }
 

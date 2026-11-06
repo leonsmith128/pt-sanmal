@@ -17,12 +17,12 @@ use Illuminate\Support\Facades\DB;
 class DevDataSeeder extends Seeder
 {
     /**
-     * Data uji untuk development. Hanya jalan di environment "local".
+     * Data uji untuk development. Hanya jalan di environment local/testing.
      * Semua akun uji memakai password: password
      */
     public function run(): void
     {
-        if (! app()->environment('local')) {
+        if (! app()->environment('local') && ! app()->environment('testing')) {
             return;
         }
 
