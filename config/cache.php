@@ -119,8 +119,9 @@ return [
     | Cache Key Prefix
     |--------------------------------------------------------------------------
     |
-    | When utilizing the APC, database, memcached, and DynamoDB, you may
-    | prefix every cache key to avoid collisions.
+    | When utilizing the APC, database, memcached, Redis, and DynamoDB cache
+    | stores, there might be other applications using the same cache. For
+    | that reason, you may prefix every cache key to avoid collisions.
     |
     */
 
@@ -131,7 +132,9 @@ return [
     | Serializable Classes
     |--------------------------------------------------------------------------
     |
-    | This value determines which classes may be unserialized from cache.
+    | This value determines which classes can be unserialized from cache.
+    | By default, no PHP classes will be unserialized from your cache to
+    | prevent gadget chain attacks if your APP_KEY is leaked.
     |
     */
 
