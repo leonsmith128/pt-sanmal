@@ -67,7 +67,13 @@ it('shows role and position as separate values for Employee and Admin accounts',
         'position' => 'staff_administration',
     ]);
 
-    $this->actingAs(employeePageAdmin())
+    $superadmin = User::factory()->create();
+    $superadmin->forceFill([
+        'role' => UserRole::Superadmin,
+        'is_active' => true,
+    ])->save();
+
+    $this->actingAs($superadmin)
         ->get(route('admin.employees.index'))
         ->assertOk()
         ->assertSee('Pegawai')
@@ -99,7 +105,7 @@ it('shows an empty state when no employees match the filters', function () {
     $this->actingAs(employeePageAdmin())
         ->get(route('admin.employees.index', ['q' => 'tidak-ditemukan']))
         ->assertOk()
-        ->assertSee('Belum ada data pegawai yang sesuai dengan filter.');
+        ->assertSee('Belum ada akun yang sesuai dengan filter.');
 });
 
 it('shows the add employee button only to superadmin', function () {

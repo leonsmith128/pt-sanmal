@@ -109,7 +109,11 @@ it('paginates request center results without paginator contract errors', functio
     $this->actingAs($user)
         ->get(route('leave-requests.index', ['page' => 2]))
         ->assertOk()
-        ->assertSee('page=2', false)
+        ->assertViewHas('requests', fn ($requests): bool => $requests->currentPage() === 2
+            && $requests->lastPage() === 2
+            && $requests->perPage() === 30
+            && $requests->count() === 1
+            && str_contains($requests->url(2), 'page=2'))
         ->assertSee('Permohonan keluarga nomor 1')
         ->assertDontSee('Permohonan keluarga nomor 31');
 });

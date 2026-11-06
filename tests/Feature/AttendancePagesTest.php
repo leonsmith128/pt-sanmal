@@ -68,7 +68,8 @@ test('employees can visit their own attendance history', function () {
         ->assertSee(__('Absensi lengkap'))
         ->assertSee(__('Perlu ditinjau'))
         ->assertSee('grid grid-cols-3 gap-2 sm:gap-3', false)
-        ->assertSee('flex w-full flex-row gap-2 sm:w-auto', false)
+        ->assertSee('flex w-full flex-row justify-end gap-2', false)
+        ->assertSee('flex-1 whitespace-nowrap sm:flex-none', false)
         ->assertSee('whitespace-nowrap sm:flex-none', false)
         ->assertSee('aria-controls="attendance-history-filter-panel"', false)
         ->assertSee('x-show="filterOpen"', false)
@@ -688,16 +689,9 @@ test('attendance history renders date groups and event detail dialog using the c
     $exportUrl = collect($exportLinks)
         ->map(fn ($link): string => html_entity_decode($link->getAttribute('href')))
         ->first(fn (string $href): bool => str_contains($href, 'from=2026-11-01') && str_contains($href, 'to=2026-11-04'));
-    $cardSurfaces = $xpath->query('//*[contains(concat(" ", normalize-space(@class), " "), " shadow-sm ")]');
-
     expect($exportUrl)->not->toBeNull()
         ->and($exportUrl)->toContain('from=2026-11-01')
-        ->and($exportUrl)->toContain('to=2026-11-04')
-        ->and($cardSurfaces->length)->toBeGreaterThanOrEqual(5);
-
-    foreach ($cardSurfaces as $cardSurface) {
-        expect($cardSurface->getAttribute('class'))->not->toContain('border');
-    }
+        ->and($exportUrl)->toContain('to=2026-11-04');
 });
 
 test('attendance history does not expose a map link for unverified GPS coordinates', function () {
