@@ -1,9 +1,9 @@
 <?php
 
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
+use Illuminate\\Database\\Migrations\\Migration;
+use Illuminate\\Database\\Schema\\Blueprint;
+use Illuminate\\Support\\Facades\\DB;
+use Illuminate\\Support\\Facades\\Schema;
 
 return new class extends Migration
 {
@@ -13,20 +13,21 @@ return new class extends Migration
             $table->id();
             $table->foreignId('client_id')->nullable()->constrained('clients')->restrictOnDelete();
             $table->string('name');
-            $table->string('type', 20)->default('site'); // office / site
+            $table->string('type', 20)->default('site');
             $table->text('address')->nullable();
             $table->decimal('latitude', 10, 7)->nullable();
             $table->decimal('longitude', 10, 7)->nullable();
-            // Disimpan sebagai identifier IANA, mis. Asia/Makassar.
             $table->string('timezone', 50)->default('Asia/Makassar');
             $table->boolean('is_active')->default(true);
             $table->timestamps();
 
             $table->index(['client_id', 'is_active']);
+            // Target composite foreign key projects(location_id, client_id).
+            $table->unique(['id', 'client_id'], 'locations_id_client_id_unique');
         });
 
-        // SQLite tidak mendukung ALTER TABLE ... ADD CONSTRAINT.
-        // Validasi model tetap berjalan lintas driver; constraint DB dipasang di MySQL/MariaDB.
+        // MySQL/MariaDB enforce this invariant at database level.
+        // SQLite relies on the matching Location model validation.
         if (in_array(DB::getDriverName(), ['mysql', 'mariadb'], true)) {
             DB::statement(<<<'SQL'
                 ALTER TABLE locations
