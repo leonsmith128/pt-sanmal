@@ -141,6 +141,7 @@ test('admin can copy the same temporary password repeatedly while employee canno
 
 test('first password change removes temporary credential without verifying email', function () {
     $employee = pendingAccountEmployee();
+    $oldRememberToken = $employee->user->remember_token;
     EmployeeAccountCredential::create([
         'user_id' => $employee->user_id,
         'temporary_password_encrypted' => Crypt::encryptString('temporary-password-value'),
@@ -158,7 +159,8 @@ test('first password change removes temporary credential without verifying email
     expect($user->must_change_password)->toBeFalse()
         ->and($user->email_verified_at)->toBeNull()
         ->and($user->accountCredential)->toBeNull()
-        ->and(Hash::check('personalpassword1', $user->password))->toBeTrue();
+        ->and(Hash::check('personalpassword1', $user->password))->toBeTrue()
+        ->and($user->remember_token)->not->toBe($oldRememberToken);
 });
 
 test('first password change requires at least eight characters and a number without requiring uppercase', function () {
