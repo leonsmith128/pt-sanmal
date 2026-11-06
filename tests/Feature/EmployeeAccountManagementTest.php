@@ -7,6 +7,7 @@ use App\Models\EmployeeAccountCredential;
 use App\Models\PasswordResetRequest;
 use App\Models\User;
 use App\Notifications\EmployeeAccountActivationNotification;
+use App\Services\EmployeeNumberGenerator;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -405,7 +406,7 @@ test('employee number generation continues from EMP-99 to EMP-100', function () 
 });
 
 test('employee number allocation rolls back with the employee creation transaction', function () {
-    $generator = app(\App\Services\EmployeeNumberGenerator::class);
+    $generator = app(EmployeeNumberGenerator::class);
 
     expect(fn () => DB::transaction(function () use ($generator): void {
         expect($generator->next())->toBe('EMP-01');
