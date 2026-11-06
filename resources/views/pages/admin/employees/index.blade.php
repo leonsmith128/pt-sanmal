@@ -1,13 +1,14 @@
 <x-layouts::app :title="__('Manajemen Pegawai')">
-    <x-ui.page>
+    <x-ui.page x-data="{ filterOpen: false }">
         <x-admin.page-header
             :title="__('Manajemen Pegawai')"
             :description="__('Kelola identitas dan status akun pegawai.')"
         >
-            <div class="flex flex-wrap gap-2">
+            <div class="flex w-full flex-wrap justify-end gap-2">
                 <x-ui.button href="{{ route('admin.password-reset-requests.index') }}" variant="outline">
                     {{ __('Permintaan reset password') }}
                 </x-ui.button>
+                <x-ui.filter-toggle controls="employee-filter-dialog" :count="(int) request()->filled('q') + (int) request()->filled('status')" />
                 @if (auth()->user()?->isSuperadmin())
                     <x-ui.button href="{{ route('admin.employees.create') }}" variant="primary" icon="plus">
                         {{ __('Tambah pegawai') }}
@@ -18,7 +19,7 @@
 
         <x-admin.flash-message />
 
-        <x-admin.filter-panel>
+        <x-ui.filter-panel id="employee-filter-dialog" :title="__('Filter pegawai')">
             <form
                 method="GET"
                 class="grid gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_12rem_auto] lg:items-end"
@@ -60,7 +61,7 @@
                     @endif
                 </div>
             </form>
-        </x-admin.filter-panel>
+        </x-ui.filter-panel>
 
         @if ($employees->count())
             <p class="text-sm text-[var(--sanmal-text-muted)]">
