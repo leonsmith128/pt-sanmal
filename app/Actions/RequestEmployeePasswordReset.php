@@ -7,11 +7,26 @@ use App\Models\AuditLog;
 use App\Models\PasswordResetRequest;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
 
 class RequestEmployeePasswordReset
 {
     public function handle(string $email): void
     {
+        $email = Str::lower(trim($email));
+
+        $allowed = RateLimiter::attempt(
+            'password-reset-request:'.hash('sha256', $email.'|'.request()->ip()),
+            3,
+            fn (): bool => true,
+            3600,
+        );
+
+        if (! $allowed) {
+            return;
+        }
+
         $user = User::query()->where('email', $email)->first();
 
         if (! $user || ! $user->is_active || $user->must_change_password || ! in_array($user->role, [UserRole::Employee, UserRole::Admin], true)) {
