@@ -1,4 +1,9 @@
-@props(['date'])
+@props([
+    'date',
+    'exportOptions' => [],
+    'exportWarning' => null,
+    'exportConfirmTitle' => null,
+])
 
 @php
     $selected = \Illuminate\Support\Carbon::parse($date);
@@ -38,10 +43,11 @@
     <input type="hidden" name="date" x-bind:value="selected">
 
     <div class="sm:hidden">
+        <div class="flex min-w-0 items-end gap-2">
         <label for="admin-recap-date" class="mb-1.5 block text-sm font-medium text-[var(--sanmal-text-primary)]">
             {{ __('Tanggal rekap') }}
         </label>
-        <div class="relative">
+        <div class="relative min-w-0 flex-1">
             <span class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-[var(--sanmal-text-secondary)]">
                 <flux:icon name="calendar-days" variant="outline" class="size-4" />
             </span>
@@ -63,6 +69,18 @@
             :calendar-month-label="$selected->translatedFormat('F Y')"
             :today-date="$today"
             interaction="alpine"
-        />
+        >
+            @if ($exportOptions !== [])
+                <x-slot:actions>
+                    <x-ui.export-button
+                        :options="$exportOptions"
+                        :confirm-title="$exportConfirmTitle"
+                        :warning="$exportWarning"
+                        modal-id="admin-daily-export-desktop-dialog"
+                        class="w-auto shrink-0"
+                    />
+                </x-slot:actions>
+            @endif
+        </x-attendance.calendar>
     </div>
 </form>
