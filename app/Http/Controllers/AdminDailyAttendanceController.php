@@ -139,7 +139,30 @@ class AdminDailyAttendanceController extends Controller
         $workbook = $builder->build(Employee::query(), $start, $end, null, new AttendanceFilterData, includeOvertime: false);
         $buildDurationMs = (hrtime(true) - $buildStartedAt) / 1_000_000;
 
+        Log::info('Attendance XLSX export build finished.', [
+            'report' => 'admin_daily_attendance',
+            'from' => $start->toDateString(),
+            'to' => $end->toDateString(),
+            'build_duration_ms' => round($buildDurationMs, 2),
+            'peak_memory_mb' => round(memory_get_peak_usage(true) / 1_048_576, 2),
+        ]);
+
         $downloadStartedAt = hrtime(true);
+        register_shutdown_function(static function () use ($downloadStartedAt, $start, $end): void {
+            $error = error_get_last();
+            if ($error !== null && in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR], true)) {
+                Log::error('Attendance XLSX export terminated during file generation.', [
+                    'from' => $start->toDateString(),
+                    'to' => $end->toDateString(),
+                    'elapsed_ms' => round((hrtime(true) - $downloadStartedAt) / 1_000_000, 2),
+                    'error_type' => $error['type'],
+                    'error_message' => $error['message'],
+                    'error_file' => $error['file'],
+                    'error_line' => $error['line'],
+                ]);
+            }
+        });
+
         $response = Excel::download($workbook, ReportFileName::admin('rekap-harian', ReportFileName::period($start, $end)));
         Log::info('Attendance XLSX export completed.', [
             'report' => 'admin_daily_attendance',
