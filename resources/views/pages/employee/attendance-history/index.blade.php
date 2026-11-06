@@ -24,22 +24,6 @@
             :title="__('Riwayat Absensi')"
             :description="__('Tinjau ringkasan kehadiran dan bukti absensi berdasarkan tanggal sesi.')"
         >
-            <div class="flex w-full flex-row gap-2 sm:w-auto">
-                <x-ui.export-button
-                    :options="$exportOptions"
-                    :confirm-title="__('Konfirmasi export riwayat absensi')"
-                    :warning="__('Export memuat satu baris per tanggal yang memiliki catatan absensi. Periksa kembali rentang sebelum melanjutkan.')"
-                    class="min-w-0 flex-1 whitespace-nowrap sm:flex-none"
-                />
-                <x-ui.button href="{{ route('attendance') }}" variant="primary" icon="clock" class="min-w-0 flex-1 whitespace-nowrap sm:flex-none">
-                    {{ __('Absen') }}
-                </x-ui.button>
-                <x-ui.filter-toggle
-                    controls="attendance-history-filter-panel"
-                    :count="$activeFilterCount"
-                    class="min-w-0 flex-1 whitespace-nowrap sm:flex-none"
-                />
-            </div>
         </x-ui.page-header>
 
         <section aria-label="{{ __('Ringkasan kehadiran') }}" class="grid grid-cols-3 gap-2 sm:gap-3">
@@ -68,6 +52,20 @@
                 <p class="mt-1 hidden text-xs text-zinc-500 dark:text-zinc-400 sm:block">{{ __('Tanggal dengan bukti atau status yang perlu diperiksa.') }}</p>
             </x-ui.card>
         </section>
+
+        <div class="flex w-full flex-col justify-end gap-2 sm:flex-row">
+            <x-ui.export-button
+                :options="$exportOptions"
+                :confirm-title="__('Konfirmasi export riwayat absensi')"
+                :warning="__('Export memuat satu baris per tanggal yang memiliki catatan absensi. Periksa kembali rentang sebelum melanjutkan.')"
+                class="w-full sm:w-auto"
+            />
+            <x-ui.filter-toggle
+                controls="attendance-history-filter-panel"
+                :count="$activeFilterCount"
+                class="w-full sm:w-auto"
+            />
+        </div>
 
         <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-zinc-600 dark:text-zinc-300" aria-live="polite">
             <span>
