@@ -1,19 +1,19 @@
 <?php
 
-namespace App\\Exports;
+namespace App\Exports;
 
 use Generator;
-use Maatwebsite\\Excel\\Concerns\\FromGenerator;
-use Maatwebsite\\Excel\\Concerns\\WithCustomValueBinder;
-use Maatwebsite\\Excel\\Concerns\\WithDrawings;
-use Maatwebsite\\Excel\\Concerns\\WithEvents;
-use Maatwebsite\\Excel\\Concerns\\WithTitle;
-use Maatwebsite\\Excel\\Events\\AfterSheet;
-use PhpOffice\\PhpSpreadsheet\\Cell\\Coordinate;
-use PhpOffice\\PhpSpreadsheet\\Cell\\StringValueBinder;
-use PhpOffice\\PhpSpreadsheet\\Style\\Alignment;
-use PhpOffice\\PhpSpreadsheet\\Style\\Fill;
-use PhpOffice\\PhpSpreadsheet\\Worksheet\\BaseDrawing;
+use Maatwebsite\Excel\Concerns\FromGenerator;
+use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
+use Maatwebsite\Excel\Concerns\WithDrawings;
+use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Concerns\WithTitle;
+use Maatwebsite\Excel\Events\AfterSheet;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use PhpOffice\PhpSpreadsheet\Cell\StringValueBinder;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Worksheet\BaseDrawing;
 
 /**
  * Satu worksheet laporan: header tebal berlatar, AutoFilter, freeze header, lebar kolom wajar.
