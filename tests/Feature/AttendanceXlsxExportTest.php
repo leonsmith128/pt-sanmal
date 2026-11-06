@@ -66,6 +66,8 @@ it('defaults the admin export to the current month and names the file accordingl
 });
 
 it('exports multi-sheet workbooks after the XLSX cell cache spills to disk', function () {
+    config(['excel.cache.batch.memory_limit' => 20]);
+
     xlsxExportEmployee('Pegawai Uji Cache XLSX');
 
     $response = $this->actingAs(xlsxExportAdmin())->get(route('admin.kehadiran.export', [
