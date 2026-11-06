@@ -199,7 +199,8 @@ Pemeriksaan dilakukan pada source branch `feature/pengelolaan-akun-pegawai`, ter
 5. **Bootstrap belum menjadi no-op idempotent.** Command memvalidasi konfigurasi terlebih dahulu dan mengembalikan FAILURE ketika Superadmin sudah ada. Ini tidak mereset akun, tetapi perilaku no-op sukses yang diinginkan belum diterapkan.
 6. **Command recovery Superadmin belum tersedia.** Belum ada command shell terpisah dengan verifikasi tepat satu Superadmin, input password tersembunyi, pencabutan sesi/token, dan audit event recovery.
 7. **Cakupan reset password untuk role Admin perlu ditentukan dan diuji.** Action request reset saat ini secara eksplisit hanya menerima role Employee, walaupun kontrak data baru mewajibkan Admin mempunyai Employee profile.
-8. **Unique Superadmin constraint perlu diverifikasi pada MariaDB production.** Migration menggunakan generated virtual column dan unique index; uji MariaDB CI serta pemeriksaan data duplikat sebelum deploy tetap wajib.
+8. **Belum ada batas pengelolaan akun Admin oleh Admin lain.** Route edit/update saat ini tersedia untuk Admin dan Superadmin tanpa memeriksa role User yang terkait dengan Employee. Setelah akun Admin dibuat sebagai Employee profile, Admin berpotensi mengubah email atau menonaktifkan akun Admin lain. Rekomendasi keamanan: hanya Superadmin yang boleh mengubah atau menonaktifkan akun ber-role Admin; Admin hanya mengelola akun ber-role Employee. Ini perlu dikonfirmasi sebagai aturan produk sebelum implementasi.
+9. **Unique Superadmin constraint perlu diverifikasi pada MariaDB production.** Migration menggunakan generated virtual column dan unique index; uji MariaDB CI serta pemeriksaan data duplikat sebelum deploy tetap wajib.
 
 ## 9. Rencana implementasi yang disarankan
 
@@ -209,7 +210,7 @@ Urutan kerja untuk mengurangi risiko:
 2. Perluas use case pembuatan pegawai agar menerima role yang diizinkan (Employee/Admin), dengan otorisasi Superadmin tetap di backend.
 3. Perbarui form tunggal: role selector hanya untuk Superadmin dan kode pegawai read-only yang dipreview dari server.
 4. Pastikan User + Employee + kode pegawai + kredensial onboarding dibuat atomik.
-5. Tentukan cakupan pengelolaan/reset akun Admin dan tambahkan test role yang eksplisit.
+5. Tegaskan batas pengelolaan akun Admin (rekomendasi: hanya Superadmin yang dapat mengubah/menonaktifkan akun Admin), cakupan reset, dan tambahkan test role yang eksplisit.
 6. Samakan invalidasi token/request reset pada perubahan email self-service dan admin.
 7. Tambahkan command recovery Superadmin yang hanya berjalan melalui shell; rapikan perilaku bootstrap agar tidak mengubah akun yang sudah ada.
 8. Jalankan Pint, feature tests, test MariaDB 11 dan SQLite, lalu review route/authorization dan audit log.
