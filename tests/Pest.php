@@ -45,11 +45,6 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
-{
-    // ..
-}
-
 /**
  * Membaca isi workbook XLSX dari response unduhan tanpa bergantung pada API pembaca spreadsheet.
  *
