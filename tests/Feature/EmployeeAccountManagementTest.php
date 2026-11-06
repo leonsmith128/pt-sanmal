@@ -362,7 +362,6 @@ test('activation and first password change views render independently from email
         ->assertSee('Verifikasi email dilakukan terpisah');
 });
 
-
 test('employee number generation continues from EMP-99 to EMP-100', function () {
     Notification::fake();
 
