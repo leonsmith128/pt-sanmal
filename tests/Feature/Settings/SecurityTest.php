@@ -2,7 +2,9 @@
 
 use App\Enums\UserRole;
 use App\Models\User;
+use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Notification;
 use Livewire\Livewire;
 
 test('security settings page can be rendered', function () {
@@ -96,4 +98,39 @@ test('correct password must be provided to update password', function () {
         ->call('updatePassword');
 
     $response->assertHasErrors(['current_password']);
+});
+
+
+test('email changes for every role require verification without blocking an active account', function () {
+    Notification::fake();
+
+    foreach (UserRole::cases() as $role) {
+        $user = User::factory()->create([
+            'email' => 'original-'.$role->value.'@example.test',
+            'email_verified_at' => now(),
+        ]);
+        $user->forceFill([
+            'role' => $role,
+            'is_active' => true,
+            'must_change_password' => false,
+        ])->save();
+
+        $this->actingAs($user)
+            ->withSession(['auth.password_confirmed_at' => time()]);
+
+        Livewire::test('pages::settings.security')
+            ->set('email', 'updated-'.$role->value.'@example.test')
+            ->call('updateEmail')
+            ->assertHasNoErrors();
+
+        $user->refresh();
+
+        expect($user->email)->toBe('updated-'.$role->value.'@example.test')
+            ->and($user->email_verified_at)->toBeNull()
+            ->and($user->is_active)->toBeTrue();
+
+        Notification::assertSentTo($user, VerifyEmail::class);
+
+        $this->get(route('security.edit'))->assertOk();
+    }
 });
