@@ -42,7 +42,8 @@
 
                     <flux:menu.item
                         :href="$option['href']"
-                        x-on:click.prevent="exportUrl = $el.href; exportDescription = @js($option['description']); exportConfirmOpen = true"
+                        :data-description="$option['description']"
+                        x-on:click.prevent="exportUrl = $el.href; exportDescription = $el.dataset.description; exportConfirmOpen = true"
                         :icon="$option['icon']"
                     >
                         {{ $option['label'] }}
