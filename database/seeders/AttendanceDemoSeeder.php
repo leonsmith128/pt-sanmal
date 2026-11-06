@@ -174,7 +174,7 @@ class AttendanceDemoSeeder extends Seeder
             'project_id' => $project?->id,
             'captured_at' => $recordedAt,
             'timezone' => self::TIMEZONE,
-            'timezone_source' => 'legacy',
+            'timezone_source' => $workType === WorkType::Office ? 'office_fixed' : 'gps_resolved',
             'attendance_date' => $localTime->toDateString(),
             'client_code_snapshot' => $client?->code,
             'client_name_snapshot' => $client?->name,

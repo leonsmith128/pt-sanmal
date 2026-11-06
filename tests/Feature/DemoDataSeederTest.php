@@ -10,7 +10,7 @@ use Database\Seeders\DevDataSeeder;
 use Database\Seeders\EmployeeDemoSeeder;
 
 it('seeds twenty employee demo accounts and realistic linked attendance events idempotently', function () {
-    config(['app.env' => 'local']);
+    app()->detectEnvironment(fn (): string => 'local');
 
     $this->seed([
         DevDataSeeder::class,
@@ -46,7 +46,7 @@ it('seeds twenty employee demo accounts and realistic linked attendance events i
 });
 
 it('does not create demo employees outside the local environment', function () {
-    config(['app.env' => 'testing']);
+    app()->detectEnvironment(fn (): string => 'testing');
 
     $this->seed(EmployeeDemoSeeder::class);
 

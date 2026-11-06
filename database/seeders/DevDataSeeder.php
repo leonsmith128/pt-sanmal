@@ -66,7 +66,7 @@ class DevDataSeeder extends Seeder
                 'start_date' => '2026-05-01',
             ]);
 
-            if ($project->start_date?->toDateString() > '2026-05-01') {
+            if ($project->start_date === null || $project->start_date->toDateString() > '2026-05-01') {
                 $project->forceFill(['start_date' => '2026-05-01'])->save();
             }
 
