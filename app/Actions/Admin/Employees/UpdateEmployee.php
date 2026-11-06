@@ -4,13 +4,14 @@ namespace App\Actions\Admin\Employees;
 
 use App\Models\AuditLog;
 use App\Models\Employee;
+use App\Enums\UserRole;
 use App\Models\PasswordResetRequest;
 use Illuminate\Support\Facades\DB;
 
 class UpdateEmployee
 {
     /**
-     * @param  array{name: string, email: string, phone?: string|null, title_id?: int|null, joined_at?: string|null, is_active: bool}  $data
+     * @param  array{name: string, email: string, position: string, phone?: string|null, joined_at?: string|null, is_active: bool}  $data
      */
     public function handle(Employee $employee, array $data): Employee
     {
@@ -21,7 +22,7 @@ class UpdateEmployee
                 'email' => $user->email,
                 'is_active' => $user->is_active,
                 'employee_number' => $employee->employee_number,
-                'title_id' => $employee->title_id,
+                'position' => $employee->position,
             ];
 
             $userAttributes = [
@@ -56,19 +57,19 @@ class UpdateEmployee
 
             $employee->update([
                 'phone' => $data['phone'] ?? null,
-                'title_id' => $data['title_id'] ?? null,
+                'position' => $data['position'],
                 'joined_at' => $data['joined_at'] ?? null,
             ]);
 
-            AuditLog::record($user, 'employee.updated', $oldValues, [
+            AuditLog::record($user, $user->role === UserRole::Admin ? 'admin.updated' : 'employee.updated', $oldValues, [
                 'name' => $user->name,
                 'email' => $user->email,
                 'is_active' => $user->is_active,
                 'employee_number' => $employee->employee_number,
-                'title_id' => $employee->title_id,
+                'position' => $employee->position,
             ]);
 
-            return $employee->load(['user', 'title']);
+            return $employee->load('user');
         });
     }
 }

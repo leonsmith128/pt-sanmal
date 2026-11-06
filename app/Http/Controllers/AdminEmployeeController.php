@@ -7,8 +7,10 @@ use App\Actions\Admin\Employees\IssueEmployeeActivation;
 use App\Actions\Admin\Employees\RevealTemporaryPassword;
 use App\Actions\Admin\Employees\RotateTemporaryPassword;
 use App\Actions\Admin\Employees\UpdateEmployee;
+use App\Enums\AdminPosition;
+use App\Enums\EmployeePosition;
+use App\Enums\UserRole;
 use App\Models\Employee;
-use App\Models\Title;
 use App\Services\EmployeeNumberGenerator;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Http\JsonResponse;
@@ -22,7 +24,7 @@ class AdminEmployeeController extends Controller
 {
     public function index(Request $request): View
     {
-        $employees = Employee::query()->with(['user.accountCredential', 'user.accountActivation', 'title'])
+        $employees = Employee::query()->with(['user.accountCredential', 'user.accountActivation'])
             ->when($request->filled('q'), function ($query) use ($request) {
                 $term = $request->string('q')->toString();
                 $query->where(fn ($q) => $q
@@ -41,7 +43,8 @@ class AdminEmployeeController extends Controller
     public function create(EmployeeNumberGenerator $employeeNumberGenerator): View
     {
         return view('pages::admin.employees.create', [
-            'titles' => Title::query()->where('is_active', true)->orderBy('name')->get(),
+            'employeePositions' => EmployeePosition::cases(),
+            'adminPositions' => AdminPosition::cases(),
             'employeeNumberPreview' => $employeeNumberGenerator->preview(),
         ]);
     }
@@ -52,29 +55,33 @@ class AdminEmployeeController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'phone' => ['nullable', 'string', 'max:30'],
-            'title_id' => ['nullable', 'integer', 'exists:titles,id'],
+            'position' => ['required', 'string', Rule::enum($this->positionEnumForRole(UserRole::tryFrom((string) $request->input('role'))))],
+            'role' => ['required', Rule::in([UserRole::Employee->value, UserRole::Admin->value])],
             'joined_at' => ['nullable', 'date'],
         ]);
 
+        $data['role'] = UserRole::from($data['role']);
         $employee = $createEmployee->handle($data);
         $sent = $issueActivation->handle($employee->user);
 
         if (! $sent) {
             return redirect()->route('admin.employees.edit', $employee)
-                ->withErrors(['email' => 'Pegawai dibuat, tetapi email aktivasi gagal dikirim. Salin password sementara dan sampaikan melalui saluran aman.']);
+                ->withErrors(['email' => 'Akun dibuat, tetapi email aktivasi gagal dikirim. Salin password sementara dan sampaikan melalui saluran aman.']);
         }
 
         return redirect()->route('admin.employees.edit', $employee)
-            ->with('status', 'Pegawai dibuat dan tautan aktivasi telah dikirim. Password sementara tersedia melalui tindakan khusus admin.');
+            ->with('status', 'Akun dibuat dan tautan aktivasi telah dikirim. Password sementara tersedia melalui tindakan khusus admin.');
     }
 
     public function edit(Employee $employee): View
     {
-        $employee->load(['user.accountCredential', 'user.accountActivation', 'title']);
+        $employee->load(['user.accountCredential', 'user.accountActivation']);
+
+        $positionEnum = $this->positionEnumForRole($employee->user->role);
 
         return view('pages::admin.employees.edit', [
             'employee' => $employee,
-            'titles' => Title::query()->where('is_active', true)->orderBy('name')->get(),
+            'positions' => $positionEnum::cases(),
         ]);
     }
 
@@ -89,7 +96,19 @@ class AdminEmployeeController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($employee->user_id)],
             'phone' => ['nullable', 'string', 'max:30'],
-            'title_id' => ['nullable', 'integer', 'exists:titles,id'],
+            'position' => [
+                'required',
+                'string',
+                $employee->position !== null && $this->positionEnumForRole($employee->user->role)::tryFrom($employee->position) === null
+                    ? function (string $attribute, mixed $value, \Closure $fail) use ($employee): void {
+                        $enum = $this->positionEnumForRole($employee->user->role);
+
+                        if ($value !== $employee->position && $enum::tryFrom((string) $value) === null) {
+                            $fail('Jabatan tidak valid untuk jenis akun ini.');
+                        }
+                    }
+                    : Rule::enum($this->positionEnumForRole($employee->user->role)),
+            ],
             'joined_at' => ['nullable', 'date'],
             'is_active' => ['required', 'boolean'],
         ]);
@@ -102,11 +121,11 @@ class AdminEmployeeController extends Controller
 
             if (! $sent) {
                 return redirect()->route('admin.employees.edit', $employee)
-                    ->withErrors(['email' => 'Data diperbarui, tetapi email aktivasi gagal dikirim. Salin password sementara untuk onboarding manual.']);
+                    ->withErrors(['email' => 'Akun diperbarui, tetapi email aktivasi gagal dikirim. Salin password sementara untuk onboarding manual.']);
             }
 
             return redirect()->route('admin.employees.edit', $employee)
-                ->with('status', 'Data pegawai diperbarui dan tautan aktivasi baru dikirim ke email terbaru.');
+                ->with('status', 'Akun diperbarui dan tautan aktivasi baru dikirim ke email terbaru.');
         }
 
         if ($emailChanged && $employee->user->is_active) {
@@ -117,7 +136,15 @@ class AdminEmployeeController extends Controller
             }
         }
 
-        return redirect()->route('admin.employees.edit', $employee)->with('status', 'Data pegawai diperbarui.');
+        return redirect()->route('admin.employees.edit', $employee)->with('status', 'Data akun diperbarui.');
+    }
+
+    /**
+     * @return class-string<EmployeePosition|AdminPosition>
+     */
+    private function positionEnumForRole(?UserRole $role): string
+    {
+        return $role === UserRole::Admin ? AdminPosition::class : EmployeePosition::class;
     }
 
     public function revealTemporaryPassword(Employee $employee, RevealTemporaryPassword $revealPassword): JsonResponse

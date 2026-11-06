@@ -19,7 +19,7 @@ class CreateEmployee
     /**
      * Create an employee profile and its pending login account atomically.
      *
-     * @param  array{name: string, email: string, phone?: string|null, title_id?: int|null, joined_at?: string|null}  $data
+     * @param  array{name: string, email: string, role: UserRole, position: string, phone?: string|null, joined_at?: string|null}  $data
      */
     public function handle(array $data): Employee
     {
@@ -34,7 +34,7 @@ class CreateEmployee
                 'name' => $data['name'],
                 'email' => $data['email'],
                 'password' => $temporaryPassword,
-                'role' => UserRole::Employee,
+                'role' => $data['role'],
                 'is_active' => true,
                 'must_change_password' => true,
                 'email_verified_at' => null,
@@ -45,13 +45,14 @@ class CreateEmployee
                 'user_id' => $user->id,
                 'employee_number' => $this->employeeNumberGenerator->next(),
                 'phone' => $data['phone'] ?? null,
-                'title_id' => $data['title_id'] ?? null,
+                'position' => $data['position'],
                 'joined_at' => $data['joined_at'] ?? null,
             ]);
 
-            AuditLog::record($user, 'employee.created', null, [
+            AuditLog::record($user, $data['role'] === UserRole::Admin ? 'admin.created' : 'employee.created', null, [
                 'employee_number' => $employee->employee_number,
-                'role' => UserRole::Employee->value,
+                'role' => $data['role']->value,
+                'position' => $employee->position,
             ]);
 
             EmployeeAccountCredential::create([
@@ -59,7 +60,7 @@ class CreateEmployee
                 'temporary_password_encrypted' => Crypt::encryptString($temporaryPassword),
             ]);
 
-            return $employee->load(['user', 'title']);
+            return $employee->load('user');
         });
     }
 }

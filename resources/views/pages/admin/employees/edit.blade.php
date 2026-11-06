@@ -1,11 +1,11 @@
-<x-layouts::app :title="__('Ubah Pegawai')">
+<x-layouts::app :title="__('Ubah Akun')">
     <x-ui.page class="!max-w-2xl gap-5">
         <x-admin.page-header
-            :title="__('Pengelolaan Akun Pegawai')"
+            :title="__('Pengelolaan Akun')"
             :description="$employee->user->email"
         >
             <x-ui.button href="{{ route('admin.employees.index') }}" variant="outline" icon="arrow-left">
-                {{ __('Daftar pegawai') }}
+                {{ __('Daftar akun') }}
             </x-ui.button>
         </x-admin.page-header>
 
@@ -48,7 +48,7 @@
             </dl>
 
             <p class="text-xs text-[var(--sanmal-text-muted)]">
-                {{ __('Status aktivasi akun dan verifikasi email merupakan dua hal terpisah. Pegawai dapat menyelesaikan aktivasi dengan tautan email atau password sementara dari admin.') }}
+                {{ __('Status aktivasi akun dan verifikasi email merupakan dua hal terpisah. Pemilik akun dapat menyelesaikan aktivasi dengan tautan email atau password sementara dari admin.') }}
             </p>
         </x-ui.card>
 
@@ -59,7 +59,7 @@
 
                 <fieldset class="grid min-w-0 gap-4">
                     <legend class="mb-1 font-semibold text-[var(--sanmal-text-primary)]">
-                        {{ __('Data pegawai') }}
+                        {{ __('Data akun dan kepegawaian') }}
                     </legend>
 
                     <x-ui.input
@@ -76,6 +76,9 @@
                         :value="old('email', $employee->user->email)"
                         required
                     />
+                    <x-ui.metadata-item :label="__('Role aplikasi')">
+                        {{ $employee->user->role->label() }}
+                    </x-ui.metadata-item>
                 </fieldset>
 
                 <div class="grid min-w-0 gap-4 sm:grid-cols-2">
@@ -93,14 +96,15 @@
                         :value="old('phone', $employee->phone)"
                     />
 
-                    <x-ui.select name="title_id" :label="__('Jabatan')">
-                        <flux:select.option value="">{{ __('Belum ditentukan') }}</flux:select.option>
-                        @foreach ($titles as $title)
-                            <flux:select.option
-                                value="{{ $title->id }}"
-                                :selected="(string) old('title_id', $employee->title_id) === (string) $title->id"
-                            >
-                                {{ $title->name }}
+                    <x-ui.select name="position" :label="__('Jabatan')" :value="old('position', $employee->position)">
+                        @if ($employee->position && ! collect($positions)->contains(fn ($position) => $position->value === $employee->position))
+                            <flux:select.option value="{{ $employee->position }}">
+                                {{ __('Jabatan historis: :position', ['position' => $employee->positionLabel()]) }}
+                            </flux:select.option>
+                        @endif
+                        @foreach ($positions as $position)
+                            <flux:select.option value="{{ $position->value }}">
+                                {{ $position->label() }}
                             </flux:select.option>
                         @endforeach
                     </x-ui.select>
@@ -148,7 +152,7 @@
                 <div>
                     <h2 class="font-semibold">{{ __('Password sementara') }}</h2>
                     <p class="mt-1 text-sm text-[var(--sanmal-text-muted)]">
-                        {{ __('Salin password ini dan sampaikan kepada pegawai melalui saluran yang aman. Password tersedia sampai pegawai berhasil menggantinya.') }}
+                        {{ __('Salin password ini dan sampaikan kepada pemilik akun melalui saluran yang aman. Password tersedia sampai pegawai berhasil menggantinya.') }}
                     </p>
                 </div>
 

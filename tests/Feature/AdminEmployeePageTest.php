@@ -25,6 +25,7 @@ function employeePageRecord(string $name, string $number, bool $active = true): 
 
     return Employee::query()->create([
         'user_id' => $user->id,
+        'position' => 'technician',
         'employee_number' => $number,
     ]);
 }
@@ -39,16 +40,40 @@ it('renders employee cards for narrower screens and a table for wide screens', f
         ->assertSee('bg-sanmal-surface-card', false)
         ->assertSee('overflow-x-auto overscroll-x-contain', false)
         ->assertSee('role="region"', false)
-        ->assertSee('Tabel manajemen pegawai', false)
+        ->assertSee('Tabel manajemen akun', false)
         ->assertSee('scope="col"', false)
         ->assertSee('<dt', false)
         ->assertSee('<dd', false)
         ->assertSee('Pegawai Tampilan Hybrid')
         ->assertSee('EMP-HYBRID')
-        ->assertSee('Edit pegawai')
+        ->assertSee('Edit akun')
         ->assertSee(route('admin.employees.edit', $employee), false)
-        ->assertSee('Cari pegawai')
+        ->assertSee('Cari akun')
         ->assertSee('Status akun');
+});
+
+it('shows role and position as separate values for Employee and Admin accounts', function () {
+    employeePageRecord('Pegawai Dengan Jabatan', 'EMP-POSISI');
+
+    $admin = User::factory()->create(['name' => 'Staf Administrasi']);
+    $admin->forceFill([
+        'role' => UserRole::Admin,
+        'is_active' => true,
+    ])->save();
+
+    Employee::query()->create([
+        'user_id' => $admin->id,
+        'employee_number' => 'EMP-ADMIN',
+        'position' => 'staff_administration',
+    ]);
+
+    $this->actingAs(employeePageAdmin())
+        ->get(route('admin.employees.index'))
+        ->assertOk()
+        ->assertSee('Pegawai')
+        ->assertSee('Teknisi')
+        ->assertSee('Admin')
+        ->assertSee('Staf Administrasi');
 });
 
 it('keeps employee search and account status filters working', function () {
@@ -81,7 +106,7 @@ it('shows the add employee button only to superadmin', function () {
     $this->actingAs(employeePageAdmin())
         ->get(route('admin.employees.index'))
         ->assertOk()
-        ->assertDontSee('Tambah pegawai')
+        ->assertDontSee('Tambah akun')
         ->assertDontSee(route('admin.employees.create'), false);
 
     $superadmin = User::factory()->create();
@@ -90,7 +115,7 @@ it('shows the add employee button only to superadmin', function () {
     $this->actingAs($superadmin)
         ->get(route('admin.employees.index'))
         ->assertOk()
-        ->assertSee('Tambah pegawai')
+        ->assertSee('Tambah akun')
         ->assertSee(route('admin.employees.create'), false);
 });
 
@@ -113,7 +138,7 @@ it('shows the result summary and a reset link only while filters are applied', f
     $this->actingAs(employeePageAdmin())
         ->get(route('admin.employees.index'))
         ->assertOk()
-        ->assertSee('dari 1 pegawai')
+        ->assertSee('dari 1 akun')
         ->assertDontSee('Atur ulang');
 
     $this->actingAs(employeePageAdmin())
@@ -141,6 +166,11 @@ it('renders the employee data section heading across the two-column create form 
         ->get(route('admin.employees.create'))
         ->assertOk()
         ->assertSee('Data kepegawaian')
+        ->assertSee('Jenis akun')
+        ->assertSee('Staf Administrasi')
+        ->assertSee('Supervisor')
+        ->assertSee('Teknisi')
+        ->assertSee('Koordinator Proyek')
         ->assertSee('EMP-01')
         ->assertSee('readonly', false)
         ->assertSee('sm:grid-cols-2', false)

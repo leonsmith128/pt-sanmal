@@ -1,8 +1,8 @@
-<x-layouts::app :title="__('Manajemen Pegawai')">
+<x-layouts::app :title="__('Manajemen Akun')">
     <x-ui.page x-data="{ filterOpen: false }">
         <x-admin.page-header
             :title="__('Manajemen Pegawai')"
-            :description="__('Kelola identitas dan status akun pegawai.')"
+            :description="__('Kelola akun Employee dan Admin beserta data kepegawaiannya.')"
         >
             <div class="flex w-full flex-wrap justify-end gap-2">
                 <x-ui.button href="{{ route('admin.password-reset-requests.index') }}" variant="outline">
@@ -11,7 +11,7 @@
                 <x-ui.filter-toggle controls="employee-filter-dialog" :count="(int) request()->filled('q') + (int) request()->filled('status')" />
                 @if (auth()->user()?->isSuperadmin())
                     <x-ui.button href="{{ route('admin.employees.create') }}" variant="primary" icon="plus">
-                        {{ __('Tambah pegawai') }}
+                        {{ __('Tambah akun') }}
                     </x-ui.button>
                 @endif
             </div>
@@ -19,7 +19,7 @@
 
         <x-admin.flash-message />
 
-        <x-ui.filter-panel id="employee-filter-dialog" :title="__('Filter pegawai')">
+        <x-ui.filter-panel id="employee-filter-dialog" :title="__('Filter akun')">
             <form
                 method="GET"
                 class="grid gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_12rem_auto] lg:items-end"
@@ -27,7 +27,7 @@
                 <x-ui.input
                     name="q"
                     :value="request('q')"
-                    :label="__('Cari pegawai')"
+                    :label="__('Cari akun')"
                     placeholder="Nama, email, nomor pegawai"
                 />
 
@@ -65,7 +65,7 @@
 
         @if ($employees->count())
             <p class="text-sm text-[var(--sanmal-text-muted)]">
-                {{ __('Menampilkan :from–:to dari :total pegawai', [
+                {{ __('Menampilkan :from–:to dari :total akun', [
                     'from' => $employees->firstItem(),
                     'to' => $employees->lastItem(),
                     'total' => $employees->total(),
@@ -100,10 +100,15 @@
                                     value-class="mt-0.5 break-words font-medium text-[var(--sanmal-text-primary)]"
                                 >{{ $employee->employee_number ?: '—' }}</x-ui.metadata-item>
                                 <x-ui.metadata-item
+                                    :label="__('Role')"
+                                    label-class="text-xs text-[var(--sanmal-text-muted)]"
+                                    value-class="mt-0.5 break-words font-medium text-[var(--sanmal-text-primary)]"
+                                >{{ $employee->user->role->label() }}</x-ui.metadata-item>
+                                <x-ui.metadata-item
                                     :label="__('Jabatan')"
                                     label-class="text-xs text-[var(--sanmal-text-muted)]"
                                     value-class="mt-0.5 break-words font-medium text-[var(--sanmal-text-primary)]"
-                                >{{ $employee->title?->name ?: '—' }}</x-ui.metadata-item>
+                                >{{ $employee->positionLabel() ?: '—' }}</x-ui.metadata-item>
                             </dl>
 
                             <div class="mt-auto border-t border-sanmal-border pt-3 dark:border-sanmal-border-dark">
@@ -113,7 +118,7 @@
                                     class="w-full"
                                     href="{{ route('admin.employees.edit', $employee) }}"
                                 >
-                                    {{ __('Edit pegawai') }}
+                                    {{ __('Edit akun') }}
                                 </x-ui.button>
                             </div>
                         </x-ui.card>
@@ -125,14 +130,15 @@
                 <div
                     class="overflow-x-auto overscroll-x-contain"
                     role="region"
-                    aria-label="{{ __('Tabel manajemen pegawai; geser horizontal untuk melihat seluruh kolom') }}"
+                    aria-label="{{ __('Tabel manajemen akun; geser horizontal untuk melihat seluruh kolom') }}"
                     tabindex="0"
                 >
                     <table class="min-w-[52rem] w-full text-sm">
                         <thead class="bg-sanmal-surface-secondary text-left dark:bg-sanmal-surface-secondary-dark">
                             <tr>
-                                <th scope="col" class="px-4 py-3">{{ __('Pegawai') }}</th>
+                                <th scope="col" class="px-4 py-3">{{ __('Akun') }}</th>
                                 <th scope="col" class="px-4 py-3">{{ __('Nomor') }}</th>
+                                <th scope="col" class="px-4 py-3">{{ __('Role') }}</th>
                                 <th scope="col" class="px-4 py-3">{{ __('Jabatan') }}</th>
                                 <th scope="col" class="px-4 py-3">{{ __('Status') }}</th>
                                 <th scope="col" class="px-4 py-3"><span class="sr-only">{{ __('Aksi') }}</span></th>
@@ -152,7 +158,8 @@
                                         </div>
                                     </td>
                                     <td class="max-w-40 break-words px-4 py-3">{{ $employee->employee_number ?: '—' }}</td>
-                                    <td class="max-w-56 break-words px-4 py-3">{{ $employee->title?->name ?: '—' }}</td>
+                                    <td class="px-4 py-3">{{ $employee->user->role->label() }}</td>
+                                    <td class="max-w-56 break-words px-4 py-3">{{ $employee->positionLabel() ?: '—' }}</td>
                                     <td class="whitespace-nowrap px-4 py-3">
                                         <x-admin.employee-status-badge :user="$employee->user" />
                                     </td>
@@ -170,7 +177,7 @@
         @else
             <x-ui.empty-state
                 class="!border-dashed !border-sanmal-border !bg-transparent !px-4 !py-10 dark:!border-sanmal-border-dark"
-                :message="__('Belum ada data pegawai yang sesuai dengan filter.')"
+                :message="__('Belum ada akun yang sesuai dengan filter.')"
             />
         @endif
 

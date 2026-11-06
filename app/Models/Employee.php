@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+use App\Enums\AdminPosition;
+use App\Enums\EmployeePosition;
+use App\Enums\UserRole;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,6 +14,7 @@ use Illuminate\Support\Carbon;
 /**
  * @property int $id
  * @property int $user_id
+ * @property string|null $position
  * @property int|null $title_id
  * @property string|null $employee_number
  * @property string|null $phone
@@ -19,7 +23,7 @@ use Illuminate\Support\Carbon;
  * @property-read User $user
  * @property-read Title|null $title
  */
-#[Fillable(['user_id', 'title_id', 'employee_number', 'phone', 'employment_status', 'joined_at'])]
+#[Fillable(['user_id', 'position', 'title_id', 'employee_number', 'phone', 'employment_status', 'joined_at'])]
 class Employee extends Model
 {
     protected function casts(): array
@@ -30,6 +34,23 @@ class Employee extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function positionLabel(): ?string
+    {
+        if ($this->position === null) {
+            return null;
+        }
+
+        $positionEnum = match ($this->user?->role) {
+            UserRole::Employee => EmployeePosition::class,
+            UserRole::Admin => AdminPosition::class,
+            default => null,
+        };
+
+        return $positionEnum !== null
+            ? ($positionEnum::tryFrom($this->position)?->label() ?? $this->position)
+            : $this->position;
     }
 
     public function title(): BelongsTo

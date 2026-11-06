@@ -1,14 +1,14 @@
-<x-layouts::app :title="__('Tambah Pegawai')">
+<x-layouts::app :title="__('Tambah Akun')">
     <x-ui.page class="!max-w-2xl gap-5">
         <x-admin.page-header
-            :title="__('Tambah Pegawai')"
-            :description="__('Buat akun pegawai dan lengkapi data administrasinya.')"
+            :title="__('Tambah Akun')"
+            :description="__('Buat akun Employee atau Admin beserta data kepegawaiannya.')"
         />
 
         <x-admin.flash-message />
 
         <x-ui.card padding="p-5 sm:p-6">
-            <form method="POST" action="{{ route('admin.employees.store') }}" class="space-y-6">
+            <form method="POST" action="{{ route('admin.employees.store') }}" class="space-y-6" x-data="{ accountRole: @js(old('role', 'employee')) }">
                 @csrf
 
                 <fieldset class="grid min-w-0 gap-4">
@@ -30,6 +30,15 @@
                         :value="old('email')"
                         required
                     />
+                    <x-ui.select
+                        name="role"
+                        :label="__('Jenis akun')"
+                        :value="old('role', 'employee')"
+                        x-on:change="accountRole = $event.target.value"
+                    >
+                        <flux:select.option value="employee">{{ __('Employee') }}</flux:select.option>
+                        <flux:select.option value="admin">{{ __('Admin') }}</flux:select.option>
+                    </x-ui.select>
                 </fieldset>
 
                 <fieldset class="grid min-w-0 gap-4 sm:grid-cols-2">
@@ -51,17 +60,35 @@
                         :value="old('phone')"
                     />
 
-                    <x-ui.select name="title_id" :label="__('Jabatan')">
-                        <flux:select.option value="">{{ __('Belum ditentukan') }}</flux:select.option>
-                        @foreach ($titles as $title)
-                            <flux:select.option
-                                value="{{ $title->id }}"
-                                :selected="(string) old('title_id') === (string) $title->id"
-                            >
-                                {{ $title->name }}
-                            </flux:select.option>
-                        @endforeach
-                    </x-ui.select>
+                    <div x-show="accountRole === 'employee'" x-cloak>
+                        <x-ui.select
+                            name="position"
+                            :label="__('Jabatan Employee')"
+                            :value="old('position')"
+                            x-bind:disabled="accountRole !== 'employee'"
+                        >
+                            @foreach ($employeePositions as $position)
+                                <flux:select.option value="{{ $position->value }}">
+                                    {{ $position->label() }}
+                                </flux:select.option>
+                            @endforeach
+                        </x-ui.select>
+                    </div>
+
+                    <div x-show="accountRole === 'admin'" x-cloak>
+                        <x-ui.select
+                            name="position"
+                            :label="__('Jabatan Admin')"
+                            :value="old('position')"
+                            x-bind:disabled="accountRole !== 'admin'"
+                        >
+                            @foreach ($adminPositions as $position)
+                                <flux:select.option value="{{ $position->value }}">
+                                    {{ $position->label() }}
+                                </flux:select.option>
+                            @endforeach
+                        </x-ui.select>
+                    </div>
 
                     <x-ui.input
                         name="joined_at"
@@ -72,7 +99,7 @@
                 </fieldset>
 
                 <flux:callout variant="warning">
-                    {{ __('Password sementara dibuat otomatis. Tautan aktivasi dikirim ke email pegawai; jika email gagal, admin dapat menyalin password sementara dari halaman detail pegawai.') }}
+                    {{ __('Password sementara dibuat otomatis. Tautan aktivasi dikirim ke email akun; jika email gagal, admin dapat menyalin password sementara dari halaman detail akun.') }}
                 </flux:callout>
 
                 <div class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
@@ -80,7 +107,7 @@
                         {{ __('Batal') }}
                     </x-ui.button>
                     <x-ui.button type="submit" variant="primary" class="w-full sm:w-auto">
-                        {{ __('Simpan pegawai') }}
+                        {{ __('Simpan akun') }}
                     </x-ui.button>
                 </div>
             </form>

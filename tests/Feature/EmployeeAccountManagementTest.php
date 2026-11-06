@@ -37,7 +37,7 @@ function pendingAccountEmployee(): Employee
     ]);
     $user->forceFill(['role' => UserRole::Employee, 'is_active' => true, 'must_change_password' => true])->save();
 
-    return Employee::query()->create(['user_id' => $user->id]);
+    return Employee::query()->create(['user_id' => $user->id, 'position' => 'technician']);
 }
 
 test('superadmin creates employee account and profile atomically with encrypted temporary credential', function () {
@@ -47,9 +47,10 @@ test('superadmin creates employee account and profile atomically with encrypted 
         ->post(route('admin.employees.store'), [
             'name' => 'Pegawai Baru',
             'email' => 'pegawai.baru@example.com',
+            'role' => 'employee',
+            'position' => 'technician',
             'employee_number' => 'EMP-TAMPERED',
             'phone' => '081234567890',
-            'title_id' => null,
             'joined_at' => '2026-11-05',
         ])
         ->assertRedirect();
@@ -69,6 +70,45 @@ test('superadmin creates employee account and profile atomically with encrypted 
         ->and(Crypt::decryptString($user->accountCredential->temporary_password_encrypted))->not->toBeEmpty();
 
     Notification::assertSentTo($user, EmployeeAccountActivationNotification::class);
+});
+
+test('superadmin can create an admin account with an admin-only position', function () {
+    Notification::fake();
+
+    $this->actingAs(accountManagementSuperadmin())
+        ->post(route('admin.employees.store'), [
+            'name' => 'Staf Administrasi Baru',
+            'email' => 'admin.baru@example.test',
+            'role' => 'admin',
+            'position' => 'staff_administration',
+        ])
+        ->assertRedirect();
+
+    $user = User::query()->where('email', 'admin.baru@example.test')->firstOrFail();
+    $employee = Employee::query()->where('user_id', $user->id)->firstOrFail();
+
+    expect($user->role)->toBe(UserRole::Admin)
+        ->and($employee->position)->toBe('staff_administration')
+        ->and($employee->employee_number)->toBe('EMP-01')
+        ->and($user->is_active)->toBeTrue()
+        ->and($user->must_change_password)->toBeTrue()
+        ->and($user->email_verified_at)->toBeNull();
+
+    Notification::assertSentTo($user, EmployeeAccountActivationNotification::class);
+});
+
+test('superadmin cannot assign an employee position to an admin account', function () {
+    $this->actingAs(accountManagementSuperadmin())
+        ->from(route('admin.employees.create'))
+        ->post(route('admin.employees.store'), [
+            'name' => 'Admin Tidak Valid',
+            'email' => 'invalid.admin@example.test',
+            'role' => 'admin',
+            'position' => 'technician',
+        ])
+        ->assertSessionHasErrors('position');
+
+    expect(User::query()->where('email', 'invalid.admin@example.test')->exists())->toBeFalse();
 });
 
 test('admin can copy the same temporary password repeatedly while employee cannot access protected endpoints', function () {
@@ -190,7 +230,7 @@ test('email change clears previous email verification', function () {
             'email' => 'updated.employee@example.com',
             'employee_number' => $employee->employee_number,
             'phone' => $employee->phone,
-            'title_id' => null,
+            'position' => 'technician',
             'joined_at' => null,
             'is_active' => true,
         ])
@@ -252,7 +292,7 @@ test('deactivation revokes activation and password reset tokens without deleting
             'email' => $employee->user->email,
             'employee_number' => $employee->employee_number,
             'phone' => $employee->phone,
-            'title_id' => null,
+            'position' => 'technician',
             'joined_at' => null,
             'is_active' => false,
         ])
@@ -287,7 +327,7 @@ test('changing the email of a pending employee issues a new activation link to t
             'email' => 'new.address@example.com',
             'employee_number' => $employee->employee_number,
             'phone' => $employee->phone,
-            'title_id' => null,
+            'position' => 'technician',
             'joined_at' => null,
             'is_active' => true,
         ])
@@ -381,6 +421,8 @@ test('employee number generation continues from EMP-99 to EMP-100', function () 
         ->post(route('admin.employees.store'), [
             'name' => 'Pegawai Sembilan Puluh Sembilan',
             'email' => 'employee.99@example.test',
+            'role' => 'employee',
+            'position' => 'technician',
         ])
         ->assertRedirect();
 
@@ -394,6 +436,8 @@ test('employee number generation continues from EMP-99 to EMP-100', function () 
         ->post(route('admin.employees.store'), [
             'name' => 'Pegawai Seratus',
             'email' => 'employee.100@example.test',
+            'role' => 'employee',
+            'position' => 'technician',
         ])
         ->assertRedirect();
 
@@ -426,7 +470,7 @@ test('employee number cannot be changed through the employee update request', fu
             'email' => $employee->user->email,
             'employee_number' => 'EMP-88',
             'phone' => $employee->phone,
-            'title_id' => null,
+            'position' => 'technician',
             'joined_at' => null,
             'is_active' => true,
         ])
