@@ -2,9 +2,9 @@
 
 namespace App\Actions\Admin\Employees;
 
+use App\Enums\UserRole;
 use App\Models\AuditLog;
 use App\Models\Employee;
-use App\Enums\UserRole;
 use App\Models\PasswordResetRequest;
 use Illuminate\Support\Facades\DB;
 
