@@ -53,17 +53,17 @@
             </x-ui.card>
         </section>
 
-        <div class="flex w-full flex-col justify-end gap-2 sm:flex-row">
+        <div class="flex w-full flex-row justify-end gap-2">
             <x-ui.export-button
                 :options="$exportOptions"
                 :confirm-title="__('Konfirmasi export riwayat absensi')"
                 :warning="__('Export memuat satu baris per tanggal yang memiliki catatan absensi. Periksa kembali rentang sebelum melanjutkan.')"
-                class="w-full sm:w-auto"
+                class="min-w-0 flex-1 whitespace-nowrap sm:flex-none"
             />
             <x-ui.filter-toggle
                 controls="attendance-history-filter-panel"
                 :count="$activeFilterCount"
-                class="w-full sm:w-auto"
+                class="min-w-0 flex-1 whitespace-nowrap sm:flex-none"
             />
         </div>
 
