@@ -16,7 +16,8 @@ return [
         'driver' => 'batch',
 
         'batch' => [
-            'memory_limit' => 5000,
+            // Keep a typical monthly attendance workbook in memory; larger exports still spill in bounded batches.
+            'memory_limit' => 35000,
         ],
 
         'illuminate' => [
