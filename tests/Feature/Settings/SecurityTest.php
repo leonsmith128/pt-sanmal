@@ -12,7 +12,7 @@ use Livewire\Livewire;
 test('security settings page can be rendered', function () {
     $user = User::factory()->create();
 
-    $response = $this->actingAs($user)
+    $response = $this->actingAs($user->fresh())
         ->withSession(['auth.password_confirmed_at' => time()])
         ->get(route('security.edit'));
 
@@ -23,7 +23,7 @@ test('security settings page can be rendered', function () {
 test('security settings page requires password confirmation when enabled', function () {
     $user = User::factory()->create();
 
-    $response = $this->actingAs($user)
+    $response = $this->actingAs($user->fresh())
         ->get(route('security.edit'));
 
     $response->assertRedirect(route('password.confirm'));
@@ -38,7 +38,7 @@ test('active accounts of every role can access the application security page bef
             'must_change_password' => false,
         ])->save();
 
-        $this->actingAs($user)
+        $this->actingAs($user->fresh())
             ->withSession(['auth.password_confirmed_at' => time()])
             ->get(route('security.edit'))
             ->assertOk();
@@ -50,7 +50,7 @@ test('account security page renders without two factor when feature is disabled'
 
     $user = User::factory()->create();
 
-    $this->actingAs($user)
+    $this->actingAs($user->fresh())
         ->withSession(['auth.password_confirmed_at' => time()])
         ->get(route('security.edit'))
         ->assertOk()
@@ -63,7 +63,7 @@ test('account security page renders without two factor when feature is disabled'
 test('self-service account deletion endpoint is not available', function () {
     $user = User::factory()->create();
 
-    $this->actingAs($user)
+    $this->actingAs($user->fresh())
         ->get('/settings/delete-account')
         ->assertNotFound();
 });
@@ -76,7 +76,7 @@ test('password can be updated, audited, and notifies the account owner', functio
     ]);
     $oldRememberToken = $user->remember_token;
 
-    $this->actingAs($user);
+    $this->actingAs($user->fresh());
 
     $response = Livewire::test('pages::settings.security')
         ->set('current_password', 'password')
@@ -103,7 +103,7 @@ test('correct password must be provided to update password', function () {
         'password' => Hash::make('password'),
     ]);
 
-    $this->actingAs($user);
+    $this->actingAs($user->fresh());
 
     $response = Livewire::test('pages::settings.security')
         ->set('current_password', 'wrong-password')
@@ -129,7 +129,7 @@ test('email changes for every role require verification, security notification, 
             'must_change_password' => false,
         ])->save();
 
-        $this->actingAs($user)
+        $this->actingAs($user->fresh())
             ->withSession(['auth.password_confirmed_at' => time()]);
 
         Livewire::test('pages::settings.security')
@@ -164,7 +164,7 @@ test('email changes for every role require verification, security notification, 
 test('authenticated application and security routes use password-hash session authentication', function () {
     $user = User::factory()->create();
 
-    $this->actingAs($user)
+    $this->actingAs($user->fresh())
         ->withSession(['auth.password_confirmed_at' => time()])
         ->get(route('security.edit'))
         ->assertOk();
@@ -196,7 +196,7 @@ test('changing account email expires outstanding password reset requests', funct
         'expires_at' => now()->addHour(),
     ]);
 
-    $this->actingAs($user)
+    $this->actingAs($user->fresh())
         ->withSession(['auth.password_confirmed_at' => time()]);
 
     Livewire::test('pages::settings.security')
@@ -219,7 +219,7 @@ test('email verification resend is limited to three attempts per hour', function
 
     $user = User::factory()->unverified()->create();
 
-    $this->actingAs($user);
+    $this->actingAs($user->fresh());
 
     $component = Livewire::test('pages::settings.security');
 
@@ -236,7 +236,7 @@ test('verification resend quota is shared between settings UI and Fortify endpoi
 
     $user = User::factory()->unverified()->create();
 
-    $this->actingAs($user);
+    $this->actingAs($user->fresh());
 
     $component = Livewire::test('pages::settings.security');
     $component->call('resendVerificationNotification');

@@ -54,7 +54,7 @@ test('employee can request a password reset without revealing whether an email e
 test('admin accounts can request password reset but only superadmin can approve their requests', function () {
     Notification::fake();
 
-    $adminAccount = passwordResetAdminAccount();
+    $adminAccount = passwordResetAdmin();
 
     $this->post(route('password-reset.request.store'), ['email' => $adminAccount->email])
         ->assertRedirect()
