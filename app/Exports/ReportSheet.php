@@ -1,24 +1,25 @@
 <?php
 
-namespace App\Exports;
+namespace App\\Exports;
 
-use Maatwebsite\Excel\Concerns\FromArray;
-use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
-use Maatwebsite\Excel\Concerns\WithDrawings;
-use Maatwebsite\Excel\Concerns\WithEvents;
-use Maatwebsite\Excel\Concerns\WithTitle;
-use Maatwebsite\Excel\Events\AfterSheet;
-use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
-use PhpOffice\PhpSpreadsheet\Cell\StringValueBinder;
-use PhpOffice\PhpSpreadsheet\Style\Alignment;
-use PhpOffice\PhpSpreadsheet\Style\Fill;
-use PhpOffice\PhpSpreadsheet\Worksheet\BaseDrawing;
+use Generator;
+use Maatwebsite\\Excel\\Concerns\\FromGenerator;
+use Maatwebsite\\Excel\\Concerns\\WithCustomValueBinder;
+use Maatwebsite\\Excel\\Concerns\\WithDrawings;
+use Maatwebsite\\Excel\\Concerns\\WithEvents;
+use Maatwebsite\\Excel\\Concerns\\WithTitle;
+use Maatwebsite\\Excel\\Events\\AfterSheet;
+use PhpOffice\\PhpSpreadsheet\\Cell\\Coordinate;
+use PhpOffice\\PhpSpreadsheet\\Cell\\StringValueBinder;
+use PhpOffice\\PhpSpreadsheet\\Style\\Alignment;
+use PhpOffice\\PhpSpreadsheet\\Style\\Fill;
+use PhpOffice\\PhpSpreadsheet\\Worksheet\\BaseDrawing;
 
 /**
  * Satu worksheet laporan: header tebal berlatar, AutoFilter, freeze header, lebar kolom wajar.
  * Semua nilai ditulis sebagai teks (StringValueBinder) sehingga tidak ada nilai yang dieksekusi sebagai formula.
  */
-class ReportSheet extends StringValueBinder implements FromArray, WithCustomValueBinder, WithDrawings, WithEvents, WithTitle
+class ReportSheet extends StringValueBinder implements FromGenerator, WithCustomValueBinder, WithDrawings, WithEvents, WithTitle
 {
     private const MIN_WIDTH = 10;
 
@@ -49,9 +50,13 @@ class ReportSheet extends StringValueBinder implements FromArray, WithCustomValu
         return $this->title;
     }
 
-    public function array(): array
+    public function generator(): Generator
     {
-        return array_merge([$this->headings], $this->rows);
+        yield $this->headings;
+
+        foreach ($this->rows as $row) {
+            yield $row;
+        }
     }
 
     public function drawings(): array
