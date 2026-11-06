@@ -100,7 +100,6 @@ test('correct password must be provided to update password', function () {
     $response->assertHasErrors(['current_password']);
 });
 
-
 test('email changes for every role require verification without blocking an active account', function () {
     Notification::fake();
 
