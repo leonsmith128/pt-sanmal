@@ -10,7 +10,6 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             LeaveTypeSeeder::class,
-            SuperadminSeeder::class,
             DevDataSeeder::class, // otomatis dilewati selain di environment local
         ]);
     }

@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\UserRole;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Livewire;
@@ -22,6 +23,22 @@ test('security settings page requires password confirmation when enabled', funct
         ->get(route('security.edit'));
 
     $response->assertRedirect(route('password.confirm'));
+});
+
+test('active accounts of every role can access the application security page before email verification', function () {
+    foreach (UserRole::cases() as $role) {
+        $user = User::factory()->unverified()->create();
+        $user->forceFill([
+            'role' => $role,
+            'is_active' => true,
+            'must_change_password' => false,
+        ])->save();
+
+        $this->actingAs($user)
+            ->withSession(['auth.password_confirmed_at' => time()])
+            ->get(route('security.edit'))
+            ->assertOk();
+    }
 });
 
 test('account security page renders without two factor when feature is disabled', function () {
