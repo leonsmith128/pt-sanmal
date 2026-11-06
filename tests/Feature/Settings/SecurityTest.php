@@ -162,7 +162,8 @@ test('authenticated application and security routes use password-hash session au
     $user = User::factory()->create();
 
     $this->actingAs($user)
-        ->get(route('dashboard'))
+        ->withSession(['auth.password_confirmed_at' => time()])
+        ->get(route('security.edit'))
         ->assertOk();
 
     expect(session()->has('password_hash_web'))->toBeTrue();

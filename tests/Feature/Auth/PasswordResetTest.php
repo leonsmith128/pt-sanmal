@@ -78,6 +78,10 @@ test('approved reset token can be used once, audits completion, notifies the own
     $notification = Notification::sent($user, PasswordResetApprovedNotification::class)->first();
     $token = basename(parse_url($notification->resetUrl, PHP_URL_PATH));
     $oldPasswordHash = $user->fresh()->getAuthPassword();
+    $otherPendingRequest = PasswordResetRequest::create([
+        'user_id' => $user->id,
+        'status' => 'pending',
+    ]);
 
     $payload = [
         'password' => 'newsecurepassword1',
@@ -88,7 +92,8 @@ test('approved reset token can be used once, audits completion, notifies the own
         ->assertRedirect(route('login'));
 
     expect(Hash::check('newsecurepassword1', $user->fresh()->password))->toBeTrue()
-        ->and($resetRequest->fresh()->status)->toBe('used');
+        ->and($resetRequest->fresh()->status)->toBe('used')
+        ->and($otherPendingRequest->fresh()->status)->toBe('expired');
 
     $this->assertDatabaseHas('audit_logs', [
         'auditable_type' => $user->getMorphClass(),
@@ -99,8 +104,11 @@ test('approved reset token can be used once, audits completion, notifies the own
     Notification::assertSentTo($user, AccountSecurityNotification::class, fn (AccountSecurityNotification $securityNotification): bool => $securityNotification->subject === 'Password akun SanMal diubah melalui reset');
 
     $this->actingAs($user)
-        ->withSession(['password_hash_web' => $oldPasswordHash])
-        ->get(route('dashboard'))
+        ->withSession([
+            'password_hash_web' => $oldPasswordHash,
+            'auth.password_confirmed_at' => time(),
+        ])
+        ->get(route('security.edit'))
         ->assertRedirect(route('login'));
 
     $this->post(route('password-reset.store', ['token' => $token]), $payload)
