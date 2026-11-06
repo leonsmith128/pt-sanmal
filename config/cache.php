@@ -1,6 +1,6 @@
 <?php
 
-use Illuminate\Support\Str;
+use Illuminate\\Support\\Str;
 
 return [
 
@@ -53,6 +53,13 @@ return [
             'lock_path' => storage_path('framework/cache/data'),
         ],
 
+        // Dedicated store: Laravel Excel clears its cell cache after writing a workbook.
+        'excel' => [
+            'driver' => 'file',
+            'path' => storage_path('framework/cache/excel'),
+            'lock_path' => storage_path('framework/cache/excel'),
+        ],
+
         'storage' => [
             'driver' => 'storage',
             'disk' => env('CACHE_STORAGE_DISK'),
@@ -81,7 +88,7 @@ return [
         'redis' => [
             'driver' => 'redis',
             'connection' => env('REDIS_CACHE_CONNECTION', 'cache'),
-            'lock_connection' => env('REDIS_CACHE_LOCK_CONNECTION', 'default'),
+            'lock_connection' => env('REDIS_CACHE_LOCK_CONNECTION'),
         ],
 
         'dynamodb' => [
@@ -112,9 +119,8 @@ return [
     | Cache Key Prefix
     |--------------------------------------------------------------------------
     |
-    | When utilizing the APC, database, memcached, Redis, and DynamoDB cache
-    | stores, there might be other applications using the same cache. For
-    | that reason, you may prefix every cache key to avoid collisions.
+    | When utilizing the APC, database, memcached, and DynamoDB, you may
+    | prefix every cache key to avoid collisions.
     |
     */
 
@@ -125,9 +131,7 @@ return [
     | Serializable Classes
     |--------------------------------------------------------------------------
     |
-    | This value determines the classes that can be unserialized from cache
-    | storage. By default, no PHP classes will be unserialized from your
-    | cache to prevent gadget chain attacks if your APP_KEY is leaked.
+    | This value determines which classes may be unserialized from cache.
     |
     */
 
