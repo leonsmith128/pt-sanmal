@@ -1,5 +1,5 @@
 {{--
-    Tombol buka-tutup panel filter. Hanya UI: halaman yang mendefinisikan state Alpine
+    Tombol pembuka modal filter. Hanya UI: halaman yang mendefinisikan state Alpine
     (default `filterOpen`) dan menentukan panel mana yang dikontrol lewat `controls`.
 --}}
 @props([
@@ -13,7 +13,7 @@
     type="button"
     variant="outline"
     icon="funnel"
-    x-on:click="{{ $model }} = ! {{ $model }}"
+    x-on:click="{{ $model }} = true"
     x-bind:aria-expanded="{{ $model }}.toString()"
     aria-controls="{{ $controls }}"
     {{ $attributes }}
