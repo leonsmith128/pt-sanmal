@@ -3,6 +3,11 @@
 use App\Models\User;
 use Laravel\Fortify\Features;
 
+test('guests are redirected to the login page', function () {
+    $this->get(route('home'))
+        ->assertRedirect(route('login'));
+});
+
 test('login screen can be rendered', function () {
     $response = $this->get(route('login'));
 
