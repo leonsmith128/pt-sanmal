@@ -113,6 +113,7 @@ test('approved reset token can be used once, audits completion, notifies the own
     $notification = Notification::sent($user, PasswordResetApprovedNotification::class)->first();
     $token = basename(parse_url($notification->resetUrl, PHP_URL_PATH));
     $oldPasswordHash = $user->fresh()->getAuthPassword();
+    $oldRememberToken = $user->fresh()->remember_token;
     $otherPendingRequest = PasswordResetRequest::create([
         'user_id' => $user->id,
         'status' => 'pending',
@@ -127,6 +128,7 @@ test('approved reset token can be used once, audits completion, notifies the own
         ->assertRedirect(route('login'));
 
     expect(Hash::check('newsecurepassword1', $user->fresh()->password))->toBeTrue()
+        ->and($user->fresh()->remember_token)->not->toBe($oldRememberToken)
         ->and($resetRequest->fresh()->status)->toBe('used')
         ->and($otherPendingRequest->fresh()->status)->toBe('expired');
 
