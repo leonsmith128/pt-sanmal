@@ -82,3 +82,20 @@ test('already verified user visiting verification link is redirected without fir
     expect($user->fresh()->hasVerifiedEmail())->toBeTrue();
     Event::assertNotDispatched(Verified::class);
 });
+
+
+test('Fortify verification notification endpoint is limited to three attempts per user per hour', function () {
+    Notification::fake();
+
+    $user = User::factory()->unverified()->create();
+
+    $this->actingAs($user);
+
+    foreach (range(1, 3) as $attempt) {
+        $this->post(route('verification.send'))->assertRedirect();
+    }
+
+    $this->post(route('verification.send'))->assertTooManyRequests();
+
+    expect(Notification::sent($user, \Illuminate\Auth\Notifications\VerifyEmail::class))->toHaveCount(3);
+});
