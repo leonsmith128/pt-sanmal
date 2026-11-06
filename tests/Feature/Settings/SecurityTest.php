@@ -229,3 +229,21 @@ test('email verification resend is limited to three attempts per hour', function
 
     expect(Notification::sent($user, VerifyEmail::class))->toHaveCount(3);
 });
+
+
+test('verification resend quota is shared between settings UI and Fortify endpoint', function () {
+    Notification::fake();
+
+    $user = User::factory()->unverified()->create();
+
+    $this->actingAs($user);
+
+    $component = Livewire::test('pages::settings.security');
+    $component->call('resendVerificationNotification');
+    $this->post(route('verification.send'))->assertRedirect();
+    $component->call('resendVerificationNotification');
+
+    $this->post(route('verification.send'))->assertTooManyRequests();
+
+    expect(Notification::sent($user, VerifyEmail::class))->toHaveCount(3);
+});
