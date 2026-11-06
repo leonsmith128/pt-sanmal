@@ -3,6 +3,7 @@
 use App\Concerns\PasswordValidationRules;
 use App\Concerns\ProfileValidationRules;
 use App\Models\AuditLog;
+use App\Models\PasswordResetRequest;
 use App\Notifications\AccountSecurityNotification;
 use Flux\Flux;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -10,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\ValidationException;
@@ -58,6 +60,16 @@ new #[Title('Keamanan Akun')] class extends Component {
                 'email' => $newEmail,
                 'email_verified_at' => null,
             ])->save();
+
+            PasswordResetRequest::query()
+                ->where('user_id', $user->id)
+                ->whereIn('status', ['pending', 'approved'])
+                ->whereNull('used_at')
+                ->update([
+                    'status' => 'expired',
+                    'token_hash' => null,
+                    'expires_at' => null,
+                ]);
 
             AuditLog::record($user, 'account.email.changed', [
                 'email' => $oldEmail,
@@ -110,7 +122,34 @@ new #[Title('Keamanan Akun')] class extends Component {
             return;
         }
 
-        $user->sendEmailVerificationNotification();
+        try {
+            $sent = RateLimiter::attempt(
+                'email-verification-resend:'.$user->getKey(),
+                3,
+                function () use ($user): bool {
+                    $user->sendEmailVerificationNotification();
+
+                    return true;
+                },
+                3600,
+            );
+        } catch (Throwable $exception) {
+            report($exception);
+            Log::warning('Email verification resend could not be sent.', [
+                'user_id' => $user->id,
+                'exception' => $exception::class,
+            ]);
+
+            Flux::toast(variant: 'warning', text: __('Tautan verifikasi gagal dikirim. Silakan coba kembali nanti.'));
+
+            return;
+        }
+
+        if (! $sent) {
+            Flux::toast(variant: 'warning', text: __('Batas pengiriman ulang tercapai. Coba kembali satu jam lagi.'));
+
+            return;
+        }
 
         Session::flash('status', 'verification-link-sent');
     }
