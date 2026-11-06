@@ -43,7 +43,8 @@ class ReportSheet extends StringValueBinder implements FromGenerator, WithCustom
         private readonly array $linkHeadings = [],
         private readonly array $drawings = [],
         private readonly array $photoHeadings = [],
-    ) {}
+    ) {
+    }
 
     public function title(): string
     {
@@ -130,5 +131,4 @@ class ReportSheet extends StringValueBinder implements FromGenerator, WithCustom
             },
         ];
     }
-
 }
