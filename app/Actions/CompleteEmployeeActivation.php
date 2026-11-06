@@ -7,6 +7,7 @@ use App\Models\EmployeeAccountActivation;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class CompleteEmployeeActivation
@@ -36,6 +37,7 @@ class CompleteEmployeeActivation
             $user->forceFill([
                 'password' => Hash::make($password),
                 'must_change_password' => false,
+                'remember_token' => Str::random(60),
             ])->save();
 
             $activation->forceFill(['consumed_at' => now()])->save();
