@@ -8,6 +8,8 @@ use App\Notifications\AccountSecurityNotification;
 use App\Notifications\PasswordResetApprovedNotification;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
 
 function passwordResetAdmin(): User
 {
@@ -232,4 +234,18 @@ test('admin reset queue displays pending requests and decision controls', functi
         ->assertSee($user->email)
         ->assertSee('Setujui & kirim tautan')
         ->assertSee('Tolak permintaan');
+});
+
+
+test('password reset requests are additionally throttled per normalized email and IP', function () {
+    $user = passwordResetEmployee();
+    $action = app(\App\Actions\RequestEmployeePasswordReset::class);
+
+    foreach (range(1, 4) as $attempt) {
+        $action->handle(strtoupper($user->email));
+    }
+
+    $key = 'password-reset-request:'.hash('sha256', Str::lower($user->email).'|'.request()->ip());
+
+    expect(RateLimiter::tooManyAttempts($key, 3))->toBeTrue();
 });
