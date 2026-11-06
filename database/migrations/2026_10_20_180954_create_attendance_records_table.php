@@ -1,22 +1,22 @@
 <?php
 
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
+use Illuminate\\Database\\Migrations\\Migration;
+use Illuminate\\Database\\Schema\\Blueprint;
+use Illuminate\\Support\\Facades\\Schema;
 
 return new class extends Migration
 {
     public function up(): void
     {
-        // Satu baris = satu event absensi: clock_in, overtime_start, atau clock_out.
+        // One row represents one attendance event: clock_in, overtime_start, or clock_out.
         Schema::create('attendance_records', function (Blueprint $table) {
             $table->id();
             $table->foreignId('employee_id')->constrained()->restrictOnDelete();
             $table->foreignId('session_anchor_id')->nullable()
                 ->constrained('attendance_records')->restrictOnDelete();
             $table->string('source', 30)->default('attendance');
-            // Foreign key dipasang setelah attendance_corrections dibuat untuk menghindari
-            // dependensi melingkar antara attendance_records dan attendance_corrections.
+            // The reverse FK is added by create_attendance_corrections_table after
+            // both sides of this optional relationship exist.
             $table->unsignedBigInteger('attendance_correction_id')->nullable();
 
             $table->string('type', 20);
@@ -24,10 +24,19 @@ return new class extends Migration
             $table->foreignId('location_id')->nullable()->constrained('locations')->restrictOnDelete();
             $table->foreignId('project_id')->nullable()->constrained('projects')->restrictOnDelete();
 
-            $table->timestamp('recorded_at'); // UTC, ditentukan server
-            $table->timestamp('captured_at')->nullable(); // waktu perangkat saat bukti diambil
+            $table->timestamp('recorded_at');
+            $table->timestamp('captured_at')->nullable();
             $table->string('timezone', 50);
+            $table->string('timezone_source', 30)->default('legacy');
             $table->date('attendance_date');
+
+            // Immutable identity snapshots captured when the event is created.
+            $table->string('client_code_snapshot')->nullable();
+            $table->string('client_name_snapshot')->nullable();
+            $table->string('project_code_snapshot')->nullable();
+            $table->string('project_name_snapshot')->nullable();
+            $table->string('location_name_snapshot')->nullable();
+            $table->string('snapshot_source', 30)->nullable();
 
             $table->decimal('latitude', 10, 7)->nullable();
             $table->decimal('longitude', 10, 7)->nullable();
