@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\UserRole;
+use App\Models\PasswordResetRequest;
 use App\Models\User;
 use App\Notifications\AccountSecurityNotification;
 use Illuminate\Auth\Notifications\VerifyEmail;
@@ -171,4 +172,38 @@ test('authenticated application and security routes use password-hash session au
     $securityMiddleware = app('router')->getRoutes()->getByName('security.edit')->gatherMiddleware();
 
     expect($securityMiddleware)->toContain('auth.session');
+});
+
+
+test('changing account email expires outstanding password reset requests', function () {
+    $user = User::factory()->create([
+        'email_verified_at' => now(),
+    ]);
+
+    $pending = PasswordResetRequest::create([
+        'user_id' => $user->id,
+        'status' => 'pending',
+        'token_hash' => hash('sha256', 'pending-reset-token'),
+        'expires_at' => now()->addHour(),
+    ]);
+
+    $approved = PasswordResetRequest::create([
+        'user_id' => $user->id,
+        'status' => 'approved',
+        'token_hash' => hash('sha256', 'approved-reset-token'),
+        'expires_at' => now()->addHour(),
+    ]);
+
+    $this->actingAs($user)
+        ->withSession(['auth.password_confirmed_at' => time()]);
+
+    Livewire::test('pages::settings.security')
+        ->set('email', 'new-address@example.test')
+        ->call('updateEmail')
+        ->assertHasNoErrors();
+
+    expect($pending->fresh()->status)->toBe('expired')
+        ->and($pending->fresh()->token_hash)->toBeNull()
+        ->and($approved->fresh()->status)->toBe('expired')
+        ->and($approved->fresh()->token_hash)->toBeNull();
 });
