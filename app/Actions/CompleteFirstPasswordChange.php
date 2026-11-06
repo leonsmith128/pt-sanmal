@@ -7,6 +7,7 @@ use App\Models\EmployeeAccountActivation;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class CompleteFirstPasswordChange
@@ -26,6 +27,7 @@ class CompleteFirstPasswordChange
             $lockedUser->forceFill([
                 'password' => Hash::make($password),
                 'must_change_password' => false,
+                'remember_token' => Str::random(60),
             ])->save();
 
             $lockedUser->accountCredential()->delete();
