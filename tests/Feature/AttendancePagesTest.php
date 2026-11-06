@@ -61,7 +61,7 @@ test('employees can visit their own attendance history', function () {
     $this->get(route('attendance-history.index'))
         ->assertOk()
         ->assertSee(__('Riwayat Absensi'))
-        ->assertSee(__('Ekspor'))
+        ->assertSee(__('Export'))
         ->assertSee(__('Absen'))
         ->assertSee(__('Belum ada riwayat absensi'))
         ->assertSee(__('Hari hadir'))
@@ -682,12 +682,16 @@ test('attendance history renders date groups and event detail dialog using the c
     $xpath = new DOMXPath($document);
     $exportLinks = $xpath->query('//a[contains(@href, "/riwayat-absensi/ekspor")]');
 
-    expect($exportLinks->length)->toBe(1);
+    // Opsi Hari ini, Minggu ini, Bulan ini, dan rentang sesuai filter halaman.
+    expect($exportLinks->length)->toBe(4);
 
-    $exportUrl = html_entity_decode($exportLinks->item(0)->getAttribute('href'));
+    $exportUrl = collect($exportLinks)
+        ->map(fn ($link): string => html_entity_decode($link->getAttribute('href')))
+        ->first(fn (string $href): bool => str_contains($href, 'from=2026-11-01') && str_contains($href, 'to=2026-11-04'));
     $cardSurfaces = $xpath->query('//*[contains(concat(" ", normalize-space(@class), " "), " shadow-sm ")]');
 
-    expect($exportUrl)->toContain('from=2026-11-01')
+    expect($exportUrl)->not->toBeNull()
+        ->and($exportUrl)->toContain('from=2026-11-01')
         ->and($exportUrl)->toContain('to=2026-11-04')
         ->and($cardSurfaces->length)->toBeGreaterThanOrEqual(5);
 

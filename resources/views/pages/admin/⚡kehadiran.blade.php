@@ -13,7 +13,7 @@ use App\Models\Employee;
 use App\Models\Location;
 use App\Models\Project;
 use App\Support\AttendanceDateFilter;
-use Carbon\Carbon;
+use App\Support\ExportRangeOptions;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
@@ -203,6 +203,65 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
             ->sortBy(fn ($employee) => $employee->user->name)
             ->values();
     }
+    #[Computed]
+    public function exportOptions(): array
+    {
+        $dateRange = AttendanceFilterData::fromArray(['from' => $this->dateFrom, 'to' => $this->dateTo]);
+
+        return ExportRangeOptions::make(
+            'admin.kehadiran.export',
+            [
+                'employee_id' => $this->employeeId,
+                'client_id' => $this->clientId,
+                'location_id' => $this->locationId,
+                'project_id' => $this->projectId,
+                'search' => $this->search,
+                'attendance_type' => $this->attendanceType,
+                'work_type' => $this->workType,
+            ],
+            subject: 'absensi seluruh pegawai',
+            customFrom: $dateRange->from,
+            customTo: $dateRange->to,
+            customFallback: 'Tidak ada filter tanggal. Export mencakup bulan berjalan, dari awal bulan sampai hari ini.',
+        );
+    }
+
+    #[Computed]
+    public function exportFilterSummary(): string
+    {
+        $active = [];
+
+        if ($this->employeeId !== '') {
+            $active[] = 'Pegawai: '.($this->employees->firstWhere('id', (int) $this->employeeId)?->user?->name ?? 'ID '.$this->employeeId);
+        }
+
+        foreach ([
+            'Client' => ['clients', $this->clientId],
+            'Location' => ['locations', $this->locationId],
+            'Project' => ['projects', $this->projectId],
+        ] as $label => [$group, $id]) {
+            if ($id !== '') {
+                $active[] = $label.': '.(collect($this->filterOptions[$group])->firstWhere('id', (int) $id)['label'] ?? 'ID '.$id);
+            }
+        }
+
+        if (trim($this->search) !== '') {
+            $active[] = 'Pencarian: '.trim($this->search);
+        }
+
+        if ($this->attendanceType !== '') {
+            $active[] = 'Jenis absensi: '.(AttendanceType::tryFrom($this->attendanceType)?->label() ?? $this->attendanceType);
+        }
+
+        if ($this->workType !== '') {
+            $active[] = 'Jenis kerja: '.(WorkType::tryFrom($this->workType)?->label() ?? $this->workType);
+        }
+
+        return $active
+            ? 'Filter tambahan aktif: '.implode(' · ', $active)
+            : 'Filter tambahan: tidak ada; seluruh pegawai masuk dalam cakupan laporan.';
+    }
+
 }; ?>
 
 <section class="w-full">
@@ -292,97 +351,11 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                         @endif
                     </p>
                 </div>
-                @php
-                    $exportFilters = array_filter([
-                        'employee_id' => $employeeId,
-                        'client_id' => $clientId,
-                        'location_id' => $locationId,
-                        'project_id' => $projectId,
-                        'search' => $search,
-                        'attendance_type' => $attendanceType,
-                        'work_type' => $workType,
-                    ], fn ($value) => $value !== '');
-                    $today = Carbon::now('Asia/Makassar')->startOfDay();
-                    $weekStart = $today->copy()->startOfWeek(Carbon::MONDAY);
-                    $weekEnd = $today->copy()->endOfWeek(Carbon::SUNDAY);
-                    $monthStart = $today->copy()->startOfMonth();
-                    $monthEnd = $today->copy()->endOfMonth();
-                    $customDateRange = AttendanceFilterData::fromArray([
-                        'from' => $dateFrom,
-                        'to' => $dateTo,
-                    ]);
-                    $customExportDateDescription = $customDateRange->from !== null
-                        ? 'Rentang tanggal mengikuti filter aktif: '
-                            .Carbon::parse($customDateRange->from)->translatedFormat('d M Y')
-                            .' sampai '.Carbon::parse($customDateRange->to)->translatedFormat('d M Y').'.'
-                        : 'Tidak ada filter tanggal. Ekspor mencakup seluruh riwayat yang tersedia sampai hari ini.';
-                    $activeExportFilters = [];
-                    if ($employeeId !== '') {
-                        $selectedEmployee = $this->employees->firstWhere('id', (int) $employeeId);
-                        $activeExportFilters[] = 'Pegawai: '.($selectedEmployee?->user?->name ?? 'ID '.$employeeId);
-                    }
-                    if ($clientId !== '') {
-                        $selected = collect($this->filterOptions['clients'])->firstWhere('id', (int) $clientId);
-                        $activeExportFilters[] = 'Client: '.($selected['label'] ?? 'ID '.$clientId);
-                    }
-                    if ($locationId !== '') {
-                        $selected = collect($this->filterOptions['locations'])->firstWhere('id', (int) $locationId);
-                        $activeExportFilters[] = 'Location: '.($selected['label'] ?? 'ID '.$locationId);
-                    }
-                    if ($projectId !== '') {
-                        $selected = collect($this->filterOptions['projects'])->firstWhere('id', (int) $projectId);
-                        $activeExportFilters[] = 'Project: '.($selected['label'] ?? 'ID '.$projectId);
-                    }
-                    if (trim($search) !== '') {
-                        $activeExportFilters[] = 'Pencarian: '.trim($search);
-                    }
-                    if ($attendanceType !== '') {
-                        $activeExportFilters[] = 'Jenis absensi: '.(AttendanceType::tryFrom($attendanceType)?->label() ?? $attendanceType);
-                    }
-                    if ($workType !== '') {
-                        $activeExportFilters[] = 'Jenis kerja: '.(WorkType::tryFrom($workType)?->label() ?? $workType);
-                    }
-                    $exportFilterSummary = $activeExportFilters
-                        ? 'Filter tambahan aktif: '.implode(' · ', $activeExportFilters)
-                        : 'Filter tambahan: tidak ada; seluruh pegawai masuk dalam cakupan laporan.';
-                    $exportOptions = [
-                        [
-                            'label' => __('Hari ini'),
-                            'href' => route('admin.kehadiran.export', [...$exportFilters, 'from' => $today->toDateString(), 'to' => $today->toDateString()]),
-                            'description' => 'Laporan absensi tanggal '.$today->translatedFormat('d M Y').'. Seluruh filter aktif tetap diterapkan.',
-                            'icon' => 'calendar-days',
-                        ],
-                        [
-                            'label' => __('Minggu ini'),
-                            'href' => route('admin.kehadiran.export', [...$exportFilters, 'from' => $weekStart->toDateString(), 'to' => $weekEnd->toDateString()]),
-                            'description' => 'Laporan seluruh pegawai dari '.$weekStart->translatedFormat('d M Y').' sampai '.$weekEnd->translatedFormat('d M Y').'. Filter aktif tetap diterapkan.',
-                            'icon' => 'calendar-days',
-                        ],
-                        [
-                            'label' => __('Bulan ini'),
-                            'href' => route('admin.kehadiran.export', [...$exportFilters, 'from' => $monthStart->toDateString(), 'to' => $monthEnd->toDateString()]),
-                            'description' => 'Laporan seluruh pegawai dari '.$monthStart->translatedFormat('d M Y').' sampai '.$monthEnd->translatedFormat('d M Y').'. Filter aktif tetap diterapkan.',
-                            'icon' => 'calendar',
-                        ],
-                        [
-                            'label' => __('Sesuai filter tanggal'),
-                            'href' => route('admin.kehadiran.export', array_filter([
-                                ...$exportFilters,
-                                'from' => $dateFrom,
-                                'to' => $dateTo,
-                            ], fn ($value) => $value !== '')),
-                            'description' => $customExportDateDescription.' Seluruh filter tambahan yang aktif tetap diterapkan.',
-                            'icon' => 'arrow-down-tray',
-                            'divider_before' => true,
-                        ],
-                    ];
-                @endphp
-
                 <x-ui.export-button
-                    :options="$exportOptions"
-                    :summary="$exportFilterSummary"
-                    :confirm-title="__('Konfirmasi ekspor rekap absensi')"
-                    :warning="__('Ekspor menggunakan satu baris per pegawai per tanggal. Tanggal tanpa event absensi tetap disertakan. Periksa kembali cakupan sebelum melanjutkan.')"
+                    :options="$this->exportOptions"
+                    :summary="$this->exportFilterSummary"
+                    :confirm-title="__('Konfirmasi export rekap absensi')"
+                    :warning="__('Export menggunakan satu baris per pegawai per tanggal. Tanggal tanpa event absensi tetap disertakan. Periksa kembali cakupan sebelum melanjutkan.')"
                 />
             </div>
             <div id="attendance-records" data-record-count="{{ $records->total() }}" class="attendance-responsive-table p-3 sm:p-4 [&_thead]:sticky [&_thead]:top-0 [&_thead]:z-20 [&_thead]:bg-sanmal-surface-secondary dark:[&_thead]:bg-sanmal-surface-secondary-dark">

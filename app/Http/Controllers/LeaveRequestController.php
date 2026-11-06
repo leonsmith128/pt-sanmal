@@ -10,6 +10,7 @@ use App\Models\Employee;
 use App\Models\LeaveRequest;
 use App\Models\LeaveType;
 use App\Models\OvertimeRequest;
+use App\Support\ExportRangeOptions;
 use App\Support\ReportFileName;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -71,6 +72,15 @@ class LeaveRequestController extends Controller
             'filters' => $filters,
             'totalCount' => $rows->count(),
             'leaveTypes' => LeaveType::query()->where('is_active', true)->orderBy('name')->get(),
+            'exportOptions' => ExportRangeOptions::make(
+                'leave-requests.export',
+                ['type' => $filters['type'], 'status' => $filters['status'], 'q' => $filters['q']],
+                subject: 'permohonan Anda',
+                relation: 'yang periodenya beririsan dengan',
+                customFrom: $filters['from'],
+                customTo: $filters['to'],
+                customFallback: 'Tidak ada filter tanggal. Export mencakup seluruh permohonan sesuai filter lain yang aktif.',
+            ),
         ]);
     }
 

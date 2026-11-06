@@ -1,8 +1,8 @@
 <?php
 
-it('renders a single export link labelled Ekspor without a file format', function () {
+it('renders a single export link labelled Export without a file format', function () {
     $this->blade('<x-ui.export-button href="/unduh" class="w-full" />')
-        ->assertSee('Ekspor')
+        ->assertSee('Export')
         ->assertSee('href="/unduh"', false)
         ->assertDontSee('CSV')
         ->assertDontSee('XLSX');
@@ -10,7 +10,7 @@ it('renders a single export link labelled Ekspor without a file format', functio
 
 it('renders an export submit button for a form owned by the page', function () {
     $this->blade('<form><x-ui.export-button /></form>')
-        ->assertSee('Ekspor')
+        ->assertSee('Export')
         ->assertSee('type="submit"', false);
 });
 
@@ -31,7 +31,7 @@ it('renders export options with a self-contained confirmation dialog', function 
         ->assertSee('Konfirmasi rekap')
         ->assertSee('Ringkasan filter')
         ->assertSee('Periksa cakupan')
-        ->assertSee('Konfirmasi dan ekspor');
+        ->assertSee('Konfirmasi dan export');
 });
 
 it('renders a filter toggle bound to the page state with an active count', function () {

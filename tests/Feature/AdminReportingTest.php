@@ -105,7 +105,7 @@ it('renders the daily attendance report with a reusable employee card', function
         ->assertSee('Pegawai Uji')
         ->assertSee('Koreksi status harian')
         ->assertSee('name="date"', false)
-        ->assertSee('name="month"', false);
+        ->assertSee('Bulan dari tanggal terpilih');
 });
 
 it('logs out inactive users before they can access authenticated pages', function () {

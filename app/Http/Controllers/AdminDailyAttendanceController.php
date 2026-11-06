@@ -9,6 +9,7 @@ use App\Models\DailyStatusCorrection;
 use App\Models\Employee;
 use App\Services\AttendanceReportBuilder;
 use App\Services\DailyAttendanceStatusService;
+use App\Support\ExportRangeOptions;
 use App\Support\ReportFileName;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -44,7 +45,17 @@ class AdminDailyAttendanceController extends Controller
             ]),
         );
 
-        return view('pages::admin.daily-attendance', compact('date', 'rows'));
+        $selected = Carbon::parse($date, 'Asia/Makassar');
+        $exportOptions = ExportRangeOptions::make(
+            'admin.daily-attendance.export',
+            subject: 'rekap absensi harian seluruh pegawai',
+            customFrom: $selected->copy()->startOfMonth()->toDateString(),
+            customTo: $selected->copy()->endOfMonth()->toDateString(),
+            customLabel: __('Bulan dari tanggal terpilih'),
+            customDescription: 'Rekap harian seluruh pegawai untuk '.$selected->translatedFormat('F Y').'.',
+        );
+
+        return view('pages::admin.daily-attendance', compact('date', 'rows', 'exportOptions'));
     }
 
     public function correctDailyStatus(Request $request): RedirectResponse
@@ -106,11 +117,21 @@ class AdminDailyAttendanceController extends Controller
 
     public function exportMonth(Request $request, AttendanceReportBuilder $builder): BinaryFileResponse
     {
-        $month = $request->query('month', now('Asia/Makassar')->format('Y-m'));
-        validator(['month' => $month], ['month' => ['required', 'date_format:Y-m']])->validate();
+        $validated = $request->validate([
+            'month' => ['nullable', 'date_format:Y-m'],
+            'from' => ['nullable', 'date_format:Y-m-d'],
+            'to' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:from'],
+        ]);
 
-        $start = Carbon::parse($month.'-01', 'Asia/Makassar')->startOfMonth();
-        $end = $start->copy()->endOfMonth();
+        if (filled($validated['from'] ?? null)) {
+            // Rentang eksplisit (Hari ini, Minggu ini, Bulan ini, atau bulan dari tanggal terpilih).
+            $start = Carbon::parse($validated['from'], 'Asia/Makassar')->startOfDay();
+            $end = Carbon::parse($validated['to'] ?? $validated['from'], 'Asia/Makassar')->startOfDay();
+        } else {
+            $month = $validated['month'] ?? now('Asia/Makassar')->format('Y-m');
+            $start = Carbon::parse($month.'-01', 'Asia/Makassar')->startOfMonth();
+            $end = $start->copy()->endOfMonth();
+        }
 
         // Zona waktu null = sama dengan halaman Rekap Harian (tanggal absensi tersimpan).
         $workbook = $builder->build(Employee::query(), $start, $end, null, new AttendanceFilterData, includeOvertime: false);

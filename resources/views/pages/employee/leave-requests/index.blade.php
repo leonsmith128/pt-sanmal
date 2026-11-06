@@ -101,7 +101,9 @@
                         class="whitespace-nowrap"
                     />
                     <x-ui.export-button
-                        :href="route('leave-requests.export', request()->query())"
+                        :options="$exportOptions"
+                        :confirm-title="__('Konfirmasi export permohonan')"
+                        :warning="__('Export memuat satu baris per permohonan dan dibatasi 10.000 baris. Periksa kembali filter sebelum melanjutkan.')"
                         class="whitespace-nowrap"
                     />
                 </div>
@@ -161,7 +163,6 @@
                 <div class="flex flex-col gap-2 sm:col-span-2 lg:col-span-6 sm:flex-row sm:justify-end">
                     <x-ui.button href="{{ route('leave-requests.index') }}" variant="ghost" class="w-full sm:w-auto">{{ __('Reset filter') }}</x-ui.button>
                     <x-ui.button type="submit" variant="primary" icon="funnel" class="w-full sm:w-auto">{{ __('Terapkan filter') }}</x-ui.button>
-                    <x-ui.export-button :href="route('leave-requests.export', request()->query())" class="w-full sm:w-auto" />
                 </div>
             </form>
         </x-ui.filter-panel>

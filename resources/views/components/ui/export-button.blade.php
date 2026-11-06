@@ -1,5 +1,5 @@
 {{--
-    Tombol ekspor seragam. Hanya UI: halaman menentukan rute, rentang, dan teks konfirmasi.
+    Tombol export seragam. Hanya UI: halaman menentukan rute, rentang, dan teks konfirmasi.
 
     - `href`    : satu tombol link unduhan.
     - `options` : dropdown pilihan rentang dengan dialog konfirmasi; tiap opsi memuat
@@ -17,7 +17,7 @@
 ])
 
 @php
-    $label ??= __('Ekspor');
+    $label ??= __('Export');
 @endphp
 
 @if ($options !== [])
@@ -63,7 +63,7 @@
         >
             <div class="w-full max-w-lg space-y-4 rounded-2xl bg-white p-5 shadow-xl dark:bg-zinc-900">
                 <div class="flex items-start justify-between gap-3">
-                    <h2 id="export-confirm-title" class="text-lg font-semibold">{{ $confirmTitle ?? __('Konfirmasi ekspor') }}</h2>
+                    <h2 id="export-confirm-title" class="text-lg font-semibold">{{ $confirmTitle ?? __('Konfirmasi export') }}</h2>
                     <x-ui.button type="button" variant="ghost" icon="x-mark" square aria-label="{{ __('Tutup') }}" x-on:click="exportConfirmOpen = false" />
                 </div>
 
@@ -78,7 +78,7 @@
                 <div class="flex justify-end gap-2">
                     <x-ui.button type="button" variant="outline" x-on:click="exportConfirmOpen = false">{{ __('Batal') }}</x-ui.button>
                     <x-ui.button href="#" x-bind:href="exportUrl" variant="primary" x-on:click="exportConfirmOpen = false">
-                        {{ __('Konfirmasi dan ekspor') }}
+                        {{ __('Konfirmasi dan export') }}
                     </x-ui.button>
                 </div>
             </div>

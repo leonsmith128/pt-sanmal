@@ -18,7 +18,7 @@ it('renders the admin daily recap with the selected date in the calendar filter'
         ->assertSee('name="date"', false)
         ->assertSee('type="date"', false)
         ->assertSee('2026-11-03')
-        ->assertSee('Ekspor');
+        ->assertSee('Export');
 });
 
 it('rejects an invalid date on the admin daily recap route', function () {

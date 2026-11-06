@@ -26,7 +26,9 @@
         >
             <div class="flex w-full flex-row gap-2 sm:w-auto">
                 <x-ui.export-button
-                    :href="route('attendance-history.export', ['from' => $filters['from'], 'to' => $filters['to']])"
+                    :options="$exportOptions"
+                    :confirm-title="__('Konfirmasi export riwayat absensi')"
+                    :warning="__('Export memuat satu baris per tanggal yang memiliki catatan absensi. Periksa kembali rentang sebelum melanjutkan.')"
                     class="min-w-0 flex-1 whitespace-nowrap sm:flex-none"
                 />
                 <x-ui.button href="{{ route('attendance') }}" variant="primary" icon="clock" class="min-w-0 flex-1 whitespace-nowrap sm:flex-none">

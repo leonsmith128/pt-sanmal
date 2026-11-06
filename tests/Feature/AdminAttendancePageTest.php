@@ -347,7 +347,7 @@ it('keeps the attendance filter panel compact and removes redundant page descrip
 
     Livewire::actingAs($admin)
         ->test('pages::admin.kehadiran')
-        ->assertSeeInOrder(['Filter absensi', 'Reset filter', 'Aktivitas terbaru', 'Ekspor'])
+        ->assertSeeInOrder(['Filter absensi', 'Reset filter', 'Aktivitas terbaru', 'Export'])
         ->assertDontSee('Cakupan catatan')
         ->assertDontSee('Tanggal mengikuti kalender perusahaan WITA.')
         ->assertDontSee('Pantau dan telusuri catatan absensi seluruh pegawai.');
@@ -368,7 +368,7 @@ it('renders the attendance export confirmation with an Alpine-bound link', funct
     Livewire::actingAs($admin)
         ->test('pages::admin.kehadiran')
         ->assertSee('x-bind:href="exportUrl"', false)
-        ->assertSee('Konfirmasi dan ekspor');
+        ->assertSee('Konfirmasi dan export');
 });
 
 it('renders attendance rows with responsive card labels and a fixed-width table layout', function () {
@@ -418,7 +418,7 @@ it('renders the export action in a horizontal inline group', function () {
     Livewire::actingAs($admin)
         ->test('pages::admin.kehadiran')
         ->assertSee('inline-flex items-center gap-2 whitespace-nowrap', false)
-        ->assertSee('Ekspor');
+        ->assertSee('Export');
 });
 
 it('renders mobile attendance cards with a photo column, compact actions, and a full detail modal', function () {

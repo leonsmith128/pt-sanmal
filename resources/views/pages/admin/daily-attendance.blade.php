@@ -20,27 +20,17 @@
                 <x-admin.date-calendar-filter :date="$date" />
             </x-admin.filter-panel>
 
-            <x-admin.filter-panel class="flex w-full min-w-0 items-center">
-                <form
-                    method="GET"
-                    action="{{ route('admin.daily-attendance.export') }}"
-                    class="grid w-full min-w-0 gap-2"
-                >
-                    <div class="grid min-w-0 gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
-                        <x-ui.input
-                            type="month"
-                            name="month"
-                            :label="__('Ekspor rekap bulanan')"
-                            :value="\Illuminate\Support\Carbon::parse($date)->format('Y-m')"
-                            :show-error="false"
-                            required
-                        />
-
-                        <x-ui.export-button class="w-full lg:w-auto" />
-                    </div>
-
-                    <flux:error name="month" />
-                </form>
+            <x-admin.filter-panel class="flex w-full min-w-0 items-center justify-between gap-3">
+                <div class="min-w-0">
+                    <p class="text-sm font-medium text-[var(--sanmal-text-primary)]">{{ __('Export rekap') }}</p>
+                    <p class="text-xs text-[var(--sanmal-text-secondary)]">{{ __('Pilih rentang hari ini, minggu ini, bulan ini, atau bulan dari tanggal terpilih.') }}</p>
+                </div>
+                <x-ui.export-button
+                    :options="$exportOptions"
+                    :confirm-title="__('Konfirmasi export rekap harian')"
+                    :warning="__('Export memuat satu baris per pegawai per tanggal, termasuk tanggal tanpa event absensi. Periksa kembali rentang sebelum melanjutkan.')"
+                    class="shrink-0"
+                />
             </x-admin.filter-panel>
         </div>
 

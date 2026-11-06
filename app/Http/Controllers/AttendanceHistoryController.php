@@ -9,6 +9,7 @@ use App\Models\DailyStatusCorrection;
 use App\Models\Employee;
 use App\Models\LeaveRequest;
 use App\Services\AttendanceReportBuilder;
+use App\Support\ExportRangeOptions;
 use App\Services\DailyAttendanceStatusService;
 use App\Support\ReportFileName;
 use Illuminate\Database\Eloquent\Builder;
@@ -100,6 +101,12 @@ class AttendanceHistoryController extends Controller
             'filters' => $filters,
             'activeFilterCount' => ($request->query->has('from') || $request->query->has('to') ? 1 : 0)
                 + ($filters['direction'] !== 'desc' ? 1 : 0),
+            'exportOptions' => ExportRangeOptions::make(
+                'attendance-history.export',
+                subject: 'riwayat absensi Anda',
+                customFrom: $filters['from'],
+                customTo: $filters['to'],
+            ),
         ]);
     }
 
