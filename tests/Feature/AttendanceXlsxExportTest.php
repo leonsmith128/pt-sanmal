@@ -27,7 +27,7 @@ function xlsxExportEmployee(string $name, ?string $joinedAt = null): Employee
 }
 
 /** @return array{0: AttendanceRecord, 1: AttendanceRecord} */
-function xlsxExportSession(Employee $employee, string $in, string $out, array $clockInExtra = []): array
+function xlsxExportSession(Employee $employee, string $in, string $out, array $clockInExtra = [], array $clockOutExtra = []): array
 {
     $clockIn = AttendanceRecord::query()->create([
         'employee_id' => $employee->id,
@@ -47,6 +47,7 @@ function xlsxExportSession(Employee $employee, string $in, string $out, array $c
         'recorded_at' => $out,
         'timezone' => 'Asia/Makassar',
         'attendance_date' => substr($out, 0, 10),
+        ...$clockOutExtra,
     ]);
 
     return [$clockIn, $clockOut];
@@ -160,14 +161,20 @@ it('embeds a local selfie thumbnail, links the map, and records missing media as
         'accuracy_m' => '12.50',
         'location_status' => 'captured',
         'address_snapshot' => 'Jl. Contoh No. 1, Makassar',
+    ], [
+        'latitude' => '-5.1480000',
+        'longitude' => '119.4330000',
+        'location_status' => 'captured',
     ]);
 
     $xlsx = xlsxContents($this->actingAs(xlsxExportAdmin())->get(route('admin.kehadiran.export', [
         'from' => '2026-11-02', 'to' => '2026-11-02',
     ])));
 
+    preg_match_all('/<hyperlink\\b/', $xlsx['xml'], $hyperlinks);
+
     expect($xlsx['media'])->toHaveCount(1)
-        ->and($xlsx['xml'])->toContain('<hyperlink')
+        ->and($hyperlinks[0])->toHaveCount(2)
         ->and($xlsx['text'])
         ->toContain('Di-embed (120x120 px)')
         ->toContain('https://www.google.com/maps?q=-5.1476540,119.4327310')
