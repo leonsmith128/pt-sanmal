@@ -208,6 +208,9 @@ test('changing account email expires outstanding password reset requests', funct
         ->and($pending->fresh()->token_hash)->toBeNull()
         ->and($approved->fresh()->status)->toBe('expired')
         ->and($approved->fresh()->token_hash)->toBeNull();
+
+    $this->get(route('password-reset.show', ['token' => 'approved-reset-token']))
+        ->assertNotFound();
 });
 
 
