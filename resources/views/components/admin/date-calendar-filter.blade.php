@@ -6,8 +6,8 @@
 ])
 
 @php
-    $selected = \Illuminate\Support\Carbon::parse($date);
-    $weekStart = $selected->copy()->startOfWeek(\Illuminate\Support\Carbon::MONDAY);
+    $selected = \\Illuminate\\Support\\Carbon::parse($date);
+    $weekStart = $selected->copy()->startOfWeek(\\Illuminate\\Support\\Carbon::MONDAY);
     $today = now('Asia/Makassar')->toDateString();
     $weekDays = collect(range(0, 6))->map(fn (int $offset) => [
         'date' => $weekStart->copy()->addDays($offset)->toDateString(),
@@ -23,7 +23,6 @@
     action="{{ route('admin.daily-attendance') }}"
     x-data="{
         selected: @js($date),
-        today: @js($today),
         select(value) {
             if (!value) return;
             this.selected = value;
@@ -43,21 +42,31 @@
     <input type="hidden" name="date" x-bind:value="selected">
 
     <div class="sm:hidden">
-        <div class="flex min-w-0 items-end gap-2">
         <label for="admin-recap-date" class="mb-1.5 block text-sm font-medium text-[var(--sanmal-text-primary)]">
             {{ __('Tanggal rekap') }}
         </label>
-        <div class="relative min-w-0 flex-1">
-            <span class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-[var(--sanmal-text-secondary)]">
-                <flux:icon name="calendar-days" variant="outline" class="size-4" />
-            </span>
-            <input
-                id="admin-recap-date"
-                type="date"
-                value="{{ $date }}"
-                x-on:change="select($event.target.value)"
-                class="min-h-10 w-full min-w-0 rounded-lg border border-sanmal-border bg-sanmal-surface-primary py-2 pl-10 pr-3 text-sm text-[var(--sanmal-text-primary)] shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sanmal-brand-blue dark:border-sanmal-border-dark dark:bg-sanmal-surface-primary-dark"
-            >
+        <div class="flex min-w-0 items-center gap-2">
+            <div class="relative min-w-0 flex-1">
+                <span class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-[var(--sanmal-text-secondary)]">
+                    <flux:icon name="calendar-days" variant="outline" class="size-4" />
+                </span>
+                <input
+                    id="admin-recap-date"
+                    type="date"
+                    value="{{ $date }}"
+                    x-on:change="select($event.target.value)"
+                    class="min-h-10 w-full min-w-0 rounded-lg border border-sanmal-border bg-sanmal-surface-primary py-2 pl-10 pr-2 text-sm text-[var(--sanmal-text-primary)] shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sanmal-brand-blue dark:border-sanmal-border-dark dark:bg-sanmal-surface-primary-dark"
+                >
+            </div>
+            @if ($exportOptions !== [])
+                <x-ui.export-button
+                    :options="$exportOptions"
+                    :confirm-title="$exportConfirmTitle"
+                    :warning="$exportWarning"
+                    modal-id="admin-daily-export-mobile-dialog"
+                    class="w-auto min-w-0 shrink-0"
+                />
+            @endif
         </div>
     </div>
 
