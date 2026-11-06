@@ -65,6 +65,32 @@ it('defaults the admin export to the current month and names the file accordingl
         ->and($response->headers->get('cache-control'))->toContain('no-store');
 });
 
+it('exports multi-sheet workbooks after the XLSX cell cache spills to disk', function () {
+    xlsxExportEmployee('Pegawai Uji Cache XLSX');
+
+    $response = $this->actingAs(xlsxExportAdmin())->get(route('admin.kehadiran.export', [
+        'from' => '2026-01-01',
+        'to' => '2026-06-30',
+    ]));
+
+    $response->assertOk();
+
+    $zip = new ZipArchive;
+    expect($zip->open($response->baseResponse->getFile()->getPathname()))->toBeTrue();
+
+    $workbook = (string) $zip->getFromName('xl/workbook.xml');
+    $summary = $zip->getFromName('xl/worksheets/sheet1.xml');
+    $detail = $zip->getFromName('xl/worksheets/sheet2.xml');
+
+    $zip->close();
+
+    expect($workbook)
+        ->toContain('Ringkasan')
+        ->toContain('Detail')
+        ->and($summary)->toBeString()
+        ->and($detail)->toBeString();
+});
+
 it('skips days before the employee joined date in the daily recap export', function () {
     xlsxExportEmployee('Pegawai Baru Bergabung', '2026-11-03');
 
