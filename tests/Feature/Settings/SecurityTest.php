@@ -2,6 +2,7 @@
 
 use App\Enums\UserRole;
 use App\Models\User;
+use App\Notifications\AccountSecurityNotification;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
@@ -66,7 +67,9 @@ test('self-service account deletion endpoint is not available', function () {
         ->assertNotFound();
 });
 
-test('password can be updated', function () {
+test('password can be updated, audited, and notifies the account owner', function () {
+    Notification::fake();
+
     $user = User::factory()->create([
         'password' => Hash::make('password'),
     ]);
@@ -82,6 +85,14 @@ test('password can be updated', function () {
     $response->assertHasNoErrors();
 
     expect(Hash::check('new-password1', $user->refresh()->password))->toBeTrue();
+
+    $this->assertDatabaseHas('audit_logs', [
+        'auditable_type' => $user->getMorphClass(),
+        'auditable_id' => $user->id,
+        'action' => 'account.password.changed',
+    ]);
+
+    Notification::assertSentTo($user, AccountSecurityNotification::class, fn (AccountSecurityNotification $notification): bool => $notification->subject === 'Password akun SanMal diubah');
 });
 
 test('correct password must be provided to update password', function () {
@@ -100,12 +111,13 @@ test('correct password must be provided to update password', function () {
     $response->assertHasErrors(['current_password']);
 });
 
-test('email changes for every role require verification without blocking an active account', function () {
+test('email changes for every role require verification, security notification, and audit without blocking an active account', function () {
     Notification::fake();
 
     foreach (UserRole::cases() as $role) {
+        $oldEmail = 'original-'.$role->value.'@example.test';
         $user = User::factory()->create([
-            'email' => 'original-'.$role->value.'@example.test',
+            'email' => $oldEmail,
             'email_verified_at' => now(),
         ]);
         $user->forceFill([
@@ -130,6 +142,32 @@ test('email changes for every role require verification without blocking an acti
 
         Notification::assertSentTo($user, VerifyEmail::class);
 
+        Notification::assertSentOnDemand(
+            AccountSecurityNotification::class,
+            fn (AccountSecurityNotification $notification, array $channels, object $notifiable): bool => $notifiable->routes['mail'] === $oldEmail
+                && $notification->subject === 'Email akun SanMal diubah',
+        );
+
+        $this->assertDatabaseHas('audit_logs', [
+            'auditable_type' => $user->getMorphClass(),
+            'auditable_id' => $user->id,
+            'action' => 'account.email.changed',
+        ]);
+
         $this->get(route('security.edit'))->assertOk();
     }
+});
+
+test('authenticated application and security routes use password-hash session authentication', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->get(route('dashboard'))
+        ->assertOk();
+
+    expect(session()->has('password_hash_web'))->toBeTrue();
+
+    $securityMiddleware = app('router')->getRoutes()->getByName('security.edit')->gatherMiddleware();
+
+    expect($securityMiddleware)->toContain('auth.session');
 });

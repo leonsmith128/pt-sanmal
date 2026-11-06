@@ -66,17 +66,23 @@ class ApprovePasswordReset
                 'exception' => $exception::class,
             ]);
 
-            PasswordResetRequest::query()->whereKey($requestId)
-                ->where('status', 'approved')
-                ->whereNull('used_at')
-                ->update([
-                    'status' => 'pending',
-                    'reviewed_by' => null,
-                    'reviewed_at' => null,
-                    'review_note' => 'Pengiriman email gagal; menunggu peninjauan ulang.',
-                    'token_hash' => null,
-                    'expires_at' => null,
-                ]);
+            DB::transaction(function () use ($requestId, $user, $reviewer): void {
+                PasswordResetRequest::query()->whereKey($requestId)
+                    ->where('status', 'approved')
+                    ->whereNull('used_at')
+                    ->update([
+                        'status' => 'pending',
+                        'reviewed_by' => null,
+                        'reviewed_at' => null,
+                        'review_note' => null,
+                        'token_hash' => null,
+                        'expires_at' => null,
+                    ]);
+
+                AuditLog::record($user, 'password_reset.approval_notification_failed', null, [
+                    'request_id' => $requestId,
+                ], $reviewer->id);
+            });
 
             return false;
         }

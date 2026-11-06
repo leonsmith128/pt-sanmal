@@ -53,7 +53,7 @@ Route::middleware(['auth', EnsureUserIsActive::class])->group(function () {
     Route::post('ganti-password-awal', [FirstPasswordChangeController::class, 'store'])->name('account.password.first-change.store');
 });
 
-Route::middleware(['auth', EnsureUserIsActive::class, EnsurePasswordIsChanged::class])->group(function () {
+Route::middleware(['auth', 'auth.session', EnsureUserIsActive::class, EnsurePasswordIsChanged::class])->group(function () {
     Route::get('dashboard', AdminDashboardController::class)->name('dashboard');
     Route::get('dashboard-saya', [AdminDashboardController::class, 'myDashboard'])->name('my-dashboard');
     Route::get('profil/{user}/foto', ProfilePhotoController::class)->name('profile-photo.show');
@@ -103,12 +103,12 @@ Route::middleware(['auth', EnsureUserIsActive::class, EnsurePasswordIsChanged::c
             Route::resource('locations', AdminLocationController::class)->except(['destroy']);
             Route::resource('projects', AdminProjectController::class)->except(['destroy']);
 
+            // Pembuatan akun pegawai baru: Superadmin saja. Admin tetap mengelola pegawai yang sudah ada.
             Route::resource('pegawai', AdminEmployeeController::class)
                 ->parameters(['pegawai' => 'employee'])
                 ->names('employees')
                 ->only(['index', 'edit', 'update']);
 
-            // Pembuatan akun pegawai baru: Superadmin saja. Admin tetap mengelola pegawai yang sudah ada.
             Route::middleware(EnsureUserHasRole::using(UserRole::Superadmin))->group(function () {
                 Route::get('pegawai/create', [AdminEmployeeController::class, 'create'])->name('employees.create');
                 Route::post('pegawai', [AdminEmployeeController::class, 'store'])->name('employees.store');

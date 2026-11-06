@@ -4,6 +4,7 @@ use App\Enums\UserRole;
 use App\Models\Employee;
 use App\Models\PasswordResetRequest;
 use App\Models\User;
+use App\Notifications\AccountSecurityNotification;
 use App\Notifications\PasswordResetApprovedNotification;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
@@ -64,7 +65,7 @@ test('only an administrator can approve a pending reset request and issue a link
     Notification::assertSentTo($user, PasswordResetApprovedNotification::class);
 });
 
-test('approved reset token can be used once and updates the password', function () {
+test('approved reset token can be used once, audits completion, notifies the owner, and invalidates previous sessions', function () {
     Notification::fake();
 
     $user = passwordResetEmployee();
@@ -76,6 +77,7 @@ test('approved reset token can be used once and updates the password', function 
 
     $notification = Notification::sent($user, PasswordResetApprovedNotification::class)->first();
     $token = basename(parse_url($notification->resetUrl, PHP_URL_PATH));
+    $oldPasswordHash = $user->fresh()->getAuthPassword();
 
     $payload = [
         'password' => 'newsecurepassword1',
@@ -87,6 +89,19 @@ test('approved reset token can be used once and updates the password', function 
 
     expect(Hash::check('newsecurepassword1', $user->fresh()->password))->toBeTrue()
         ->and($resetRequest->fresh()->status)->toBe('used');
+
+    $this->assertDatabaseHas('audit_logs', [
+        'auditable_type' => $user->getMorphClass(),
+        'auditable_id' => $user->id,
+        'action' => 'password_reset.completed',
+    ]);
+
+    Notification::assertSentTo($user, AccountSecurityNotification::class, fn (AccountSecurityNotification $securityNotification): bool => $securityNotification->subject === 'Password akun SanMal diubah melalui reset');
+
+    $this->actingAs($user)
+        ->withSession(['password_hash_web' => $oldPasswordHash])
+        ->get(route('dashboard'))
+        ->assertRedirect(route('login'));
 
     $this->post(route('password-reset.store', ['token' => $token]), $payload)
         ->assertStatus(422);
