@@ -19,7 +19,6 @@ use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
 use Livewire\Component;
-use Throwable;
 
 new #[Title('Keamanan Akun')] class extends Component {
     use PasswordValidationRules;
@@ -83,7 +82,7 @@ new #[Title('Keamanan Akun')] class extends Component {
 
         try {
             $user->sendEmailVerificationNotification();
-        } catch (Throwable $exception) {
+        } catch (\Throwable $exception) {
             $verificationSent = false;
             report($exception);
             Log::warning('Account email verification notification could not be sent.', [
@@ -97,7 +96,7 @@ new #[Title('Keamanan Akun')] class extends Component {
                 'Email akun SanMal diubah',
                 'Alamat email login akun SanMal Anda baru saja diubah menjadi '.$newEmail.'. Jika Anda tidak melakukan perubahan ini, segera hubungi administrator.',
             ));
-        } catch (Throwable $exception) {
+        } catch (\Throwable $exception) {
             report($exception);
             Log::warning('Account email-change security notification could not be sent.', [
                 'user_id' => $user->id,
@@ -135,7 +134,7 @@ new #[Title('Keamanan Akun')] class extends Component {
                 },
                 3600,
             );
-        } catch (Throwable $exception) {
+        } catch (\Throwable $exception) {
             report($exception);
             Log::warning('Email verification resend could not be sent.', [
                 'user_id' => $user->id,
@@ -190,7 +189,7 @@ new #[Title('Keamanan Akun')] class extends Component {
                 'Password akun SanMal diubah',
                 'Password akun SanMal Anda baru saja diubah. Seluruh sesi pada perangkat lain telah dicabut. Jika Anda tidak melakukan perubahan ini, segera hubungi administrator.',
             ));
-        } catch (Throwable $exception) {
+        } catch (\Throwable $exception) {
             report($exception);
             Log::warning('Account password-change security notification could not be sent.', [
                 'user_id' => $user->id,
