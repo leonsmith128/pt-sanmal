@@ -3,6 +3,7 @@
 use App\Models\Employee;
 use App\Models\User;
 use Illuminate\Auth\Events\Verified;
+use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\URL;
 use Laravel\Fortify\Features;
@@ -83,7 +84,6 @@ test('already verified user visiting verification link is redirected without fir
     Event::assertNotDispatched(Verified::class);
 });
 
-
 test('Fortify verification notification endpoint is limited to three attempts per user per hour', function () {
     Notification::fake();
 
@@ -97,5 +97,5 @@ test('Fortify verification notification endpoint is limited to three attempts pe
 
     $this->post(route('verification.send'))->assertTooManyRequests();
 
-    expect(Notification::sent($user, \Illuminate\Auth\Notifications\VerifyEmail::class))->toHaveCount(3);
+    expect(Notification::sent($user, VerifyEmail::class))->toHaveCount(3);
 });

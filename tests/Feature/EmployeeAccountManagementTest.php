@@ -6,8 +6,10 @@ use App\Models\EmployeeAccountActivation;
 use App\Models\EmployeeAccountCredential;
 use App\Models\PasswordResetRequest;
 use App\Models\User;
+use App\Notifications\AccountSecurityNotification;
 use App\Notifications\EmployeeAccountActivationNotification;
 use App\Services\EmployeeNumberGenerator;
+use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -247,10 +249,10 @@ test('email change clears previous email verification and notifies the old addre
     expect($employee->user->fresh()->email)->toBe('updated.employee@example.com')
         ->and($employee->user->fresh()->email_verified_at)->toBeNull();
 
-    Notification::assertSentTo($employee->user->fresh(), Illuminate\Auth\Notifications\VerifyEmail::class);
+    Notification::assertSentTo($employee->user->fresh(), VerifyEmail::class);
     Notification::assertSentOnDemand(
-        App\Notifications\AccountSecurityNotification::class,
-        fn (App\Notifications\AccountSecurityNotification $notification, array $channels, object $notifiable): bool => $notifiable->routes['mail'] === $employee->user->email
+        AccountSecurityNotification::class,
+        fn (AccountSecurityNotification $notification, array $channels, object $notifiable): bool => $notifiable->routes['mail'] === $employee->user->email
             && $notification->subject === 'Email akun SanMal diubah',
     );
 });

@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Support\Str;
+use PhpOffice\PhpSpreadsheet\Cell\Cell;
+use PhpOffice\PhpSpreadsheet\Cell\IgnoredErrors;
 
 return [
 
@@ -140,8 +142,8 @@ return [
 
     // Only the PhpSpreadsheet cell objects required by the XLSX cell cache.
     'serializable_classes' => [
-        \PhpOffice\PhpSpreadsheet\Cell\Cell::class,
-        \PhpOffice\PhpSpreadsheet\Cell\IgnoredErrors::class,
+        Cell::class,
+        IgnoredErrors::class,
     ],
 
 ];

@@ -8,7 +8,6 @@ use App\Models\AttendanceRecord;
 use App\Models\Employee;
 use App\Models\Location;
 use App\Models\Project;
-use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
