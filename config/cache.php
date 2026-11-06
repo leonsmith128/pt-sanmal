@@ -140,8 +140,8 @@ return [
 
     // Only the PhpSpreadsheet cell objects required by the XLSX cell cache.
     'serializable_classes' => [
-        \\PhpOffice\\PhpSpreadsheet\\Cell\\Cell::class,
-        \\PhpOffice\\PhpSpreadsheet\\Cell\\IgnoredErrors::class,
+        \PhpOffice\PhpSpreadsheet\Cell\Cell::class,
+        \PhpOffice\PhpSpreadsheet\Cell\IgnoredErrors::class,
     ],
 
 ];
