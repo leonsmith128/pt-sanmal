@@ -9,6 +9,7 @@ use App\Notifications\PasswordResetApprovedNotification;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
 
 function passwordResetAdmin(): User
@@ -248,4 +249,15 @@ test('password reset requests are additionally throttled per normalized email an
     $key = 'password-reset-request:'.hash('sha256', Str::lower($user->email).'|'.request()->ip());
 
     expect(RateLimiter::tooManyAttempts($key, 3))->toBeTrue();
+});
+
+
+test('Fortify public registration and password reset routes stay disabled', function () {
+    expect(Route::has('register'))->toBeFalse()
+        ->and(Route::has('register.store'))->toBeFalse()
+        ->and(Route::has('password.request'))->toBeFalse()
+        ->and(Route::has('password.email'))->toBeFalse()
+        ->and(Route::has('password.reset'))->toBeFalse()
+        ->and(Route::has('password.update'))->toBeFalse()
+        ->and(Route::has('verification.send'))->toBeTrue();
 });
