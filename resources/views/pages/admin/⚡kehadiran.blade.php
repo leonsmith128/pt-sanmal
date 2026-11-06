@@ -205,7 +205,7 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
     }
 }; ?>
 
-<section x-data="{ exportConfirmOpen: false, exportUrl: '', exportDescription: '' }" x-on:keydown.escape.window="exportConfirmOpen = false" class="w-full">
+<section class="w-full">
     <style>
         .attendance-mobile-list { display: none; }
 
@@ -378,9 +378,10 @@ new #[Title('Kehadiran Pegawai')] class extends Component {
                     ];
                 @endphp
 
-                <x-admin.attendance-export
+                <x-ui.export-button
                     :options="$exportOptions"
-                    :filter-summary="$exportFilterSummary"
+                    :summary="$exportFilterSummary"
+                    :confirm-title="__('Konfirmasi ekspor rekap absensi')"
                     :warning="__('Ekspor menggunakan satu baris per pegawai per tanggal. Tanggal tanpa event absensi tetap disertakan. Periksa kembali cakupan sebelum melanjutkan.')"
                 />
             </div>

@@ -95,53 +95,30 @@
                     {{ number_format($totalCount) }} {{ __('hasil') }}
                 </span>
                 <div class="flex items-center gap-2">
-                    <x-ui.button
-                        type="button"
-                        variant="outline"
-                        icon="funnel"
-                        x-on:click="filterOpen = !filterOpen"
-                        x-bind:aria-expanded="filterOpen.toString()"
-                        aria-controls="leave-request-filter-panel"
+                    <x-ui.filter-toggle
+                        controls="leave-request-filter-panel"
+                        :count="$activeFilterCount"
                         class="whitespace-nowrap"
-                    >
-                        {{ __('Filter') }}
-                        @if ($activeFilterCount > 0)
-                            <span class="ml-1 inline-flex min-w-5 items-center justify-center rounded-full bg-sanmal-brand-blue/15 px-1.5 py-0.5 text-[11px] font-semibold tabular-nums text-sanmal-brand-blue dark:bg-sanmal-brand-yellow/20 dark:text-sanmal-brand-yellow">
-                                {{ $activeFilterCount }}
-                            </span>
-                        @endif
-                    </x-ui.button>
-                    <x-ui.button
-                        href="{{ route('leave-requests.export', request()->query()) }}"
-                        variant="outline"
-                        icon="arrow-down-tray"
+                    />
+                    <x-ui.export-button
+                        :href="route('leave-requests.export', request()->query())"
                         class="whitespace-nowrap"
-                        title="{{ __('Ekspor CSV') }}"
-                    >
-                        <span class="hidden sm:inline">{{ __('Ekspor CSV') }}</span>
-                        <span class="sm:hidden">{{ __('Ekspor') }}</span>
-                    </x-ui.button>
+                    />
                 </div>
             </div>
         </div>
 
         {{-- Collapsible Filter Panel --}}
-        <x-ui.card
-            padding="p-4 sm:p-5"
-            x-show="filterOpen"
-            x-cloak
-            x-transition
+        <x-ui.filter-panel
             id="leave-request-filter-panel"
+            :title="__('Filter permohonan')"
+            :description="__('Tanggal memfilter periode permohonan, bukan tanggal pengajuan.')"
         >
-            <div class="mb-4 flex items-center justify-between gap-3">
-                <div>
-                    <flux:heading size="lg">{{ __('Filter permohonan') }}</flux:heading>
-                    <flux:text class="mt-1 text-sm">{{ __('Tanggal memfilter periode permohonan, bukan tanggal pengajuan.') }}</flux:text>
-                </div>
+            <x-slot:aside>
                 <span class="hidden shrink-0 text-sm text-sanmal-text-muted sm:inline">
                     {{ number_format($totalCount) }} {{ __('hasil') }}
                 </span>
-            </div>
+            </x-slot:aside>
 
             <form method="GET" action="{{ route('leave-requests.index') }}" class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-6">
                 <div class="sm:col-span-2 lg:col-span-2">
@@ -184,10 +161,10 @@
                 <div class="flex flex-col gap-2 sm:col-span-2 lg:col-span-6 sm:flex-row sm:justify-end">
                     <x-ui.button href="{{ route('leave-requests.index') }}" variant="ghost" class="w-full sm:w-auto">{{ __('Reset filter') }}</x-ui.button>
                     <x-ui.button type="submit" variant="primary" icon="funnel" class="w-full sm:w-auto">{{ __('Terapkan filter') }}</x-ui.button>
-                    <x-ui.button href="{{ route('leave-requests.export', request()->query()) }}" variant="outline" icon="arrow-down-tray" class="w-full sm:w-auto">{{ __('Ekspor CSV') }}</x-ui.button>
+                    <x-ui.export-button :href="route('leave-requests.export', request()->query())" class="w-full sm:w-auto" />
                 </div>
             </form>
-        </x-ui.card>
+        </x-ui.filter-panel>
 
         @if ($requests->isEmpty())
             <x-ui.card padding="px-5 py-12 text-center">

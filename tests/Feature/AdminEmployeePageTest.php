@@ -45,7 +45,7 @@ it('renders employee cards for narrower screens and a table for wide screens', f
         ->assertSee('<dd', false)
         ->assertSee('Pegawai Tampilan Hybrid')
         ->assertSee('EMP-HYBRID')
-        ->assertSee('Ubah pegawai')
+        ->assertSee('Edit pegawai')
         ->assertSee(route('admin.employees.edit', $employee), false)
         ->assertSee('Cari pegawai')
         ->assertSee('Status akun');

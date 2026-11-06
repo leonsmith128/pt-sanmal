@@ -8,7 +8,7 @@
                 <flux:text>{{ $client->address ?: 'Alamat Client belum diisi' }} · {{ $client->phone ?: 'Kontak belum diisi' }}</flux:text>
             </div>
             <div class="flex gap-2">
-                <x-ui.button href="{{ route('admin.clients.edit', $client) }}" variant="ghost">{{ __('Ubah Client') }}</x-ui.button>
+                <x-ui.button href="{{ route('admin.clients.edit', $client) }}" variant="ghost">{{ __('Edit Client') }}</x-ui.button>
                 <x-ui.button href="{{ route('admin.locations.create', ['client_id' => $client->id]) }}" variant="primary" icon="plus">{{ __('Tambah Location') }}</x-ui.button>
             </div>
         </header>
@@ -39,7 +39,7 @@
                                     <p class="mt-1 text-xs text-amber-600">{{ __('Koordinat belum diatur; radius absensi belum dapat digunakan.') }}</p>
                                 @endif
                             </div>
-                            <x-ui.button size="sm" variant="ghost" href="{{ route('admin.locations.edit', $location) }}">{{ __('Ubah Location') }}</x-ui.button>
+                            <x-ui.button size="sm" variant="ghost" href="{{ route('admin.locations.edit', $location) }}">{{ __('Edit Location') }}</x-ui.button>
                         </div>
                         </x-ui.card>
                     </article>

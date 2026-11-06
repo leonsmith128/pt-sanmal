@@ -36,15 +36,7 @@
                             required
                         />
 
-                        <x-ui.button
-                            type="submit"
-                            variant="outline"
-                            size="base"
-                            icon="arrow-down-tray"
-                            class="w-full lg:w-auto"
-                        >
-                            {{ __('Unduh CSV') }}
-                        </x-ui.button>
+                        <x-ui.export-button class="w-full lg:w-auto" />
                     </div>
 
                     <flux:error name="month" />

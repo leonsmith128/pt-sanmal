@@ -25,31 +25,18 @@
             :description="__('Tinjau ringkasan kehadiran dan bukti absensi berdasarkan tanggal sesi.')"
         >
             <div class="flex w-full flex-row gap-2 sm:w-auto">
-                <x-ui.button
-                    href="{{ route('attendance-history.export', ['from' => $filters['from'], 'to' => $filters['to']]) }}"
-                    variant="outline"
-                    icon="arrow-down-tray"
+                <x-ui.export-button
+                    :href="route('attendance-history.export', ['from' => $filters['from'], 'to' => $filters['to']])"
                     class="min-w-0 flex-1 whitespace-nowrap sm:flex-none"
-                >
-                    {{ __('Export') }}
-                </x-ui.button>
+                />
                 <x-ui.button href="{{ route('attendance') }}" variant="primary" icon="clock" class="min-w-0 flex-1 whitespace-nowrap sm:flex-none">
                     {{ __('Absen') }}
                 </x-ui.button>
-                <x-ui.button
-                    type="button"
-                    variant="outline"
-                    icon="funnel"
-                    x-on:click="filterOpen = !filterOpen"
-                    x-bind:aria-expanded="filterOpen.toString()"
-                    aria-controls="attendance-history-filter-panel"
+                <x-ui.filter-toggle
+                    controls="attendance-history-filter-panel"
+                    :count="$activeFilterCount"
                     class="min-w-0 flex-1 whitespace-nowrap sm:flex-none"
-                >
-                    {{ __('Filter') }}
-                    @if ($activeFilterCount > 0)
-                        <span class="ml-1 inline-flex min-w-5 items-center justify-center rounded-full bg-blue-100 px-1.5 py-0.5 text-[11px] font-semibold tabular-nums text-blue-800 dark:bg-blue-900/50 dark:text-blue-200">{{ $activeFilterCount }}</span>
-                    @endif
-                </x-ui.button>
+                />
             </div>
         </x-ui.page-header>
 
@@ -90,12 +77,11 @@
             <span>{{ $filters['direction'] === 'desc' ? __('Terbaru dahulu') : __('Terlama dahulu') }}</span>
         </div>
 
-        <x-ui.card padding="p-4 sm:p-5" x-show="filterOpen" x-cloak x-transition id="attendance-history-filter-panel">
-            <section>
-            <div class="mb-4">
-                <flux:heading size="lg">{{ __('Filter riwayat') }}</flux:heading>
-                <flux:text class="mt-1 text-sm">{{ __('Pilih rentang tanggal dan urutan kelompok tanggal.') }}</flux:text>
-            </div>
+        <x-ui.filter-panel
+            id="attendance-history-filter-panel"
+            :title="__('Filter riwayat')"
+            :description="__('Pilih rentang tanggal dan urutan kelompok tanggal.')"
+        >
             <form method="GET" action="{{ route('attendance-history.index') }}" class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 <x-ui.input
                     name="from"
@@ -122,8 +108,7 @@
                     </x-ui.button>
                 </div>
             </form>
-            </section>
-        </x-ui.card>
+        </x-ui.filter-panel>
 
         <div class="flex flex-wrap items-center justify-between gap-2">
             <div>

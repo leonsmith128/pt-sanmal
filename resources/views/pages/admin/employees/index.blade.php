@@ -112,7 +112,7 @@
                                     class="w-full"
                                     href="{{ route('admin.employees.edit', $employee) }}"
                                 >
-                                    {{ __('Ubah pegawai') }}
+                                    {{ __('Edit pegawai') }}
                                 </x-ui.button>
                             </div>
                         </x-ui.card>
@@ -157,7 +157,7 @@
                                     </td>
                                     <td class="whitespace-nowrap px-4 py-3 text-right">
                                         <x-ui.button size="sm" variant="outline" href="{{ route('admin.employees.edit', $employee) }}">
-                                            {{ __('Ubah') }}
+                                            {{ __('Edit') }}
                                         </x-ui.button>
                                     </td>
                                 </tr>
