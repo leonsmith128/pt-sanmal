@@ -9,7 +9,7 @@
     'interaction' => 'livewire',
 ])
 
-<div class="w-full min-w-0 {{ $interaction === 'alpine' ? 'bg-transparent p-0 shadow-none' : 'rounded-2xl bg-sanmal-surface-card p-3 text-[var(--sanmal-text-primary)] shadow-sm dark:bg-sanmal-surface-card-dark dark:shadow-black/20' }}">
+<div class="mx-auto w-full max-w-4xl min-w-0 {{ $interaction === 'alpine' ? 'bg-transparent p-0 shadow-none' : 'rounded-2xl bg-sanmal-surface-card p-3 text-[var(--sanmal-text-primary)] shadow-sm dark:bg-sanmal-surface-card-dark dark:shadow-black/20' }}">
     <div class="mb-2 flex items-center justify-between gap-2">
         <div class="min-w-0">
             @if ($interaction === 'livewire')
@@ -30,9 +30,12 @@
                 <button type="button" x-on:click="$dispatch('admin-calendar-week', { direction: 1 })" aria-label="{{ __('Minggu berikutnya') }}" class="flex size-8 items-center justify-center rounded-lg text-[var(--sanmal-text-secondary)] hover:bg-sanmal-surface-secondary"><flux:icon name="chevron-right" variant="micro" /></button>
                 <button type="button" x-on:click="$dispatch('admin-calendar-select', { date: '{{ $todayDate }}' })" class="rounded-lg px-2 py-1.5 text-xs font-medium text-[var(--sanmal-text-secondary)] hover:bg-sanmal-surface-secondary">{{ __('Hari ini') }}</button>
             @endif
+            @isset($actions)
+                {{ $actions }}
+            @endisset
         </div>
     </div>
-    <div class="grid grid-cols-7 gap-1 sm:gap-1.5">
+    <div class="mx-auto grid max-w-3xl grid-cols-7 gap-1 text-center sm:gap-1.5">
         @foreach ($weekDays as $day)
             <button
                 type="button"
