@@ -176,7 +176,6 @@ test('authenticated application and security routes use password-hash session au
     expect($securityMiddleware)->toContain('auth.session');
 });
 
-
 test('changing account email expires outstanding password reset requests', function () {
     $user = User::factory()->create([
         'email_verified_at' => now(),
@@ -213,7 +212,6 @@ test('changing account email expires outstanding password reset requests', funct
         ->assertNotFound();
 });
 
-
 test('email verification resend is limited to three attempts per hour', function () {
     Notification::fake();
 
@@ -229,7 +227,6 @@ test('email verification resend is limited to three attempts per hour', function
 
     expect(Notification::sent($user, VerifyEmail::class))->toHaveCount(3);
 });
-
 
 test('verification resend quota is shared between settings UI and Fortify endpoint', function () {
     Notification::fake();

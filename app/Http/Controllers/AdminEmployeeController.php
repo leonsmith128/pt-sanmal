@@ -72,7 +72,7 @@ class AdminEmployeeController extends Controller
         $employee = $createEmployee->handle($data);
         $sent = $issueActivation->handle($employee->user);
 
-        if (! $sent) {
+        if (!$sent) {
             return redirect()->route('admin.employees.edit', $employee)
                 ->withErrors(['email' => 'Akun dibuat, tetapi email aktivasi gagal dikirim. Salin password sementara dan sampaikan melalui saluran aman.']);
         }
@@ -134,7 +134,7 @@ class AdminEmployeeController extends Controller
         if ($emailChanged && $employee->user->is_active && $employee->user->must_change_password) {
             $sent = $issueActivation->handle($employee->user);
 
-            if (! $sent) {
+            if (!$sent) {
                 return redirect()->route('admin.employees.edit', $employee)
                     ->withErrors(['email' => 'Akun diperbarui, tetapi email aktivasi gagal dikirim. Salin password sementara untuk onboarding manual.']);
             }
@@ -205,7 +205,7 @@ class AdminEmployeeController extends Controller
         $rotatePassword->handle($employee);
         $sent = $issueActivation->handle($employee->user);
 
-        if (! $sent) {
+        if (!$sent) {
             return back()->withErrors(['email' => 'Password sementara dirotasi, tetapi email aktivasi gagal dikirim. Salin password baru melalui tindakan admin.']);
         }
 
@@ -217,7 +217,7 @@ class AdminEmployeeController extends Controller
         $this->authorizeAccountManagement($employee);
         $sent = $issueActivation->handle($employee->user);
 
-        if (! $sent) {
+        if (!$sent) {
             return back()->withErrors(['email' => 'Email aktivasi gagal dikirim. Password sementara tetap dapat disalin oleh admin.']);
         }
 

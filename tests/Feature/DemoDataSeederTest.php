@@ -19,18 +19,23 @@ it('seeds twenty employee demo accounts and realistic linked attendance events i
     expect(User::query()->where('role', UserRole::Employee)->count())->toBe(20)
         ->and(Employee::query()->count())->toBe(21); // 20 Employee + 1 Admin profile
 
-    $clockIns = AttendanceRecord::query()
+    $clockInCount = AttendanceRecord::query()
         ->where('type', AttendanceType::ClockIn)
-        ->get();
+        ->count();
 
-    $clockOuts = AttendanceRecord::query()
+    $clockOutCount = AttendanceRecord::query()
         ->where('type', AttendanceType::ClockOut)
-        ->get();
+        ->count();
 
-    expect($clockIns->count())->toBeGreaterThan(1000)
-        ->and($clockOuts->count())->toBeGreaterThan(900)
-        ->and($clockIns->count())->toBeGreaterThan($clockOuts->count())
-        ->and($clockOuts->every(fn (AttendanceRecord $record): bool => $record->session_anchor_id !== null))->toBeTrue();
+    $clockOutsWithoutSessionAnchor = AttendanceRecord::query()
+        ->where('type', AttendanceType::ClockOut)
+        ->whereNull('session_anchor_id')
+        ->count();
+
+    expect($clockInCount)->toBeGreaterThan(1000)
+        ->and($clockOutCount)->toBeGreaterThan(900)
+        ->and($clockInCount)->toBeGreaterThan($clockOutCount)
+        ->and($clockOutsWithoutSessionAnchor)->toBe(0);
 
     $recordCount = AttendanceRecord::query()->count();
 

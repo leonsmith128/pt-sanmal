@@ -1,5 +1,6 @@
 <?php
 
+use App\Actions\RequestEmployeePasswordReset;
 use App\Enums\UserRole;
 use App\Models\Employee;
 use App\Models\PasswordResetRequest;
@@ -254,7 +255,7 @@ test('admin reset queue displays pending requests and decision controls', functi
 
 test('password reset requests are additionally throttled per normalized email and IP', function () {
     $user = passwordResetEmployee();
-    $action = app(\App\Actions\RequestEmployeePasswordReset::class);
+    $action = app(RequestEmployeePasswordReset::class);
 
     foreach (range(1, 4) as $attempt) {
         $action->handle(strtoupper($user->email));

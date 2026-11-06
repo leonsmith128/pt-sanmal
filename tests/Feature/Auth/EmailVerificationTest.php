@@ -2,6 +2,7 @@
 
 use App\Models\Employee;
 use App\Models\User;
+use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\URL;
@@ -97,5 +98,5 @@ test('Fortify verification notification endpoint is limited to three attempts pe
 
     $this->post(route('verification.send'))->assertTooManyRequests();
 
-    expect(Notification::sent($user, \Illuminate\Auth\Notifications\VerifyEmail::class))->toHaveCount(3);
+    expect(Notification::sent($user, VerifyEmail::class))->toHaveCount(3);
 });
