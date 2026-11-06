@@ -132,12 +132,16 @@ return [
     | Serializable Classes
     |--------------------------------------------------------------------------
     |
-    | This value determines which classes can be unserialized from cache.
-    | By default, no PHP classes will be unserialized from your cache to
-    | prevent gadget chain attacks if your APP_KEY is leaked.
+    | This value determines the classes that can be unserialized from cache
+    | storage. By default, no PHP classes will be unserialized from your
+    | cache to prevent gadget chain attacks if your APP_KEY is leaked.
     |
     */
 
-    'serializable_classes' => false,
+    // Only the PhpSpreadsheet cell objects required by the XLSX cell cache.
+    'serializable_classes' => [
+        \\PhpOffice\\PhpSpreadsheet\\Cell\\Cell::class,
+        \\PhpOffice\\PhpSpreadsheet\\Cell\\IgnoredErrors::class,
+    ],
 
 ];
