@@ -45,7 +45,7 @@ it('renders a filter toggle bound to the page state with an active count', funct
         ->assertSee('x-bind:aria-expanded="open.toString()"', false);
 });
 
-it('renders a collapsible filter panel whose fields are supplied by the page', function () {
+it('renders a modal filter panel whose fields are supplied by the page', function () {
     $this->blade(<<<'BLADE'
         <x-ui.filter-panel id="panel-filter" title="Filter contoh" description="Deskripsi contoh">
             <x-slot:aside><span>Samping</span></x-slot:aside>
@@ -54,6 +54,7 @@ it('renders a collapsible filter panel whose fields are supplied by the page', f
     BLADE)
         ->assertSee('id="panel-filter"', false)
         ->assertSee('x-show="filterOpen"', false)
+        ->assertSee('role="dialog"', false)
         ->assertSee('Filter contoh')
         ->assertSee('Deskripsi contoh')
         ->assertSee('Samping')
