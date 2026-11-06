@@ -161,6 +161,8 @@ test('first password change removes temporary credential without verifying email
         ->and($user->accountCredential)->toBeNull()
         ->and(Hash::check('personalpassword1', $user->password))->toBeTrue()
         ->and($user->remember_token)->not->toBe($oldRememberToken);
+
+    $this->get(route('dashboard'))->assertOk();
 });
 
 test('first password change requires at least eight characters and a number without requiring uppercase', function () {
