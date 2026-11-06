@@ -406,10 +406,6 @@ class AttendanceReportBuilder
      */
     private function addPhoto(?AttendanceRecord $event, string $label, int $row): array
     {
-        $this->photoAttempts++;
-        $startedAt = hrtime(true);
-
-        try {
         if ($event === null) {
             return ['Tidak ada event', false];
         }
@@ -417,6 +413,8 @@ class AttendanceReportBuilder
         if (blank($event->selfie_path)) {
             return ['Tidak ada foto', false];
         }
+
+        $this->photoAttempts++;
 
         try {
             $disk = Storage::disk(AttendanceSelfie::DISK);
@@ -431,9 +429,11 @@ class AttendanceReportBuilder
 
             $binary = $disk->get($event->selfie_path);
             $column = Coordinate::stringFromColumnIndex(array_search('Foto '.$label, $this->detailHeadings, true) + 1);
+            $photoStartedAt = hrtime(true);
             $drawing = $binary === null
                 ? null
                 : ReportPhotoThumbnail::drawing($binary, $column.$row, 'Foto '.$label.' '.$event->id);
+            $this->photoProcessingDurationMs += (hrtime(true) - $photoStartedAt) / 1_000_000;
         } catch (Throwable) {
             return ['Gagal diproses', false];
         }
@@ -446,9 +446,6 @@ class AttendanceReportBuilder
         $this->photoCount++;
 
         return ['Di-embed (120x120 px)', true];
-        } finally {
-            $this->photoProcessingDurationMs += (hrtime(true) - $startedAt) / 1_000_000;
-        }
     }
 
     private function wita(mixed $time): Carbon
