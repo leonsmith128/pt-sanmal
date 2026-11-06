@@ -30,6 +30,8 @@ class ReportPhotoThumbnail
         $thumbnail = imagecreatetruecolor(self::SIZE, self::SIZE);
 
         if ($thumbnail === false) {
+            imagedestroy($source);
+
             return null;
         }
 
@@ -47,7 +49,7 @@ class ReportPhotoThumbnail
             $side,
             $side,
         );
-        unset($source);
+        imagedestroy($source);
 
         $drawing = new MemoryDrawing;
         $drawing->setName($name);

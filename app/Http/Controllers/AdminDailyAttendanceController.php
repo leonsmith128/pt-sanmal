@@ -16,6 +16,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use Maatwebsite\Excel\Facades\Excel;
@@ -134,9 +135,20 @@ class AdminDailyAttendanceController extends Controller
         }
 
         // Zona waktu null = sama dengan halaman Rekap Harian (tanggal absensi tersimpan).
+        $buildStartedAt = hrtime(true);
         $workbook = $builder->build(Employee::query(), $start, $end, null, new AttendanceFilterData, includeOvertime: false);
+        $buildDurationMs = (hrtime(true) - $buildStartedAt) / 1_000_000;
 
+        $downloadStartedAt = hrtime(true);
         $response = Excel::download($workbook, ReportFileName::admin('rekap-harian', ReportFileName::period($start, $end)));
+        Log::info('Attendance XLSX export completed.', [
+            'report' => 'admin_daily_attendance',
+            'from' => $start->toDateString(),
+            'to' => $end->toDateString(),
+            'build_duration_ms' => round($buildDurationMs, 2),
+            'xlsx_write_duration_ms' => round((hrtime(true) - $downloadStartedAt) / 1_000_000, 2),
+            'peak_memory_mb' => round(memory_get_peak_usage(true) / 1_048_576, 2),
+        ]);
         $response->headers->set('Cache-Control', 'private, no-store, no-cache, must-revalidate');
 
         return $response;

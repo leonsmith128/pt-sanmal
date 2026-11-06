@@ -16,6 +16,7 @@ use App\Support\ReportPhotoThumbnail;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Worksheet\BaseDrawing;
@@ -53,6 +54,14 @@ class AttendanceReportBuilder
 
     private int $photoCount = 0;
 
+    private int $photoAttempts = 0;
+
+    private float $statusDurationMs = 0;
+
+    private float $rowAssemblyDurationMs = 0;
+
+    private float $photoProcessingDurationMs = 0;
+
     public function __construct(private readonly DailyAttendanceStatusService $statusService) {}
 
     /**
@@ -73,7 +82,12 @@ class AttendanceReportBuilder
         $this->detailRows = [];
         $this->drawings = [];
         $this->photoCount = 0;
+        $this->photoAttempts = 0;
+        $this->statusDurationMs = 0;
+        $this->rowAssemblyDurationMs = 0;
+        $this->photoProcessingDurationMs = 0;
 
+        $buildStartedAt = hrtime(true);
         $summaryHeadings = $this->withoutOvertime(self::SUMMARY_HEADINGS, $includeOvertime);
         $this->detailHeadings = $this->withoutOvertime($this->allDetailHeadings(), $includeOvertime);
 
@@ -89,7 +103,9 @@ class AttendanceReportBuilder
                 $rangeStart, $rangeEnd, $reportingTimezone, $recordFilter, $includeOvertime, $skipNoRecord, $summaryHeadings
             ): void {
                 /** @var Collection<int, Employee> $employees */
+                $statusStartedAt = hrtime(true);
                 $statuses = $this->statusService->forEmployeesDateRange($employees, $rangeStart, $rangeEnd, $reportingTimezone);
+                $this->statusDurationMs += (hrtime(true) - $statusStartedAt) / 1_000_000;
                 $overtime = $includeOvertime ? $this->finalOvertimeMinutes($employees, $rangeStart, $rangeEnd) : collect();
 
                 foreach ($employees as $employee) {
@@ -112,11 +128,26 @@ class AttendanceReportBuilder
                             continue;
                         }
 
+                        $rowStartedAt = hrtime(true);
                         $this->appendDay($employee, $date, $daily, $overtime->get($employee->id.'_'.$date), $includeOvertime, $summaryHeadings);
+                        $this->rowAssemblyDurationMs += (hrtime(true) - $rowStartedAt) / 1_000_000;
                     }
                 }
             });
         }
+
+        Log::info('Attendance report workbook prepared.', [
+            'from' => $start->toDateString(),
+            'to' => $end->toDateString(),
+            'status_duration_ms' => round($this->statusDurationMs, 2),
+            'row_assembly_duration_ms' => round($this->rowAssemblyDurationMs, 2),
+            'photo_processing_duration_ms' => round($this->photoProcessingDurationMs, 2),
+            'photo_attempts' => $this->photoAttempts,
+            'photos_embedded' => $this->photoCount,
+            'detail_rows' => count($this->detailRows),
+            'build_duration_ms' => round((hrtime(true) - $buildStartedAt) / 1_000_000, 2),
+            'peak_memory_mb' => round(memory_get_peak_usage(true) / 1_048_576, 2),
+        ]);
 
         return new ReportWorkbook(
             new ReportSheet('Ringkasan', $summaryHeadings, $this->summaryRows),
@@ -375,6 +406,10 @@ class AttendanceReportBuilder
      */
     private function addPhoto(?AttendanceRecord $event, string $label, int $row): array
     {
+        $this->photoAttempts++;
+        $startedAt = hrtime(true);
+
+        try {
         if ($event === null) {
             return ['Tidak ada event', false];
         }
@@ -411,6 +446,9 @@ class AttendanceReportBuilder
         $this->photoCount++;
 
         return ['Di-embed (120x120 px)', true];
+        } finally {
+            $this->photoProcessingDurationMs += (hrtime(true) - $startedAt) / 1_000_000;
+        }
     }
 
     private function wita(mixed $time): Carbon

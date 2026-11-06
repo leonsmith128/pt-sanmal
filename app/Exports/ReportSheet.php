@@ -80,10 +80,12 @@ class ReportSheet extends StringValueBinder implements FromGenerator, WithCustom
                 $sheet->setAutoFilter('A1:'.$lastColumn.$lastRow);
                 $sheet->freezePane('A2');
 
+                $contentWidths = $this->contentWidths();
+
                 foreach ($this->headings as $index => $heading) {
                     $column = Coordinate::stringFromColumnIndex($index + 1);
                     $sheet->getColumnDimension($column)->setWidth(
-                        in_array($heading, $this->photoHeadings, true) ? self::PHOTO_WIDTH : $this->contentWidth($index),
+                        in_array($heading, $this->photoHeadings, true) ? self::PHOTO_WIDTH : $contentWidths[$index],
                     );
                 }
 
@@ -113,14 +115,31 @@ class ReportSheet extends StringValueBinder implements FromGenerator, WithCustom
         ];
     }
 
-    private function contentWidth(int $index): int
+    /**
+     * Hitung lebar semua kolom dalam satu lintasan atas maksimal 200 baris.
+     *
+     * @return array<int, int>
+     */
+    private function contentWidths(): array
     {
-        $longest = mb_strlen((string) ($this->headings[$index] ?? ''));
+        $longest = array_map(
+            static fn (string $heading): int => mb_strlen($heading),
+            $this->headings,
+        );
 
-        foreach (array_slice($this->rows, 0, 200) as $row) {
-            $longest = max($longest, mb_strlen((string) ($row[$index] ?? '')));
+        $sampleRows = min(200, count($this->rows));
+
+        for ($rowIndex = 0; $rowIndex < $sampleRows; $rowIndex++) {
+            $row = $this->rows[$rowIndex];
+
+            foreach ($longest as $columnIndex => $length) {
+                $longest[$columnIndex] = max($length, mb_strlen((string) ($row[$columnIndex] ?? '')));
+            }
         }
 
-        return max(self::MIN_WIDTH, min(self::MAX_WIDTH, $longest + 2));
+        return array_map(
+            static fn (int $length): int => max(self::MIN_WIDTH, min(self::MAX_WIDTH, $length + 2)),
+            $longest,
+        );
     }
 }
