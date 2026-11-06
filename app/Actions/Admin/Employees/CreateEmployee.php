@@ -7,16 +7,19 @@ use App\Models\AuditLog;
 use App\Models\Employee;
 use App\Models\EmployeeAccountCredential;
 use App\Models\User;
+use App\Services\EmployeeNumberGenerator;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class CreateEmployee
 {
+    public function __construct(private readonly EmployeeNumberGenerator $employeeNumberGenerator) {}
+
     /**
      * Create an employee profile and its pending login account atomically.
      *
-     * @param  array{name: string, email: string, employee_number?: string|null, phone?: string|null, title_id?: int|null, joined_at?: string|null}  $data
+     * @param  array{name: string, email: string, phone?: string|null, title_id?: int|null, joined_at?: string|null}  $data
      */
     public function handle(array $data): Employee
     {
@@ -40,7 +43,7 @@ class CreateEmployee
 
             $employee = Employee::create([
                 'user_id' => $user->id,
-                'employee_number' => $data['employee_number'] ?? null,
+                'employee_number' => $this->employeeNumberGenerator->next(),
                 'phone' => $data['phone'] ?? null,
                 'title_id' => $data['title_id'] ?? null,
                 'joined_at' => $data['joined_at'] ?? null,

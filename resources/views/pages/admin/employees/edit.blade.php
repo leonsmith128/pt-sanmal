@@ -82,7 +82,9 @@
                     <x-ui.input
                         name="employee_number"
                         :label="__('Nomor pegawai')"
-                        :value="old('employee_number', $employee->employee_number)"
+                        :description="__('Nomor pegawai dibuat otomatis dan tidak dapat diubah.')"
+                        :value="$employee->employee_number"
+                        readonly
                     />
 
                     <x-ui.input

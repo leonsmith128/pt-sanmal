@@ -9,6 +9,7 @@ use App\Actions\Admin\Employees\RotateTemporaryPassword;
 use App\Actions\Admin\Employees\UpdateEmployee;
 use App\Models\Employee;
 use App\Models\Title;
+use App\Services\EmployeeNumberGenerator;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -37,10 +38,11 @@ class AdminEmployeeController extends Controller
         return view('pages::admin.employees.index', compact('employees'));
     }
 
-    public function create(): View
+    public function create(EmployeeNumberGenerator $employeeNumberGenerator): View
     {
         return view('pages::admin.employees.create', [
             'titles' => Title::query()->where('is_active', true)->orderBy('name')->get(),
+            'employeeNumberPreview' => $employeeNumberGenerator->preview(),
         ]);
     }
 
@@ -49,7 +51,6 @@ class AdminEmployeeController extends Controller
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
-            'employee_number' => ['nullable', 'string', 'max:50', 'unique:employees,employee_number'],
             'phone' => ['nullable', 'string', 'max:30'],
             'title_id' => ['nullable', 'integer', 'exists:titles,id'],
             'joined_at' => ['nullable', 'date'],
@@ -87,7 +88,6 @@ class AdminEmployeeController extends Controller
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($employee->user_id)],
-            'employee_number' => ['nullable', 'string', 'max:50', Rule::unique('employees', 'employee_number')->ignore($employee->id)],
             'phone' => ['nullable', 'string', 'max:30'],
             'title_id' => ['nullable', 'integer', 'exists:titles,id'],
             'joined_at' => ['nullable', 'date'],

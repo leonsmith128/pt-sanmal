@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 class UpdateEmployee
 {
     /**
-     * @param  array{name: string, email: string, employee_number?: string|null, phone?: string|null, title_id?: int|null, joined_at?: string|null, is_active: bool}  $data
+     * @param  array{name: string, email: string, phone?: string|null, title_id?: int|null, joined_at?: string|null, is_active: bool}  $data
      */
     public function handle(Employee $employee, array $data): Employee
     {
@@ -55,7 +55,6 @@ class UpdateEmployee
             }
 
             $employee->update([
-                'employee_number' => $data['employee_number'] ?? null,
                 'phone' => $data['phone'] ?? null,
                 'title_id' => $data['title_id'] ?? null,
                 'joined_at' => $data['joined_at'] ?? null,
