@@ -91,24 +91,24 @@ class AdminEmployeeController extends Controller
         UpdateEmployee $updateEmployee,
         IssueEmployeeActivation $issueActivation,
     ): RedirectResponse {
+        $positionEnum = $this->positionEnumForRole($employee->user->role);
+        $positionRules = ['required', 'string'];
+
+        if ($employee->position !== null && $positionEnum::tryFrom($employee->position) === null) {
+            $positionRules[] = function (string $attribute, mixed $value, \Closure $fail) use ($employee, $positionEnum): void {
+                if ($value !== $employee->position && $positionEnum::tryFrom((string) $value) === null) {
+                    $fail('Jabatan tidak valid untuk jenis akun ini.');
+                }
+            };
+        } else {
+            $positionRules[] = Rule::enum($positionEnum);
+        }
 
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($employee->user_id)],
             'phone' => ['nullable', 'string', 'max:30'],
-            'position' => [
-                'required',
-                'string',
-                $employee->position !== null && $this->positionEnumForRole($employee->user->role)::tryFrom($employee->position) === null
-                    ? function (string $attribute, mixed $value, \Closure $fail) use ($employee): void {
-                        $enum = $this->positionEnumForRole($employee->user->role);
-
-                        if ($value !== $employee->position && $enum::tryFrom((string) $value) === null) {
-                            $fail('Jabatan tidak valid untuk jenis akun ini.');
-                        }
-                    }
-                    : Rule::enum($this->positionEnumForRole($employee->user->role)),
-            ],
+            'position' => $positionRules,
             'joined_at' => ['nullable', 'date'],
             'is_active' => ['required', 'boolean'],
         ]);
