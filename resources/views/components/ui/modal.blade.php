@@ -22,6 +22,8 @@
         aria-modal="true"
         aria-labelledby="{{ $id }}-title"
         tabindex="-1"
+        x-trap.noscroll="{{ $model }}"
+        x-init="$nextTick(() => $el.focus())"
     >
         <header class="flex items-start justify-between gap-4">
             <h2 id="{{ $id }}-title" class="text-lg font-semibold">{{ $title }}</h2>
