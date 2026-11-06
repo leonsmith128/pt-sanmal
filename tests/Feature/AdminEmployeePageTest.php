@@ -141,6 +141,8 @@ it('renders the employee data section heading across the two-column create form 
         ->get(route('admin.employees.create'))
         ->assertOk()
         ->assertSee('Data kepegawaian')
+        ->assertSee('EMP-01')
+        ->assertSee('readonly', false)
         ->assertSee('sm:grid-cols-2', false)
         ->assertSee('sm:col-span-2', false);
 });

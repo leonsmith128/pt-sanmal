@@ -8,6 +8,7 @@ use App\Models\PasswordResetRequest;
 use App\Models\User;
 use App\Notifications\EmployeeAccountActivationNotification;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 
@@ -45,7 +46,7 @@ test('superadmin creates employee account and profile atomically with encrypted 
         ->post(route('admin.employees.store'), [
             'name' => 'Pegawai Baru',
             'email' => 'pegawai.baru@example.com',
-            'employee_number' => 'EMP-NEW',
+            'employee_number' => 'EMP-TAMPERED',
             'phone' => '081234567890',
             'title_id' => null,
             'joined_at' => '2026-11-05',
@@ -62,7 +63,7 @@ test('superadmin creates employee account and profile atomically with encrypted 
         ->and($user->is_active)->toBeTrue()
         ->and($user->must_change_password)->toBeTrue()
         ->and($user->email_verified_at)->toBeNull()
-        ->and($employee->employee_number)->toBe('EMP-NEW')
+        ->and($employee->employee_number)->toBe('EMP-01')
         ->and($user->accountCredential)->not->toBeNull()
         ->and(Crypt::decryptString($user->accountCredential->temporary_password_encrypted))->not->toBeEmpty();
 
@@ -358,4 +359,78 @@ test('activation and first password change views render independently from email
         ->get(route('account.password.first-change'))
         ->assertOk()
         ->assertSee('Verifikasi email dilakukan terpisah');
+});
+
+
+test('employee number generation continues from EMP-99 to EMP-100', function () {
+    Notification::fake();
+
+    foreach (range(1, 98) as $number) {
+        $user = User::factory()->create();
+        $user->forceFill(['role' => UserRole::Employee, 'is_active' => true])->save();
+
+        Employee::query()->create([
+            'user_id' => $user->id,
+            'employee_number' => 'EMP-'.str_pad((string) $number, 2, '0', STR_PAD_LEFT),
+        ]);
+    }
+
+    $superadmin = accountManagementSuperadmin();
+
+    $this->actingAs($superadmin)
+        ->post(route('admin.employees.store'), [
+            'name' => 'Pegawai Sembilan Puluh Sembilan',
+            'email' => 'employee.99@example.test',
+        ])
+        ->assertRedirect();
+
+    $employee99 = Employee::query()
+        ->whereHas('user', fn ($query) => $query->where('email', 'employee.99@example.test'))
+        ->firstOrFail();
+
+    expect($employee99->employee_number)->toBe('EMP-99');
+
+    $this->actingAs($superadmin)
+        ->post(route('admin.employees.store'), [
+            'name' => 'Pegawai Seratus',
+            'email' => 'employee.100@example.test',
+        ])
+        ->assertRedirect();
+
+    $employee100 = Employee::query()
+        ->whereHas('user', fn ($query) => $query->where('email', 'employee.100@example.test'))
+        ->firstOrFail();
+
+    expect($employee100->employee_number)->toBe('EMP-100');
+});
+
+test('employee number allocation rolls back with the employee creation transaction', function () {
+    $generator = app(\App\Services\EmployeeNumberGenerator::class);
+
+    expect(fn () => DB::transaction(function () use ($generator): void {
+        expect($generator->next())->toBe('EMP-01');
+
+        throw new RuntimeException('Rollback employee creation.');
+    }))->toThrow(RuntimeException::class);
+
+    expect($generator->preview())->toBe('EMP-01');
+});
+
+test('employee number cannot be changed through the employee update request', function () {
+    $employee = pendingAccountEmployee();
+    $employee->update(['employee_number' => 'EMP-07']);
+
+    $this->actingAs(accountManagementAdmin())
+        ->put(route('admin.employees.update', $employee), [
+            'name' => $employee->user->name,
+            'email' => $employee->user->email,
+            'employee_number' => 'EMP-88',
+            'phone' => $employee->phone,
+            'title_id' => null,
+            'joined_at' => null,
+            'is_active' => true,
+        ])
+        ->assertRedirect();
+
+    expect($employee->fresh()->employee_number)->toBe('EMP-07');
 });
