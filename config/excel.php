@@ -16,8 +16,8 @@ return [
         'driver' => 'batch',
 
         'batch' => [
-            // Keep a typical monthly attendance workbook in memory; larger exports still spill in bounded batches.
-            'memory_limit' => 35000,
+            // Spill worksheet cells to the batch cache early to leave headroom for XLSX ZIP generation.
+            'memory_limit' => 5000,
         ],
 
         'illuminate' => [
