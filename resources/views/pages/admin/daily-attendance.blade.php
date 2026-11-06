@@ -20,18 +20,14 @@
                 <x-admin.date-calendar-filter :date="$date" />
             </x-admin.filter-panel>
 
-            <x-admin.filter-panel class="flex w-full min-w-0 items-center justify-between gap-3">
-                <div class="min-w-0">
-                    <p class="text-sm font-medium text-[var(--sanmal-text-primary)]">{{ __('Export rekap') }}</p>
-                    <p class="text-xs text-[var(--sanmal-text-secondary)]">{{ __('Pilih rentang hari ini, minggu ini, bulan ini, atau bulan dari tanggal terpilih.') }}</p>
-                </div>
+            <x-ui.card padding="p-3 sm:p-4" class="flex w-full min-w-0 items-center justify-end">
                 <x-ui.export-button
                     :options="$exportOptions"
                     :confirm-title="__('Konfirmasi export rekap harian')"
                     :warning="__('Export memuat satu baris per pegawai per tanggal, termasuk tanggal tanpa event absensi. Periksa kembali rentang sebelum melanjutkan.')"
-                    class="shrink-0"
+                    class="w-full sm:w-auto"
                 />
-            </x-admin.filter-panel>
+            </x-ui.card>
         </div>
 
         <div class="grid grid-cols-1 items-stretch gap-4 md:auto-rows-fr md:grid-cols-2 lg:grid-cols-3">
