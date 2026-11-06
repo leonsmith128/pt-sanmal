@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
@@ -175,6 +176,7 @@ new #[Title('Keamanan Akun')] class extends Component {
         DB::transaction(function () use ($user, $validated): void {
             $user->forceFill([
                 'password' => $validated['password'],
+                'remember_token' => Str::random(60),
             ])->save();
 
             Auth::logoutOtherDevices($validated['password']);
