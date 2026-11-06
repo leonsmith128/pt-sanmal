@@ -52,10 +52,28 @@ it('allows both administrator roles to access administrative employee pages', fu
     }
 });
 
-it('limits admin account management to employee accounts and reserves admin accounts for superadmin', function () {
+it('ignores role escalation fields when an admin updates an employee account', function () {
     $admin = adminAccessUser(UserRole::Admin);
     $employeeUser = adminAccessUser(UserRole::Employee);
     $employee = Employee::query()->create(['user_id' => $employeeUser->id, 'position' => 'technician']);
+
+    $this->actingAs($admin)
+        ->put(route('admin.employees.update', $employee), [
+            'name' => $employeeUser->name,
+            'email' => $employeeUser->email,
+            'position' => 'technician',
+            'is_active' => true,
+            'role' => 'superadmin',
+        ])
+        ->assertRedirect();
+
+    expect($employeeUser->fresh()->role)->toBe(UserRole::Employee);
+});
+
+it('limits admin account management to employee accounts and reserves admin accounts for superadmin', function () {
+    $admin = adminAccessUser(UserRole::Admin);
+    $employeeUser = adminAccessUser(UserRole::Employee);
+    Employee::query()->create(['user_id' => $employeeUser->id, 'position' => 'technician']);
     $otherAdmin = adminAccessUser(UserRole::Admin);
     $adminProfile = Employee::query()->create(['user_id' => $otherAdmin->id, 'position' => 'staff_administration']);
 

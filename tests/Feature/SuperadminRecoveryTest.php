@@ -5,6 +5,7 @@ use App\Models\PasswordResetRequest;
 use App\Models\User;
 use App\Notifications\AccountSecurityNotification;
 use Illuminate\Auth\Notifications\VerifyEmail;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 
@@ -21,6 +22,13 @@ it('recovers the existing superadmin without creating a second account and requi
         'is_active' => true,
         'must_change_password' => false,
     ])->save();
+
+    DB::table('sessions')->insert([
+        'id' => 'superadmin-recovery-session',
+        'user_id' => $superadmin->id,
+        'payload' => 'session-payload',
+        'last_activity' => now()->timestamp,
+    ]);
 
     $pendingReset = PasswordResetRequest::create([
         'user_id' => $superadmin->id,
@@ -45,6 +53,8 @@ it('recovers the existing superadmin without creating a second account and requi
         ->and(User::query()->where('role', UserRole::Superadmin)->count())->toBe(1)
         ->and($pendingReset->fresh()->status)->toBe('expired')
         ->and($pendingReset->fresh()->token_hash)->toBeNull();
+
+    $this->assertDatabaseMissing('sessions', ['id' => 'superadmin-recovery-session']);
 
     Notification::assertSentTo($superadmin, VerifyEmail::class);
     Notification::assertSentOnDemand(

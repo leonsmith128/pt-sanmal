@@ -70,6 +70,17 @@ test('admin accounts can request password reset but only superadmin can approve 
 
     expect($resetRequest->fresh()->status)->toBe('approved');
     Notification::assertSentTo($adminAccount, PasswordResetApprovedNotification::class);
+
+    $notification = Notification::sent($adminAccount, PasswordResetApprovedNotification::class)->first();
+    $token = basename(parse_url($notification->resetUrl, PHP_URL_PATH));
+
+    $this->post(route('password-reset.store', ['token' => $token]), [
+        'password' => 'adminresetpassword1',
+        'password_confirmation' => 'adminresetpassword1',
+    ])->assertRedirect(route('login'));
+
+    expect(Hash::check('adminresetpassword1', $adminAccount->fresh()->password))->toBeTrue()
+        ->and($resetRequest->fresh()->status)->toBe('used');
 });
 
 test('only an administrator can approve a pending reset request and issue a link', function () {
