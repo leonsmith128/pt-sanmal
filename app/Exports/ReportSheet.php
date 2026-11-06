@@ -80,31 +80,47 @@ class ReportSheet extends StringValueBinder implements FromGenerator, WithCustom
                 $sheet->setAutoFilter('A1:'.$lastColumn.$lastRow);
                 $sheet->freezePane('A2');
 
-                $contentWidths = $this->contentWidths();
-
-                foreach ($this->headings as $index => $heading) {
-                    $column = Coordinate::stringFromColumnIndex($index + 1);
-                    $sheet->getColumnDimension($column)->setWidth(
-                        in_array($heading, $this->photoHeadings, true) ? self::PHOTO_WIDTH : $contentWidths[$index],
-                    );
-                }
+                $longest = array_map(
+                    static fn (string $heading): int => mb_strlen($heading),
+                    $this->headings,
+                );
+                $linkColumns = [];
 
                 foreach ($this->linkHeadings as $heading) {
                     $index = array_search($heading, $this->headings, true);
 
-                    if ($index === false) {
-                        continue;
+                    if ($index !== false) {
+                        $linkColumns[$index] = Coordinate::stringFromColumnIndex($index + 1);
+                    }
+                }
+
+                // Hitung lebar sampel dan pasang seluruh hyperlink dalam satu lintasan baris.
+                foreach ($this->rows as $rowIndex => $row) {
+                    if ($rowIndex < 200) {
+                        foreach ($longest as $columnIndex => $length) {
+                            $longest[$columnIndex] = max($length, mb_strlen((string) ($row[$columnIndex] ?? '')));
+                        }
                     }
 
-                    $column = Coordinate::stringFromColumnIndex($index + 1);
-
-                    foreach ($this->rows as $rowIndex => $row) {
+                    foreach ($linkColumns as $index => $column) {
                         $url = $row[$index] ?? '';
 
                         if (str_starts_with($url, 'https://')) {
                             $sheet->getCell($column.($rowIndex + 2))->getHyperlink()->setUrl($url);
                         }
                     }
+                }
+
+                $contentWidths = array_map(
+                    static fn (int $length): int => max(self::MIN_WIDTH, min(self::MAX_WIDTH, $length + 2)),
+                    $longest,
+                );
+
+                foreach ($this->headings as $index => $heading) {
+                    $column = Coordinate::stringFromColumnIndex($index + 1);
+                    $sheet->getColumnDimension($column)->setWidth(
+                        in_array($heading, $this->photoHeadings, true) ? self::PHOTO_WIDTH : $contentWidths[$index],
+                    );
                 }
 
                 foreach ($this->drawings as $drawing) {
@@ -115,31 +131,4 @@ class ReportSheet extends StringValueBinder implements FromGenerator, WithCustom
         ];
     }
 
-    /**
-     * Hitung lebar semua kolom dalam satu lintasan atas maksimal 200 baris.
-     *
-     * @return array<int, int>
-     */
-    private function contentWidths(): array
-    {
-        $longest = array_map(
-            static fn (string $heading): int => mb_strlen($heading),
-            $this->headings,
-        );
-
-        $sampleRows = min(200, count($this->rows));
-
-        for ($rowIndex = 0; $rowIndex < $sampleRows; $rowIndex++) {
-            $row = $this->rows[$rowIndex];
-
-            foreach ($longest as $columnIndex => $length) {
-                $longest[$columnIndex] = max($length, mb_strlen((string) ($row[$columnIndex] ?? '')));
-            }
-        }
-
-        return array_map(
-            static fn (int $length): int => max(self::MIN_WIDTH, min(self::MAX_WIDTH, $length + 2)),
-            $longest,
-        );
-    }
 }
