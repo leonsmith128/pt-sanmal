@@ -65,5 +65,9 @@ class FortifyServiceProvider extends ServiceProvider
             return Limit::perMinute(5)->by($throttleKey);
         });
 
+        RateLimiter::for('verification', function (Request $request) {
+            return Limit::perHour(3)->by($request->user()?->getAuthIdentifier() ?? $request->ip());
+        });
+
     }
 }

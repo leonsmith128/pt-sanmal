@@ -24,33 +24,6 @@
             :title="__('Riwayat Absensi')"
             :description="__('Tinjau ringkasan kehadiran dan bukti absensi berdasarkan tanggal sesi.')"
         >
-            <div class="flex w-full flex-row gap-2 sm:w-auto">
-                <x-ui.button
-                    href="{{ route('attendance-history.export', ['from' => $filters['from'], 'to' => $filters['to']]) }}"
-                    variant="outline"
-                    icon="arrow-down-tray"
-                    class="min-w-0 flex-1 whitespace-nowrap sm:flex-none"
-                >
-                    {{ __('Export') }}
-                </x-ui.button>
-                <x-ui.button href="{{ route('attendance') }}" variant="primary" icon="clock" class="min-w-0 flex-1 whitespace-nowrap sm:flex-none">
-                    {{ __('Absen') }}
-                </x-ui.button>
-                <x-ui.button
-                    type="button"
-                    variant="outline"
-                    icon="funnel"
-                    x-on:click="filterOpen = !filterOpen"
-                    x-bind:aria-expanded="filterOpen.toString()"
-                    aria-controls="attendance-history-filter-panel"
-                    class="min-w-0 flex-1 whitespace-nowrap sm:flex-none"
-                >
-                    {{ __('Filter') }}
-                    @if ($activeFilterCount > 0)
-                        <span class="ml-1 inline-flex min-w-5 items-center justify-center rounded-full bg-blue-100 px-1.5 py-0.5 text-[11px] font-semibold tabular-nums text-blue-800 dark:bg-blue-900/50 dark:text-blue-200">{{ $activeFilterCount }}</span>
-                    @endif
-                </x-ui.button>
-            </div>
         </x-ui.page-header>
 
         <section aria-label="{{ __('Ringkasan kehadiran') }}" class="grid grid-cols-3 gap-2 sm:gap-3">
@@ -80,6 +53,20 @@
             </x-ui.card>
         </section>
 
+        <div class="flex w-full flex-row justify-end gap-2">
+            <x-ui.export-button
+                :options="$exportOptions"
+                :confirm-title="__('Konfirmasi export riwayat absensi')"
+                :warning="__('Export memuat satu baris per tanggal yang memiliki catatan absensi. Periksa kembali rentang sebelum melanjutkan.')"
+                class="min-w-0 flex-1 whitespace-nowrap sm:flex-none"
+            />
+            <x-ui.filter-toggle
+                controls="attendance-history-filter-panel"
+                :count="$activeFilterCount"
+                class="min-w-0 flex-1 whitespace-nowrap sm:flex-none"
+            />
+        </div>
+
         <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-zinc-600 dark:text-zinc-300" aria-live="polite">
             <span>
                 <span class="font-medium text-zinc-900 dark:text-zinc-100">{{ __('Periode:') }}</span>
@@ -90,12 +77,11 @@
             <span>{{ $filters['direction'] === 'desc' ? __('Terbaru dahulu') : __('Terlama dahulu') }}</span>
         </div>
 
-        <x-ui.card padding="p-4 sm:p-5" x-show="filterOpen" x-cloak x-transition id="attendance-history-filter-panel">
-            <section>
-            <div class="mb-4">
-                <flux:heading size="lg">{{ __('Filter riwayat') }}</flux:heading>
-                <flux:text class="mt-1 text-sm">{{ __('Pilih rentang tanggal dan urutan kelompok tanggal.') }}</flux:text>
-            </div>
+        <x-ui.filter-panel
+            id="attendance-history-filter-panel"
+            :title="__('Filter riwayat')"
+            :description="__('Pilih rentang tanggal dan urutan kelompok tanggal.')"
+        >
             <form method="GET" action="{{ route('attendance-history.index') }}" class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 <x-ui.input
                     name="from"
@@ -122,8 +108,7 @@
                     </x-ui.button>
                 </div>
             </form>
-            </section>
-        </x-ui.card>
+        </x-ui.filter-panel>
 
         <div class="flex flex-wrap items-center justify-between gap-2">
             <div>

@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Enums\AdminPosition;
+use App\Enums\EmployeePosition;
 use App\Enums\ProjectStatus;
 use App\Enums\ProjectType;
 use App\Enums\UserRole;
@@ -9,7 +11,6 @@ use App\Models\Client;
 use App\Models\Employee;
 use App\Models\Location;
 use App\Models\Project;
-use App\Models\Title;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -17,21 +18,16 @@ use Illuminate\Support\Facades\DB;
 class DevDataSeeder extends Seeder
 {
     /**
-     * Data uji untuk development. Hanya jalan di environment "local".
+     * Data uji untuk development. Hanya jalan di environment local/testing.
      * Semua akun uji memakai password: password
      */
     public function run(): void
     {
-        if (! app()->environment('local')) {
+        if (! app()->environment('local') && ! app()->environment('testing')) {
             return;
         }
 
         DB::transaction(function () {
-            $titles = [];
-            foreach (['Manajer', 'Staf Administrasi', 'Teknisi Kalibrasi'] as $name) {
-                $titles[$name] = Title::firstOrCreate(['name' => $name]);
-            }
-
             $client = Client::firstOrCreate(['code' => 'CL-DEV'], [
                 'name' => 'Client Contoh Development',
                 'address' => 'Alamat client contoh',
@@ -57,22 +53,26 @@ class DevDataSeeder extends Seeder
                 'is_active' => true,
             ]);
 
-            Project::firstOrCreate(['code' => 'PRJ-001'], [
+            $project = Project::firstOrCreate(['code' => 'PRJ-001'], [
                 'client_id' => $client->id,
                 'name' => 'Proyek Kalibrasi Contoh',
                 'project_type' => ProjectType::Service,
                 'location_id' => $site->id,
                 'status' => ProjectStatus::Active->value,
-                'start_date' => now()->toDateString(),
+                'start_date' => '2026-05-01',
             ]);
 
+            if ($project->start_date === null || $project->start_date->toDateString() > '2026-05-01') {
+                $project->forceFill(['start_date' => '2026-05-01'])->save();
+            }
+
             $people = [
-                ['Admin Uji', 'admin@sanmal.test', UserRole::Admin, 'Staf Administrasi', 'EMP-001'],
-                ['Pegawai Satu', 'pegawai1@sanmal.test', UserRole::Employee, 'Teknisi Kalibrasi', 'EMP-002'],
-                ['Pegawai Dua', 'pegawai2@sanmal.test', UserRole::Employee, 'Teknisi Kalibrasi', 'EMP-003'],
+                ['Admin Uji', 'admin@sanmal.test', UserRole::Admin, AdminPosition::StaffAdministration->value, 'EMP-001'],
+                ['Pegawai Satu', 'pegawai1@sanmal.test', UserRole::Employee, EmployeePosition::Technician->value, 'EMP-002'],
+                ['Pegawai Dua', 'pegawai2@sanmal.test', UserRole::Employee, EmployeePosition::Technician->value, 'EMP-003'],
             ];
 
-            foreach ($people as [$name, $email, $role, $title, $number]) {
+            foreach ($people as [$name, $email, $role, $position, $number]) {
                 $user = User::firstOrNew(['email' => $email]);
 
                 if (! $user->exists) {
@@ -87,7 +87,7 @@ class DevDataSeeder extends Seeder
                 }
 
                 Employee::firstOrCreate(['user_id' => $user->id], [
-                    'title_id' => $titles[$title]->id,
+                    'position' => $position,
                     'employee_number' => $number,
                     'joined_at' => now()->toDateString(),
                 ]);

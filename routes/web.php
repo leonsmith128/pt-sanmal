@@ -11,23 +11,49 @@ use App\Http\Controllers\AdminEmployeeController;
 use App\Http\Controllers\AdminLeaveRequestController;
 use App\Http\Controllers\AdminLocationController;
 use App\Http\Controllers\AdminOvertimeRequestController;
+use App\Http\Controllers\AdminPasswordResetRequestController;
 use App\Http\Controllers\AdminProjectController;
 use App\Http\Controllers\AttendanceCorrectionController;
 use App\Http\Controllers\AttendanceHistoryController;
 use App\Http\Controllers\AttendanceReverseGeocodeController;
 use App\Http\Controllers\AttendanceSelfieController;
 use App\Http\Controllers\AttendanceSelfieDriveController;
+use App\Http\Controllers\EmployeeAccountActivationController;
+use App\Http\Controllers\EmployeePasswordResetController;
+use App\Http\Controllers\FirstPasswordChangeController;
 use App\Http\Controllers\LeaveRequestController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OvertimeRequestController;
 use App\Http\Controllers\ProfilePhotoController;
+use App\Http\Middleware\EnsurePasswordIsChanged;
 use App\Http\Middleware\EnsureUserHasRole;
 use App\Http\Middleware\EnsureUserIsActive;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/login')->name('home');
 
-Route::middleware(['auth', EnsureUserIsActive::class, 'verified'])->group(function () {
+Route::get('aktivasi-akun/{token}', [EmployeeAccountActivationController::class, 'show'])
+    ->middleware('throttle:10,1')
+    ->name('employee-activation.show');
+Route::post('aktivasi-akun/{token}', [EmployeeAccountActivationController::class, 'store'])
+    ->middleware('throttle:5,1')
+    ->name('employee-activation.store');
+
+Route::get('ajukan-reset-password', [EmployeePasswordResetController::class, 'createRequest'])->name('password-reset.request.create');
+Route::post('ajukan-reset-password', [EmployeePasswordResetController::class, 'storeRequest'])
+    ->middleware('throttle:3,1')
+    ->name('password-reset.request.store');
+Route::get('reset-password-disetujui/{token}', [EmployeePasswordResetController::class, 'show'])->name('password-reset.show');
+Route::post('reset-password-disetujui/{token}', [EmployeePasswordResetController::class, 'store'])
+    ->middleware('throttle:5,1')
+    ->name('password-reset.store');
+
+Route::middleware(['auth', EnsureUserIsActive::class])->group(function () {
+    Route::get('ganti-password-awal', [FirstPasswordChangeController::class, 'create'])->name('account.password.first-change');
+    Route::post('ganti-password-awal', [FirstPasswordChangeController::class, 'store'])->name('account.password.first-change.store');
+});
+
+Route::middleware(['auth', 'auth.session', EnsureUserIsActive::class, EnsurePasswordIsChanged::class])->group(function () {
     Route::get('dashboard', AdminDashboardController::class)->name('dashboard');
     Route::get('dashboard-saya', [AdminDashboardController::class, 'myDashboard'])->name('my-dashboard');
     Route::get('profil/{user}/foto', ProfilePhotoController::class)->name('profile-photo.show');
@@ -77,10 +103,26 @@ Route::middleware(['auth', EnsureUserIsActive::class, 'verified'])->group(functi
             Route::resource('locations', AdminLocationController::class)->except(['destroy']);
             Route::resource('projects', AdminProjectController::class)->except(['destroy']);
 
+            // Pembuatan akun pegawai baru: Superadmin saja. Admin tetap mengelola pegawai yang sudah ada.
             Route::resource('pegawai', AdminEmployeeController::class)
                 ->parameters(['pegawai' => 'employee'])
                 ->names('employees')
-                ->except(['destroy']);
+                ->only(['index', 'edit', 'update']);
+
+            Route::middleware(EnsureUserHasRole::using(UserRole::Superadmin))->group(function () {
+                Route::get('pegawai/create', [AdminEmployeeController::class, 'create'])->name('employees.create');
+                Route::post('pegawai', [AdminEmployeeController::class, 'store'])->name('employees.store');
+            });
+
+            Route::post('pegawai/{employee}/password-sementara', [AdminEmployeeController::class, 'revealTemporaryPassword'])
+                ->middleware('throttle:10,1')
+                ->name('employees.temporary-password');
+            Route::post('pegawai/{employee}/kirim-aktivasi', [AdminEmployeeController::class, 'resendActivation'])
+                ->middleware('throttle:5,1')
+                ->name('employees.resend-activation');
+            Route::post('pegawai/{employee}/rotasi-password-sementara', [AdminEmployeeController::class, 'rotateTemporaryPassword'])
+                ->middleware('throttle:5,1')
+                ->name('employees.rotate-temporary-password');
 
             Route::get('koreksi-absensi', [AdminAttendanceCorrectionController::class, 'index'])
                 ->name('attendance-corrections.index');
@@ -90,6 +132,14 @@ Route::middleware(['auth', EnsureUserIsActive::class, 'verified'])->group(functi
                 ->name('attendance-corrections.attachment');
             Route::post('koreksi-absensi/{attendanceCorrection}/keputusan', [AdminAttendanceCorrectionController::class, 'decide'])
                 ->name('attendance-corrections.decide');
+
+            Route::get('permintaan-reset-password', [AdminPasswordResetRequestController::class, 'index'])
+                ->name('password-reset-requests.index');
+            Route::post('permintaan-reset-password/{passwordResetRequest}/setujui', [AdminPasswordResetRequestController::class, 'approve'])
+                ->middleware('throttle:10,1')
+                ->name('password-reset-requests.approve');
+            Route::post('permintaan-reset-password/{passwordResetRequest}/tolak', [AdminPasswordResetRequestController::class, 'reject'])
+                ->name('password-reset-requests.reject');
 
             Route::get('audit-log', [AdminAuditLogController::class, 'index'])->name('audit-logs.index');
 

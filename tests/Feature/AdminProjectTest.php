@@ -128,7 +128,7 @@ it('renders project monitoring cards with summary visible and period in expandab
         ->assertSee('Site Card Test')
         ->assertSee('0 record absensi')
         ->assertSee('Periode mulai')
-        ->assertSee('Ubah proyek')
+        ->assertSee('Edit proyek')
         ->assertSee(route('admin.projects.edit', $project), false);
 });
 

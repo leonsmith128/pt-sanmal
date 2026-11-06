@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Support\Str;
+use PhpOffice\PhpSpreadsheet\Cell\Cell;
+use PhpOffice\PhpSpreadsheet\Cell\IgnoredErrors;
 
 return [
 
@@ -51,6 +53,13 @@ return [
             'driver' => 'file',
             'path' => storage_path('framework/cache/data'),
             'lock_path' => storage_path('framework/cache/data'),
+        ],
+
+        // Dedicated store: Laravel Excel clears its cell cache after writing a workbook.
+        'excel' => [
+            'driver' => 'file',
+            'path' => storage_path('framework/cache/excel'),
+            'lock_path' => storage_path('framework/cache/excel'),
         ],
 
         'storage' => [
@@ -131,6 +140,10 @@ return [
     |
     */
 
-    'serializable_classes' => false,
+    // Only the PhpSpreadsheet cell objects required by the XLSX cell cache.
+    'serializable_classes' => [
+        Cell::class,
+        IgnoredErrors::class,
+    ],
 
 ];

@@ -63,7 +63,7 @@ it('renders the audit log with accessible table navigation and shared filters', 
         ->assertSee('Belum ada catatan audit.');
 });
 
-it('exports spreadsheet-safe daily attendance CSV values', function () {
+it('exports daily attendance XLSX without executable formulas', function () {
     $admin = reportingUser(UserRole::Admin);
     $employeeUser = User::factory()->create([
         'name' => '=HYPERLINK("https://attacker.test","Open")',
@@ -84,14 +84,12 @@ it('exports spreadsheet-safe daily attendance CSV values', function () {
     $response = $this->actingAs($admin)
         ->get(route('admin.daily-attendance.export', ['month' => '2026-11']));
 
-    $response->assertOk();
-    expect($response->headers->get('content-type'))->toContain('text/csv');
+    $xlsx = xlsxContents($response);
 
-    $csv = $response->streamedContent();
-
-    expect($csv)
-        ->toStartWith("\xEF\xBB\xBF")
-        ->toContain("'@SUM(1+1)")
+    expect($response->headers->get('content-disposition'))->toContain('.xlsx')
+        ->and($xlsx['sheets'])->toBe(['Ringkasan', 'Detail'])
+        ->and($xlsx['xml'])->not->toMatch('/<f[ >]/')
+        ->and($xlsx['text'])->toContain("'@SUM(1+1)")
         ->toContain("'=HYPERLINK");
 });
 
@@ -107,7 +105,7 @@ it('renders the daily attendance report with a reusable employee card', function
         ->assertSee('Pegawai Uji')
         ->assertSee('Koreksi status harian')
         ->assertSee('name="date"', false)
-        ->assertSee('name="month"', false);
+        ->assertSee('November 2026');
 });
 
 it('logs out inactive users before they can access authenticated pages', function () {

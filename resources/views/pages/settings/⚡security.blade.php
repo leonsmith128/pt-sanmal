@@ -2,10 +2,18 @@
 
 use App\Concerns\PasswordValidationRules;
 use App\Concerns\ProfileValidationRules;
+use App\Models\AuditLog;
+use App\Models\PasswordResetRequest;
+use App\Notifications\AccountSecurityNotification;
 use Flux\Flux;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
@@ -44,15 +52,66 @@ new #[Title('Keamanan Akun')] class extends Component {
             return;
         }
 
-        $user->email = $validated['email'];
-        $user->email_verified_at = null;
-        $user->save();
-        $user->sendEmailVerificationNotification();
+        $oldEmail = $user->email;
+        $newEmail = $validated['email'];
+
+        DB::transaction(function () use ($user, $oldEmail, $newEmail): void {
+            $user->forceFill([
+                'email' => $newEmail,
+                'email_verified_at' => null,
+            ])->save();
+
+            PasswordResetRequest::query()
+                ->where('user_id', $user->id)
+                ->whereIn('status', ['pending', 'approved'])
+                ->whereNull('used_at')
+                ->update([
+                    'status' => 'expired',
+                    'token_hash' => null,
+                    'expires_at' => null,
+                ]);
+
+            AuditLog::record($user, 'account.email.changed', [
+                'email' => $oldEmail,
+            ], [
+                'email' => $newEmail,
+            ]);
+        });
+
+        $verificationSent = true;
+
+        try {
+            $user->sendEmailVerificationNotification();
+        } catch (\Throwable $exception) {
+            $verificationSent = false;
+            report($exception);
+            Log::warning('Account email verification notification could not be sent.', [
+                'user_id' => $user->id,
+                'exception' => $exception::class,
+            ]);
+        }
+
+        try {
+            Notification::route('mail', $oldEmail)->notify(new AccountSecurityNotification(
+                'Email akun SanMal diubah',
+                'Alamat email login akun SanMal Anda baru saja diubah menjadi '.$newEmail.'. Jika Anda tidak melakukan perubahan ini, segera hubungi administrator.',
+            ));
+        } catch (\Throwable $exception) {
+            report($exception);
+            Log::warning('Account email-change security notification could not be sent.', [
+                'user_id' => $user->id,
+                'exception' => $exception::class,
+            ]);
+        }
 
         $this->reset('email');
         $this->email = $user->email;
 
-        Flux::toast(variant: 'success', text: __('Email akun diperbarui. Verifikasi alamat email baru Anda.'));
+        if ($verificationSent) {
+            Flux::toast(variant: 'success', text: __('Email akun diperbarui. Verifikasi alamat email baru Anda.'));
+        } else {
+            Flux::toast(variant: 'warning', text: __('Email akun diperbarui, tetapi tautan verifikasi gagal dikirim. Gunakan tombol kirim ulang.'));
+        }
     }
 
     public function resendVerificationNotification(): void
@@ -63,13 +122,41 @@ new #[Title('Keamanan Akun')] class extends Component {
             return;
         }
 
-        $user->sendEmailVerificationNotification();
+        try {
+            // Match Fortify's named limiter key so both resend paths share one quota.
+            $sent = RateLimiter::attempt(
+                md5('verification'.$user->getAuthIdentifier()),
+                3,
+                function () use ($user): bool {
+                    $user->sendEmailVerificationNotification();
+
+                    return true;
+                },
+                3600,
+            );
+        } catch (\Throwable $exception) {
+            report($exception);
+            Log::warning('Email verification resend could not be sent.', [
+                'user_id' => $user->id,
+                'exception' => $exception::class,
+            ]);
+
+            Flux::toast(variant: 'warning', text: __('Tautan verifikasi gagal dikirim. Silakan coba kembali nanti.'));
+
+            return;
+        }
+
+        if (! $sent) {
+            Flux::toast(variant: 'warning', text: __('Batas pengiriman ulang tercapai. Coba kembali satu jam lagi.'));
+
+            return;
+        }
 
         Session::flash('status', 'verification-link-sent');
     }
 
     /**
-     * Update the password for the currently authenticated user.
+     * Update the password and invalidate sessions on other devices.
      */
     public function updatePassword(): void
     {
@@ -84,13 +171,35 @@ new #[Title('Keamanan Akun')] class extends Component {
             throw $exception;
         }
 
-        Auth::user()->update([
-            'password' => $validated['password'],
-        ]);
+        $user = Auth::user();
+
+        DB::transaction(function () use ($user, $validated): void {
+            $user->forceFill([
+                'password' => $validated['password'],
+                'remember_token' => Str::random(60),
+            ])->save();
+
+            Auth::logoutOtherDevices($validated['password']);
+
+            AuditLog::record($user, 'account.password.changed');
+        });
+
+        try {
+            $user->notify(new AccountSecurityNotification(
+                'Password akun SanMal diubah',
+                'Password akun SanMal Anda baru saja diubah. Seluruh sesi pada perangkat lain telah dicabut. Jika Anda tidak melakukan perubahan ini, segera hubungi administrator.',
+            ));
+        } catch (\Throwable $exception) {
+            report($exception);
+            Log::warning('Account password-change security notification could not be sent.', [
+                'user_id' => $user->id,
+                'exception' => $exception::class,
+            ]);
+        }
 
         $this->reset('current_password', 'password', 'password_confirmation');
 
-        Flux::toast(variant: 'success', text: __('Kata sandi berhasil diperbarui.'));
+        Flux::toast(variant: 'success', text: __('Kata sandi berhasil diperbarui. Sesi perangkat lain telah dicabut.'));
     }
 
     #[Computed]

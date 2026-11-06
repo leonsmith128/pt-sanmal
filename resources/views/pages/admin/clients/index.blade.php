@@ -40,7 +40,7 @@
                             <p class="mt-1 text-sm text-[var(--sanmal-text-muted)]">{{ $client->phone ?: 'Kontak belum diisi' }} · {{ $client->locations_count }} Location · {{ $client->projects_count }} Project</p>
                         </div>
                         <div class="flex flex-wrap gap-2">
-                            <x-ui.button size="sm" variant="outline" href="{{ route('admin.clients.edit', $client) }}">{{ __('Ubah Client') }}</x-ui.button>
+                            <x-ui.button size="sm" variant="outline" href="{{ route('admin.clients.edit', $client) }}">{{ __('Edit Client') }}</x-ui.button>
                             <x-ui.button size="sm" variant="outline" href="{{ route('admin.clients.show', $client) }}">{{ __('Detail Client') }}</x-ui.button>
                         </div>
                     </div>
@@ -59,7 +59,7 @@
                                 </div>
                                 <div class="flex items-center gap-2">
                                     <x-ui.badge :color="$location->is_active ? 'green' : 'zinc'">{{ $location->is_active ? __('Aktif') : __('Nonaktif') }}</x-ui.badge>
-                                    <x-ui.button size="xs" variant="outline" href="{{ route('admin.locations.edit', $location) }}">{{ __('Ubah') }}</x-ui.button>
+                                    <x-ui.button size="xs" variant="outline" href="{{ route('admin.locations.edit', $location) }}">{{ __('Edit') }}</x-ui.button>
                                 </div>
                             </div>
                         @empty
@@ -98,7 +98,7 @@
                         </div>
                         <div class="flex items-center gap-2">
                             <x-ui.badge :color="$office->is_active ? 'green' : 'zinc'">{{ $office->is_active ? __('Aktif') : __('Nonaktif') }}</x-ui.badge>
-                            <x-ui.button size="sm" variant="outline" href="{{ route('admin.locations.edit', $office) }}">{{ __('Ubah') }}</x-ui.button>
+                            <x-ui.button size="sm" variant="outline" href="{{ route('admin.locations.edit', $office) }}">{{ __('Edit') }}</x-ui.button>
                         </div>
                     </div>
                 @empty

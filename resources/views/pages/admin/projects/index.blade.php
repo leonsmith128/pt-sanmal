@@ -99,7 +99,7 @@
                     </details>
 
                     <div class="mt-3 flex justify-end border-t border-sanmal-border pt-2 dark:border-sanmal-border-dark">
-                        <x-ui.button size="sm" variant="outline" href="{{ route('admin.projects.edit', $project) }}">{{ __('Ubah proyek') }}</x-ui.button>
+                        <x-ui.button size="sm" variant="outline" href="{{ route('admin.projects.edit', $project) }}">{{ __('Edit proyek') }}</x-ui.button>
                     </div>
                     </x-ui.card>
                 </article>

@@ -2,19 +2,25 @@
 
 namespace App\Http\Controllers;
 
+use App\Data\Attendance\AttendanceFilterData;
 use App\Enums\DailyAttendanceStatus;
 use App\Models\AuditLog;
 use App\Models\DailyStatusCorrection;
 use App\Models\Employee;
+use App\Services\AttendanceReportBuilder;
 use App\Services\DailyAttendanceStatusService;
+use App\Support\ExportRangeOptions;
+use App\Support\ReportFileName;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
-use Symfony\Component\HttpFoundation\StreamedResponse;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class AdminDailyAttendanceController extends Controller
 {
@@ -40,7 +46,17 @@ class AdminDailyAttendanceController extends Controller
             ]),
         );
 
-        return view('pages::admin.daily-attendance', compact('date', 'rows'));
+        $selected = Carbon::parse($date, 'Asia/Makassar');
+        $exportOptions = ExportRangeOptions::make(
+            'admin.daily-attendance.export',
+            subject: 'rekap absensi harian seluruh pegawai',
+            customFrom: $selected->copy()->startOfMonth()->toDateString(),
+            customTo: $selected->copy()->endOfMonth()->toDateString(),
+            customLabel: __('Bulan dari tanggal terpilih'),
+            customDescription: 'Rekap harian seluruh pegawai untuk '.$selected->translatedFormat('F Y').'.',
+        );
+
+        return view('pages::admin.daily-attendance', compact('date', 'rows', 'exportOptions'));
     }
 
     public function correctDailyStatus(Request $request): RedirectResponse
@@ -100,60 +116,65 @@ class AdminDailyAttendanceController extends Controller
             ->with('status', 'Koreksi status harian berhasil disimpan dan dicatat dalam audit log.');
     }
 
-    public function exportMonth(Request $request, DailyAttendanceStatusService $statusService): StreamedResponse
+    public function exportMonth(Request $request, AttendanceReportBuilder $builder): BinaryFileResponse
     {
-        $month = $request->query('month', now('Asia/Makassar')->format('Y-m'));
-        validator(['month' => $month], ['month' => ['required', 'date_format:Y-m']])->validate();
-
-        $start = Carbon::parse($month.'-01', 'Asia/Makassar')->startOfMonth();
-        $end = $start->copy()->endOfMonth();
-
-        return response()->streamDownload(function () use ($start, $end, $statusService): void {
-            $out = fopen('php://output', 'w');
-            if ($out === false) {
-                return;
-            }
-
-            fwrite($out, "\xEF\xBB\xBF");
-            fputcsv($out, ['ID Pegawai', 'Nama', 'Tanggal', 'Status', 'Catatan']);
-
-            Employee::query()->with('user')->chunkById(100, function ($employees) use ($statusService, $start, $end, $out): void {
-                /** @var Collection<int, Employee> $employees */
-                $statuses = $statusService->forEmployeesDateRange($employees, $start, $end);
-
-                foreach ($employees as $employee) {
-                    for ($day = $start->copy(); $day->lte($end); $day->addDay()) {
-                        $dayStr = $day->toDateString();
-                        $daily = $statuses[$employee->id][$dayStr] ?? [
-                            'label' => 'Belum ada data',
-                            'reason' => '',
-                        ];
-
-                        fputcsv($out, array_map($this->spreadsheetSafe(...), [
-                            $employee->employee_number ?? $employee->id,
-                            $employee->user->name,
-                            $dayStr,
-                            $daily['label'],
-                            $daily['reason'],
-                        ]));
-                    }
-                }
-            });
-
-            fclose($out);
-        }, 'rekap-absensi-'.$month.'.csv', [
-            'Content-Type' => 'text/csv; charset=UTF-8',
-            'Cache-Control' => 'private, no-store, no-cache, must-revalidate',
+        $validated = $request->validate([
+            'month' => ['nullable', 'date_format:Y-m'],
+            'from' => ['nullable', 'date_format:Y-m-d'],
+            'to' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:from'],
         ]);
-    }
 
-    private function spreadsheetSafe(mixed $value): string
-    {
-        $value = (string) ($value ?? '');
+        if (filled($validated['from'] ?? null)) {
+            // Rentang eksplisit (Hari ini, Minggu ini, Bulan ini, atau bulan dari tanggal terpilih).
+            $start = Carbon::parse($validated['from'], 'Asia/Makassar')->startOfDay();
+            $end = Carbon::parse($validated['to'] ?? $validated['from'], 'Asia/Makassar')->startOfDay();
+        } else {
+            $month = $validated['month'] ?? now('Asia/Makassar')->format('Y-m');
+            $start = Carbon::parse($month.'-01', 'Asia/Makassar')->startOfMonth();
+            $end = $start->copy()->endOfMonth();
+        }
 
-        return preg_match('/^[\s\x00-\x1F]*[=+\-@]/u', $value) === 1
-            ? "'".$value
-            : $value;
+        // Zona waktu null = sama dengan halaman Rekap Harian (tanggal absensi tersimpan).
+        $buildStartedAt = hrtime(true);
+        $workbook = $builder->build(Employee::query(), $start, $end, null, new AttendanceFilterData, includeOvertime: false);
+        $buildDurationMs = (hrtime(true) - $buildStartedAt) / 1_000_000;
+
+        Log::info('Attendance XLSX export build finished.', [
+            'report' => 'admin_daily_attendance',
+            'from' => $start->toDateString(),
+            'to' => $end->toDateString(),
+            'build_duration_ms' => round($buildDurationMs, 2),
+            'peak_memory_mb' => round(memory_get_peak_usage(true) / 1_048_576, 2),
+        ]);
+
+        $downloadStartedAt = hrtime(true);
+        register_shutdown_function(static function () use ($downloadStartedAt, $start, $end): void {
+            $error = error_get_last();
+            if ($error !== null && in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR], true)) {
+                Log::error('Attendance XLSX export terminated during file generation.', [
+                    'from' => $start->toDateString(),
+                    'to' => $end->toDateString(),
+                    'elapsed_ms' => round((hrtime(true) - $downloadStartedAt) / 1_000_000, 2),
+                    'error_type' => $error['type'],
+                    'error_message' => $error['message'],
+                    'error_file' => $error['file'],
+                    'error_line' => $error['line'],
+                ]);
+            }
+        });
+
+        $response = Excel::download($workbook, ReportFileName::admin('rekap-harian', ReportFileName::period($start, $end)));
+        Log::info('Attendance XLSX export completed.', [
+            'report' => 'admin_daily_attendance',
+            'from' => $start->toDateString(),
+            'to' => $end->toDateString(),
+            'build_duration_ms' => round($buildDurationMs, 2),
+            'xlsx_write_duration_ms' => round((hrtime(true) - $downloadStartedAt) / 1_000_000, 2),
+            'peak_memory_mb' => round(memory_get_peak_usage(true) / 1_048_576, 2),
+        ]);
+        $response->headers->set('Cache-Control', 'private, no-store, no-cache, must-revalidate');
+
+        return $response;
     }
 
     private function enumValue(mixed $value): string

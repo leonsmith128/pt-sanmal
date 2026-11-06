@@ -188,7 +188,7 @@ it('applies Client, historical Location, and Project filters together and offers
         ->assertSee('data-record-count="1"', false);
 });
 
-it('normalizes a reversed date range consistently in the attendance page and CSV export', function () {
+it('normalizes a reversed date range consistently in the attendance page and XLSX export', function () {
     $admin = attendancePageAdmin();
     $employee = attendancePageEmployee('Pegawai Rentang Terbalik');
     foreach (['2026-11-02', '2026-11-03'] as $date) {
@@ -201,9 +201,9 @@ it('normalizes a reversed date range consistently in the attendance page and CSV
         ->set('dateFrom', '2026-11-03')->set('dateTo', '2026-11-02')
         ->assertSee('data-record-count="2"', false);
 
-    $csv = $this->actingAs($admin)->get(route('admin.kehadiran.export', [
+    $csv = xlsxContents($this->actingAs($admin)->get(route('admin.kehadiran.export', [
         'from' => '2026-11-03', 'to' => '2026-11-02',
-    ]))->streamedContent();
+    ])))['text'];
     expect($csv)->toContain('2026-11-02')->toContain('2026-11-03')->toContain('Pegawai Rentang Terbalik');
 });
 
@@ -227,9 +227,9 @@ it('exports the complete daily recap when one event matches the selected Project
             'location_name_snapshot' => $location->name, 'snapshot_source' => 'clock_in',
         ]);
     }
-    $csv = $this->actingAs($admin)->get(route('admin.kehadiran.export', [
+    $csv = xlsxContents($this->actingAs($admin)->get(route('admin.kehadiran.export', [
         'from' => '2026-11-02', 'to' => '2026-11-02', 'project_id' => $projectA->id,
-    ]))->streamedContent();
+    ])))['text'];
     expect($csv)->toContain('PRJ-A')->toContain('PRJ-B')->toContain('Project A')->toContain('Project B');
 });
 
@@ -292,7 +292,7 @@ it('shows recent attendance across dates and paginates after thirty records', fu
         ->assertSet('paginators.page', 2);
 });
 
-it('exports filtered admin attendance as spreadsheet-safe CSV', function () {
+it('exports filtered admin attendance as a two-sheet XLSX without formulas', function () {
     $admin = attendancePageAdmin();
     $alpha = attendancePageEmployee('=Pegawai Formula');
     $beta = attendancePageEmployee('Pegawai Lain');
@@ -313,13 +313,12 @@ it('exports filtered admin attendance as spreadsheet-safe CSV', function () {
         'to' => '2026-11-02',
     ]));
 
-    $response->assertOk();
-    expect($response->headers->get('content-type'))->toContain('text/csv');
+    $xlsx = xlsxContents($response);
 
-    $csv = $response->streamedContent();
-
-    expect($csv)
-        ->toContain("'=Pegawai Formula")
+    expect($response->headers->get('content-disposition'))->toContain('.xlsx')
+        ->and($xlsx['sheets'])->toBe(['Ringkasan', 'Detail'])
+        ->and($xlsx['xml'])->not->toMatch('/<f[ >]/')
+        ->and($xlsx['text'])->toContain("'=Pegawai Formula")
         ->toContain('2026-11-02')
         ->not->toContain('2026-11-03');
 });
@@ -369,7 +368,7 @@ it('renders the attendance export confirmation with an Alpine-bound link', funct
     Livewire::actingAs($admin)
         ->test('pages::admin.kehadiran')
         ->assertSee('x-bind:href="exportUrl"', false)
-        ->assertSee('Konfirmasi dan ekspor');
+        ->assertSee('Konfirmasi dan export');
 });
 
 it('renders attendance rows with responsive card labels and a fixed-width table layout', function () {

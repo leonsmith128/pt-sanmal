@@ -3,12 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Enums\LeaveRequestStatus;
+use App\Exports\LeaveRequestReport;
 use App\Models\AttendanceCorrection;
 use App\Models\AuditLog;
 use App\Models\Employee;
 use App\Models\LeaveRequest;
 use App\Models\LeaveType;
 use App\Models\OvertimeRequest;
+use App\Support\ExportRangeOptions;
+use App\Support\ReportFileName;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -18,6 +21,8 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class LeaveRequestController extends Controller
 {
@@ -67,48 +72,40 @@ class LeaveRequestController extends Controller
             'filters' => $filters,
             'totalCount' => $rows->count(),
             'leaveTypes' => LeaveType::query()->where('is_active', true)->orderBy('name')->get(),
+            'exportOptions' => ExportRangeOptions::make(
+                'leave-requests.export',
+                ['type' => $filters['type'], 'status' => $filters['status'], 'q' => $filters['q']],
+                subject: 'permohonan Anda',
+                relation: 'yang periodenya beririsan dengan',
+                customFrom: $filters['from'],
+                customTo: $filters['to'],
+                customFallback: 'Tidak ada filter tanggal. Export mencakup seluruh permohonan sesuai filter lain yang aktif.',
+            ),
         ]);
     }
 
-    public function export(Request $request)
+    public function export(Request $request): BinaryFileResponse
     {
         $employee = $request->user()->employee;
         abort_unless($request->user()->is_active && $employee, 403, 'Akun ini belum terhubung dengan data pegawai aktif.');
 
-        $rows = $this->filteredRows($employee, $this->validatedFilters($request));
-        $filename = 'permohonan-'.now()->format('Ymd-His').'.csv';
+        $filters = $this->validatedFilters($request);
+        $rows = $this->filteredRows($employee, $filters);
 
-        return response()->streamDownload(function () use ($rows): void {
-            $stream = fopen('php://output', 'w');
-            // BOM membantu Excel mengenali UTF-8 (termasuk nama/alasan berbahasa Indonesia).
-            fwrite($stream, "\xEF\xBB\xBF");
-            fputcsv($stream, [
-                'Nomor Permohonan', 'Jenis', 'Tanggal Pengajuan', 'Tanggal Mulai', 'Tanggal Selesai',
-                'Ringkasan / Alasan', 'Status Persetujuan', 'Status Operasional Lembur',
-                'Pemroses', 'Waktu Keputusan', 'Catatan Keputusan',
-            ]);
+        abort_if($rows->count() > 10000, 422, 'Ekspor melebihi 10.000 baris. Persempit filter lalu coba lagi.');
 
-            foreach ($rows as $row) {
-                fputcsv($stream, array_map($this->spreadsheetSafe(...), [
-                    $row->reference,
-                    $row->type_label,
-                    $row->submitted_at?->format('Y-m-d H:i'),
-                    $row->period_start,
-                    $row->period_end,
-                    $row->summary,
-                    $row->status_label,
-                    $row->operational_status,
-                    $row->reviewer,
-                    $row->decided_at?->format('Y-m-d H:i'),
-                    $row->decision_note,
-                ]));
-            }
+        $period = $filters['from'] === '' && $filters['to'] === ''
+            ? 'semua-periode'
+            : ($filters['from'] !== '' ? str_replace('-', '', $filters['from']) : 'awal')
+                .'-'.($filters['to'] !== '' ? str_replace('-', '', $filters['to']) : 'akhir');
 
-            fclose($stream);
-        }, $filename, [
-            'Content-Type' => 'text/csv; charset=UTF-8',
-            'Cache-Control' => 'no-store, no-cache, must-revalidate',
-        ]);
+        $response = Excel::download(
+            LeaveRequestReport::workbook($rows),
+            ReportFileName::employee('permohonan', $employee->loadMissing('user'), $period),
+        );
+        $response->headers->set('Cache-Control', 'private, no-store, no-cache, must-revalidate');
+
+        return $response;
     }
 
     public function create(Request $request): View
@@ -382,13 +379,5 @@ class LeaveRequestController extends Controller
             'sort' => $validated['sort'] ?? 'submitted',
             'direction' => $validated['direction'] ?? 'desc',
         ];
-    }
-
-    private function spreadsheetSafe(mixed $value): string
-    {
-        $value = (string) ($value ?? '');
-
-        // CSV can be opened by spreadsheet software; prevent untrusted text becoming a formula.
-        return preg_match('/^[\s\x00-\x1F]*[=+\-@]/u', $value) === 1 ? "'".$value : $value;
     }
 }

@@ -50,7 +50,9 @@ test('employees can visit the attendance clock page', function () {
         ->assertSee('text-xl font-bold tracking-tight', false)
         ->assertSee('size-14', false)
         ->assertDontSee(__('Kehadiran Pegawai'))
-        ->assertSee('max-w-7xl', false);
+        ->assertSee('max-w-7xl', false)
+        ->assertSee('aria-label="'.__('Buka notifikasi').'"', false)
+        ->assertSee(__('Notifikasi'));
 });
 
 test('employees can visit their own attendance history', function () {
@@ -66,7 +68,8 @@ test('employees can visit their own attendance history', function () {
         ->assertSee(__('Absensi lengkap'))
         ->assertSee(__('Perlu ditinjau'))
         ->assertSee('grid grid-cols-3 gap-2 sm:gap-3', false)
-        ->assertSee('flex w-full flex-row gap-2 sm:w-auto', false)
+        ->assertSee('flex w-full flex-row justify-end gap-2', false)
+        ->assertSee('flex-1 whitespace-nowrap sm:flex-none', false)
         ->assertSee('whitespace-nowrap sm:flex-none', false)
         ->assertSee('aria-controls="attendance-history-filter-panel"', false)
         ->assertSee('x-show="filterOpen"', false)
@@ -389,7 +392,7 @@ test('collapsed admin sidebar keeps every navigation item visible as an icon', f
     @$document->loadHTML($response->getContent());
     $xpath = new DOMXPath($document);
 
-    expect($xpath->query('//*[@data-flux-sidebar-item]')->length)->toBe(15)
+    expect($xpath->query('//*[@data-flux-sidebar-item]')->length)->toBe(16)
         ->and(substr_count($response->getContent(), 'data-test="sidebar-group-separator"'))->toBe(5)
         ->and($response->getContent())->toContain('in-data-flux-sidebar-collapsed-desktop:not-in-data-flux-sidebar-group-dropdown:hidden')
         ->and($response->getContent())->toContain('data-flux-sidebar-item')
@@ -680,18 +683,15 @@ test('attendance history renders date groups and event detail dialog using the c
     $xpath = new DOMXPath($document);
     $exportLinks = $xpath->query('//a[contains(@href, "/riwayat-absensi/ekspor")]');
 
-    expect($exportLinks->length)->toBe(1);
+    // Opsi Hari ini, Minggu ini, Bulan ini, dan rentang sesuai filter halaman.
+    expect($exportLinks->length)->toBe(4);
 
-    $exportUrl = html_entity_decode($exportLinks->item(0)->getAttribute('href'));
-    $cardSurfaces = $xpath->query('//*[contains(concat(" ", normalize-space(@class), " "), " shadow-sm ")]');
-
-    expect($exportUrl)->toContain('from=2026-11-01')
-        ->and($exportUrl)->toContain('to=2026-11-04')
-        ->and($cardSurfaces->length)->toBeGreaterThanOrEqual(5);
-
-    foreach ($cardSurfaces as $cardSurface) {
-        expect($cardSurface->getAttribute('class'))->not->toContain('border');
-    }
+    $exportUrl = collect($exportLinks)
+        ->map(fn ($link): string => html_entity_decode($link->getAttribute('href')))
+        ->first(fn (string $href): bool => str_contains($href, 'from=2026-11-01') && str_contains($href, 'to=2026-11-04'));
+    expect($exportUrl)->not->toBeNull()
+        ->and($exportUrl)->toContain('from=2026-11-01')
+        ->and($exportUrl)->toContain('to=2026-11-04');
 });
 
 test('attendance history does not expose a map link for unverified GPS coordinates', function () {

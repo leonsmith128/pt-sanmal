@@ -36,7 +36,7 @@
 
             @if ($openSession)
                 <input type="hidden" name="session_anchor_id" value="{{ $openSession->id }}">
-                <flux:callout variant="info" icon="info">
+                <flux:callout variant="info">
                     {{ __('Sesi terbuka: Clock In #') }}{{ $openSession->id }} · {{ $openSession->recordedAtLocal()->format('d/m/Y H:i') }}. {{ __('Untuk lupa Clock Out, kosongkan event di atas dan pilih Clock Out.') }}
                 </flux:callout>
             @else

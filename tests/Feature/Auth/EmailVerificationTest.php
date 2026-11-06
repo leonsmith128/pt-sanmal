@@ -1,7 +1,9 @@
 <?php
 
+use App\Models\Employee;
 use App\Models\User;
 use Illuminate\Auth\Events\Verified;
+use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\URL;
 use Laravel\Fortify\Features;
@@ -18,12 +20,15 @@ test('email verification screen can be rendered', function () {
         ->assertOk();
 });
 
-test('unverified users are redirected to the email verification prompt', function () {
+test('unverified users can access the application because verification is independent from activation', function () {
     $user = User::factory()->unverified()->create();
+    Employee::query()->create(['user_id' => $user->id]);
 
     $this->actingAs($user)
         ->get(route('profile.edit'))
-        ->assertRedirect(route('verification.notice'));
+        ->assertOk();
+
+    expect($user->fresh()->hasVerifiedEmail())->toBeFalse();
 });
 
 test('email can be verified', function () {
@@ -77,4 +82,20 @@ test('already verified user visiting verification link is redirected without fir
 
     expect($user->fresh()->hasVerifiedEmail())->toBeTrue();
     Event::assertNotDispatched(Verified::class);
+});
+
+test('Fortify verification notification endpoint is limited to three attempts per user per hour', function () {
+    Notification::fake();
+
+    $user = User::factory()->unverified()->create();
+
+    $this->actingAs($user);
+
+    foreach (range(1, 3) as $attempt) {
+        $this->post(route('verification.send'))->assertRedirect();
+    }
+
+    $this->post(route('verification.send'))->assertTooManyRequests();
+
+    expect(Notification::sent($user, VerifyEmail::class))->toHaveCount(3);
 });

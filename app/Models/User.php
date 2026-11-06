@@ -8,6 +8,7 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -41,11 +42,6 @@ class User extends Authenticatable implements MustVerifyEmail
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
@@ -57,7 +53,6 @@ class User extends Authenticatable implements MustVerifyEmail
         ];
     }
 
-    /** Return the public URL for the user's profile photo, when available. */
     public function profilePhotoUrl(): ?string
     {
         return $this->profile_photo_path
@@ -68,6 +63,21 @@ class User extends Authenticatable implements MustVerifyEmail
     public function employee(): HasOne
     {
         return $this->hasOne(Employee::class);
+    }
+
+    public function accountCredential(): HasOne
+    {
+        return $this->hasOne(EmployeeAccountCredential::class);
+    }
+
+    public function accountActivation(): HasOne
+    {
+        return $this->hasOne(EmployeeAccountActivation::class);
+    }
+
+    public function passwordResetRequests(): HasMany
+    {
+        return $this->hasMany(PasswordResetRequest::class);
     }
 
     public function isSuperadmin(): bool
@@ -91,7 +101,6 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->isAdmin() || $this->isSuperadmin();
     }
 
-    /** Get the user's initials. */
     public function initials(): string
     {
         $initials = Str::initials($this->name, true);

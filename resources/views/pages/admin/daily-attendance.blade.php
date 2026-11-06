@@ -15,42 +15,14 @@
 
         <x-admin.flash-message />
 
-        <div class="grid min-w-0 grid-cols-1 items-stretch gap-3 md:grid-cols-2">
-            <x-admin.filter-panel class="flex w-full min-w-0 items-center">
-                <x-admin.date-calendar-filter :date="$date" />
-            </x-admin.filter-panel>
-
-            <x-admin.filter-panel class="flex w-full min-w-0 items-center">
-                <form
-                    method="GET"
-                    action="{{ route('admin.daily-attendance.export') }}"
-                    class="grid w-full min-w-0 gap-2"
-                >
-                    <div class="grid min-w-0 gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
-                        <x-ui.input
-                            type="month"
-                            name="month"
-                            :label="__('Ekspor rekap bulanan')"
-                            :value="\Illuminate\Support\Carbon::parse($date)->format('Y-m')"
-                            :show-error="false"
-                            required
-                        />
-
-                        <x-ui.button
-                            type="submit"
-                            variant="outline"
-                            size="base"
-                            icon="arrow-down-tray"
-                            class="w-full lg:w-auto"
-                        >
-                            {{ __('Unduh CSV') }}
-                        </x-ui.button>
-                    </div>
-
-                    <flux:error name="month" />
-                </form>
-            </x-admin.filter-panel>
-        </div>
+        <x-admin.filter-panel class="w-full min-w-0">
+            <x-admin.date-calendar-filter
+                :date="$date"
+                :export-options="$exportOptions"
+                :export-confirm-title="__('Konfirmasi export rekap harian')"
+                :export-warning="__('Export memuat satu baris per pegawai per tanggal, termasuk tanggal tanpa event absensi. Periksa kembali rentang sebelum melanjutkan.')"
+            />
+        </x-admin.filter-panel>
 
         <div class="grid grid-cols-1 items-stretch gap-4 md:auto-rows-fr md:grid-cols-2 lg:grid-cols-3">
             @forelse ($rows as $row)

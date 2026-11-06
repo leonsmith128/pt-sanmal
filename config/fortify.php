@@ -116,6 +116,7 @@ return [
 
     'limiters' => [
         'login' => 'login',
+        'verification' => 'verification',
     ],
 
     /*
@@ -143,7 +144,6 @@ return [
     */
 
     'features' => [
-        Features::resetPasswords(),
         Features::emailVerification(),
     ],
 

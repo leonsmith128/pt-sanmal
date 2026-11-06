@@ -25,6 +25,7 @@ function employeePageRecord(string $name, string $number, bool $active = true): 
 
     return Employee::query()->create([
         'user_id' => $user->id,
+        'position' => 'technician',
         'employee_number' => $number,
     ]);
 }
@@ -39,16 +40,46 @@ it('renders employee cards for narrower screens and a table for wide screens', f
         ->assertSee('bg-sanmal-surface-card', false)
         ->assertSee('overflow-x-auto overscroll-x-contain', false)
         ->assertSee('role="region"', false)
-        ->assertSee('Tabel manajemen pegawai', false)
+        ->assertSee('Tabel manajemen akun', false)
         ->assertSee('scope="col"', false)
         ->assertSee('<dt', false)
         ->assertSee('<dd', false)
         ->assertSee('Pegawai Tampilan Hybrid')
         ->assertSee('EMP-HYBRID')
-        ->assertSee('Ubah pegawai')
+        ->assertSee('Edit akun')
         ->assertSee(route('admin.employees.edit', $employee), false)
-        ->assertSee('Cari pegawai')
+        ->assertSee('Cari akun')
         ->assertSee('Status akun');
+});
+
+it('shows role and position as separate values for Employee and Admin accounts', function () {
+    employeePageRecord('Pegawai Dengan Jabatan', 'EMP-POSISI');
+
+    $admin = User::factory()->create(['name' => 'Staf Administrasi']);
+    $admin->forceFill([
+        'role' => UserRole::Admin,
+        'is_active' => true,
+    ])->save();
+
+    Employee::query()->create([
+        'user_id' => $admin->id,
+        'employee_number' => 'EMP-ADMIN',
+        'position' => 'staff_administration',
+    ]);
+
+    $superadmin = User::factory()->create();
+    $superadmin->forceFill([
+        'role' => UserRole::Superadmin,
+        'is_active' => true,
+    ])->save();
+
+    $this->actingAs($superadmin)
+        ->get(route('admin.employees.index'))
+        ->assertOk()
+        ->assertSee('Pegawai')
+        ->assertSee('Teknisi')
+        ->assertSee('Admin')
+        ->assertSee('Staf Administrasi');
 });
 
 it('keeps employee search and account status filters working', function () {
@@ -74,5 +105,80 @@ it('shows an empty state when no employees match the filters', function () {
     $this->actingAs(employeePageAdmin())
         ->get(route('admin.employees.index', ['q' => 'tidak-ditemukan']))
         ->assertOk()
-        ->assertSee('Belum ada data pegawai yang sesuai dengan filter.');
+        ->assertSee('Belum ada akun yang sesuai dengan filter.');
+});
+
+it('shows the add employee button only to superadmin', function () {
+    $this->actingAs(employeePageAdmin())
+        ->get(route('admin.employees.index'))
+        ->assertOk()
+        ->assertDontSee('Tambah akun')
+        ->assertDontSee(route('admin.employees.create'), false);
+
+    $superadmin = User::factory()->create();
+    $superadmin->forceFill(['role' => UserRole::Superadmin, 'is_active' => true])->save();
+
+    $this->actingAs($superadmin)
+        ->get(route('admin.employees.index'))
+        ->assertOk()
+        ->assertSee('Tambah akun')
+        ->assertSee(route('admin.employees.create'), false);
+});
+
+it('uses the same pending status badge on mobile cards and the desktop table', function () {
+    $employee = employeePageRecord('Pegawai Menunggu', 'EMP-PENDING');
+    $employee->user->forceFill(['must_change_password' => true])->save();
+
+    $content = $this->actingAs(employeePageAdmin())
+        ->get(route('admin.employees.index'))
+        ->assertOk()
+        ->assertSee('Menunggu aktivasi')
+        ->getContent();
+
+    expect(substr_count($content, 'sanmal-badge-warning'))->toBeGreaterThanOrEqual(2);
+});
+
+it('shows the result summary and a reset link only while filters are applied', function () {
+    employeePageRecord('Pegawai Ringkasan', 'EMP-RINGKAS');
+
+    $this->actingAs(employeePageAdmin())
+        ->get(route('admin.employees.index'))
+        ->assertOk()
+        ->assertSee('dari 1 akun')
+        ->assertDontSee('Atur ulang');
+
+    $this->actingAs(employeePageAdmin())
+        ->get(route('admin.employees.index', ['q' => 'EMP-RINGKAS']))
+        ->assertOk()
+        ->assertSee('Atur ulang');
+});
+
+it('shows the long pending status label on the employee management page', function () {
+    $employee = employeePageRecord('Pegawai Detail Menunggu', 'EMP-DETAIL');
+    $employee->user->forceFill(['must_change_password' => true])->save();
+
+    $this->actingAs(employeePageAdmin())
+        ->get(route('admin.employees.edit', $employee))
+        ->assertOk()
+        ->assertSee('Menunggu aktivasi / ganti password')
+        ->assertSee('Akun nonaktif tidak dapat menggunakan aplikasi');
+});
+
+it('renders the employee data section heading across the two-column create form grid', function () {
+    $superadmin = User::factory()->create();
+    $superadmin->forceFill(['role' => UserRole::Superadmin, 'is_active' => true])->save();
+
+    $this->actingAs($superadmin)
+        ->get(route('admin.employees.create'))
+        ->assertOk()
+        ->assertSee('Data kepegawaian')
+        ->assertSee('Jenis akun')
+        ->assertSee('Staf Administrasi')
+        ->assertSee('Supervisor')
+        ->assertSee('Teknisi')
+        ->assertSee('Koordinator Proyek')
+        ->assertSee('EMP-01')
+        ->assertSee('readonly', false)
+        ->assertSee('sm:grid-cols-2', false)
+        ->assertSee('sm:col-span-2', false);
 });
