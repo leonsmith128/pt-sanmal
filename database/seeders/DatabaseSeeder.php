@@ -11,6 +11,8 @@ class DatabaseSeeder extends Seeder
         $this->call([
             LeaveTypeSeeder::class,
             DevDataSeeder::class, // otomatis dilewati selain di environment local
+            EmployeeDemoSeeder::class,
+            AttendanceDemoSeeder::class,
         ]);
     }
 }

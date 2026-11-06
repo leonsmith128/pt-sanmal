@@ -57,14 +57,18 @@ class DevDataSeeder extends Seeder
                 'is_active' => true,
             ]);
 
-            Project::firstOrCreate(['code' => 'PRJ-001'], [
+            $project = Project::firstOrCreate(['code' => 'PRJ-001'], [
                 'client_id' => $client->id,
                 'name' => 'Proyek Kalibrasi Contoh',
                 'project_type' => ProjectType::Service,
                 'location_id' => $site->id,
                 'status' => ProjectStatus::Active->value,
-                'start_date' => now()->toDateString(),
+                'start_date' => '2026-05-01',
             ]);
+
+            if ($project->start_date?->toDateString() > '2026-05-01') {
+                $project->forceFill(['start_date' => '2026-05-01'])->save();
+            }
 
             $people = [
                 ['Admin Uji', 'admin@sanmal.test', UserRole::Admin, 'Staf Administrasi', 'EMP-001'],
