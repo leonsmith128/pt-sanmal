@@ -38,6 +38,7 @@ it('renders a filter toggle bound to the page state with an active count', funct
     $this->blade('<x-ui.filter-toggle controls="panel-filter" :count="3" />')
         ->assertSee('aria-controls="panel-filter"', false)
         ->assertSee('x-bind:aria-expanded="filterOpen.toString()"', false)
+        ->assertSee('x-on:click="filterOpen = true"', false)
         ->assertSee('Filter')
         ->assertSee('3');
 
@@ -55,6 +56,7 @@ it('renders a modal filter panel whose fields are supplied by the page', functio
         ->assertSee('id="panel-filter"', false)
         ->assertSee('x-show="filterOpen"', false)
         ->assertSee('role="dialog"', false)
+        ->assertSee('dark:bg-sanmal-surface-card-dark', false)
         ->assertSee('Filter contoh')
         ->assertSee('Deskripsi contoh')
         ->assertSee('Samping')
