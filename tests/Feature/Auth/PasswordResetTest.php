@@ -20,6 +20,18 @@ function passwordResetAdmin(): User
     return $admin;
 }
 
+function passwordResetSuperadmin(): User
+{
+    $superadmin = User::factory()->create();
+    $superadmin->forceFill([
+        'role' => UserRole::Superadmin,
+        'is_active' => true,
+        'must_change_password' => false,
+    ])->save();
+
+    return $superadmin;
+}
+
 function passwordResetEmployee(): User
 {
     $user = User::factory()->create([
@@ -143,7 +155,9 @@ test('approved reset token can be used once, audits completion, notifies the own
 
     Notification::assertSentTo($user, AccountSecurityNotification::class, fn (AccountSecurityNotification $securityNotification): bool => $securityNotification->subject === 'Password akun SanMal diubah melalui reset');
 
-    $this->actingAs($user)
+    // Authenticate with the persisted user state after the reset. The old session
+    // still carries the pre-reset password hash and must be rejected by auth.session.
+    $this->actingAs($user->fresh())
         ->withSession([
             'password_hash_web' => $oldPasswordHash,
             'auth.password_confirmed_at' => time(),
