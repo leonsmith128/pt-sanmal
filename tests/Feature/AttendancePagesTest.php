@@ -51,9 +51,8 @@ test('employees can visit the attendance clock page', function () {
         ->assertSee('size-14', false)
         ->assertDontSee(__('Kehadiran Pegawai'))
         ->assertSee('max-w-7xl', false)
-        ->assertSee('<x-ui.notification-dropdown', false)
-        ->assertSee(':notifications="$latestNotifications"', false)
-        ->assertSee(':unread-count="$unreadCount"', false);
+        ->assertSee('aria-label="'.__('Buka notifikasi').'"', false)
+        ->assertSee(__('Notifikasi'));
 });
 
 test('employees can visit their own attendance history', function () {
