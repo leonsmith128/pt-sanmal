@@ -10,6 +10,7 @@ use App\Notifications\AccountSecurityNotification;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Throwable;
 
 class CompleteEmployeePasswordReset
@@ -39,7 +40,10 @@ class CompleteEmployeePasswordReset
                 403,
             );
 
-            $user->forceFill(['password' => Hash::make($password)])->save();
+            $user->forceFill([
+                'password' => Hash::make($password),
+                'remember_token' => Str::random(60),
+            ])->save();
 
             PasswordResetRequest::query()
                 ->where('user_id', $user->id)
