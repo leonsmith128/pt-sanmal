@@ -6,6 +6,7 @@
     'warning' => null,
     'label' => null,
     'confirmTitle' => null,
+    'modalId' => 'export-confirm-dialog',
 ])
 
 @php
@@ -43,7 +44,7 @@
             </flux:menu>
         </flux:dropdown>
 
-        <x-ui.modal id="export-confirm-dialog" :title="$confirmTitle ?? __('Konfirmasi export')" model="exportConfirmOpen" max-width="max-w-lg">
+        <x-ui.modal id="{{ $modalId }}" :title="$confirmTitle ?? __('Konfirmasi export')" model="exportConfirmOpen" max-width="max-w-lg">
             <div class="space-y-3">
                 <p class="text-sm text-[var(--sanmal-text-secondary)]" x-text="exportDescription"></p>
                 @if ($summary)
