@@ -164,3 +164,30 @@ The Admin Overtime approval-status dropdown was replaced with the same pill-link
 **Automated coverage:** `OvertimeWorkflowTest` checks status link URLs and confirms the old select is absent. CI run #41984069098 is queued; check its result before merge.
 
 **Browser/device QA: Not run.**
+
+
+## F0 baseline — production readiness (`feature/ui-production-readiness`, PR #30) — 7 November 2026
+
+Branch HEAD when written: `f3ea581f13f09e5efc6e91c3eb0e5a45111f6eeb`. Tester/agent: Claude, working through the GitHub connector (no browser, no device, no local build).
+
+**No P0 check below has been run in a browser, on a device, or against the target server `.env`.** Every result is **Not run**. The *Source facts* column lists what was read in the repository at the commit above, so the owner knows what to look for. It is not a QA result and does not close any P0 item.
+
+| ID | Check | Result | Source facts read (not QA evidence) | Still needed from the owner |
+|---|---|---|---|---|
+| P0-1 | Horizontal gutter at 360 px (`/dashboard`, `/admin/pegawai`, light and dark) | **Not run** | `layouts/app.blade.php` renders `<flux:main class="min-w-0 … p-0 … lg:ms-0">`. `components/ui/page.blade.php` renders `mx-auto flex w-full max-w-* flex-col gap-*` with no horizontal padding. No gutter source was found in these two files. Flux's own main/sidebar styles are in `vendor/` and were not read. | Measure the left distance from the screen edge to the H1 and first card. Result decides D9 (add a single gutter wrapper or document the existing source). |
+| P0-2 | Locale and app name on the target server | **Not run** | `.env.example`: `APP_LOCALE=en`, `APP_FALLBACK_LOCALE=en`, `APP_NAME=Laravel`, `APP_DEBUG=true`. `layouts/app/sidebar.blade.php` still has English `__()` keys: `Change appearance`, `Light`, `Dark`, `System`, `Log out`. The target `.env` was not seen. | Read the server `.env`. Confirm `APP_LOCALE=id`, `APP_DEBUG=false`, and that Carbon formats months in Indonesian. Result decides D6, 7.3, and section 10. |
+| P0-3 | Theme with `class="dark"` removed (empty localStorage, OS light then dark, flash check) | **Not run** | `class="dark"` is hard-coded on `<html>` in four layouts: `layouts/app/sidebar`, `layouts/auth/simple`, `layouts/auth/split`, `layouts/auth/card`. `@fluxAppearance` in `partials/head` was not re-read in this run. | Remove the class locally, test the three conditions, and record any flash of the wrong theme. |
+| P0-4 | `npm run build`, font files, third-party requests | **Not run** | `vite.config.js` loads `bunny('Instrument Sans', { weights: [400, 500, 600] })` through `laravel-vite-plugin/fonts`. `.gitignore` excludes `/public/build` and `/public/fonts-manifest.dev.json`, so the build output must be uploaded by hand. | Run the build, confirm `@font-face` files exist under `public/build/assets`, and check DevTools for requests to other domains. |
+| P0-5 | Contrast of Flux parts not controlled by tokens (zinc badge, select dropdown, sidebar item, `danger` button) | **Not run** | None. Colours come from Flux's internal classes. | Measure in the browser in both themes. |
+| P0-6 | Tests that assert CSS classes or markup | **Not run** (list below came from GitHub code search, so it may be incomplete) | `AdminEmployeePageTest`: `lg:grid-cols-2 xl:hidden`, `bg-sanmal-surface-card`, `overflow-x-auto overscroll-x-contain`, `role="region"`. `UiCardComponentTest`: `rounded-xl bg-sanmal-surface-card text-[var(--sanmal-text-primary)] shadow-sm`, `dark:bg-sanmal-surface-card-dark dark:shadow-black/20`, `shadow-sm transition-shadow`, `hover:shadow-md` (these will change with D1 in F1). `LeaveRequestWorkflowTest` and `OvertimeWorkflowTest`: `md:hidden`, `hidden overflow-hidden md:block`, plus the Indonesian region labels. Not searched: `RequestCenterTest`, `UiFeedbackComponentsTest`, `UiLayoutComponentsTest`, `DashboardTest`, `AdminAuditLog*`. | Run a local `grep` over `tests/` for class strings and finish the list before F1. |
+| P0-7 | Session expiry on the attendance page (Livewire 419 dialog) | **Not run** | `.env.example`: `SESSION_LIFETIME=120`. The attendance SFC was not read. | Leave the page open past the limit, submit, and record the dialog text and language. |
+| P0-8 | Camera and GPS on real Android and iOS over HTTPS | **Not run** | None. | Device test per section 4. |
+| P0-9 | Baseline screenshots of the 12 priority pages at 360, 768, 1280, light and dark | **Not run** | None. | Capture and attach to the PR or keep outside the repo. |
+
+**Other source observations (not QA results):**
+
+- Repository code search for `color-sanmal-text` returned no matches, which agrees with D7 (the classes `text-sanmal-text-*` are used in views but not defined in `@theme`). Confirm with a local `grep -rn` before F1.
+- `/AGENTS.md` is listed in `.gitignore` although it is tracked and edited in this PR. Edits to an already-tracked file still show up, but a fresh `git add` of a new copy would be ignored. Worth a decision from the owner.
+- The `Attendance History` row in section 5 contains a literal `\n` where a table row break was intended, so the following `Admin workflows and application shell` row is on the same line. This existed before this run and was left as is.
+
+**F0 status:** documentation amendments (D1 to D8, D10) are in this branch. F0 is **not complete**: P0-1 to P0-9 still need browser, device, or server evidence, and the P0-1 and P0-2 decisions cannot be recorded until then. F1 should not start before that.
