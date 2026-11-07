@@ -41,6 +41,22 @@ test('notification dropdown renders an empty state when there are no notificatio
         ->toContain(route('notifications.index'));
 });
 
+test('notification dropdown is a popover that closes on outside click and Escape', function () {
+    $html = Blade::render(
+        '<x-ui.notification-dropdown :notifications="$notifications" :unread-count="0" />',
+        ['notifications' => collect()],
+    );
+
+    expect($html)
+        ->toContain('x-on:click.outside="open = false"')
+        ->toContain('x-on:keydown.escape.window')
+        ->toContain('aria-expanded')
+        ->toContain('aria-controls="notification-panel-')
+        ->toContain('aria-label="Buka notifikasi"')
+        ->not->toContain('<details')
+        ->not->toContain('<summary');
+});
+
 test('opening a notification marks only the authenticated user notification as read', function () {
     $user = User::factory()->create();
     $notification = $user->notifications()->create([
