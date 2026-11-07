@@ -164,3 +164,53 @@ The Admin Overtime approval-status dropdown was replaced with the same pill-link
 **Automated coverage:** `OvertimeWorkflowTest` checks status link URLs and confirms the old select is absent. CI run #41984069098 is queued; check its result before merge.
 
 **Browser/device QA: Not run.**
+
+
+## F0 baseline — production readiness (`feature/ui-production-readiness`, PR #30) — 7 November 2026
+
+Branch HEAD when written: `f3ea581f13f09e5efc6e91c3eb0e5a45111f6eeb`. Tester/agent: Claude, working through the GitHub connector (no browser, no device, no local build).
+
+**No P0 check below has been run in a browser, on a device, or against the target server `.env`.** Every result is **Not run**. The *Source facts* column lists what was read in the repository at the commit above, so the owner knows what to look for. It is not a QA result and does not close any P0 item.
+
+> **Update 8 November 2026:** the owner then ran part of P0-1 to P0-4 locally. Those observations are in the next section, "F0 owner-observed evidence". The table below is kept as written; where the next section differs, the next section is newer.
+
+| ID | Check | Result | Source facts read (not QA evidence) | Still needed from the owner |
+|---|---|---|---|---|
+| P0-1 | Horizontal gutter at 360 px (`/dashboard`, `/admin/pegawai`, light and dark) | **Not run** | `layouts/app.blade.php` renders `<flux:main class="min-w-0 … p-0 … lg:ms-0">`. `components/ui/page.blade.php` renders `mx-auto flex w-full max-w-* flex-col gap-*` with no horizontal padding. No gutter source was found in these two files. Flux's own main/sidebar styles are in `vendor/` and were not read. | Measure the left distance from the screen edge to the H1 and first card. Result decides D9 (add a single gutter wrapper or document the existing source). |
+| P0-2 | Locale and app name on the target server | **Not run** | `.env.example`: `APP_LOCALE=en`, `APP_FALLBACK_LOCALE=en`, `APP_NAME=Laravel`, `APP_DEBUG=true`. `layouts/app/sidebar.blade.php` still has English `__()` keys: `Change appearance`, `Light`, `Dark`, `System`, `Log out`. The target `.env` was not seen. | Read the server `.env`. Confirm `APP_LOCALE=id`, `APP_DEBUG=false`, and that Carbon formats months in Indonesian. Result decides D6, 7.3, and section 10. |
+| P0-3 | Theme with `class="dark"` removed (empty localStorage, OS light then dark, flash check) | **Not run** | `class="dark"` is hard-coded on `<html>` in four layouts: `layouts/app/sidebar`, `layouts/auth/simple`, `layouts/auth/split`, `layouts/auth/card`. `@fluxAppearance` in `partials/head` was not re-read in this run. | Remove the class locally, test the three conditions, and record any flash of the wrong theme. |
+| P0-4 | `npm run build`, font files, third-party requests | **Not run** | `vite.config.js` loads `bunny('Instrument Sans', { weights: [400, 500, 600] })` through `laravel-vite-plugin/fonts`. `.gitignore` excludes `/public/build` and `/public/fonts-manifest.dev.json`, so the build output must be uploaded by hand. | Run the build, confirm `@font-face` files exist under `public/build/assets`, and check DevTools for requests to other domains. |
+| P0-5 | Contrast of Flux parts not controlled by tokens (zinc badge, select dropdown, sidebar item, `danger` button) | **Not run** | None. Colours come from Flux's internal classes. | Measure in the browser in both themes. |
+| P0-6 | Tests that assert CSS classes or markup | **Not run** (list below came from GitHub code search, so it may be incomplete) | `AdminEmployeePageTest`: `lg:grid-cols-2 xl:hidden`, `bg-sanmal-surface-card`, `overflow-x-auto overscroll-x-contain`, `role="region"`. `UiCardComponentTest`: `rounded-xl bg-sanmal-surface-card text-[var(--sanmal-text-primary)] shadow-sm`, `dark:bg-sanmal-surface-card-dark dark:shadow-black/20`, `shadow-sm transition-shadow`, `hover:shadow-md` (these will change with D1 in F1). `LeaveRequestWorkflowTest` and `OvertimeWorkflowTest`: `md:hidden`, `hidden overflow-hidden md:block`, plus the Indonesian region labels. Not searched: `RequestCenterTest`, `UiFeedbackComponentsTest`, `UiLayoutComponentsTest`, `DashboardTest`, `AdminAuditLog*`. | Run a local `grep` over `tests/` for class strings and finish the list before F1. |
+| P0-7 | Session expiry on the attendance page (Livewire 419 dialog) | **Not run** | `.env.example`: `SESSION_LIFETIME=120`. The attendance SFC was not read. | Leave the page open past the limit, submit, and record the dialog text and language. |
+| P0-8 | Camera and GPS on real Android and iOS over HTTPS | **Not run** | None. | Device test per section 4. |
+| P0-9 | Baseline screenshots of the 12 priority pages at 360, 768, 1280, light and dark | **Not run** | None. | Capture and attach to the PR or keep outside the repo. |
+
+**Other source observations (not QA results):**
+
+- Repository code search for `color-sanmal-text` returned no matches, which agrees with D7 (the classes `text-sanmal-text-*` are used in views but not defined in `@theme`). Confirm with a local `grep -rn` before F1.
+- `/AGENTS.md` is listed in `.gitignore` although it is tracked and edited in this PR. Edits to an already-tracked file still show up, but a fresh `git add` of a new copy would be ignored. Worth a decision from the owner.
+- The `Attendance History` row in section 5 contains a literal `\n` where a table row break was intended, so the following `Admin workflows and application shell` row is on the same line. This existed before this run and was left as is.
+
+**F0 status:** documentation amendments (D1 to D8, D10) are in this branch. F0 is **not complete**: P0-1 to P0-9 still need browser, device, or server evidence, and the P0-1 and P0-2 decisions cannot be recorded until then. F1 should not start before that. (F1 was started afterwards at the owner's request; see the plan's note on F0.)
+
+
+## F0 owner-observed evidence — local browser and build — 8 November 2026
+
+Tester: project owner, relayed through screenshots and terminal output in the project conversation; interpreted by Claude. Branch `feature/ui-production-readiness`, local checkout that already contains `submit-guard.js` (so at or after commit `ed1ff33`). Browser: Chromium-based (Brave), DevTools docked on the right; browser version not recorded. App served by the local Laravel dev server at `http://localhost:8000` (Vite dev assets, because the network list shows `client`, `env.mjs`, and 304 responses for `app.js`). Role: Admin/Superadmin ("Admin Uji"). Viewport: not recorded; the page area beside DevTools is roughly 1220 px wide, so these are **desktop-width observations only**.
+
+| ID | Result | What was observed | What is still open |
+|---|---|---|---|
+| P0-1 | **Partial** | In the Computed tab, `<flux:main>` (`data-flux-main`) has `padding: 32px` on all four sides (content box 896 × 868). The Styles tab shows the element carries Flux's own `p-6 lg:p-8` **and** our `p-0`; at this width `lg:p-8` applies and both `.p-0` and `.p-6` are struck out. The rule order in the stylesheet is `.p-0` (app.css line 2212) before `.p-6` (line 2236), so `p-0` cannot win against `p-6`, and `lg:p-8` wins on large screens. | The 360 px value was not measured. From the same classes it should be 24 px (`p-6`), but that is inferred. **D9 conclusion (pending a 360 px check):** a page gutter already exists from Flux's `p-6 lg:p-8`; do not add a second wrapper. The Design Foundation statement that main keeps `p-0` does not match the rendered result and needs a correction. |
+| P0-2 | **Partial (local only)** | Page date shows "Sunday, 08 November 2026" and the calendar weekdays show "Mon, Tue, Wed…" in English. The theme menu shows "Light / Dark / System". The browser's translation bar offered Indonesian/English, which means the page language was detected as English while most of the text is Indonesian. | The target server `.env` was not seen. Local `APP_LOCALE` is evidently not `id`. Confirms the need for `APP_LOCALE=id`, `translatedFormat`, and the shell string changes in F2. |
+| P0-3 | **Partial** | With the permanent `class="dark"` removed from the app layout, the page renders dark (`color-scheme: dark`) and the theme menu shows **Dark** selected, so the saved choice is honoured on this machine. | Not tested: empty localStorage, OS light then dark with **System** selected, and a flash of the wrong theme on first paint. The second screenshot was taken with DevTools declarations unticked (`dark:bg-…`, `dark:text-…`), so it is **not** used as evidence of how the app looks. |
+| P0-4 | **Pass (build), Partial (requests)** | `npm run build` succeeded in 12.42 s. It emitted `manifest.json`, `fonts-manifest.json`, `fonts-*.css`, and Instrument Sans 400/500/600 as both `.woff2` and `.woff` under `public/build/assets`, plus `app-*.css` (442 kB, 45.6 kB gzip) and `app-*.js` (28.8 kB). A notice says the optional `fontaine` package is not installed, so optimized fallback metrics are not generated. | The network capture (25 requests) is from the dev server and shows font files requested from the page; the Domain column was hidden, so the absence of third-party requests is **not confirmed**. Repeat on the built `public/build` output served by PHP (or staging) with the Domain column visible. Decide whether to install `fontaine` or set `optimizedFallbacks: false`. |
+
+**Other observations from the same screenshots (not P0 results):**
+
+- Admin dashboard, dark theme: the "Belum lengkap" and "Perlu ditinjau" metric digits look saturated orange and red. The F1 design routes them to `#f0c065` and `#f59a9a`. Because the stylesheet shim lived inside `@layer utilities`, the same layer Tailwind emits its own `text-sanmal-*` utilities into, the generated rule may have won. The shim was moved out of the layer in commit `0eb2638`. **Not yet re-checked in the browser**; read the computed `color` of those digits to confirm.
+- Dark theme: the sidebar still shares the page surface (`bg-sanmal-surface-sidebar dark:bg-sanmal-surface-page-dark`). This is the open D3 item in F2.
+- Daily recap (`/admin/rekap-harian`, dark): cards render with borders and without resting shadow; calendar weekday labels are English; the active day uses the yellow primary surface. The yellow day marker conflicts with the rule that yellow is only for the primary action; review in F4/F5.
+- Network list on that page includes `submit-guard.js`, so the new Alpine component is bundled; it is not yet attached to any form.
+
+**F0 status (8 November 2026):** P0-4 build is verified; P0-1, P0-2, P0-3 are partly verified at desktop width only; P0-5 to P0-9 are still **Not run**. F0 is not complete.

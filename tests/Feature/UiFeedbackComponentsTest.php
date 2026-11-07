@@ -7,6 +7,25 @@ it('renders a reusable empty state with a message and forwarded classes', functi
         ->assertSee('rounded-xl border', false);
 });
 
+it('renders an empty state with a title and an action without removing the message', function () {
+    $this->blade('
+        <x-ui.empty-state title="Belum ada akun pegawai" message="Akun yang dibuat akan muncul di sini.">
+            <x-slot:action><a href="/admin/pegawai/create">Tambah akun</a></x-slot:action>
+        </x-ui.empty-state>
+    ')
+        ->assertSee('Belum ada akun pegawai')
+        ->assertSee('Akun yang dibuat akan muncul di sini.')
+        ->assertSee('href="/admin/pegawai/create"', false)
+        ->assertSee('Tambah akun');
+});
+
+it('does not render title or action markup when they are not provided', function () {
+    $this->blade('<x-ui.empty-state message="Kosong." />')
+        ->assertSee('Kosong.')
+        ->assertDontSee('text-base font-semibold', false)
+        ->assertDontSee('mt-4 flex flex-wrap', false);
+});
+
 it('renders a reusable empty state as a table row when colspan is provided', function () {
     $this->blade('<table><tbody><x-ui.empty-state message="Data kosong" :colspan="4" /></tbody></table>')
         ->assertSee('<td colspan="4"', false)

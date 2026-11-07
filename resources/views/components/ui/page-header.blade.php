@@ -8,7 +8,7 @@
     <div class="min-w-0 flex-1">
         <flux:heading :size="$headingSize" level="1">{{ $title }}</flux:heading>
         @if ($description)
-            <flux:text class="mt-1 max-w-3xl text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">{{ $description }}</flux:text>
+            <flux:text class="mt-1 max-w-3xl text-sm leading-relaxed text-sanmal-text-secondary">{{ $description }}</flux:text>
         @endif
     </div>
 

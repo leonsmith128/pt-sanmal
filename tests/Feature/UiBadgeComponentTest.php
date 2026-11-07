@@ -16,6 +16,20 @@ it('uses a neutral color by default and forwards presentation attributes', funct
         ->assertSee('data-testid="request-status"', false);
 });
 
+it('maps zinc and gray badges to the dedicated neutral badge class only', function () {
+    $this->blade('<x-ui.badge>Ditolak</x-ui.badge>')
+        ->assertSee('sanmal-badge-neutral', false)
+        ->assertDontSee('sanmal-badge-success', false)
+        ->assertDontSee('sanmal-badge-warning', false);
+
+    $this->blade('<x-ui.badge color="gray">Selesai</x-ui.badge>')
+        ->assertSee('sanmal-badge-neutral', false);
+
+    $this->blade('<x-ui.badge color="amber">Menunggu</x-ui.badge>')
+        ->assertSee('sanmal-badge-warning', false)
+        ->assertDontSee('sanmal-badge-neutral', false);
+});
+
 it('supports status labels and colors supplied by existing enums', function () {
     $status = LeaveRequestStatus::Pending;
 

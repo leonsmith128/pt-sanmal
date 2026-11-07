@@ -8,6 +8,7 @@
         'sanmal-badge-warning' => in_array($color, ['yellow', 'amber', 'orange'], true),
         'sanmal-badge-danger' => in_array($color, ['red', 'rose'], true),
         'sanmal-badge-info' => in_array($color, ['blue', 'sky', 'cyan'], true),
+        'sanmal-badge-neutral' => in_array($color, ['zinc', 'gray', 'slate', 'neutral', 'stone'], true),
     ];
 @endphp
 

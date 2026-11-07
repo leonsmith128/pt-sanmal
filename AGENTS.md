@@ -69,12 +69,11 @@ Jika source bertentangan dengan dokumen, jangan langsung memilih salah satu. Lap
 
 ## 7. Git workflow
 
-- For the SanMal V1 UI/UX finalization scope, use only the existing long-lived branch `docs/ui-v1-scope-and-pr-workflow` and the single tracking PR #27 targeting `main`.
-- Do not create another branch or PR for any UI/UX milestone, component, page, test, or documentation task. Do not merge PR #27 until the complete V1 UI/UX scope is finished, reviewed, and verified.
+- Untuk finalisasi UI/UX sebelum produksi, gunakan satu branch `feature/ui-production-readiness` dan satu PR ke `main`. PR #27 dan #29 sudah di-merge dan tidak lagi menjadi acuan. Jangan membuat branch atau PR UI lain selama PR ini terbuka. Commit per fase, kecil dan fokus. Jangan merge sebelum Definition of Done di `docs/ui/DEVELOPMENT-HANDOFF.md` terpenuhi dan bukti QA tercatat di `docs/ui/progress/VISUAL-QA-LOG.md`.
 - Commit focused, logically grouped changes to that same branch. Before every write, inspect the current branch HEAD and latest file SHA to avoid overwriting newer work.
 - The authoritative workflow and handoff are documented in `docs/ui/DEVELOPMENT-HANDOFF.md`; design decisions are in `docs/ui/DESIGN-FOUNDATION.md`; scope is tracked in `docs/ui/progress/IMPLEMENTATION-STATUS.md`.
 
-- Untuk pekerjaan di luar program UI/UX SanMal V1, secara default kerjakan di feature branch dari main, buat commit terfokus, lalu buka Pull Request. Untuk UI/UX V1, aturan satu branch dan satu PR di atas selalu berlaku.
+- Untuk pekerjaan di luar program UI/UX SanMal V1, secara default kerjakan di feature branch dari main, buat commit terfokus, lalu buka Pull Request. Untuk finalisasi UI/UX sebelum produksi, aturan satu branch dan satu PR di atas selalu berlaku.
 - Commit langsung ke main hanya jika pengguna secara eksplisit memintanya.
 - Jangan force-push, mengubah riwayat, merge, atau mengubah status PR tanpa instruksi eksplisit.
 - Sebelum menulis ke branch, periksa ulang HEAD dan hindari menimpa perubahan yang masuk setelah inspeksi.

@@ -1,5 +1,5 @@
 <x-layouts::app :title="__('Rekap Absensi Harian')">
-    <x-ui.page class="!gap-6">
+    <x-ui.page gap="6">
         <x-admin.page-header
             :title="__('Rekap Absensi Harian')"
             :description="__('Tanggal rekap mengikuti kalender perusahaan (WITA). Status cuti, sakit, dan izin dihitung dari permohonan yang disetujui tanpa membuat event absensi sintetis.')"
@@ -24,7 +24,7 @@
             />
         </x-admin.filter-panel>
 
-        <div class="grid grid-cols-1 items-stretch gap-4 md:auto-rows-fr md:grid-cols-2 lg:grid-cols-3">
+        <div class="grid grid-cols-1 items-stretch gap-4 md:auto-rows-fr md:grid-cols-2 xl:grid-cols-3">
             @forelse ($rows as $row)
                 <x-admin.attendance.daily-employee-card
                     :row="$row"

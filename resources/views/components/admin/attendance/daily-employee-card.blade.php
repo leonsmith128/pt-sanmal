@@ -26,7 +26,7 @@
     };
 @endphp
 
-<x-ui.card padding="py-5 pr-5 pl-6" class="relative flex h-full flex-col overflow-hidden">
+<x-ui.card padding="py-4 pe-4 ps-5" class="relative flex h-full flex-col overflow-hidden">
     <span aria-hidden="true" class="absolute inset-y-0 left-0 w-1 {{ $accentClass }}"></span>
 
     <div class="flex items-start justify-between gap-3">
@@ -37,8 +37,8 @@
                 <flux:heading level="2" size="base" class="truncate">
                     {{ $employeeName }}
                 </flux:heading>
-                <flux:text class="text-xs text-[var(--sanmal-text-muted)]">
-                    {{ __('ID Pegawai:') }} {{ $employee->employee_number ?? $employee->id }}
+                <flux:text class="text-xs text-sanmal-text-muted">
+                    {{ __('ID Pegawai:') }} <span class="tabular-nums">{{ $employee->employee_number ?? $employee->id }}</span>
                 </flux:text>
             </div>
         </div>
@@ -48,30 +48,42 @@
         </x-ui.badge>
     </div>
 
-    <div class="mt-4 min-h-14 flex-1 space-y-2">
+    <div class="mt-4 flex-1 space-y-2">
+        {{-- Slot waktu selalu tampil: kartu kosong dan terisi punya tinggi dan ritme yang sama. --}}
         @if ($daily['events']->isNotEmpty())
-            <ul class="flex flex-wrap gap-2" aria-label="{{ __('Catatan waktu absensi') }}">
+            <ul class="grid grid-cols-2 gap-2" aria-label="{{ __('Catatan waktu absensi') }}">
                 @foreach ($daily['events'] as $event)
-                    <li class="inline-flex items-center gap-2 rounded-lg bg-sanmal-surface-secondary px-2.5 py-1.5 dark:bg-sanmal-surface-inset-dark">
-                        <span
-                            aria-hidden="true"
-                            class="size-1.5 rounded-full {{ $event->type === \App\Enums\AttendanceType::ClockIn ? 'bg-sanmal-success' : 'bg-sanmal-info' }}"
-                        ></span>
-                        <span class="text-xs text-[var(--sanmal-text-muted)]">{{ $event->type->label() }}</span>
-                        <span class="text-sm font-semibold tabular-nums text-[var(--sanmal-text-primary)]">
-                            {{ $event->effectiveRecordedAtLocal()->format('H:i') }}
+                    <li class="flex items-center justify-between gap-2 rounded-lg bg-sanmal-surface-secondary px-3 py-2 dark:bg-sanmal-surface-inset-dark">
+                        <span class="flex min-w-0 items-center gap-2 text-sm text-sanmal-text-secondary">
+                            <span
+                                aria-hidden="true"
+                                class="size-1.5 shrink-0 rounded-full {{ $event->type === \App\Enums\AttendanceType::ClockIn ? 'bg-sanmal-success' : 'bg-sanmal-info' }}"
+                            ></span>
+                            <span class="truncate">{{ $event->type->label() }}</span>
                         </span>
+                        <time
+                            datetime="{{ $event->effectiveRecordedAtLocal()->format('c') }}"
+                            class="text-sm font-semibold tabular-nums text-sanmal-text-primary"
+                        >
+                            {{ $event->effectiveRecordedAtLocal()->format('H:i') }}
+                        </time>
                     </li>
                 @endforeach
             </ul>
         @else
-            <p class="text-sm text-[var(--sanmal-text-muted)]">
-                {{ __('Tidak ada catatan clock in/out.') }}
-            </p>
+            <p class="sr-only">{{ __('Tidak ada catatan clock in/out.') }}</p>
+            <div aria-hidden="true" class="grid grid-cols-2 gap-2">
+                @foreach ([__('Masuk'), __('Pulang')] as $slotLabel)
+                    <div class="flex items-center justify-between gap-2 rounded-lg border border-dashed border-sanmal-border px-3 py-2 dark:border-sanmal-border-dark">
+                        <span class="text-sm text-sanmal-text-muted">{{ $slotLabel }}</span>
+                        <span class="text-sm text-sanmal-text-muted">&ndash;</span>
+                    </div>
+                @endforeach
+            </div>
         @endif
 
         @if ($daily['reason'])
-            <p class="text-sm text-sanmal-warning dark:text-amber-400">
+            <p class="text-sm text-sanmal-warning-text">
                 {{ $daily['reason'] }}
             </p>
         @endif
@@ -83,9 +95,9 @@
         @endif
     </div>
 
-    <div class="mt-4 border-t border-sanmal-border pt-4 dark:border-sanmal-border-dark">
+    <div class="mt-3 border-t border-sanmal-border pt-2 dark:border-sanmal-border-dark">
         <flux:modal.trigger :name="$modalName">
-            <x-ui.button variant="outline" icon="pencil-square" class="w-full">
+            <x-ui.button variant="ghost" icon="pencil-square" class="-ms-2 min-h-11 sm:min-h-9">
                 {{ __('Koreksi status harian') }}
             </x-ui.button>
         </flux:modal.trigger>
@@ -106,7 +118,7 @@
             </div>
 
             <div class="flex flex-wrap items-center gap-2 rounded-lg bg-sanmal-surface-secondary px-3 py-2.5 text-sm dark:bg-sanmal-surface-inset-dark">
-                <span class="text-xs text-[var(--sanmal-text-muted)]">{{ __('Status saat ini') }}</span>
+                <span class="text-xs text-sanmal-text-muted">{{ __('Status saat ini') }}</span>
                 <x-ui.badge :color="$badgeColor">{{ $daily['label'] }}</x-ui.badge>
             </div>
 
@@ -139,7 +151,7 @@
             </flux:field>
 
             @if ($daily['correction'])
-                <p class="text-xs text-[var(--sanmal-text-muted)]">
+                <p class="text-xs text-sanmal-text-muted">
                     {{ __('Koreksi terakhir dibuat oleh :name.', [
                         'name' => $daily['correction']->createdBy?->name ?? 'admin',
                     ]) }}
