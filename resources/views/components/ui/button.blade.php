@@ -13,6 +13,7 @@
     $buttonClasses = [
         'sanmal-button-primary' => $variant === 'primary',
         'sanmal-button-secondary' => in_array($variant, ['outline', 'secondary'], true) && $attributes->get('color') === null,
+        'sanmal-button-danger' => $variant === 'danger' && $attributes->get('color') === null,
     ];
 @endphp
 
