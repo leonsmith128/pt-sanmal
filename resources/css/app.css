@@ -31,33 +31,49 @@
     --color-sanmal-brand-yellow-dark: #d9a72e;
     --color-sanmal-brand-yellow-dark-hover: #c49320;
 
-    /* SanMal semantic feedback palette */
+    /* SanMal semantic feedback palette (fills and icons; do not use as small text color, use the *-text tokens) */
     --color-sanmal-success: #258640;
     --color-sanmal-warning: #b2640a;
     --color-sanmal-danger: #bd1f1f;
     --color-sanmal-info: #145985;
 
     /* SanMal light surfaces */
-    --color-sanmal-surface-page: #F2F5F8;
+    --color-sanmal-surface-page: #eef2f7;
     --color-sanmal-surface-sidebar: #cad6e2;
     --color-sanmal-surface-primary: #f8fcff;
-    --color-sanmal-surface-card: #F9FAFC;
+    --color-sanmal-surface-card: #ffffff;
     --color-sanmal-surface-secondary: #eaf0f6;
     --color-sanmal-surface-inset: #e3ebf3;
     --color-sanmal-border: #d3ddea;
 
-    /* SanMal dark surfaces */
-    --color-sanmal-surface-page-dark: #0b1623;
-    --color-sanmal-surface-primary-dark: #122235;
-    --color-sanmal-surface-card-dark: #192b40;
-    --color-sanmal-surface-secondary-dark: #122235;
-    --color-sanmal-surface-inset-dark: #20354b;
-    --color-sanmal-surface-elevated-dark: #263d55;
-    --color-sanmal-border-dark: #344b63;
+    /* SanMal dark surfaces (one hue family, about 212 degrees) */
+    --color-sanmal-surface-page-dark: #0c1520;
+    --color-sanmal-surface-sidebar-dark: #0a111b;
+    --color-sanmal-surface-primary-dark: #131f2e;
+    --color-sanmal-surface-card-dark: #131f2e;
+    --color-sanmal-surface-secondary-dark: #1a293b;
+    --color-sanmal-surface-inset-dark: #1a293b;
+    --color-sanmal-surface-elevated-dark: #223449;
+    --color-sanmal-border-dark: #2b3d52;
 
     --color-accent: #0e3b6b;
     --color-accent-content: #0e3b6b;
     --color-accent-foreground: #ffffff;
+}
+
+/* Expose the theme-aware text tokens as Tailwind colors (text-sanmal-text-muted, text-sanmal-danger-text, ...).
+   `inline` keeps the var() reference so the .dark overrides below still apply. */
+@theme inline {
+    --color-sanmal-text-primary: var(--sanmal-text-primary);
+    --color-sanmal-text-secondary: var(--sanmal-text-secondary);
+    --color-sanmal-text-muted: var(--sanmal-text-muted);
+    --color-sanmal-text-sidebar: var(--sanmal-text-sidebar);
+    --color-sanmal-text-sidebar-muted: var(--sanmal-text-sidebar-muted);
+    --color-sanmal-success-text: var(--sanmal-success-text);
+    --color-sanmal-warning-text: var(--sanmal-warning-text);
+    --color-sanmal-danger-text: var(--sanmal-danger-text);
+    --color-sanmal-info-text: var(--sanmal-info-text);
+    --color-sanmal-control-border: var(--sanmal-control-border);
 }
 
 :root {
@@ -65,19 +81,33 @@
     --sanmal-focus: #0e3b6b;
     --sanmal-text-primary: #172033;
     --sanmal-text-secondary: #526579;
-    --sanmal-text-muted: #64748b;
+    --sanmal-text-muted: #5b6b80;
+    --sanmal-text-sidebar: #334155;
+    --sanmal-text-sidebar-muted: #475569;
+    --sanmal-control-border: #6f8399;
+    --sanmal-success-text: #1d6b32;
+    --sanmal-warning-text: #8a4b08;
+    --sanmal-danger-text: #991b1b;
+    --sanmal-info-text: #10496d;
 }
 
 .dark {
     color-scheme: dark;
-    --color-sanmal-border: #344b63;
-    --sanmal-focus: #b4c8dc;
-    --sanmal-text-primary: #f1f5f9;
-    --sanmal-text-secondary: #cbd5e1;
-    --sanmal-text-muted: #94a3b8;
-    --color-accent: #b4c8dc;
-    --color-accent-content: #b4c8dc;
-    --color-accent-foreground: #0b1623;
+    --color-sanmal-border: #2b3d52;
+    --sanmal-focus: #8ab4e8;
+    --sanmal-text-primary: #e6edf5;
+    --sanmal-text-secondary: #b3c1d1;
+    --sanmal-text-muted: #8b9db1;
+    --sanmal-text-sidebar: #b3c1d1;
+    --sanmal-text-sidebar-muted: #8b9db1;
+    --sanmal-control-border: #5a7391;
+    --sanmal-success-text: #7fd6a0;
+    --sanmal-warning-text: #f0c065;
+    --sanmal-danger-text: #f59a9a;
+    --sanmal-info-text: #8ec5f0;
+    --color-accent: #8ab4e8;
+    --color-accent-content: #8ab4e8;
+    --color-accent-foreground: #0c1520;
 }
 
 @layer base {
@@ -110,18 +140,19 @@
 
 [data-flux-error] {
     @apply !text-sm !leading-relaxed;
-    color: var(--color-sanmal-danger) !important;
+    color: var(--sanmal-danger-text) !important;
 }
 
+/* Control edges need 3:1 against the surface they sit on (WCAG 1.4.11); panel borders stay lighter. */
 [data-flux-control] {
     background-color: var(--color-sanmal-surface-primary);
-    border-color: var(--color-sanmal-border);
+    border-color: var(--sanmal-control-border);
     color: var(--sanmal-text-primary);
 }
 
 .dark [data-flux-control] {
     background-color: var(--color-sanmal-surface-inset-dark);
-    border-color: var(--color-sanmal-border-dark);
+    border-color: var(--sanmal-control-border);
     color: var(--sanmal-text-primary);
 }
 
@@ -153,7 +184,8 @@ select:focus[data-flux-control] {
     }
 
     .sanmal-button-primary:focus-visible,
-    .sanmal-button-secondary:focus-visible {
+    .sanmal-button-secondary:focus-visible,
+    .sanmal-button-danger:focus-visible {
         outline: 2px solid var(--sanmal-focus) !important;
         outline-offset: 2px;
     }
@@ -161,11 +193,14 @@ select:focus[data-flux-control] {
     .sanmal-button-primary:disabled,
     .sanmal-button-primary[disabled],
     .sanmal-button-secondary:disabled,
-    .sanmal-button-secondary[disabled] {
+    .sanmal-button-secondary[disabled],
+    .sanmal-button-danger:disabled,
+    .sanmal-button-danger[disabled] {
         cursor: not-allowed;
         opacity: 0.55;
     }
 
+    /* Dark theme: yellow is reserved for the primary action. */
     .dark .sanmal-button-primary {
         background-color: var(--color-sanmal-brand-yellow-dark) !important;
         border-color: var(--color-sanmal-brand-yellow-dark) !important;
@@ -179,7 +214,7 @@ select:focus[data-flux-control] {
 
     .sanmal-button-secondary {
         background-color: var(--color-sanmal-surface-primary) !important;
-        border-color: var(--color-sanmal-border) !important;
+        border-color: var(--sanmal-control-border) !important;
         color: #0e3b6b !important;
     }
 
@@ -187,16 +222,37 @@ select:focus[data-flux-control] {
         background-color: var(--color-sanmal-surface-secondary) !important;
     }
 
+    /* Dark secondary: transparent with a neutral border; no brown or yellow (D2). */
     .dark .sanmal-button-secondary {
-        background-color: #49351f !important;
-        border-color: #80602b !important;
-        color: #f2bb65 !important;
+        background-color: transparent !important;
+        border-color: var(--sanmal-control-border) !important;
+        color: var(--sanmal-text-primary) !important;
     }
 
     .dark .sanmal-button-secondary:hover:not(:disabled, [disabled]) {
-        background-color: #594323 !important;
-        border-color: #a27b36 !important;
-        color: #ffce7a !important;
+        background-color: var(--color-sanmal-surface-inset-dark) !important;
+    }
+
+    .sanmal-button-danger {
+        background-color: #b91c1c !important;
+        border-color: #b91c1c !important;
+        color: #ffffff !important;
+        transition: background-color 150ms ease, border-color 150ms ease;
+    }
+
+    .sanmal-button-danger:hover:not(:disabled, [disabled]) {
+        background-color: #991b1b !important;
+        border-color: #991b1b !important;
+    }
+
+    .dark .sanmal-button-danger {
+        background-color: #dc2626 !important;
+        border-color: #dc2626 !important;
+    }
+
+    .dark .sanmal-button-danger:hover:not(:disabled, [disabled]) {
+        background-color: #b91c1c !important;
+        border-color: #b91c1c !important;
     }
 }
 
@@ -205,11 +261,13 @@ select:focus[data-flux-control] {
 .sanmal-badge-warning { background-color: #fff3df !important; color: #8a4b08 !important; }
 .sanmal-badge-danger { background-color: #fceaea !important; color: #991b1b !important; }
 .sanmal-badge-info { background-color: #e8f1f7 !important; color: #10496d !important; }
+.sanmal-badge-neutral { background-color: #e3ebf3 !important; color: #334155 !important; }
 
-.dark .sanmal-badge-success { background-color: #193d31 !important; color: #75d394 !important; }
-.dark .sanmal-badge-warning { background-color: #49351f !important; color: #f2bb65 !important; }
-.dark .sanmal-badge-danger { background-color: #48272b !important; color: #f18a8a !important; }
-.dark .sanmal-badge-info { background-color: #19364d !important; color: #7abde5 !important; }
+.dark .sanmal-badge-success { background-color: #12301f !important; color: #7fd6a0 !important; }
+.dark .sanmal-badge-warning { background-color: #33280f !important; color: #f0c065 !important; }
+.dark .sanmal-badge-danger { background-color: #3a1a1e !important; color: #f59a9a !important; }
+.dark .sanmal-badge-info { background-color: #142c44 !important; color: #8ec5f0 !important; }
+.dark .sanmal-badge-neutral { background-color: #1f2d3d !important; color: #b3c1d1 !important; }
 
 
 /* Keep Flux sidebar navigation icons visually consistent in expanded and collapsed states. */
