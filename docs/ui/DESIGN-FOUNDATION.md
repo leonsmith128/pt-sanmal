@@ -73,7 +73,7 @@ The original SanMal logo supplied for this project was sampled to identify repre
 | `brand/yellow-dark` | `#D9A72E` | Dark-theme primary action |
 | `brand/yellow-dark-hover` | `#C49320` | Dark-theme primary hover |
 
-The primary action is theme-aware: blue in light theme and yellow in dark theme. Yellow is also used as a restrained secondary-action accent in dark theme; it must not visually compete with the filled primary action. Always check foreground/background contrast.
+The primary action is theme-aware: blue in light theme and yellow in dark theme. Yellow is reserved for the dark-theme primary action and one brand accent line on authentication pages; it is not used for secondary actions (D2). Always check foreground/background contrast.
 
 ### Surface and text palette
 
@@ -93,6 +93,30 @@ The primary action is theme-aware: blue in light theme and yellow in dark theme.
 
 The live token values are defined in `resources/css/app.css`; if this table and the stylesheet ever differ, inspect the source branch and update this document rather than copying stale values. In the current source, the light page surface is `#F2F5F8` and the card surface is `#F9FAFC`; the primary surface remains `#F8FCFF`.
 
+### Target tokens for production readiness (applied in F1)
+
+The table below records the decisions (D1–D7) of the `feature/ui-production-readiness` branch. These values are **not yet in `resources/css/app.css`**; they become live in phase F1. Until then, the table above and the stylesheet remain the source of truth. Contrast ratios were calculated from the hex values (WCAG 2.x), not measured in a browser.
+
+| Token | Light | Dark | Typical use |
+|---|---|---|---|
+| `surface/page` | `#EEF2F7` | `#0C1520` | Application main background |
+| `surface/card` | `#FFFFFF` | `#131F2E` | Panels, list items, modals |
+| `surface/primary` | `#F8FCFF` (unchanged) | `#131F2E` | Mobile header, banner strip; same as card in dark |
+| `surface/sidebar` | `#CAD6E2` (unchanged) | `#0A111B` | Sidebar; dark theme needs a `border-e` because the difference from the page is only 1.03:1 |
+| `surface/inset`, `surface/secondary` | `#E3EBF3`, `#EAF0F6` (unchanged) | `#1A293B` | Inputs, table headers, row hover |
+| `surface/elevated` | — | `#223449` | Dropdowns, popovers, and linked-card hover only; never a modal background |
+| `border` | `#D3DDEA` (unchanged) | `#2B3D52` | Panel and divider lines |
+| `control-border` (new) | `#6F8399` | `#5A7391` | Edges of input, select, and textarea (at least 3:1) |
+| `text/primary` | `#172033` (unchanged) | `#E6EDF5` | Main content |
+| `text/secondary` | `#526579` (unchanged) | `#B3C1D1` | Supporting content |
+| `text/muted` | `#5B6B80` | `#8B9DB1` | Metadata and helper text (at least 4.5:1 on page, card, and secondary) |
+| `text/sidebar` (new) | `#334155` | `#B3C1D1` | Sidebar item text |
+| `text/sidebar-muted` (new) | `#475569` | `#8B9DB1` | Sidebar group headings |
+| `accent` | brand blue `#0E3B6B` | `#8AB4E8` | Links, active sidebar item, focus ring, active pill |
+| `success-text` / `warning-text` / `danger-text` / `info-text` (new) | `#1D6B32` / `#8A4B08` / `#991B1B` / `#10496D` | `#7FD6A0` / `#F0C065` / `#F59A9A` / `#8EC5F0` | Colored text outside badges |
+
+Dark badges: success `#12301F` on `#7FD6A0`, warning `#33280F` on `#F0C065`, danger `#3A1A1E` on `#F59A9A`, info `#142C44` on `#8EC5F0`, and neutral (`sanmal-badge-neutral`) `#1F2D3D` on `#B3C1D1`. Dark danger button: `#DC2626` with white text.
+
 ### Semantic colors
 
 | Token | HEX | Meaning |
@@ -106,17 +130,17 @@ Use semantic colors consistently. A status color must not be the only way to com
 
 ### Surface usage rules
 
-- Use `x-ui.card` for standard content cards so light/dark backgrounds, text color, radius, and shadow remain centralized.
-- **The outer card container is borderless and shadow-only** (`shadow-sm`; dark theme uses `dark:shadow-black/20`). Do not add border utilities to a standard card container. The card surface is `#F9FAFC` in light theme and `#192B40` in dark theme.
-- Borders remain appropriate for controls, dividers, tables, modal frames, and inset/secondary groups when they communicate structure; this rule applies to the outer card container, not every descendant.
+- Use `x-ui.card` for standard content cards so light/dark backgrounds, text color, radius, border, and shadow remain centralized.
+- Kartu dan panel berborder 1px (`border-sanmal-border` / `border-sanmal-border-dark`) di kedua tema. Bayangan hanya untuk elemen melayang: modal, dropdown, toast. Kartu bertautan mengubah latar dan warna border saat hover, tanpa bayangan tambahan. Jangan membuat kartu di dalam kartu. (Amended, D1. Target: applied in F1; the current source still uses a borderless, shadow-only card.)
+- Borders also apply to controls, dividers, tables, modal frames, and inset/secondary groups when they communicate structure.
 - Use the approved `surface/secondary` or `surface/inset` tokens for nested groups, chips, and recessed content; always provide the matching dark token.
 - Do not introduce one-off `white`, `zinc`, or `gray` backgrounds/borders inside standardized cards.
-- Use the shared `--sanmal-text-primary`, `--sanmal-text-secondary`, and `--sanmal-text-muted` variables for neutral text hierarchy. Reserve semantic colors for actual status and feedback.
+- Use the shared `--sanmal-text-primary`, `--sanmal-text-secondary`, and `--sanmal-text-muted` variables for neutral text hierarchy. Reserve semantic colors for actual status and feedback. Text tokens must also be usable as Tailwind classes through `@theme inline` (D7): views already use classes such as `text-sanmal-text-muted` that the stylesheet does not yet define.
 - A component may have a different layout by role or page, but its surface palette must remain consistent with the shared design tokens.
 
 ## 4. Typography
 
-Inter is the proposed working typeface for the design foundation. **Do not assume it is already loaded or configured in the Laravel application.** Before implementation, inspect the existing font assets, CSS imports, and layout. Prefer the font already shipped by the application unless a deliberate font change is approved.
+The application typeface is Instrument Sans, configured in `vite.config.js` through `laravel-vite-plugin/fonts` (`bunny('Instrument Sans', { weights: [400, 500, 600] })`). The earlier Inter proposal is withdrawn. Use only the loaded weights (400, 500, 600); do not use `font-bold`. Whether the build output serves the font files from the application's own host is verified in P0-4 of the production-readiness plan.
 
 Typography principles:
 - Use a clear hierarchy rather than many unrelated font sizes.
@@ -134,6 +158,28 @@ Suggested hierarchy (adapt to the actual app typography and Tailwind scale):
 | Body | 14–16 px | Main content and descriptions |
 | Label | 12–14 px | Form labels and metadata labels |
 | Dense data | 13–14 px | Tables, timestamps, compact metadata |
+
+### Radius, date, and time format
+
+Amended by D5 and D6; applied during F1 to F5.
+
+| Element | Radius |
+|---|---|
+| Panel and card | `rounded-xl` |
+| Control (input, select, textarea, button) | `rounded-lg` |
+| Modal | `rounded-xl` |
+| Authentication card | `rounded-xl` |
+| Badge and pill | `rounded-full` |
+
+| Context | Format |
+|---|---|
+| Date | `translatedFormat('d M Y')` |
+| Date and time | `translatedFormat('d M Y, H:i')` |
+| Range | `d M Y – d M Y` (en dash) |
+| Time zone | WITA; show the `WITA` suffix only on attendance evidence times and link validity times |
+| Element | Always `<time datetime="...">`; do not use `font-mono` for dates |
+
+These formats require `APP_LOCALE=id` on the target server (P0-2). Stored values and the application time zone do not change.
 
 ## 5. Spacing, layout, and density
 
@@ -155,13 +201,15 @@ Density means removing decorative whitespace, not shrinking everything. Do not h
 
 ### Application shell and content surface
 
-Keep the application shell visually continuous without making the sidebar and page indistinguishable: the `body` and sidebar use the sidebar surface (`bg-sanmal-surface-sidebar dark:bg-sanmal-surface-page-dark`). In light theme both are `#CAD6E2`; the full-width main content uses the separate page surface (`bg-sanmal-surface-page dark:bg-sanmal-surface-page-dark`), which is `#F2F5F8`; in dark theme both remain integrated with the dark page surface. The sidebar has no separating border.
+Keep the application shell visually continuous without making the sidebar and page indistinguishable: the `body` and sidebar use the sidebar surface (`bg-sanmal-surface-sidebar dark:bg-sanmal-surface-page-dark`). In light theme both are `#CAD6E2`; the full-width main content uses the separate page surface (`bg-sanmal-surface-page dark:bg-sanmal-surface-page-dark`), which is `#F2F5F8`; in dark theme the sidebar currently shares the dark page surface. The light-theme sidebar has no separating border. **Amended (D3, target F2):** in dark theme the sidebar uses its own `surface/sidebar` token (`#0A111B`) and a 1px `border-e` (`border-sanmal-border-dark`), because the colour difference from the page is only 1.03:1.
 
-The main content uses `<flux:main>` without Flux's `inset` prop and applies the page surface directly to that element. Standard and linked `x-ui.card` components keep the dedicated borderless card surface (`bg-sanmal-surface-card dark:bg-sanmal-surface-card-dark`): `#F9FAFC` in light theme and `#192B40` in dark theme, intentionally distinct from the main background. The outer card uses shadow for elevation, not a border. Linked-card hover uses the elevated dark surface token. Keep the sidebar, optional header, and main as direct siblings. Let the document scroll normally at every viewport; do not turn the main region into a nested scroll container.
+The main content uses `<flux:main>` without Flux's `inset` prop and applies the page surface directly to that element. Standard and linked `x-ui.card` components keep the dedicated card surface (`bg-sanmal-surface-card dark:bg-sanmal-surface-card-dark`), intentionally distinct from the main background. **Amended (D1, target F1):** panels and cards carry a 1px border in both themes and no shadow; shadow is reserved for floating elements. Linked-card hover changes the surface to secondary (light) or the elevated dark surface (dark) and the border colour to the accent. Keep the sidebar, optional header, and main as direct siblings. Let the document scroll normally at every viewport; do not turn the main region into a nested scroll container.
 
-Keep `p-0` on the main region because page content owns its internal spacing. Use `lg:ms-0` to remove the extra start offset beside the sidebar. Add `lg:mt-0` only when a desktop-visible Flux header is also present. Do not add `overflow-y-auto`, `overscroll-contain`, fixed heights, or per-page overflow wrappers to the main region.
+**Amended (D4, target F1):** remove the permanent `class="dark"` from the `<html>` element. It is currently present in four layouts: `layouts/app/sidebar`, `layouts/auth/simple`, `layouts/auth/split`, and `layouts/auth/card`. The theme then follows the user's appearance choice through `@fluxAppearance` (already in `partials/head`); P0-3 verifies that the choice is not overwritten and that there is no theme flash.
 
-Page content owns its own internal spacing. `x-ui.page` provides width, vertical flow, and section gap; do not add blanket horizontal padding to it or duplicate spacing already provided by a page-specific surface. When a page needs inner padding, apply it to the relevant page section/card, not the application shell.
+Keep `p-0` on the main region because page content owns its internal spacing. Use `lg:ms-0` to remove the extra start offset beside the sidebar. Add `lg:mt-0` only when a desktop-visible Flux header is also present. Do not add `overflow-y-auto`, `overscroll-contain`, fixed heights, or per-page overflow wrappers to the main region. **Under review (D9):** if P0-1 measures a 0 px horizontal gutter at 360 px, a single gutter wrapper (`px-4 sm:px-6 lg:px-8 py-4 sm:py-6`) is added in `layouts/app.blade.php` and this paragraph is updated; otherwise the source of the existing gutter is documented here.
+
+Page content owns its own internal spacing. `x-ui.page` provides width, vertical flow, and section gap; do not add blanket horizontal padding to it or duplicate spacing already provided by a page-specific surface. When a page needs inner padding, apply it to the relevant page section/card, not the application shell. Pages set width and gap through `x-ui.page` props (`max-width`, `gap`), not through `!max-w-*` or `!gap-*` overrides (D10).
 
 Preserve the employee mobile header and drawer toggle. Do not add a fixed bottom navigation bar.
 
@@ -212,7 +260,7 @@ Flux 2.13 button sizes are `xs`, `sm`, and `base`; do not pass unsupported value
 - Light theme primary: SanMal brand blue (`#0E3B6B`) with white text; hover uses brand dark blue (`#0C315B`).
 - Dark theme primary: warm SanMal yellow (`#D9A72E`) with dark text (`#172033`); hover uses `#C49320`.
 - Light theme secondary: neutral primary surface, subtle border, and brand-blue text.
-- Dark theme secondary: muted warm-yellow surface (`#49351F`), gold border (`#80602B`), and soft-yellow text (`#F2BB65`). Hover increases surface/border contrast without becoming a second filled primary action.
+- Dark theme secondary (amended, D2): transparent background, `control-border-dark` border (`#5A7391`), and `text-primary-dark` text; hover uses `surface-inset-dark`. Yellow and brown are not used for any button other than the primary action. Target: applied in F1; the current source still uses the brown treatment (`#49351F`, `#80602B`, `#F2BB65`) until then.
 - Destructive remains semantic red in both themes.
 - Theme-specific styles must preserve visible focus indication and disabled-state affordance.
 
@@ -265,9 +313,9 @@ These wrap Flux UI and provide label/description/error integration. Inspect thei
 
 ### Card and surface
 - Reuse `x-ui.card` when the content is genuinely a card/surface.
-- **All cards are borderless and use shadow for elevation; do not add border utilities to card containers.** This applies consistently across every page and card type, including standalone summary/status cards and form cards.
-- The shared `x-ui.card` uses a shadow-only treatment without a border. Light cards use `sanmal-surface-card`; dark cards use `sanmal-surface-card-dark`. Linked cards may use the secondary surface on hover.
-- Borders remain appropriate for controls, dividers, tables, and inset/secondary groups when they communicate structure; they are not a substitute for card shadow.
+- Kartu dan panel berborder 1px (`border-sanmal-border` / `border-sanmal-border-dark`) di kedua tema. Bayangan hanya untuk elemen melayang: modal, dropdown, toast. Kartu bertautan mengubah latar dan warna border saat hover, tanpa bayangan tambahan. Jangan membuat kartu di dalam kartu. (Amended, D1. Target: applied in F1; the current source still uses a borderless, shadow-only card.)
+- The shared `x-ui.card` will use the card surface with a 1px border and no shadow once F1 lands. Light cards use `sanmal-surface-card`; dark cards use `sanmal-surface-card-dark`. Linked cards change the surface to secondary (light) or elevated (dark) and the border to the accent on hover.
+- Controls use the `control-border` token (at least 3:1); panels and dividers use `border`.
 - Both linked and non-linked card variants must use the same theme surface tokens; do not leave one variant on generic white/zinc surfaces.
 - Do not wrap every section in a card. Avoid card-in-card.
 - Use semantic `article`, `section`, list, or table markup when it better represents the content.
@@ -291,7 +339,7 @@ Choose based on data relationships:
 - Use Flux sidebar and header primitives for the shared application shell; do not build a parallel navigation system.
 - Use `<flux:main>` without `inset` for the full-width page-surface region. Keep sidebar, header, and main as direct layout siblings; use `lg:ms-0` on the main region (add `lg:mt-0` only if a desktop-visible header is present).
 - Let `x-ui.page` own the page-specific content width; do not add Flux `container` at the main level as well as another page max-width unless the double constraint is intentional. Use narrower page widths for forms/details and wider widths for operational data pages.
-- Keep the shared main region at `p-0`; page content owns its own spacing. Avoid blanket padding on the root `x-ui.page` (for example `p-6` or `px-4 py-4 sm:px-6 sm:py-6`); use spacing inside the page's own sections/cards instead.
+- Keep the shared main region at `p-0`; page content owns its own spacing. Avoid blanket padding on the root `x-ui.page` (for example `p-6` or `px-4 py-4 sm:px-6 sm:py-6`); use spacing inside the page's own sections/cards instead. This rule is under review (D9); see Application shell and content surface.
 - Employee navigation is one ungrouped list: Beranda, Absensi, Riwayat, Permohonan, and Lembur. On phones, use the top header with a drawer toggle; do not use a fixed bottom navigation bar.
 - Admin Dashboard is a standalone first item, not a section/group heading. It remains the default landing page and represents company-wide monitoring.
 - Admin/Superadmin accounts with a linked employee profile also receive an `Aktivitas Saya` group, beginning with `Dashboard Pribadi`, followed by Absensi, Riwayat, Permohonan Saya, and Lembur Saya. The personal dashboard reuses employee-scoped aggregation and must never show company-wide data.
@@ -302,11 +350,10 @@ Choose based on data relationships:
 
 ### Single branch and single PR
 
-- Work only on branch `docs/ui-v1-scope-and-pr-workflow`.
-- Use only [PR #27](https://github.com/leonsmith128/pt-sanmal/pull/27), targeting `main`.
-- Do not create another branch or PR for a component, page, milestone, test, or documentation task.
-- Do not merge PR #27 early. Merge once the complete V1 UI/UX scope is finished, reviewed, and verified.
-- Commit focused changes to the same branch and keep the PR description/checklist current.
+- Untuk finalisasi UI/UX sebelum produksi, gunakan satu branch `feature/ui-production-readiness` dan satu PR ke `main`. PR #27 dan #29 sudah di-merge dan tidak lagi menjadi acuan.
+- Jangan membuat branch atau PR UI lain selama PR ini terbuka. Commit per fase, kecil dan fokus.
+- Jangan merge sebelum Definition of Done di `docs/ui/DEVELOPMENT-HANDOFF.md` terpenuhi dan bukti QA tercatat di `docs/ui/progress/VISUAL-QA-LOG.md`.
+- Pertahankan deskripsi PR dan tasklist fase tetap mutakhir.
 
 ### Implementation references
 
