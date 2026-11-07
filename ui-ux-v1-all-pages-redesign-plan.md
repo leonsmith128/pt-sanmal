@@ -1,3 +1,5 @@
+> **Superseded** oleh `Handoff_UI_Produksi_SanMal.md`. Rencana ini mengasumsikan kartu tanpa border dan font Inter; keduanya tidak berlaku.
+
 # Rencana Implementasi: Redesain & Standarisasi UI Seluruh Halaman (Desktop & Mobile)
 
 Rencana ini menetapkan strategi penyelesaian antarmuka pengguna (UI/UX) untuk **seluruh halaman aplikasi PT SanMal**, baik pada tampilan desktop maupun mobile, mengikuti [SanMal Web Design Foundation](file:///home/ammar/Projects/pt-sanmal/docs/ui/DESIGN-FOUNDATION.md), [Page Inventory](file:///home/ammar/Projects/pt-sanmal/docs/ui/PAGE-INVENTORY.md), dan panduan skill `ui-ux-pro-max` serta `frontend-design`.
