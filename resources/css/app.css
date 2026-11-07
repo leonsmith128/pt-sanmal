@@ -256,6 +256,17 @@ select:focus[data-flux-control] {
     }
 }
 
+/* Compatibility shim: views still use text-sanmal-{success,warning,danger,info} for small text
+   (for example admin dashboard metrics). The raw fills fail 4.5:1 as text (dark danger 2.31:1,
+   dark warning 3.23:1, light warning 4.26:1), so route the text utilities to the AA-safe *-text tokens.
+   Remove once those views use text-sanmal-*-text directly (F4/F5). Fills (bg-, border-, ring-) are unaffected. */
+@layer utilities {
+    .text-sanmal-success { color: var(--sanmal-success-text); }
+    .text-sanmal-warning { color: var(--sanmal-warning-text); }
+    .text-sanmal-danger { color: var(--sanmal-danger-text); }
+    .text-sanmal-info { color: var(--sanmal-info-text); }
+}
+
 /* Semantic badge colors: soft surfaces with readable foregrounds */
 .sanmal-badge-success { background-color: #e8f3ea !important; color: #1d6b32 !important; }
 .sanmal-badge-warning { background-color: #fff3df !important; color: #8a4b08 !important; }
