@@ -30,6 +30,7 @@
         aria-labelledby="{{ $id }}-title"
         @if ($describedby) aria-describedby="{{ $describedby }}" @endif
         tabindex="-1"
+        x-show="{{ $model }}"
         x-trap.noscroll="{{ $model }}"
         x-transition:enter="transition ease-out duration-150 motion-reduce:duration-75"
         x-transition:enter-start="opacity-0 translate-y-2 scale-95 motion-reduce:translate-y-0 motion-reduce:scale-100"
