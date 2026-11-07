@@ -66,3 +66,12 @@ it('supports the Flux destructive variant and explicit semantic colors', functio
         ->assertSee('red-', false)
         ->assertSee('Hapus lokal');
 });
+
+it('applies a dedicated danger button class so destructive actions meet contrast in both themes', function () {
+    $this->blade('<x-ui.button variant="danger">Nonaktifkan akun</x-ui.button>')
+        ->assertSee('sanmal-button-danger', false)
+        ->assertSee('Nonaktifkan akun');
+
+    $this->blade('<x-ui.button variant="primary">Simpan</x-ui.button>')
+        ->assertDontSee('sanmal-button-danger', false);
+});
