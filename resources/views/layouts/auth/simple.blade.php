@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="dark">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
         @include('partials.head')
     </head>
@@ -13,7 +13,7 @@
                     <img src="{{ asset('images/logo-sanmal.png') }}" alt="SanMal" class="h-12 w-auto object-contain" />
                 </a>
 
-                <div class="rounded-2xl bg-sanmal-surface-card p-5 shadow-lg shadow-sanmal-brand-blue/5 dark:bg-sanmal-surface-card-dark dark:shadow-black/20 sm:p-8">
+                <div class="rounded-xl border border-sanmal-border bg-sanmal-surface-card p-5 dark:border-sanmal-border-dark dark:bg-sanmal-surface-card-dark sm:p-8">
                     {{ $slot }}
                 </div>
 
