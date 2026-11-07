@@ -11,7 +11,7 @@ Aturan bukti: centang hanya untuk pekerjaan yang benar-benar selesai dan terveri
 | Fase | Keadaan |
 |---|---|
 | F0 | Amandemen dokumen masuk di branch. Pemeriksaan P0-1 sampai P0-9 **belum dijalankan** (butuh browser, perangkat, atau `.env` server). Lihat Visual QA Log |
-| F1 | **Sebagian** ada di source (token, kartu, tombol, badge, modal, empty state, tema). Belum diverifikasi dengan test, build, atau browser. Sisa butir ditandai di bawah |
+| F1 | Komponen dan token dasar ada di source, termasuk penjaga kirim ganda `submitGuard` (belum dipakai di form mana pun). **Belum diverifikasi** dengan test, build, atau browser. Sisa butir ditandai di bawah |
 | F2 sampai F6 | Belum dimulai. Satu perubahan F2 ikut masuk bersama F1: kartu auth berborder di `layouts/auth/simple` |
 
 ## Keputusan desain (D1 sampai D10)
@@ -63,16 +63,17 @@ Sudah di source (belum terverifikasi test, build, browser):
 - [x] `x-ui.page-header`: deskripsi memakai `text-sanmal-text-secondary`
 - [x] Kelas `text-sanmal-{success,warning,danger,info}` diarahkan ke token teks AA lewat shim di `app.css` (angka metrik dashboard admin). Hapus shim setelah view memakai `*-text` langsung (F4/F5)
 - [x] Test diperbarui: `UiCardComponentTest`, `UiButtonComponentTest`, `UiBadgeComponentTest`, `UiFeedbackComponentsTest`
+- [x] Penjaga kirim ganda: Alpine `submitGuard` (`resources/js/components/submit-guard.js`, terdaftar di `app.js`; `pageshow` mengembalikan tombol). Pemakaian per form dipasang di F2 (login, aktivasi) dan F3 (akun). Halaman Livewire memakai `wire:loading`
 
 Sisa F1:
 
-- [ ] Fokus awal ke **Batal** pada dialog nada bahaya (butuh `x-ui.confirm-dialog`)
-- [ ] Penjaga kirim ganda (Alpine, `pageshow` mengembalikan tombol) untuk form non-Livewire
-- [ ] `x-ui.pill-nav` dan `x-ui.confirm-dialog` **hanya bila** pengulangan markup terbukti (`AGENTS.md`); bila tidak, markup biasa
-- [ ] Ganti warna mentah di luar palet (`zinc`, `amber-*`, `red-*`, `emerald-*`, `purple`, `sky`) di view (dashboard, pil)
-- [ ] Hapus override `!border-dashed !bg-transparent` di halaman daftar akun (F3)
+- [ ] Fokus awal ke **Batal** pada dialog nada bahaya: ditunda sampai `x-ui.confirm-dialog` dibuat
+- [ ] `x-ui.pill-nav` dan `x-ui.confirm-dialog` **hanya bila** pengulangan markup terbukti (`AGENTS.md`). Bukti dikumpulkan di F3 (konfirmasi password baru dan nonaktifkan akun) dan F5 (pil status); bila tidak terbukti, pakai markup biasa
+- [ ] Hapus override `!border-dashed !bg-transparent` di halaman daftar akun (dikerjakan di F3)
 - [ ] Periksa test lain yang meng-assert kelas yang berubah (`AdminEmployeePageTest`, `OvertimeWorkflowTest`, `RequestCenterTest`, `DashboardTest`); jalankan seluruh suite
 - [ ] `npm run build`, Pint, dan verifikasi browser
+
+Dipindah dari F1 karena menyentuh isi halaman, bukan komponen dasar: penggantian warna mentah di luar palet. Pencarian kode GitHub menemukan `purple` di `pages/dashboard.blade.php` dan `pages/employee/attendance-history/index.blade.php` (F4); pencarian untuk `zinc`, `amber-*`, `red-*`, `emerald-*`, `sky` belum dijalankan, gunakan `grep -rEn` lokal.
 
 **Penerimaan F1:** tidak ada tombol cokelat di tema gelap; kontras sesuai tabel handoff; cincin fokus kartu 3:1; kelas `text-sanmal-text-*` menghasilkan warna; tema mengikuti pilihan pengguna; test kartu diperbarui; seluruh test lulus.
 
@@ -85,7 +86,7 @@ Sisa F1:
 - [ ] Lencana hitungan antrean (butuh view composer, ketergantungan #3)
 - [x] Layout auth `simple`: kartu `rounded-xl` berborder tanpa bayangan
 - [ ] Layout auth: satu gaya header rata kiri; layar pendek bisa digulir
-- [ ] Login dan aktivasi: string Indonesia, aturan password dari validasi aktual, `viewable`, penjaga kirim ganda
+- [ ] Login dan aktivasi: string Indonesia, aturan password dari validasi aktual, `viewable`, pasang `submitGuard`
 - [ ] Halaman error 403, 404, 419, 429, 500, 503 yang berdiri sendiri (tanpa Auth, sidebar, query)
 - [ ] Hook JS 419 Livewire, hanya bila P0-7 menunjukkan dialog bawaan berbahasa Inggris
 - [ ] Tautan **Lewati ke konten**, `id="konten-utama"`, `<html lang>` mengikuti locale
@@ -107,11 +108,11 @@ Spesifikasi: Handoff PR 29 bagian 5 (di handoff produksi dirujuk sebagai bagian 
 
 ### F4. Halaman pegawai (mobile-first)
 
-- [ ] Dashboard pegawai dan Dashboard Pribadi: pemetaan status (hadir sukses; belum lengkap peringatan; perlu ditinjau bahaya; cuti, izin, sakit info; tidak ada netral)
+- [ ] Dashboard pegawai dan Dashboard Pribadi: pemetaan status (hadir sukses; belum lengkap peringatan; perlu ditinjau bahaya; cuti, izin, sakit info; tidak ada netral); hapus `purple`, `sky`, dan warna mentah
 - [ ] Banner status hari ini; tombol absensi 48px; kosakata **Permohonan**
 - [ ] Absensi: hanya token, ukuran sentuh, status kamera dan GPS beserta tindakan lanjutan; kamera, GPS, watermark, upload tidak diubah
 - [ ] Tautan **Mulai absen** (anchor): **butuh persetujuan pemilik** sebelum dikerjakan
-- [ ] Riwayat, Permohonan, Koreksi, Lembur: pil status 44px, konfirmasi pembatalan, aturan lampiran dari validasi aktual, dua badge terpisah di lembur
+- [ ] Riwayat, Permohonan, Koreksi, Lembur: pil status 44px, konfirmasi pembatalan, aturan lampiran dari validasi aktual, dua badge terpisah di lembur; hapus `purple` di riwayat
 - [ ] Profil, Keamanan Akun, Notifikasi: state unggah, penanda **Baru** memakai aksen biru
 
 **Penerimaan F4:** diff tidak menyentuh alur kamera, GPS, dan upload; target sentuh 44px; tidak ada warna di luar palet.
