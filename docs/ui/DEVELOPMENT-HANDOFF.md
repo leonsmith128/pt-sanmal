@@ -38,7 +38,7 @@ SanMal adalah aplikasi internal absensi dan administrasi pegawai PT SanMal Calib
 - **Employee:** mobile-first. Prioritaskan absensi, kamera/GPS/bukti, permohonan, riwayat, dan touch interaction.
 - **Admin:** desktop/tablet information-first tetapi tetap mobile-friendly. Prioritaskan data operasional, filter, table/list, detail review, dan efisiensi administrasi.
 - **Shared:** gunakan bahasa visual dan kontrak komponen yang konsisten; komposisi halaman tidak harus identik.
-- **Design principle:** seamless-first. Jangan membungkus semua konten dengan card/border/shadow atau membuat card-in-card.
+- **Design principle:** seamless-first. Jangan membungkus semua konten dengan panel atau membuat panel di dalam panel. Panel berborder 1px di kedua tema dan bayangan hanya untuk elemen melayang (lihat Design Foundation §8).
 
 ## Pola arsitektur UI yang digunakan
 
@@ -63,12 +63,12 @@ Tanpa persetujuan eksplisit, jangan mengubah fitur produk, domain rules, attenda
 | Item | Nilai |
 |---|---|
 | Repository | `leonsmith128/pt-sanmal` |
-| Branch | `docs/ui-v1-scope-and-pr-workflow` |
-| Tracking PR | [#27](https://github.com/leonsmith128/pt-sanmal/pull/27) ke `main` |
+| Branch | `feature/ui-production-readiness` |
+| Tracking PR | Satu PR ke `main` (nomor dicatat di deskripsi PR). PR #27 dan #29 sudah di-merge dan tidak lagi menjadi acuan |
 
-- Semua pekerjaan UI/UX V1, test, dan dokumentasi dikerjakan pada branch dan PR yang sama.
-- Jangan membuat branch/PR UI/UX lain atau commit langsung ke `main`.
-- Jangan merge PR #27 sampai seluruh V1 selesai, direview, dan diverifikasi.
+- Semua pekerjaan finalisasi UI/UX, test, dan dokumentasi dikerjakan pada branch dan PR yang sama, per fase (F0 sampai F6). Progres fase dicatat sebagai tasklist di deskripsi PR.
+- Jangan membuat branch/PR UI/UX lain atau commit langsung ke `main` selama PR ini terbuka.
+- Jangan merge PR sampai Definition of Done di bawah terpenuhi dan bukti QA tercatat.
 - Sebelum setiap write, periksa status PR, branch HEAD, dan SHA file terbaru. Jangan menimpa perubahan yang lebih baru.
 - Gunakan commit kecil dan fokus; jangan force-push atau rewrite history.
 
@@ -99,7 +99,7 @@ Tanpa persetujuan eksplisit, jangan mengubah fitur produk, domain rules, attenda
 - Periksa state default, hover, focus-visible, active, disabled, loading, error, empty, long content, serta light/dark jika didukung.
 - Untuk perubahan kamera/GPS, uji perangkat nyata, HTTPS, permission, orientasi, network, dan upload; emulasi viewport saja tidak cukup.
 - Catat hanya hasil yang benar-benar dijalankan pada [Implementation Status](progress/IMPLEMENTATION-STATUS.md) dan [Visual QA Log](progress/VISUAL-QA-LOG.md).
-- Update PR #27 dan laporkan file, kontrak, test, QA, serta keterbatasan secara eksplisit.
+- Update PR UI yang aktif dan laporkan file, kontrak, test, QA, serta keterbatasan secara eksplisit.
 
 Source inspection bukan browser test. Component test bukan bukti seluruh workflow halaman. Desktop QA bukan bukti mobile QA.
 
@@ -118,12 +118,13 @@ Jangan mengubah tanpa scope dan persetujuan yang jelas:
 
 Jika dokumentasi bertentangan dengan source/test terbaru, investigasi dan perbaiki dokumen yang paling sempit. Jangan menebak.
 
-## Definition of ready untuk merge V1
+## Definition of Done sebelum merge
 
 - Semua halaman in-scope Employee, Admin, shared, dan authentication telah direview.
 - Komponen bersama telah diperiksa pada konteks penggunaan nyata.
 - Responsive, interaction, accessibility, dan visual QA telah dilakukan atau gap diterima eksplisit oleh owner.
-- Test, formatting, dan asset build relevan telah dijalankan.
+- Test, formatting, dan asset build relevan telah dijalankan; `public/build` diunggah di staging.
+- Kontras dihitung ulang dan tercatat: tidak ada teks di bawah 4,5:1 atau kontrol di bawah 3:1.
 - Alur kamera/GPS kritis telah diuji pada perangkat nyata bila terdampak.
-- PR checklist, implementation status, dan QA log konsisten.
+- PR checklist, implementation status, dan QA log konsisten dengan source.
 - Tidak ada regression high-severity atau gap scope yang belum didokumentasikan.
